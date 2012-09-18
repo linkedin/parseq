@@ -1,4 +1,5 @@
 language: java
+script: ant -Dtestng.verbosity=2 test
 jdk:
   - oraclejdk7
   - openjdk7

@@ -27,6 +27,10 @@
     <!-- Enables/disables inclusion of debug symbols in .class files. -->
     <property name="debug" value="true" />
 
+    <!-- How verbose should testng be? A value of 2 or greater logs tests that
+         are run and test failure stack traces to the console -->
+    <property name="testng.verbosity" value="1"/>
+
     <path id="build.classpath">
         <pathelement location="${src.build.dir}"/>
         <fileset dir="${lib.build.dir}/build" includes="*.jar"/>
@@ -130,7 +134,7 @@
             description="Runs the unit and integration tests. Set property no.test.tracevis to skip visualization tests."/>
 
     <target name="test-unit" depends="build-test" description="Runs the unit tests.">
-        <testng haltonfailure="true" outputDir="${test.result.dir}">
+        <testng haltonfailure="true" outputDir="${test.result.dir}" verbose="${testng.verbosity}">
             <classfileset dir="${test.build.dir}" includes="**/Test*.class"/>
             <classpath refid="test.classpath"/>
         </testng>
