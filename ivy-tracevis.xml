@@ -1,0 +1,6 @@
+<ivy-module version="2.0" xmlns:m="http://ant.apache.org/ivy/maven">
+    <info organisation="com.linkedin.parseq" module="parseq-tracevis"/>
+    <publications>
+        <artifact name="parseq-tracevis" type="tar.gz" ext="tar.gz"/>
+    </publications>
+</ivy-module>

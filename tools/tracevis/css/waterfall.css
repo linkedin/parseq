@@ -1,0 +1,40 @@
+.waterfallview .trace rect {
+  stroke: #999;
+}
+
+.waterfallview .trace.success rect {
+  fill: #E0FFE0;
+}
+
+.waterfallview .trace.error rect {
+  fill: #FFE0E0;
+}
+
+.waterfallview .trace.early_finish rect {
+  fill: #FFC;
+}
+
+.waterfallview .trace rect {
+  fill: #DDD;
+}
+
+.waterfallview .trace text {
+  font-family: arial;
+}
+
+.waterfallview .trace.composite text {
+  fill: black;
+  font-weight: bold;
+}
+
+.waterfallview .axis path,
+.waterfallview .axis line {
+  fill: none;
+  stroke: black;
+  shape-rendering: crispEdges;
+  stroke-opacity: .2;
+}
+
+.waterfallview .axis.grid line.tick.minor {
+  stroke-opacity: .05;
+}

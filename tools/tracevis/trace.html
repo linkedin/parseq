@@ -1,0 +1,139 @@
+<!--
+* Copyright 2012 LinkedIn, Inc
+*
+* Licensed under the Apache License, Version 2.0 (the "License"); you may not
+* use this file except in compliance with the License. You may obtain a copy of
+* the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+* WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+* License for the specific language governing permissions and limitations under
+* the License.
+-->
+
+<!doctype html>
+
+<meta charset="utf-8"/>
+<title>ParSeq JSON Trace Viewer</title>
+
+<script src="lib/dig.min.js"></script>
+<script src="lib/d3.v2.min.js"></script>
+
+<script src="js/trace.js"></script>
+<script src="js/table.js"></script>
+<script src="js/waterfall.js"></script>
+<script src="js/graphviz.js"></script>
+
+<link rel="stylesheet" href="css/table.css">
+<link rel="stylesheet" href="css/waterfall.css">
+
+<style type="text/css">
+.hidden {
+  display: none;
+}
+
+#jsonInput {
+  border-radius: 5px;
+}
+
+textarea#jsonText {
+  resize: vertical;
+  width: 100%;
+}
+</style>
+
+<script>
+/* If the URL contains a trace, inject it into the input textarea */
+var traceRE = /(?:\?|&)trace=([^\&]+)/;
+function injectTrace() {
+  var searchStr = window.location.search;
+  var match = traceRE.exec(searchStr);
+  if (match) {
+    d3.select("#jsonText").property("value", decodeURIComponent(match[1]));
+  }
+}
+
+var currentView;
+
+function resetView() {
+  d3.select("#resultView").remove();
+  currentView = null;
+}
+
+function reset() {
+  resetView();
+  d3.select("#jsonText").property("value", "");
+}
+
+function redrawView() {
+  if (currentView) {
+    createView(currentView);
+  }
+}
+
+function createView(view) {
+  resetView();
+  currentView = view;
+  var resultView = d3.select("body").append("div").attr("id", "resultView");
+
+  var jsonText = d3.select("#jsonText").property("value");
+  try {
+    var json = JSON.parse(jsonText);
+  } catch (err) {
+    alert("JSON parse failed: " + err);
+    throw err;
+  }
+  var excludeHiddenTasks = d3.select("#excludeHiddenTasks").property("checked");
+  var excludeSystemTasks = d3.select("#excludeSystemTasks").property("checked");
+  var excludeAllCompositeTasks = d3.select("#excludeAllCompositeTasks").property("checked");
+
+  var root = TRACE.parseJson(json,excludeHiddenTasks, excludeSystemTasks, excludeAllCompositeTasks);
+  TRACE.appendPath(root);
+  view.render(resultView, root);
+}
+
+function viewWaterfall() {
+  createView(WATERFALL);
+}
+
+function viewGraphviz() {
+  createView(GRAPHVIZ);
+}
+
+function viewTable() {
+  createView(TABLE);
+}
+</script>
+
+<body onload="injectTrace();">
+
+<h1>ParSeq JSON Trace Viewer</h1>
+
+<fieldset id="jsonInput">
+  <legend>JSON Trace Input</legend>
+
+  <div>
+    <textarea id="jsonText"></textarea>
+  </div>
+
+  <input onchange="redrawView();" type="checkbox" id="excludeHiddenTasks" checked="checked">
+  <label for="excludeHiddenTasks">Don't show <em>user</em> hidden tasks</label><br>
+
+  <input onchange="redrawView();" type="checkbox" id="excludeSystemTasks" checked="checked">
+  <label for="excludeSystemTasks">Don't show <em>system</em> hidden tasks</label><br>
+
+  <input onchange="redrawView();" type="checkbox" id="excludeAllCompositeTasks">
+  <label for="excludeAllCompositeTasks">Don't show <em>all</em> parent tasks</label>
+
+  <div class="buttons">
+    <button onclick="viewWaterfall();">View Waterfall</button>
+    <button onclick="viewGraphviz();">View Graphviz</button>
+    <button onclick="viewTable();">View Table</button>
+    <button onclick="reset();">Reset</button>
+  </div>
+</fieldset>
+
+<hr/>

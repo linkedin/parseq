@@ -1,0 +1,51 @@
+.tableview table {
+  border-collapse: collapse;
+  border: 2px black solid;
+}
+
+.tableview th {
+  padding: 0 10px;
+}
+
+.tableview td {
+  border: 1px #ccc solid;
+  padding: 0 10px;
+}
+
+.tableview span {
+  white-space: nowrap;
+}
+
+.tableview td span.composite {
+  font-weight: bold;
+}
+
+.tableview td.numeric {
+  text-align: right;
+}
+
+.tableview td.value {
+  width: 25em;
+  padding-right: 1em;
+}
+
+.tableview td.value textarea {
+  min-width: 100%;
+  width: 100%;
+}
+
+.tableview .success {
+  color: green;
+}
+
+.tableview .error {
+  color: red;
+}
+
+.tableview .early_finish {
+  color: goldenrod;
+}
+
+.tableview .unfinished {
+  color: gray;
+}

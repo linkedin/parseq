@@ -1,0 +1,20 @@
+{
+  "name": "tracevis",
+  "version": "0.0.1",
+  "description": "trace visualization",
+  "main": "index.js",
+  "directories": {
+    "src": "js",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha -R spec"
+  },
+  "keywords": [
+    "visualization",
+    "trace"
+  ],
+  "devDependencies": {
+    "mocha": "1.2.x"
+  }
+}
