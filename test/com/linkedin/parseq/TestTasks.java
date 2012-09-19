@@ -250,17 +250,26 @@ public class TestTasks extends BaseEngineTest
     assertTrue("Both tasks did not run within the timeout",
                cdl.await(100, TimeUnit.MILLISECONDS));
 
+    // If execution was serialized then it would have hung after executing
+    // task 1, because task 1's promise was not set.
+
     promise1.done("test");
     promise2.done(10);
+
+    // We add a promise listener to the promise returned from a task to finish
+    // tasks asynchronously. Since we can only wait on the start of tasks above
+    // we should wait for the completion of tasks here before checking their
+    // values.
+
+    assertTrue("Par task did not finish in a reasonable amount of time",
+        par.await(100, TimeUnit.MILLISECONDS));
+
     assertEquals(2, par.getTasks().size());
     assertEquals("test", par.getTasks().get(0).get());
     assertEquals(10, par.getTasks().get(1).get());
     assertEquals(2, par.getSuccessful().size());
     assertEquals("test", par.getSuccessful().get(0));
     assertEquals(10, par.getSuccessful().get(1));
-
-    assertTrue("Par task did not finish in a reasonable amount of time",
-               par.await(100, TimeUnit.MILLISECONDS));
   }
 
   @Test
