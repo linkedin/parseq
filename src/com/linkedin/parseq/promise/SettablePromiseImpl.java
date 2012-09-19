@@ -36,6 +36,7 @@ import java.util.concurrent.TimeUnit;
   private final List<PromiseListener<T>> _listeners = new ArrayList<PromiseListener<T>>();
 
   private final CountDownLatch _valueLatch = new CountDownLatch(1);
+  private final CountDownLatch _awaitLatch = new CountDownLatch(1);
 
   private volatile T _value;
   private volatile Throwable _error;
@@ -84,13 +85,13 @@ import java.util.concurrent.TimeUnit;
   @Override
   public void await() throws InterruptedException
   {
-    _valueLatch.await();
+    _awaitLatch.await();
   }
 
   @Override
   public boolean await(final long time, final TimeUnit unit) throws InterruptedException
   {
-    return _valueLatch.await(time, unit);
+    return _awaitLatch.await(time, unit);
   }
 
   @Override
@@ -123,6 +124,7 @@ import java.util.concurrent.TimeUnit;
   private void doFinish(T value, Throwable error) throws PromiseResolvedException
   {
     final List<PromiseListener<T>> listeners;
+
     synchronized (_lock)
     {
       ensureNotDone();
@@ -137,6 +139,8 @@ import java.util.concurrent.TimeUnit;
     {
       notifyListener(listeners.get(i));
     }
+
+    _awaitLatch.countDown();
   }
 
   private void notifyListener(final PromiseListener<T> listener)

@@ -17,6 +17,7 @@
 package com.linkedin.parseq;
 
 import com.linkedin.parseq.promise.Promise;
+import com.linkedin.parseq.promise.PromiseListener;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 import org.testng.annotations.Test;
@@ -28,6 +29,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.linkedin.parseq.Tasks.action;
 import static com.linkedin.parseq.Tasks.par;
@@ -44,6 +46,7 @@ import static org.testng.AssertJUnit.fail;
  */
 public class TestTasks extends BaseEngineTest
 {
+
   @Test
   public void testTaskThatThrows() throws InterruptedException
   {
@@ -175,6 +178,38 @@ public class TestTasks extends BaseEngineTest
     assertEquals(1, par.get().size());
     assertEquals(value, par.get().get(0));
     assertEquals("value", task.get());
+  }
+
+  @Test
+  public void testAwait() throws InterruptedException
+  {
+    final String value = "value";
+    final Task<String> task = value("value", value);
+    final AtomicReference<Boolean> resultRef = new AtomicReference<Boolean>(false);
+
+    task.addListener(new PromiseListener<String>()
+    {
+      @Override
+      public void onResolved(Promise<String> stringPromise)
+      {
+        try
+        {
+          Thread.sleep(100);
+        }
+        catch (InterruptedException e)
+        {
+          //ignore
+        }
+        finally
+        {
+          resultRef.set(true);
+        }
+      }
+    });
+
+    getEngine().run(task);
+    task.await();
+    assertEquals(Boolean.TRUE, resultRef.get());
   }
 
   @Test
