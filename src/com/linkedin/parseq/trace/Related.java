@@ -56,7 +56,7 @@ public class Related<T>
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    final Related related = (Related) o;
+    final Related<?> related = (Related<?>) o;
 
     return _relationship.equals(related._relationship) &&
            _related.equals(related._related);

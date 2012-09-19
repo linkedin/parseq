@@ -33,7 +33,7 @@ package com.linkedin.parseq.promise;
   }
 
   @Override
-  public void onResolved(Promise resolvedPromise)
+  public void onResolved(Promise<S> resolvedPromise)
   {
     if (_source.isFailed())
     {
