@@ -355,7 +355,7 @@ public class TestTaskToTrace extends BaseEngineTest
       }
     };
 
-    Task par = par(task1, task2);
+    Task<?> par = par(task1, task2);
     getEngine().run(par);
     par.await();
 
@@ -420,7 +420,7 @@ public class TestTaskToTrace extends BaseEngineTest
       }
     };
 
-    Task seq = seq(task1, task2, task3);
+    Task<?> seq = seq(task1, task2, task3);
     getEngine().run(seq);
     seq.await();
 

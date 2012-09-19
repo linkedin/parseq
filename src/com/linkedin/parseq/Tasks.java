@@ -101,7 +101,7 @@ public class Tasks
   {
     //Strip the type info. Read method comment.
     @SuppressWarnings("unchecked")
-    final ParTask par = new ParTaskImpl("par", Arrays.asList(tasks));
+    final ParTask<?> par = new ParTaskImpl<Object>("par", Arrays.asList(tasks));
     return par;
   }
 

@@ -29,7 +29,7 @@ public class TestFIFOPriorityQueue
   @Test
   public void testPollOnEmpty()
   {
-    final FIFOPriorityQueue queue = new FIFOPriorityQueue();
+    final FIFOPriorityQueue<Object> queue = new FIFOPriorityQueue<Object>();
     assertNull(queue.poll());
   }
 

@@ -38,7 +38,7 @@ public class CountDownPromiseListener<T> implements PromiseListener<T>
   }
 
   @Override
-  public void onResolved(Promise resolvedPromise)
+  public void onResolved(Promise<T> resolvedPromise)
   {
     if (_counter.decrementAndGet() == 0)
     {
