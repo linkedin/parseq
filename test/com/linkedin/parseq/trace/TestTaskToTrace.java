@@ -306,6 +306,32 @@ public class TestTaskToTrace extends BaseEngineTest
   }
 
   @Test
+  public void testTraceIsAddedBeforeAwaitCompletes() throws InterruptedException
+  {
+    for (int i = 0 ;i < 100; i++)
+    {
+      final Task<String> innerTask = value("xyz");
+      final Task<String> task = new BaseTask<String>()
+      {
+        @Override
+        protected Promise<? extends String> run(final Context context) throws Exception
+        {
+          // We kick off a task that won't finish before the containing task
+          // (this task) is finished.
+          context.run(innerTask);
+
+          return Promises.value("value");
+        }
+      };
+
+      getEngine().run(task);
+      task.await();
+
+      assertTrue(task.getTrace().getRelated().iterator().hasNext());
+    }
+  }
+
+  @Test
   public void testTraceWithMultiplePotentialParent() throws InterruptedException
   {
     final Task<String> innerTask = value("xyz");
