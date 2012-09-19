@@ -34,9 +34,9 @@ import java.util.concurrent.TimeUnit;
 
   private final Object _lock = new Object();
   private final List<PromiseListener<T>> _listeners = new ArrayList<PromiseListener<T>>();
-  private final List<PromiseListener<T>> _awaitListeners = new ArrayList<PromiseListener<T>>();
 
   private final CountDownLatch _valueLatch = new CountDownLatch(1);
+  private final CountDownLatch _awaitLatch = new CountDownLatch(1);
 
   private volatile T _value;
   private volatile Throwable _error;
@@ -85,43 +85,13 @@ import java.util.concurrent.TimeUnit;
   @Override
   public void await() throws InterruptedException
   {
-    await(Long.MAX_VALUE, TimeUnit.DAYS);
+    _awaitLatch.await();
   }
 
   @Override
   public boolean await(final long time, final TimeUnit unit) throws InterruptedException
   {
-    if (isDone())
-    {
-      return true;
-    }
-
-    final CountDownLatch countDownLatch = new CountDownLatch(1);
-    addAwaitListener(new PromiseListener<T>()
-    {
-      @Override
-      public void onResolved(Promise<T> promise)
-      {
-        countDownLatch.countDown();
-      }
-    });
-
-    return countDownLatch.await(time, unit);
-  }
-
-
-  private void addAwaitListener(final PromiseListener<T> listener)
-  {
-    synchronized (_lock)
-    {
-      if (!isDone())
-      {
-        _awaitListeners.add(listener);
-        return;
-      }
-    }
-
-    notifyListener(listener);
+    return _awaitLatch.await(time, unit);
   }
 
   @Override
@@ -154,7 +124,7 @@ import java.util.concurrent.TimeUnit;
   private void doFinish(T value, Throwable error) throws PromiseResolvedException
   {
     final List<PromiseListener<T>> listeners;
-    final List<PromiseListener<T>> awaitListeners;
+
     synchronized (_lock)
     {
       ensureNotDone();
@@ -162,9 +132,7 @@ import java.util.concurrent.TimeUnit;
       _error = error;
       _valueLatch.countDown();
       listeners = new ArrayList<PromiseListener<T>>(_listeners);
-      awaitListeners = new ArrayList<PromiseListener<T>>(_awaitListeners);
       _listeners.clear();
-      _awaitListeners.clear();
     }
 
     for (int i = listeners.size() - 1; i >= 0; i--)
@@ -172,10 +140,7 @@ import java.util.concurrent.TimeUnit;
       notifyListener(listeners.get(i));
     }
 
-    for (int i = awaitListeners.size() - 1; i >= 0; i--)
-    {
-      notifyListener(awaitListeners.get(i));
-    }
+    _awaitLatch.countDown();
   }
 
   private void notifyListener(final PromiseListener<T> listener)
