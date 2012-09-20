@@ -5,6 +5,15 @@ VERSION=`sed -n 's|version=||p' version.properties`
 echo Attempting to publish: $VERSION
 echo
 
+JAVA_VERSION=`java -version 2>&1 | head -1`
+echo $JAVA_VERSION | grep -q '1\.6\.'
+if test $? -ne 0
+then
+    echo "ParSeq releases can only be built using a Java 1.6 JDK."
+    echo "Java reports its version to be: $JAVA_VERSION"
+    exit 1
+fi
+
 DIRTY="`git status --porcelain || echo FAIL`"
 if test -n "$DIRTY"
 then
