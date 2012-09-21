@@ -67,6 +67,11 @@ What Next?
 
 To learn more about ParSeq, please visit our Wiki.
 
+Build Status
+------------
+
+[![Build Status](https://secure.travis-ci.org/linkedin/parseq.png)](http://travis-ci.org/linkedin/parseq.js)
+
 License
 -------
 
