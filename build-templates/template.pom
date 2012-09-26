@@ -1,0 +1,38 @@
+${ivy.pom.license}
+${ivy.pom.header}
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>${ivy.pom.groupId}</groupId>
+    <artifactId>${ivy.pom.artifactId}</artifactId>
+    <version>${ivy.pom.version}</version>
+    <packaging>${ivy.pom.packaging}</packaging>
+    <name>${ivy.pom.artifactId}</name>
+    <description>${ivy.pom.description}</description>
+    <url>${ivy.pom.url}</url>
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <scm>
+        <connection>scm:git:git://github.com/linkedin/parseq.git</connection>
+        <url>https://github.com/linkedin/parseq</url>
+    </scm>
+    <developers>
+        <developer>
+            <id>cpettitt</id>
+            <name>Chris Pettitt</name>
+            <email>cpettitt@linkedin.com</email>
+        </developer>
+        <developer>
+            <id>ckchan</id>
+            <name>Chi Kit Chan</name>
+            <email>ckchan@linkedin.com</email>
+        </developer>
+    </developers>
+</project>

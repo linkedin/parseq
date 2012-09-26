@@ -147,6 +147,30 @@
         <ivy:deliver deliverpattern="${dist.dir}/[artifact]-[revision].[ext]" pubrevision="${version}" validate="true"/>
         <ivy:resolve file="ivy-tracevis.xml" conf="default"/>
         <ivy:deliver deliverpattern="${dist.dir}/tracevis-[artifact]-[revision].[ext]" pubrevision="${version}" validate="true"/>
+
+        <property name="ivy.pom.description" value="ParSeq is a framework that makes it easier to write and maintain fast, scalable applications in Java"/>
+        <property name="ivy.pom.url" value="https://github.com/linkedin/parseq"/>
+        <ivy:makepom ivyfile="${dist.dir}/ivy-${version}.xml" pomfile="${dist.dir}/parseq-${version}.pom" templatefile="${basedir}/build-templates/template.pom" conf="build">
+            <mapping conf="build" scope="compile"/>
+        </ivy:makepom>
+    </target>
+
+    <target name="bundle" depends="dist"
+            description="Builds a release bundle to ${dist.dir}/bundle.jar">
+        <sign file="${dist.dir}/parseq-${version}.pom"/>
+        <sign file="${dist.dir}/parseq-${version}.jar"/>
+        <sign file="${dist.dir}/parseq-${version}-sources.jar"/>
+        <sign file="${dist.dir}/parseq-${version}-javadoc.jar"/>
+        <jar destfile="${dist.dir}/parseq-${version}-bundle.jar" basedir="${dist.dir}">
+            <include name="parseq-${version}.pom"/>
+            <include name="parseq-${version}.pom.asc"/>
+            <include name="parseq-${version}.jar"/>
+            <include name="parseq-${version}.jar.asc"/>
+            <include name="parseq-${version}-sources.jar"/>
+            <include name="parseq-${version}-sources.jar.asc"/>
+            <include name="parseq-${version}-javadoc.jar"/>
+            <include name="parseq-${version}-javadoc.jar.asc"/>
+        </jar>
     </target>
 
     <target name="clean" description="Cleans build and dist dirs">
@@ -166,6 +190,20 @@
             </args>
         </make>
     </target>
+
+    <macrodef name="sign">
+        <attribute name="file"/>
+        <sequential>
+            <echo message="Signing @{file}"/>
+            <!-- Note: we currently use the default key for signing. We can add
+                 support for alternate keys using the -u option. -->
+            <exec executable="gpg">
+                <arg value="-a"/>
+                <arg value="-b"/>
+                <arg value="@{file}"/>
+            </exec>
+        </sequential>
+    </macrodef>
 
     <macrodef name="make-jar">
         <attribute name="destfile"/>
