@@ -1,0 +1,52 @@
+#!/bin/sh
+
+set -e
+
+if test $# -lt 1
+then
+    echo >&2 "Usage: $(basename $0) <version>"
+    exit 1
+fi
+VERSION=$1
+
+PREV_BRANCH=`git rev-parse --abbrev-ref HEAD`
+if test "$PREV_BRANCH" == "HEAD"
+then
+    echo >&2 Could not get current branch or on a detached head
+    exit 1
+fi
+
+if test ! -f version.properties
+then
+    echo >&2 Could not find version.properties. Run this command from the root of the project.
+    exit 1
+fi
+
+git checkout v$VERSION
+ant clean
+ant doc
+
+git fetch origin gh-pages
+git branch tmp-gh-pages origin/gh-pages
+
+trap "git co $PREV_BRANCH; git branch -D tmp-gh-pages" INT TERM EXIT
+git checkout tmp-gh-pages
+
+if test -d javadoc/$VERSION
+then
+    echo >&2 Refusing to overwrite existing javadoc
+    exit 1 
+fi
+
+mkdir -p javadoc/$VERSION
+cp -r build/doc/* javadoc/$VERSION
+
+rm -rf javadoc/latest
+mkdir -p javadoc/latest
+cp -r build/doc/* javadoc/latest
+
+git add javadoc/$VERSION
+git add -u javadoc/latest
+git add javadoc/latest
+git commit -m "Generated javadoc for version: $VERSION"
+git push origin tmp-gh-pages:gh-pages
