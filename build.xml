@@ -197,7 +197,7 @@
             <echo message="Signing @{file}"/>
             <!-- Note: we currently use the default key for signing. We can add
                  support for alternate keys using the -u option. -->
-            <exec executable="gpg">
+            <exec executable="gpg" failonerror="true">
                 <arg value="-a"/>
                 <arg value="-b"/>
                 <arg value="@{file}"/>
