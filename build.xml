@@ -155,6 +155,24 @@
         </ivy:makepom>
     </target>
 
+    <target name="bundle" depends="dist"
+            description="Builds a release bundle to ${dist.dir}/bundle.jar">
+        <sign file="${dist.dir}/parseq-${version}.pom"/>
+        <sign file="${dist.dir}/parseq-${version}.jar"/>
+        <sign file="${dist.dir}/parseq-${version}-sources.jar"/>
+        <sign file="${dist.dir}/parseq-${version}-javadoc.jar"/>
+        <jar destfile="${dist.dir}/parseq-${version}-bundle.jar" basedir="${dist.dir}">
+            <include name="parseq-${version}.pom"/>
+            <include name="parseq-${version}.pom.asc"/>
+            <include name="parseq-${version}.jar"/>
+            <include name="parseq-${version}.jar.asc"/>
+            <include name="parseq-${version}-sources.jar"/>
+            <include name="parseq-${version}-sources.jar.asc"/>
+            <include name="parseq-${version}-javadoc.jar"/>
+            <include name="parseq-${version}-javadoc.jar.asc"/>
+        </jar>
+    </target>
+
     <target name="clean" description="Cleans build and dist dirs">
         <delete dir="${build.dir}" />
         <delete dir="${dist.dir}" />
@@ -172,6 +190,20 @@
             </args>
         </make>
     </target>
+
+    <macrodef name="sign">
+        <attribute name="file"/>
+        <sequential>
+            <echo message="Signing @{file}"/>
+            <!-- Note: we currently use the default key for signing. We can add
+                 support for alternate keys using the -u option. -->
+            <exec executable="gpg">
+                <arg value="-a"/>
+                <arg value="-b"/>
+                <arg value="@{file}"/>
+            </exec>
+        </sequential>
+    </macrodef>
 
     <macrodef name="make-jar">
         <attribute name="destfile"/>
