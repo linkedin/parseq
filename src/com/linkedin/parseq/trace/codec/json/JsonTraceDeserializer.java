@@ -28,7 +28,7 @@ import java.io.IOException;
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Chi Chan (ckchan@linkedin.com)
  */
-public class JsonTraceDeserializer
+class JsonTraceDeserializer
 {
   private JsonTraceDeserializer() {}
 
