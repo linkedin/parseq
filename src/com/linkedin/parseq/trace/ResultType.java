@@ -20,15 +20,39 @@ import com.linkedin.parseq.EarlyFinishException;
 import com.linkedin.parseq.Task;
 
 /**
+ * An enumeration that classifies the state of a Task.
+ *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
 public enum ResultType
 {
+  /**
+   * Indicates that the task completed without error.
+   */
   SUCCESS,
+
+  /**
+   * Indicates that the task completed with an error.
+   */
   ERROR,
+
+  /**
+   * Indicates that the task was cancelled because it's parent was resolved
+   * before the task itself was resolved.
+   */
   EARLY_FINISH,
+
+  /**
+   * Indicates that the task has not yet been resolved.
+   */
   UNFINISHED;
 
+  /**
+   * Given a task this method will return a {@link ResultType} classification.
+   *
+   * @param task the task to classify
+   * @return the result type classification for the task
+   */
   public static ResultType fromTask(final Task<?> task)
   {
     if (!task.isDone())

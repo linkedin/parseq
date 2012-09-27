@@ -24,7 +24,6 @@ import java.util.Iterator;
  * An exception representing multiple exceptions.  Useful for example to deliver multiple
  * exceptions to a callback interface which only accepts a single Exception.
  * @author Steven Ihde
- * @version $Revision: $
  */
 
 public class MultiException extends Exception
