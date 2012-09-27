@@ -112,7 +112,9 @@
 
     <target name="doc" description="Build the javadoc." depends="build-src">
         <javadoc destdir="${doc.build.dir}">
-            <packageset dir="${src.dir}"/>
+            <packageset dir="${src.dir}">
+                <exclude name="com/linkedin/parseq/internal"/>
+            </packageset>
             <classpath refid="build.classpath"/>
         </javadoc>
     </target>
