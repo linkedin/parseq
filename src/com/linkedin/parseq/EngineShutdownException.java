@@ -17,7 +17,10 @@
 package com.linkedin.parseq;
 
 /**
- * @author Chris Pettitt
+ * This exception is raised when a Task is submitted to an engine after the
+ * engine has been shutdown.
+ *
+ * @author Chris Pettitt (cpettitt@linkedin.com)
  */
 public class EngineShutdownException extends Exception
 {

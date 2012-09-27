@@ -32,7 +32,7 @@ import java.io.OutputStream;
  * JSON implementation of {@link com.linkedin.parseq.trace.codec.TraceCodec}
  *
  * @author Chi Chan (ckchan@linkedin.com)
- * @author Chris Pettitt
+ * @author Chris Pettitt (cpettitt@linkedin.com)
  */
 public class JsonTraceCodec implements TraceCodec
 {

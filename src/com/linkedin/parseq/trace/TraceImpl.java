@@ -21,7 +21,7 @@ import java.util.Set;
 
 /**
  * @author Chi Chan (ckchan@linkedin.com)
- * @author Chris Pettitt
+ * @author Chris Pettitt (cpettitt@linkedin.com)
  */
 /* package private */ class TraceImpl implements Trace
 {

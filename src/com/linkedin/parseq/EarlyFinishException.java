@@ -17,8 +17,9 @@
 package com.linkedin.parseq;
 
 /**
- * This exception indicates that the a task was terminated because its parent
- * finished before it returned.
+ * This exception indicates that a task was cancelled because its parent was
+ * resolved (a value was set for the parent) before the task itself was
+ * resolved.
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */

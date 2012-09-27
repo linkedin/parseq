@@ -22,6 +22,8 @@ import com.linkedin.parseq.Task;
 import java.util.Set;
 
 /**
+ * An Object that can be used to construct {@link Trace}s for {@link Task}s.
+ *
  * @author Chi Chan (ckchan@linkedin.com)
  */
 public class TraceBuilderImpl implements TraceBuilder
