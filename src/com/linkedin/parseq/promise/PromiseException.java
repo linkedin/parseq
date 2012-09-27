@@ -17,7 +17,8 @@
 package com.linkedin.parseq.promise;
 
 /**
- * A general error indicating that a promise failed.
+ * A general exception indicating that there was a {@link Promise} related
+ * error.
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */

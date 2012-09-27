@@ -17,13 +17,30 @@
 package com.linkedin.parseq;
 
 /**
+ * Priority describes the order in which tasks should be executed when there
+ * is more than one task available for execution.
+ *
  * @author Chris Pettitt (cpettitt@linkedin.com)
+ * @see BaseTask#setPriority(int)
  */
 public class Priority
 {
   private Priority() {}
 
+  /**
+   * Tasks with minimum priority will only be executed after all other tasks
+   * have been executed.
+   */
   public static int MIN_PRIORITY = -100;
+
+  /**
+   * Tasks with default priority can be run in any arbitrary order w.r.t to
+   * other tasks of default priority.
+   */
   public static int DEFAULT_PRIORITY = 0;
+
+  /**
+   * Tasks with maximum priority will be executed before all other tasks.
+   */
   public static int MAX_PRIORITY = 100;
 }

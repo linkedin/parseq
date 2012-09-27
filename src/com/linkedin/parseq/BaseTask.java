@@ -78,11 +78,21 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
   private final ShallowTraceBuilder _shallowTraceBuilder;
   private final RelationshipBuilder<Task<?>> _relationshipBuilder;
 
+  /**
+   * Constructs a base task without a specified name. The name for this task
+   * will be the {@link #toString} representation for this instance. It is
+   * usually best to use {@link BaseTask#BaseTask(String)}.
+   */
   public BaseTask()
   {
     this(null);
   }
 
+  /**
+   * Constructs a base task with a name.
+   *
+   * @param name the name for this task.
+   */
   public BaseTask(final String name)
   {
     super(Promises.<T>settable());

@@ -43,7 +43,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    */
   public String getName();
 
-  /*
+  /**
    * Returns the priority for this task.
    *
    * @return the priority for this task.

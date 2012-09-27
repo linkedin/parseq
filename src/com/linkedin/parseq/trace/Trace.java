@@ -31,7 +31,7 @@ import java.util.Set;
  * deserialize Traces.
  *
  * @author Chi Chan (ckchan@linkedin.com)
- * @author Chris Pettitt
+ * @author Chris Pettitt (cpettitt@linkedin.com)
  */
 public interface Trace
 {
