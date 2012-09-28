@@ -11,7 +11,7 @@ this directory. To start SimpleHTTPServer on port 8888 use:
 python -m SimpleHTTPServer 8888
 ```
 
-Then connect to [[http://localhost:8888/trace.html]].
+Then connect to [http://localhost:8888/trace.html](http://localhost:8888/trace.html).
 
 Running Unit Tests for Visualization
 ====================================
