@@ -26,6 +26,7 @@ import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 import org.testng.annotations.Test;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -99,13 +100,16 @@ public class TestTaskToTrace extends BaseEngineTest
     final Task<String> task1 = value("taskName1", "value");
     final Task<String> task2 = value("taskName2", "value2");
 
-
     final Task<?> seq1 = seq(task1, task2);
-    final Task<?> seq2 = seq(seq1);
     getEngine().run(seq1);
     seq1.await();
 
     assertTrue(seq1.getTrace().getSystemHidden());
+
+    final Task<String> task3 = value("taskName3", "value3");
+    final Task<String> task4 = value("taskName4", "value4");
+    final Task<?> seq2 = seq(task3, task4);
+
     assertTrue(seq2.getTrace().getSystemHidden());
   }
 
@@ -117,11 +121,16 @@ public class TestTaskToTrace extends BaseEngineTest
 
 
     final Task<?> par1 = par(task1, task2);
-    final Task<?> par2 = par(par1);
+
     getEngine().run(par1);
     par1.await();
 
     assertTrue(par1.getTrace().getSystemHidden());
+
+    final Task<String> task3 = value("taskName3", "value3");
+    final Task<String> task4 = value("taskName4", "value4");
+    final Task<?> par2 = par(task3, task4);
+
     assertTrue(par2.getTrace().getSystemHidden());
   }
   @Test
@@ -260,7 +269,8 @@ public class TestTaskToTrace extends BaseEngineTest
   {
     final Task<String> task = value("taskName", "value");
 
-    final Task<?> seq = seq(task);
+    @SuppressWarnings("unchecked")
+    final Task<?> seq = seq(Arrays.asList(task));
     getEngine().run(seq);
     seq.await();
 
