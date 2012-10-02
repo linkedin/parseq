@@ -47,6 +47,5 @@ fi
 
 ant clean build test dist && \
 git tag v$VERSION && \
-scripts/pub-javadoc $VERSION && \
 git push origin v$VERSION && \
 echo "Publish completed successfully"
