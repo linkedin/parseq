@@ -1,9 +1,14 @@
 v1.1.0
 ======
 
-	* Made JsonTraceDeserializer package private - it is not for public
+    * Removed vararg methods for `Tasks.par` and `Tasks.seq`. In their place
+      we've added type-safe alternatives that take up to 10 tasks. This change
+	  is not backward compatible for cases where an array was supplied to the
+	  varargs version of `Tasks.par` and `Tasks.seq` or where a single task
+	  was given to `Tasks.par` or `Tasks.seq`.
+    * Made JsonTraceDeserializer package private - it is not for public
 	  consumption
-	* Miscellaneous Javadoc improvements
+    * Miscellaneous Javadoc improvements
 
 v1.0.0
 ======

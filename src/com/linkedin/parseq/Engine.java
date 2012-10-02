@@ -92,8 +92,8 @@ public class Engine
   }
 
   /**
-   * Runs the given task with its own context. Use {@link Tasks#par(Task[])} to
-   * invoke a set of tasks in parallel.
+   * Runs the given task with its own context. Use {@code Tasks.seq} and
+   * {@code Tasks.par} to create and run composite tasks.
    *
    * @param task the task to run
    */
