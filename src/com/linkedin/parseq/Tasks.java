@@ -75,9 +75,7 @@ public class Tasks
   }
 
   /**
-   * Creates a new task that will run the given tasks sequentially (e.g.
-   * task1 will be finished before task2 starts). The value of the seq task will
-   * be the result of the last task in the sequence.
+   * @see #seq(Task, Task)
    */
   public static <T> Task<T> seq(Task<?> task1,
                                 Task<?> task2,
@@ -87,9 +85,7 @@ public class Tasks
   }
 
   /**
-   * Creates a new task that will run the given tasks sequentially (e.g.
-   * task1 will be finished before task2 starts). The value of the seq task will
-   * be the result of the last task in the sequence.
+   * @see #seq(Task, Task)
    */
   public static <T> Task<T> seq(Task<?> task1,
                                 Task<?> task2,
@@ -100,9 +96,7 @@ public class Tasks
   }
 
   /**
-   * Creates a new task that will run the given tasks sequentially (e.g.
-   * task1 will be finished before task2 starts). The value of the seq task will
-   * be the result of the last task in the sequence.
+   * @see #seq(Task, Task)
    */
   public static <T> Task<T> seq(Task<?> task1,
                                 Task<?> task2,
@@ -114,9 +108,7 @@ public class Tasks
   }
 
   /**
-   * Creates a new task that will run the given tasks sequentially (e.g.
-   * task1 will be finished before task2 starts). The value of the seq task will
-   * be the result of the last task in the sequence.
+   * @see #seq(Task, Task)
    */
   public static <T> Task<T> seq(Task<?> task1,
                                 Task<?> task2,
@@ -129,9 +121,7 @@ public class Tasks
   }
 
   /**
-   * Creates a new task that will run the given tasks sequentially (e.g.
-   * task1 will be finished before task2 starts). The value of the seq task will
-   * be the result of the last task in the sequence.
+   * @see #seq(Task, Task)
    */
   public static <T> Task<T> seq(Task<?> task1,
                                 Task<?> task2,
@@ -145,9 +135,7 @@ public class Tasks
   }
 
   /**
-   * Creates a new task that will run the given tasks sequentially (e.g.
-   * task1 will be finished before task2 starts). The value of the seq task will
-   * be the result of the last task in the sequence.
+   * @see #seq(Task, Task)
    */
   public static <T> Task<T> seq(Task<?> task1,
                                 Task<?> task2,
@@ -162,9 +150,7 @@ public class Tasks
   }
 
   /**
-   * Creates a new task that will run the given tasks sequentially (e.g.
-   * task1 will be finished before task2 starts). The value of the seq task will
-   * be the result of the last task in the sequence.
+   * @see #seq(Task, Task)
    */
   public static <T> Task<T> seq(Task<?> task1,
                                 Task<?> task2,
@@ -180,9 +166,7 @@ public class Tasks
   }
 
   /**
-   * Creates a new task that will run the given tasks sequentially (e.g.
-   * task1 will be finished before task2 starts). The value of the seq task will
-   * be the result of the last task in the sequence.
+   * @see #seq(Task, Task)
    */
   public static <T> Task<T> seq(Task<?> task1,
                                 Task<?> task2,
@@ -228,13 +212,7 @@ public class Tasks
   }
 
   /**
-   * Creates a new task that will run the given tasks in parallel (e.g. task1
-   * can be executed at the same time as task2). When all tasks complete
-   * successfully, you can use {@link com.linkedin.parseq.ParTask#get()} to
-   * get a list of the results. If at least one task failed, then this task will
-   * also be marked as failed. Use {@link com.linkedin.parseq.ParTask#getTasks()}
-   * or {@link com.linkedin.parseq.ParTask#getSuccessful()} to get results in
-   * this case.
+   * @see #par(Task, Task)
    */
   public static <T> ParTask<T> par(Task<? extends T> task1,
                                    Task<? extends T> task2,
@@ -244,13 +222,7 @@ public class Tasks
   }
 
   /**
-   * Creates a new task that will run the given tasks in parallel (e.g. task1
-   * can be executed at the same time as task2). When all tasks complete
-   * successfully, you can use {@link com.linkedin.parseq.ParTask#get()} to
-   * get a list of the results. If at least one task failed, then this task will
-   * also be marked as failed. Use {@link com.linkedin.parseq.ParTask#getTasks()}
-   * or {@link com.linkedin.parseq.ParTask#getSuccessful()} to get results in
-   * this case.
+   * @see #par(Task, Task)
    */
   public static <T> ParTask<T> par(Task<? extends T> task1,
                                    Task<? extends T> task2,
@@ -261,13 +233,7 @@ public class Tasks
   }
 
   /**
-   * Creates a new task that will run the given tasks in parallel (e.g. task1
-   * can be executed at the same time as task2). When all tasks complete
-   * successfully, you can use {@link com.linkedin.parseq.ParTask#get()} to
-   * get a list of the results. If at least one task failed, then this task will
-   * also be marked as failed. Use {@link com.linkedin.parseq.ParTask#getTasks()}
-   * or {@link com.linkedin.parseq.ParTask#getSuccessful()} to get results in
-   * this case.
+   * @see #par(Task, Task)
    */
   public static <T> ParTask<T> par(Task<? extends T> task1,
                                    Task<? extends T> task2,
@@ -279,13 +245,7 @@ public class Tasks
   }
 
   /**
-   * Creates a new task that will run the given tasks in parallel (e.g. task1
-   * can be executed at the same time as task2). When all tasks complete
-   * successfully, you can use {@link com.linkedin.parseq.ParTask#get()} to
-   * get a list of the results. If at least one task failed, then this task will
-   * also be marked as failed. Use {@link com.linkedin.parseq.ParTask#getTasks()}
-   * or {@link com.linkedin.parseq.ParTask#getSuccessful()} to get results in
-   * this case.
+   * @see #par(Task, Task)
    */
   public static <T> ParTask<T> par(Task<? extends T> task1,
                                    Task<? extends T> task2,
@@ -298,13 +258,7 @@ public class Tasks
   }
 
   /**
-   * Creates a new task that will run the given tasks in parallel (e.g. task1
-   * can be executed at the same time as task2). When all tasks complete
-   * successfully, you can use {@link com.linkedin.parseq.ParTask#get()} to
-   * get a list of the results. If at least one task failed, then this task will
-   * also be marked as failed. Use {@link com.linkedin.parseq.ParTask#getTasks()}
-   * or {@link com.linkedin.parseq.ParTask#getSuccessful()} to get results in
-   * this case.
+   * @see #par(Task, Task)
    */
   public static <T> ParTask<T> par(Task<? extends T> task1,
                                    Task<? extends T> task2,
@@ -318,13 +272,7 @@ public class Tasks
   }
 
   /**
-   * Creates a new task that will run the given tasks in parallel (e.g. task1
-   * can be executed at the same time as task2). When all tasks complete
-   * successfully, you can use {@link com.linkedin.parseq.ParTask#get()} to
-   * get a list of the results. If at least one task failed, then this task will
-   * also be marked as failed. Use {@link com.linkedin.parseq.ParTask#getTasks()}
-   * or {@link com.linkedin.parseq.ParTask#getSuccessful()} to get results in
-   * this case.
+   * @see #par(Task, Task)
    */
   public static <T> ParTask<T> par(Task<? extends T> task1,
                                    Task<? extends T> task2,
@@ -339,13 +287,7 @@ public class Tasks
   }
 
   /**
-   * Creates a new task that will run the given tasks in parallel (e.g. task1
-   * can be executed at the same time as task2). When all tasks complete
-   * successfully, you can use {@link com.linkedin.parseq.ParTask#get()} to
-   * get a list of the results. If at least one task failed, then this task will
-   * also be marked as failed. Use {@link com.linkedin.parseq.ParTask#getTasks()}
-   * or {@link com.linkedin.parseq.ParTask#getSuccessful()} to get results in
-   * this case.
+   * @see #par(Task, Task)
    */
   public static <T> ParTask<T> par(Task<? extends T> task1,
                                    Task<? extends T> task2,
@@ -361,13 +303,7 @@ public class Tasks
   }
 
   /**
-   * Creates a new task that will run the given tasks in parallel (e.g. task1
-   * can be executed at the same time as task2). When all tasks complete
-   * successfully, you can use {@link com.linkedin.parseq.ParTask#get()} to
-   * get a list of the results. If at least one task failed, then this task will
-   * also be marked as failed. Use {@link com.linkedin.parseq.ParTask#getTasks()}
-   * or {@link com.linkedin.parseq.ParTask#getSuccessful()} to get results in
-   * this case.
+   * @see #par(Task, Task)
    */
   public static <T> ParTask<T> par(Task<? extends T> task1,
                                    Task<? extends T> task2,
