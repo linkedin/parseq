@@ -25,8 +25,11 @@ import com.linkedin.parseq.promise.PromiseListener;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -51,6 +54,8 @@ public class Engine
 
   private final AtomicReference<State> _stateRef = new AtomicReference<State>(INIT);
   private final CountDownLatch _terminated = new CountDownLatch(1);
+
+  private final Map<String, Object > _properties;
 
   private final PromiseListener<Object> _taskDoneListener = new PromiseListener<Object>()
   {
@@ -81,14 +86,21 @@ public class Engine
 
   /* package private */ Engine(final Executor taskExecutor,
                                final DelayedExecutor timerExecutor,
-                               final ILoggerFactory loggerFactory)
+                               final ILoggerFactory loggerFactory,
+                               final Map<String, Object> properties)
   {
     _taskExecutor = taskExecutor;
     _timerExecutor = timerExecutor;
     _loggerFactory = loggerFactory;
+    _properties = properties;
 
     _allLogger = loggerFactory.getLogger(LOGGER_BASE + ":all");
     _rootLogger = loggerFactory.getLogger(LOGGER_BASE + ":root");
+  }
+
+  public Object getProperty(String key)
+  {
+    return _properties.get(key);
   }
 
   /**
@@ -114,7 +126,7 @@ public class Engine
 
     final Logger planLogger = _loggerFactory.getLogger(LOGGER_BASE + ":planClass=" + task.getClass().getName());
     final TaskLog taskLog = new TaskLogImpl(task, _allLogger, _rootLogger, planLogger);
-    new ContextImpl(new SerialExecutor(_taskExecutor), _timerExecutor, task, taskLog).runTask();
+    new ContextImpl(new SerialExecutor(_taskExecutor), _timerExecutor, task, taskLog, this).runTask();
 
     InternalUtil.unwildcardTask(task).addListener(_taskDoneListener);
   }
