@@ -25,8 +25,11 @@ import com.linkedin.parseq.promise.PromiseListener;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -51,6 +54,8 @@ public class Engine
 
   private final AtomicReference<State> _stateRef = new AtomicReference<State>(INIT);
   private final CountDownLatch _terminated = new CountDownLatch(1);
+
+  private Map<String, Object > _properties = null;
 
   private final PromiseListener<Object> _taskDoneListener = new PromiseListener<Object>()
   {
@@ -91,6 +96,16 @@ public class Engine
     _rootLogger = loggerFactory.getLogger(LOGGER_BASE + ":root");
   }
 
+  protected void setProperties(Map<String, Object> properties)
+  {
+    _properties = properties;
+  }
+
+  public Object getProperty(String key)
+  {
+    return _properties.get(key);
+  }
+
   /**
    * Runs the given task with its own context. Use {@code Tasks.seq} and
    * {@code Tasks.par} to create and run composite tasks.
@@ -114,7 +129,7 @@ public class Engine
 
     final Logger planLogger = _loggerFactory.getLogger(LOGGER_BASE + ":planClass=" + task.getClass().getName());
     final TaskLog taskLog = new TaskLogImpl(task, _allLogger, _rootLogger, planLogger);
-    new ContextImpl(new SerialExecutor(_taskExecutor), _timerExecutor, task, taskLog).runTask();
+    new ContextImpl(new SerialExecutor(_taskExecutor), _timerExecutor, task, taskLog, this).runTask();
 
     InternalUtil.unwildcardTask(task).addListener(_taskDoneListener);
   }

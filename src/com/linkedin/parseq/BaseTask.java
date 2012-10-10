@@ -408,6 +408,12 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     {
       return new WrappedAfter(_context.after(promises));
     }
+
+    @Override
+    public Object getEngineProperty(String key)
+    {
+      return _context.getEngineProperty(key);
+    }
   }
 
   private class WrappedAfter implements After

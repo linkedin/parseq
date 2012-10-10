@@ -422,6 +422,12 @@ public class TestTaskStates
     {
       throw new UnsupportedOperationException();
     }
+
+    @Override
+    public Object getEngineProperty(String key)
+    {
+      throw new UnsupportedOperationException();
+    }
   }
 
   private static class NullTaskLog implements TaskLog

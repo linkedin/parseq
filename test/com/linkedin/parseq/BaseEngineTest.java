@@ -41,11 +41,12 @@ public class BaseEngineTest
     final int numCores = Runtime.getRuntime().availableProcessors();
     _scheduler = Executors.newScheduledThreadPool(numCores + 1);
     _loggerFactory = new ListLoggerFactory();
-    _engine = new EngineBuilder()
+    EngineBuilder engineBuilder = new EngineBuilder()
         .setTaskExecutor(_scheduler)
         .setTimerScheduler(_scheduler)
-        .setLoggerFactory(_loggerFactory)
-        .build();
+        .setLoggerFactory(_loggerFactory);
+    CallableWrapperTask.register(engineBuilder, 2);
+    _engine = engineBuilder.build();
   }
 
   @AfterMethod

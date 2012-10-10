@@ -61,4 +61,14 @@ public interface Context
    *         after the given promises are resolved.
    */
   After after(Promise<?>... promises);
+
+  /**
+   * Provides a mechanism for "plugins" to generate data which should be passed in via the context.
+   * The intent is that the "plugin" registers engine specific data it needed via the engine builder.
+   * Then the run method can access this data via the getEngineProperty() method.
+   *
+   * @param key The key to the engine related property which the Task will access.
+   * @return The engine related property which has been stored with this key.
+   */
+  Object getEngineProperty(String key);
 }

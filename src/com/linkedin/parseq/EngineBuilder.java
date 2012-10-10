@@ -21,7 +21,11 @@ import com.linkedin.parseq.internal.CancellableScheduledFuture;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -41,6 +45,9 @@ public class EngineBuilder
   private Executor _taskExecutor;
   private DelayedExecutor _timerScheduler;
   private ILoggerFactory _loggerFactory = null;
+  private ExecutorService _wrappedAsyncExecutor = null;
+
+  private Map<String, Object> _properties = new HashMap<String, Object>();
 
   public EngineBuilder() {}
 
@@ -104,6 +111,20 @@ public class EngineBuilder
   }
 
   /**
+   * Sets an engine related property on the engine.
+   * That property can then be accessed by tasks via the Context.
+   *
+   * @param key
+   * @param value
+   * @return this builder
+   */
+  public EngineBuilder setEngineProperty(String key, Object value)
+  {
+    _properties.put(key, value);
+    return this;
+  }
+
+  /**
    * Checks that the require configuration has been set and then constructs
    * and returns a new {@link Engine}.
    *
@@ -120,7 +141,13 @@ public class EngineBuilder
     {
       throw new IllegalStateException("Timer scheduler is required to create an Engine, but it is not set");
     }
-    return new Engine(_taskExecutor, _timerScheduler, _loggerFactory != null ? _loggerFactory : LoggerFactory.getILoggerFactory());
+    Engine engine =  new Engine(
+        _taskExecutor,
+        _timerScheduler,
+        _loggerFactory != null ? _loggerFactory : LoggerFactory.getILoggerFactory()
+        );
+    engine.setProperties(_properties);
+    return engine;
   }
 
   /**
