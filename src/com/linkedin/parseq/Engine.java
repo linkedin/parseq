@@ -55,7 +55,7 @@ public class Engine
   private final AtomicReference<State> _stateRef = new AtomicReference<State>(INIT);
   private final CountDownLatch _terminated = new CountDownLatch(1);
 
-  private Map<String, Object > _properties = null;
+  private final Map<String, Object > _properties;
 
   private final PromiseListener<Object> _taskDoneListener = new PromiseListener<Object>()
   {
@@ -86,19 +86,16 @@ public class Engine
 
   /* package private */ Engine(final Executor taskExecutor,
                                final DelayedExecutor timerExecutor,
-                               final ILoggerFactory loggerFactory)
+                               final ILoggerFactory loggerFactory,
+                               final Map<String, Object> properties)
   {
     _taskExecutor = taskExecutor;
     _timerExecutor = timerExecutor;
     _loggerFactory = loggerFactory;
+    _properties = properties;
 
     _allLogger = loggerFactory.getLogger(LOGGER_BASE + ":all");
     _rootLogger = loggerFactory.getLogger(LOGGER_BASE + ":root");
-  }
-
-  protected void setProperties(Map<String, Object> properties)
-  {
-    _properties = properties;
   }
 
   public Object getProperty(String key)

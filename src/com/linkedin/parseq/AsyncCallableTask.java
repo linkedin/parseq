@@ -31,11 +31,11 @@ import java.util.concurrent.Executors;
  *
  * @author Walter Fender (wfender@linkedin.com)
  */
-public class CallableWrapperTask<R> extends BaseTask<R>
+public class AsyncCallableTask<R> extends BaseTask<R>
 {
   private static final String CALLABLE_SERVICE_EXECUTOR = "_CallableServiceExecutor_";
 
-  private Callable<R> _syncJob;
+  private final Callable<R> _syncJob;
 
   public static void register(EngineBuilder builder, Executor executor)
   {
@@ -44,15 +44,14 @@ public class CallableWrapperTask<R> extends BaseTask<R>
 
   public static void register(EngineBuilder builder, int size)
   {
-     builder.setEngineProperty(CALLABLE_SERVICE_EXECUTOR, Executors.newFixedThreadPool(2));
+     builder.setEngineProperty(CALLABLE_SERVICE_EXECUTOR, Executors.newFixedThreadPool(size));
   }
 
-  CallableWrapperTask(Callable<R> syncJob)
+  public AsyncCallableTask(Callable<R> syncJob)
   {
     _syncJob = syncJob;
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   protected Promise<R> run(final Context context) throws Exception
   {

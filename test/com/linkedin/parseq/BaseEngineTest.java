@@ -45,7 +45,7 @@ public class BaseEngineTest
         .setTaskExecutor(_scheduler)
         .setTimerScheduler(_scheduler)
         .setLoggerFactory(_loggerFactory);
-    CallableWrapperTask.register(engineBuilder, 2);
+    AsyncCallableTask.register(engineBuilder, 2);
     _engine = engineBuilder.build();
   }
 

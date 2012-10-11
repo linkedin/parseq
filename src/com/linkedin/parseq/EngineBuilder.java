@@ -144,9 +144,9 @@ public class EngineBuilder
     Engine engine =  new Engine(
         _taskExecutor,
         _timerScheduler,
-        _loggerFactory != null ? _loggerFactory : LoggerFactory.getILoggerFactory()
+        _loggerFactory != null ? _loggerFactory : LoggerFactory.getILoggerFactory(),
+        _properties
         );
-    engine.setProperties(_properties);
     return engine;
   }
 

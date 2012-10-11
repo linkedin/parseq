@@ -26,10 +26,10 @@ public class TestCallableTask extends BaseEngineTest
   {
     final int size = 2; // Should be <= CallableWrapperTask size
 
-    final List<CallableWrapperTask<String>> tasks = new ArrayList<CallableWrapperTask<String>>(size);
+    final List<AsyncCallableTask<String>> tasks = new ArrayList<AsyncCallableTask<String>>(size);
     for (int counter = 0; counter < size; counter++)
     {
-      tasks.add(counter, new CallableWrapperTask<String>(new ConcurrentCallable(size)));
+      tasks.add(counter, new AsyncCallableTask<String>(new ConcurrentCallable(size)));
     }
 
     final ParTask<?> par = par(tasks);
