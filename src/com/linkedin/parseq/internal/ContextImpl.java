@@ -21,6 +21,7 @@ import com.linkedin.parseq.Cancellable;
 import com.linkedin.parseq.Context;
 import com.linkedin.parseq.DelayedExecutor;
 import com.linkedin.parseq.EarlyFinishException;
+import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.TaskLog;
 import com.linkedin.parseq.promise.Promise;
@@ -80,14 +81,17 @@ public class ContextImpl implements Context, Cancellable
   private final List<Task<?>> _predecessorTasks;
   private final TaskLog _taskLog;
 
+  private final Engine _engine;
+
   private final ConcurrentLinkedQueue<Cancellable> _cancellables = new ConcurrentLinkedQueue<Cancellable>();
 
   public ContextImpl(final Executor taskExecutor,
                      final DelayedExecutor timerScheduler,
                      final Task<?> task,
-                     final TaskLog taskLog)
+                     final TaskLog taskLog,
+                     final Engine engine)
   {
-    this(taskExecutor, timerScheduler, task, NO_PARENT, NO_PREDECESSORS, taskLog);
+    this(taskExecutor, timerScheduler, task, NO_PARENT, NO_PREDECESSORS, taskLog, engine);
   }
 
   private ContextImpl(final Executor taskExecutor,
@@ -95,7 +99,8 @@ public class ContextImpl implements Context, Cancellable
                       final Task<?> task,
                       final Task<?> parent,
                       final List<Task<?>> predecessorTasks,
-                      final TaskLog taskLog)
+                      final TaskLog taskLog,
+                      final Engine engine)
   {
     _timerScheduler = timerScheduler;
     _taskExecutor = taskExecutor;
@@ -103,6 +108,7 @@ public class ContextImpl implements Context, Cancellable
     _parent = parent;
     _predecessorTasks = predecessorTasks;
     _taskLog = taskLog;
+    _engine = engine;
   }
 
   public void runTask()
@@ -213,9 +219,15 @@ public class ContextImpl implements Context, Cancellable
     return result;
   }
 
+  @Override
+  public Object getEngineProperty(String key)
+  {
+    return _engine.getProperty(key);
+  }
+
   private ContextImpl createSubContext(final Task<?> task, final List<Task<?>> predecessors)
   {
-    return new ContextImpl(_taskExecutor, _timerScheduler, task, _task, predecessors, _taskLog);
+    return new ContextImpl(_taskExecutor, _timerScheduler, task, _task, predecessors, _taskLog, _engine);
   }
 
   private void runSubTask(final Task<?> task, final List<Task<?>> predecessors)
