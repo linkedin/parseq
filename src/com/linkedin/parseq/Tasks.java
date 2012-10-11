@@ -197,6 +197,30 @@ public class Tasks
   }
 
   /**
+   * Creates a new task that will run each of the supplied tasks in order. If
+   * any of the tasks in the sequence fail then the whole sequence will be marked
+   * as failed and no subsequent tasks will be executed. This method is
+   * appropriate for a chain of actions that produce no data. When the sequence
+   * should return a result, use {@link #seq(Task, Task)}.
+   */
+  public static Task<Void> seqActions(final Task... tasks)
+  {
+    return new SeqActionsTask("seqActions", Arrays.<Task<?>>asList(tasks));
+  }
+
+  /**
+   * Creates a new task that will run each of the supplied tasks in order. If
+   * any of the tasks in the sequence fail then the whole sequence will be marked
+   * as failed and no subsequent tasks will be executed. This method is
+   * appropriate for a chain of actions that produce no data. When the sequence
+   * should return a result, use {@link #seq(Task, Task)}.
+   */
+  public static Task<Void> seqActions(final Iterable<? extends Task<?>> tasks)
+  {
+    return new SeqActionsTask("seqActions", tasks);
+  }
+
+  /**
    * Creates a new task that will run the given tasks in parallel (e.g. task1
    * can be executed at the same time as task2). When all tasks complete
    * successfully, you can use {@link com.linkedin.parseq.ParTask#get()} to
