@@ -1,3 +1,10 @@
+v1.2.0
+======
+
+    * Added AsyncCallableTask which makes it possible to use blocking tasks
+	  asynchronously. The intention is to use this for tasks that involve
+	  blocking IO. Thanks to [cheftako](https://github.com/cheftako) for the contribution!
+
 v1.1.0
 ======
 

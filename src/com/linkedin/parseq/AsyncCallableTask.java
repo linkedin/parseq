@@ -21,13 +21,18 @@ import com.linkedin.parseq.promise.SettablePromise;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 /**
- * This class provides a wrapper to allow synchronous tasks to be treated as asynchronous tasks.
- * This is intended to allow ParSeq to get parallel execution on things like JDBC requests.
- * It does nothing to prevent threading problems between these Tasks.
- * That should be handled by the synchronous task authors.
+ * This class provides a wrapper to allow synchronous tasks to be treated as
+ * asynchronous tasks. This can be used for tasks that are blocking and are not
+ * CPU intensive, like JDBC requests. Unlike tasks created with
+ * {@link com.linkedin.parseq.Tasks#callable(String, java.util.concurrent.Callable)},
+ * tasks wrapped in AsyncCallableTask do not get any special memory consistency
+ * guarantees and should not attempt to use shared state. In others, they should
+ * act as a stateless function.
+ * <p/>
+ * To use this class with an engine, register an executor with engine using
+ * {@link #register(EngineBuilder, java.util.concurrent.Executor)}
  *
  * @author Walter Fender (wfender@linkedin.com)
  */
@@ -39,12 +44,7 @@ public class AsyncCallableTask<R> extends BaseTask<R>
 
   public static void register(EngineBuilder builder, Executor executor)
   {
-     builder.setEngineProperty(CALLABLE_SERVICE_EXECUTOR, executor);
-  }
-
-  public static void register(EngineBuilder builder, int size)
-  {
-     builder.setEngineProperty(CALLABLE_SERVICE_EXECUTOR, Executors.newFixedThreadPool(size));
+    builder.setEngineProperty(CALLABLE_SERVICE_EXECUTOR, executor);
   }
 
   public AsyncCallableTask(Callable<R> syncJob)
@@ -58,7 +58,7 @@ public class AsyncCallableTask<R> extends BaseTask<R>
     Executor executor = (Executor)context.getEngineProperty(CALLABLE_SERVICE_EXECUTOR);
     if (executor == null)
     {
-      throw new Exception("Could not wrap the relevant callable sync job");
+      throw new IllegalStateException("To use AsyncCallableTask you must first register an executor with the engine using AsyncCallableTask.register");
     }
 
     final SettablePromise<R> promise = Promises.settable();

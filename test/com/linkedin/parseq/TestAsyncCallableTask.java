@@ -2,27 +2,29 @@ package com.linkedin.parseq;
 
 import org.testng.annotations.Test;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.linkedin.parseq.Tasks.par;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * @author wfender
  * @version $Revision:$
  */
-public class TestCallableTask extends BaseEngineTest
+public class TestAsyncCallableTask extends BaseEngineTest
 {
   protected static final String SUCCESS = "success";
   protected static final String FAIL_TIME_OUT = "Failure - Timed out";
 
   @Test
-  public void testConcurrentCallableTasks() throws InterruptedException
+  public void testConcurrentTasks() throws InterruptedException
   {
     final int size = 2; // Should be <= CallableWrapperTask size
 
@@ -46,6 +48,40 @@ public class TestCallableTask extends BaseEngineTest
     }
   }
 
+  @Test
+  public void testTaskWithoutExecutor() throws InterruptedException
+  {
+    final int numCores = Runtime.getRuntime().availableProcessors();
+    final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(numCores + 1);
+    final Engine engine = new EngineBuilder()
+        .setTaskExecutor(scheduler)
+        .setTimerScheduler(scheduler)
+        .build();
+
+    try
+    {
+      final Task<Integer> task = new AsyncCallableTask<Integer>(new Callable<Integer>()
+      {
+        @Override
+        public Integer call() throws Exception
+        {
+          return 1;
+        }
+      });
+      engine.run(task);
+
+      task.await();
+
+      assertTrue(task.isFailed());
+      assertTrue(task.getError() instanceof IllegalStateException);
+    }
+    finally
+    {
+      engine.shutdown();
+      engine.awaitTermination(1, TimeUnit.SECONDS);
+      scheduler.shutdownNow();
+    }
+  }
 }
 
 class ConcurrentCallable implements Callable<String>
@@ -68,10 +104,10 @@ class ConcurrentCallable implements Callable<String>
     {
       if (end < System.currentTimeMillis())
       {
-        return TestCallableTask.FAIL_TIME_OUT;
+        return TestAsyncCallableTask.FAIL_TIME_OUT;
       }
       Thread.sleep(100);
     }
-    return TestCallableTask.SUCCESS;
+    return TestAsyncCallableTask.SUCCESS;
   }
 }

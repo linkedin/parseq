@@ -20,6 +20,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -32,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 public class BaseEngineTest
 {
   private ScheduledExecutorService _scheduler;
+  private ExecutorService _asyncExecutor;
   private Engine _engine;
   private ListLoggerFactory _loggerFactory;
 
@@ -40,12 +42,13 @@ public class BaseEngineTest
   {
     final int numCores = Runtime.getRuntime().availableProcessors();
     _scheduler = Executors.newScheduledThreadPool(numCores + 1);
+    _asyncExecutor = Executors.newFixedThreadPool(2);
     _loggerFactory = new ListLoggerFactory();
     EngineBuilder engineBuilder = new EngineBuilder()
         .setTaskExecutor(_scheduler)
         .setTimerScheduler(_scheduler)
         .setLoggerFactory(_loggerFactory);
-    AsyncCallableTask.register(engineBuilder, 2);
+    AsyncCallableTask.register(engineBuilder, _asyncExecutor);
     _engine = engineBuilder.build();
   }
 
@@ -57,6 +60,8 @@ public class BaseEngineTest
     _engine = null;
     _scheduler.shutdownNow();
     _scheduler = null;
+    _asyncExecutor.shutdownNow();
+    _asyncExecutor = null;
     _loggerFactory.reset();
     _loggerFactory = null;
   }
