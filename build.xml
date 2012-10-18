@@ -234,8 +234,7 @@
         <attribute name="outputproperty"/>
         <sequential>
             <exec executable="git" dir="${basedir}" outputproperty="@{outputproperty}">
-                <arg value="show-ref"/>
-                <arg value="-s"/>
+                <arg value="rev-parse"/>
                 <arg value="HEAD"/>
             </exec>
         </sequential>
