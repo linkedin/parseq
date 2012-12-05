@@ -1,15 +1,13 @@
-.tableview table {
-  border-collapse: collapse;
-  border: 2px black solid;
+.tableview th:first-child {
+  border-radius: 5px 0 0 0;
 }
 
-.tableview th {
-  padding: 0 10px;
+.tableview th:last-child {
+  border-radius: 0 5px 0 0;
 }
 
-.tableview td {
-  border: 1px #ccc solid;
-  padding: 0 10px;
+.tableview .hidden {
+  display: none;
 }
 
 .tableview span {
@@ -24,14 +22,11 @@
   text-align: right;
 }
 
-.tableview td.value {
-  width: 25em;
-  padding-right: 1em;
-}
-
 .tableview td.value textarea {
   min-width: 100%;
   width: 100%;
+  padding: 0;
+  margin: 0;
 }
 
 .tableview .success {

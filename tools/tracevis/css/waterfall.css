@@ -23,7 +23,6 @@
 }
 
 .waterfallview .trace.composite text {
-  fill: black;
   font-weight: bold;
 }
 
@@ -37,4 +36,8 @@
 
 .waterfallview .axis.grid line.tick.minor {
   stroke-opacity: .05;
+}
+
+.waterfallview text {
+  fill: #333;
 }
