@@ -32,6 +32,10 @@
 textarea {
   width: 760px;
 }
+
+textarea.error {
+  color: red;
+}
 </style>
 
 <div class="container">
@@ -138,8 +142,11 @@ function refreshView() {
 
   try {
     var json = JSON.parse(jsonText);
+    inputJSON.classed("error", false);
+    inputJSON.attr("title", null);
   } catch (err) {
-    alert("JSON parse failed: " + err);
+    inputJSON.classed("error", true);
+    inputJSON.attr("title", "Parsing trace failed: " + err);
     throw err;
   }
 
