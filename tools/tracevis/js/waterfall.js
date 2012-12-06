@@ -36,7 +36,7 @@ var WATERFALL = (function() {
   var render = function(selection, root) {
     selection.classed("waterfallview", true);
 
-    var w = 1200,
+    var w = 960,
 
         // We update height when we know how tall we need the chart
         h = 0,

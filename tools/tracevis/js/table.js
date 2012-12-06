@@ -22,7 +22,7 @@ var TABLE = (function() {
    * return the table element.
    */
   var _buildTable = function(selection) {
-    var table = selection.append("table");
+    var table = selection.append("table").attr("class", "table table-bordered");
     var thead = table.append("thead");
     thead.append("th").text("Name");
     thead.append("th").html("Start<br>(ms)");
@@ -77,6 +77,7 @@ var TABLE = (function() {
       rowsEnter.append("td")
         .classed("value", true)
         .append("textarea")
+          .attr("rows", 2)
           .text(function(d) { return d.value; });
 
       rows.selectAll(".expandable")
