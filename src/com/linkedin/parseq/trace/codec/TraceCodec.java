@@ -29,18 +29,41 @@ import java.io.OutputStream;
 public interface TraceCodec
 {
   /**
-   * Decode the InputStream to an TaskTrace
+   * Decode the InputStream to an Trace.
+   *
    * @param inputStream the InputStream of the TaskTrace
-   * @return the decoded TaskTrace
+   * @return the decoded Trace
    * @throws IOException if an error occur during decoding
    */
   Trace decode(InputStream inputStream) throws IOException;
 
   /**
-   * Encoding an TaskTrace to an outputstream
-   * @param trace the TaskTrace to encode
+   * Similar to {@link #decode(java.io.InputStream)} but takes a String instead
+   * of an InputStream.
+   *
+   * @param traceStr a String representation of a Trace
+   * @return the decoded Trace
+   * @throws IOException if an error occur during decoding
+   */
+  Trace decode(String traceStr) throws IOException;
+
+  /**
+   * Encodes a Trace to an OutputStream.
+   *
+   * @param trace the Trace to encode
    * @param outputStream the OutputStream used to encode
    * @throws IOException if an error occurs during encoding
    */
   void encode(Trace trace, OutputStream outputStream) throws IOException;
+
+  /**
+   * Similar to {@link #encode(com.linkedin.parseq.trace.Trace, java.io.OutputStream)}
+   * but produces a String that contains the trace instead of writing it to an
+   * OutputStream.
+   *
+   * @param trace the Trace to encode
+   * @return a String representation for the given trace
+   * @throws IOException if an error occurs during encoding
+   */
+  String encode(Trace trace) throws IOException;
 }

@@ -79,7 +79,7 @@ public class ExampleUtil
 
     try
     {
-      new JsonTraceCodec().encode(trace, System.out);
+      System.out.println(new JsonTraceCodec().encode(trace));
     }
     catch (IOException e)
     {

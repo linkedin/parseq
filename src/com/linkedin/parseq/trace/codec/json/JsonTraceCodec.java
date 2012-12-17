@@ -24,9 +24,12 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 
 /**
  * JSON implementation of {@link com.linkedin.parseq.trace.codec.TraceCodec}
@@ -36,6 +39,8 @@ import java.io.OutputStream;
  */
 public class JsonTraceCodec implements TraceCodec
 {
+  private static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
+
   // Top Level Fields
   static final String TRACES = "traces";
   static final String RELATIONSHIPS = "relationships";
@@ -60,7 +65,6 @@ public class JsonTraceCodec implements TraceCodec
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-
   @Override
   public Trace decode(InputStream inputStream) throws IOException
   {
@@ -70,11 +74,25 @@ public class JsonTraceCodec implements TraceCodec
   }
 
   @Override
+  public Trace decode(final String traceStr) throws IOException
+  {
+    return decode(new ByteArrayInputStream(traceStr.getBytes(DEFAULT_CHARSET.name())));
+  }
+
+  @Override
   public void encode(Trace trace, OutputStream outputStream) throws IOException
   {
     final JsonGenerator generator = OBJECT_MAPPER.getJsonFactory()
                                                  .createJsonGenerator(outputStream, JsonEncoding.UTF8);
     JsonTraceSerializer.serialize(trace, generator);
     generator.flush();
+  }
+
+  @Override
+  public String encode(final Trace trace) throws IOException
+  {
+    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    encode(trace, baos);
+    return new String(baos.toByteArray(), DEFAULT_CHARSET);
   }
 }
