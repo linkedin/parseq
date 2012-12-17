@@ -488,6 +488,12 @@ public class TestJsonTraceCodec
 
   private void assertReversible(final Trace trace) throws IOException
   {
+    assertReversibleStream(trace);
+    assertReversibleString(trace);
+  }
+
+  private void assertReversibleStream(final Trace trace) throws IOException
+  {
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
     _codec.encode(trace, baos);
     final byte[] json = baos.toByteArray();
@@ -500,6 +506,25 @@ public class TestJsonTraceCodec
     catch (IOException e)
     {
       fail("Exception during deserialization: " + e.getMessage() + "\n" + new String(json));
+      // Make the compiler happy by claiming to return here
+      return;
+    }
+
+    assertEquals(trace, deserialized);
+  }
+
+  private void assertReversibleString(final Trace trace) throws IOException
+  {
+    final String json =_codec.encode(trace);
+
+    final Trace deserialized;
+    try
+    {
+      deserialized = _codec.decode(json);
+    }
+    catch (IOException e)
+    {
+      fail("Exception during deserialization: " + e.getMessage() + "\n" + json);
       // Make the compiler happy by claiming to return here
       return;
     }
