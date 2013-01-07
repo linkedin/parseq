@@ -1,33 +1,24 @@
-.waterfallview .trace rect {
-  stroke: #999;
-}
+.waterfallview .trace rect { stroke: #999; }
 
-.waterfallview .trace.success rect {
-  fill: #E0FFE0;
-}
+.waterfallview .trace rect { fill: #DDD; }
+.waterfallview .trace.success rect { fill: #E0FFE0; }
+.waterfallview .trace.error rect { fill: #FFE0E0; }
+.waterfallview .trace.early_finish rect { fill: #FFC; }
 
-.waterfallview .trace.error rect {
-  fill: #FFE0E0;
-}
-
-.waterfallview .trace.early_finish rect {
-  fill: #FFC;
-}
-
-.waterfallview .trace rect {
-  fill: #DDD;
-}
-
-.waterfallview .trace text {
+.waterfallview .trace text,
+.waterfallview .trace text tspan {
+  fill: #333;
   font-family: arial;
+  pointer-events: none;
 }
 
-.waterfallview .trace.composite text {
-  font-weight: bold;
+.waterfallview .trace.composite {
+  cursor: pointer;
 }
 
 .waterfallview .axis path,
 .waterfallview .axis line {
+  pointer-events: none;
   fill: none;
   stroke: black;
   shape-rendering: crispEdges;
@@ -36,8 +27,4 @@
 
 .waterfallview .axis.grid line.tick.minor {
   stroke-opacity: .05;
-}
-
-.waterfallview text {
-  fill: #333;
 }

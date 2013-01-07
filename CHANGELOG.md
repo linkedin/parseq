@@ -1,3 +1,9 @@
+v1.2.1
+------
+
+* Improvements to waterfall trace visualization including the ability to
+  collapse composite tasks.
+
 v1.2.0
 ------
 
