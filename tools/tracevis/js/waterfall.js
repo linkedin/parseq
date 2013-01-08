@@ -34,7 +34,32 @@ var WATERFALL = (function() {
         minBarWidth = 3,
 
         // transition duration
-        defaultDuration = 300;
+        defaultDuration = 300,
+
+        alphaDimmed = 0.3,
+
+        taskFill = { "default":       "#DDD",
+                     "success":       "#E0FFE0",
+                     "error":         "#FFE0E0",
+                     "early_finish":  "#FFC" };
+
+    // Mapping of descendant to a set (expressed as an object) of a ancestors
+    var ancestors = {};
+    function ancestorPreorder(x) {
+      var xAncestors = ancestors[x.id] = {};
+      if (x.parent) {
+        xAncestors[x.parent.id] = true;
+        for (var ancestorId in ancestors[x.parent.id]) {
+          xAncestors[ancestorId] = true;
+        }
+      }
+      if (x.children) {
+        for (var i = 0; i < x.children.length; ++i) {
+          ancestorPreorder(x.children[i]);
+        }
+      }
+    }
+    ancestorPreorder(root)
 
     var svg = selection.append("svg")
       .attr("width", w + margin.left + margin.right);
@@ -52,8 +77,6 @@ var WATERFALL = (function() {
       .attr("class", "x axis grid")
       .attr("transform", "translate(" + margin.left + "," + (margin.top - 15) + ")")
       .append("g");
-
-
 
     update(root, 0);
 
@@ -103,45 +126,59 @@ var WATERFALL = (function() {
         .data(traces, function(d) { return d.id });
 
       var traceEnter = trace.enter().append("g")
-        .attr("class", function(d) { return d.resultType; })
         .classed("trace", true)
         .classed("composite", function(d) { return d.children || d._children; })
+        .classed("hidden", false)
         .attr("transform", function(d) { return "translate(" + source.x0 + "," + source.y0 + ")"; })
         .style("opacity", 1e-6)
         .on("click", toggleCollapse);
 
-      trace
-        .classed("collapsed", function(d) { return d._children; });
+      trace.classed("collapsed", function(d) { return d._children; });
 
       // Enter any new traces at the parent's previous position.
       traceEnter.append("rect")
         .attr("y", -barHeight / 2)
         .attr("rx", 3)
         .attr("height", function(d) { return d.h; })
-        .attr("width", function(d) { return d.w; });
+        .attr("width", function(d) { return d.w; })
+        .style("fill", function(d) { return taskFill[d.resultType] || taskFill["default"]; })
+        .on("mouseover", mouseover)
+        .on("mouseout", mouseout);
 
       traceEnter.append("text")
         .attr("dy", 4)
-        .attr("dx", 6)
-        .text(function(d) { return d.name + " (" + d.elapsed + " ms)"; });
+        .attr("dx", 6);
+
+      trace.select("text")
+        .text(function(d) {
+            var name = d.name + " (" + d.elapsed + " ms)";
+            if (d.children) {
+              name = "[-] " + name;
+            } else if (d._children) {
+              name = "[+] " + name;
+            }
+            return name;
+          });
 
       // Transition traces to their new position.
       traceEnter.transition()
         .duration(duration)
         .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
-        .style("opacity", 1);
+        .style("opacity", function(d) { return d.waterfallDimmed ? alphaDimmed : 1; });
 
       trace.transition()
         .duration(duration)
         .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
-        .style("opacity", 1);
+        .style("opacity", function(d) { return d.waterfallDimmed ? alphaDimmed : 1; });
 
       // Transition exiting traces to the parent's new position.
-      trace.exit().transition()
-        .duration(duration)
-        .attr("transform", function(d) { return "translate(" + source.x + "," + source.y + ")"; })
-        .style("opacity", 1e-6)
-        .remove();
+      trace.exit()
+        .classed("hidden", true)
+          .transition()
+          .duration(duration)
+          .attr("transform", function(d) { return "translate(" + source.x + "," + source.y + ")"; })
+          .style("opacity", 1e-6)
+          .remove();
 
       // Stash the old positions for transition.
       traces.forEach(function(d) {
@@ -159,6 +196,20 @@ var WATERFALL = (function() {
         delete d._children;
       }
       update(d, defaultDuration);
+    }
+
+    function mouseover(d) {
+      if (d.children) {
+        vis.selectAll("g.trace")
+          .filter(function(e) { return e !== d && !ancestors[e.id][d.id]; })
+          .each(function(d) { d.waterfallDimmed = true; });
+        update(d, 0);
+      }
+    }
+
+    function mouseout(d) {
+      vis.selectAll("g.trace").each(function(d) { delete d.waterfallDimmed; });
+      update(d, 0);
     }
   };
 

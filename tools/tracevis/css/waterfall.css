@@ -5,17 +5,14 @@
 .waterfallview .trace.error rect { fill: #FFE0E0; }
 .waterfallview .trace.early_finish rect { fill: #FFC; }
 
-.waterfallview .trace.collapsed text {
-  text-decoration: underline;
-}
-
 .waterfallview .trace text {
   fill: #333;
   font-family: arial;
+  pointer-events: none;
 }
 
-.waterfallview .trace.composite text {
-  font-weight: bold;
+.waterfallview .trace.composite {
+  cursor: pointer;
 }
 
 .waterfallview .axis path,
@@ -27,5 +24,6 @@
 }
 
 .waterfallview .axis.grid line.tick.minor {
+  pointer-events: none;
   stroke-opacity: .05;
 }
