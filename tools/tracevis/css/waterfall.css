@@ -5,7 +5,8 @@
 .waterfallview .trace.error rect { fill: #FFE0E0; }
 .waterfallview .trace.early_finish rect { fill: #FFC; }
 
-.waterfallview .trace text {
+.waterfallview .trace text,
+.waterfallview .trace text tspan {
   fill: #333;
   font-family: arial;
   pointer-events: none;
@@ -17,6 +18,7 @@
 
 .waterfallview .axis path,
 .waterfallview .axis line {
+  pointer-events: none;
   fill: none;
   stroke: black;
   shape-rendering: crispEdges;
@@ -24,6 +26,5 @@
 }
 
 .waterfallview .axis.grid line.tick.minor {
-  pointer-events: none;
   stroke-opacity: .05;
 }

@@ -123,7 +123,7 @@ var WATERFALL = (function() {
 
       // Update the traces
       var trace = vis.selectAll("g.trace")
-        .data(traces, function(d) { return d.id });
+        .data(traces, function(d) { return d.id; });
 
       var traceEnter = trace.enter().append("g")
         .classed("trace", true)
@@ -145,36 +145,44 @@ var WATERFALL = (function() {
         .on("mouseover", mouseover)
         .on("mouseout", mouseout);
 
-      traceEnter.append("text")
+      var textEnter = traceEnter.append("text")
         .attr("dy", 4)
         .attr("dx", 6);
 
-      trace.select("text")
-        .text(function(d) {
-            var name = d.name + " (" + d.elapsed + " ms)";
-            if (d.children) {
-              name = "[-] " + name;
-            } else if (d._children) {
-              name = "[+] " + name;
-            }
-            return name;
-          });
+      textEnter.append("tspan").attr("class", "expando");
+      textEnter.append("tspan").text(function(d) { return d.name + " (" + d.elapsed + " ms)"; });
 
-      // Transition traces to their new position.
-      traceEnter.transition()
-        .duration(duration)
-        .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
-        .style("opacity", function(d) { return d.waterfallDimmed ? alphaDimmed : 1; });
+      var text = trace.select("text tspan.expando")
+          .style("font-family", "monospace")
+          .text(function(d) {
+              if (d.children) {
+                return "[-] ";
+              } else if (d._children) {
+                return "[+] ";
+              }
+            });
 
       trace.transition()
+        .style("pointer-events", "none")
         .duration(duration)
         .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
-        .style("opacity", function(d) { return d.waterfallDimmed ? alphaDimmed : 1; });
+          .style("opacity", function(d) { return d.waterfallDimmed ? alphaDimmed : 1; })
+          .each("end", function() { d3.select(this).style("pointer-events", ""); });
+
+      // Transition traces to their new position.
+      traceEnter
+        .style("pointer-events", "none")
+        .transition()
+          .duration(duration)
+          .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
+          .style("opacity", function(d) { return d.waterfallDimmed ? alphaDimmed : 1; })
+          .each("end", function() { d3.select(this).style("pointer-events", ""); });
 
       // Transition exiting traces to the parent's new position.
       trace.exit()
+        .style("pointer-events", "none")
         .classed("hidden", true)
-          .transition()
+        .transition()
           .duration(duration)
           .attr("transform", function(d) { return "translate(" + source.x + "," + source.y + ")"; })
           .style("opacity", 1e-6)
@@ -199,17 +207,18 @@ var WATERFALL = (function() {
     }
 
     function mouseover(d) {
-      if (d.children) {
+      if (d.children || d._children) {
         vis.selectAll("g.trace")
           .filter(function(e) { return e !== d && !ancestors[e.id][d.id]; })
-          .each(function(d) { d.waterfallDimmed = true; });
-        update(d, 0);
+          .each(function(e) { e.waterfallDimmed = true; })
+          .style("opacity", alphaDimmed);
       }
     }
 
     function mouseout(d) {
-      vis.selectAll("g.trace").each(function(d) { delete d.waterfallDimmed; });
-      update(d, 0);
+      vis.selectAll("g.trace")
+        .style("opacity", function() { return d3.select(this).classed("hidden") ? 0 : 1 })
+        .each(function(e) { delete e.waterfallDimmed; });
     }
   };
 
