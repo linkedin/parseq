@@ -34,7 +34,7 @@ var WATERFALL = (function() {
         minBarWidth = 3,
 
         // transition duration
-        defaultDuration = 300,
+        defaultDuration = 250,
 
         alphaDimmed = 0.3,
 
@@ -163,11 +163,10 @@ var WATERFALL = (function() {
             });
 
       trace.transition()
-        .style("pointer-events", "none")
         .duration(duration)
         .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
           .style("opacity", function(d) { return d.waterfallDimmed ? alphaDimmed : 1; })
-          .each("end", function() { d3.select(this).style("pointer-events", ""); });
+          .each("end", function() { d3.select(this).style("opacity", function(d) { return d.waterfallDimmed ? alphaDimmed : 1; }); });
 
       // Transition traces to their new position.
       traceEnter
@@ -176,7 +175,7 @@ var WATERFALL = (function() {
           .duration(duration)
           .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
           .style("opacity", function(d) { return d.waterfallDimmed ? alphaDimmed : 1; })
-          .each("end", function() { d3.select(this).style("pointer-events", ""); });
+          .each("end", function() { d3.select(this).style("pointer-events", undefined); });
 
       // Transition exiting traces to the parent's new position.
       trace.exit()
@@ -186,6 +185,7 @@ var WATERFALL = (function() {
           .duration(duration)
           .attr("transform", function(d) { return "translate(" + source.x + "," + source.y + ")"; })
           .style("opacity", 1e-6)
+          .each("end", function() { d3.select(this).style("pointer-events", undefined); })
           .remove();
 
       // Stash the old positions for transition.
@@ -217,6 +217,7 @@ var WATERFALL = (function() {
 
     function mouseout(d) {
       vis.selectAll("g.trace")
+        .filter(function(e) { return e.waterfallDimmed; })
         .style("opacity", function() { return d3.select(this).classed("hidden") ? 0 : 1 })
         .each(function(e) { delete e.waterfallDimmed; });
     }
