@@ -196,14 +196,33 @@ var WATERFALL = (function() {
     }
 
     function toggleCollapse(d) {
-      if (d.children) {
-        d._children = d.children;
-        delete d.children;
+      if (d3.event.shiftKey) {
+        recursiveCollapse(d, d.children);
       } else {
-        d.children = d._children;
-        delete d._children;
+        collapseOne(d, d.children);
       }
       update(d, defaultDuration);
+    }
+
+    function recursiveCollapse(trace, collapse) {
+      collapseOne(trace, collapse);
+      (trace.children || trace._children || []).forEach(function(child) {
+        recursiveCollapse(child, collapse);
+      });
+    }
+
+    function collapseOne(trace, collapse) {
+      if (collapse) {
+        if (trace.children) {
+          trace._children = trace.children;
+          delete trace.children;
+        }
+      } else {
+        if (trace._children) {
+          trace.children = trace._children;
+          delete trace._children;
+        }
+      }
     }
 
     function mouseover(d) {
