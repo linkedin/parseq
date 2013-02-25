@@ -47,8 +47,14 @@ public class AsyncCallableTask<R> extends BaseTask<R>
     builder.setEngineProperty(CALLABLE_SERVICE_EXECUTOR, executor);
   }
 
-  public AsyncCallableTask(Callable<R> syncJob)
+  public AsyncCallableTask(final Callable<R> syncJob)
   {
+    this(null, syncJob);
+  }
+
+  public AsyncCallableTask(final String name, final Callable<R> syncJob)
+  {
+    super(name);
     _syncJob = syncJob;
   }
 
