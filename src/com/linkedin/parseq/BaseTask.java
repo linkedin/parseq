@@ -174,9 +174,9 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
           }
         });
       }
-      catch (Exception e)
+      catch (Throwable t)
       {
-        fail(e, taskLog);
+        fail(t, taskLog);
       }
     }
     else
