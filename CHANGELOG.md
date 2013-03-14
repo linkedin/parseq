@@ -4,6 +4,9 @@ v1.2.1
 * Improvements to waterfall trace visualization including the ability to
   collapse composite tasks.
 
+* BaseTask will now catch Throwable instead of Exception. Any Throwable 
+  caught will fail the task.
+
 v1.2.0
 ------
 
