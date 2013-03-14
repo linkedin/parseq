@@ -10,8 +10,24 @@
   display: none;
 }
 
-.tableview span {
-  white-space: nowrap;
+.tableview td {
+  word-wrap: break-word;
+}
+
+/* Prevent long task names from dominating the table */
+.tableview td:first-child {
+  width: 50%;
+
+  /*
+   * The following value appears to be ignored by all tested browsers (Chrome,
+   * Firefox, Safari), but without it, long task names dominate the entire
+   * table.
+   */
+  max-width: 20em;
+}
+
+.tableview td:last-child {
+  width: 50%;
 }
 
 .tableview td span.composite {
@@ -27,6 +43,7 @@
   width: 100%;
   padding: 0;
   margin: 0;
+  resize: none;
 }
 
 .tableview .success {
