@@ -1,3 +1,8 @@
+v1.3.1
+------
+
+* Performance improvements (i.e. quicker garbage collection) for timer tasks.
+
 v1.3.0
 ------
 
