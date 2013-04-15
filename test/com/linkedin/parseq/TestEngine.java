@@ -34,7 +34,7 @@ import static org.testng.AssertJUnit.assertTrue;
 /**
  * @author Chris Pettitt
  */
-public class EngineTest
+public class TestEngine
 {
   private Engine _engine;
   private ScheduledExecutorService _scheduler;
