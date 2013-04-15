@@ -77,7 +77,7 @@ public class EngineBuilder
   public EngineBuilder setTimerScheduler(final DelayedExecutor timerScheduler)
   {
     ArgumentUtil.notNull(timerScheduler, "timerScheduler");
-    _timerScheduler = timerScheduler;
+    _timerScheduler = new IndirectDelayedExecutor(timerScheduler);
     return this;
   }
 
@@ -159,14 +159,6 @@ public class EngineBuilder
    */
   private static DelayedExecutor adaptTimerScheduler(final ScheduledExecutorService timerScheduler)
   {
-    return new DelayedExecutor()
-    {
-      @Override
-      public Cancellable schedule(final long delay, final TimeUnit unit,
-                                  final Runnable command)
-      {
-        return new CancellableScheduledFuture(timerScheduler.schedule(command, delay, unit));
-      }
-    };
+    return new DelayedExecutorAdapter(timerScheduler);
   }
 }
