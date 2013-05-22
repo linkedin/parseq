@@ -190,7 +190,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
   }
 
   @SuppressWarnings("unchecked")
-  private Promise<T> doContextRun(final Context context) throws Exception
+  private Promise<T> doContextRun(final Context context) throws Throwable
   {
     return (Promise<T>)run(new WrappedContext(context));
   }
@@ -248,7 +248,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
    * @return a promise that will have its value set when this task is finished
    * @throws Exception if an error occurs while running the task
    */
-  protected abstract Promise<? extends T> run(final Context context) throws Exception;
+  protected abstract Promise<? extends T> run(final Context context) throws Throwable;
 
   private void done(final T value, final TaskLog taskLog)
   {

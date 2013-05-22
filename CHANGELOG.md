@@ -1,3 +1,8 @@
+v1.3.2
+------
+
+* Changed BaseTask.run(Context) to throw Throwable instead of Exception.
+
 v1.3.1
 ------
 
