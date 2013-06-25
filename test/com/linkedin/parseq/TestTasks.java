@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static com.linkedin.parseq.TestUtil.value;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
@@ -196,6 +197,52 @@ public class TestTasks extends BaseEngineTest
     {
       // Expected case
     }
+  }
+
+  @Test
+  public void testThrowableCallableNoError() throws InterruptedException
+  {
+    final Integer magic = 0x5f3759df;
+    final ThrowableCallable<Integer> callable = new ThrowableCallable<Integer>()
+    {
+      @Override
+      public Integer call() throws Throwable
+      {
+        return magic;
+      }
+    };
+    final Task<Integer> task = Tasks.callable("magic", callable);
+
+    getEngine().run(task);
+    task.await(100, TimeUnit.MILLISECONDS);
+
+    assertTrue(task.isDone());
+    assertFalse(task.isFailed());
+    assertEquals(magic, task.get());
+    assertEquals("magic", task.getName());
+  }
+
+  @Test
+  public void testThrowableCallableWithError() throws InterruptedException
+  {
+    final Throwable throwable = new Throwable();
+    final ThrowableCallable<Integer> callable = new ThrowableCallable<Integer>()
+    {
+      @Override
+      public Integer call() throws Throwable
+      {
+        throw throwable;
+      }
+    };
+    final Task<Integer> task = Tasks.callable("error", callable);
+
+    getEngine().run(task);
+    task.await(100, TimeUnit.MILLISECONDS);
+
+    assertTrue(task.isDone());
+    assertTrue(task.isFailed());
+    assertEquals("Throwable should not be wrapped", throwable, task.getError());
+    assertEquals("error", task.getName());
   }
 }
 

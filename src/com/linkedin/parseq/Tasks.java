@@ -64,6 +64,23 @@ public class Tasks
   }
 
   /**
+   * Creates a new {@link Task} that's value will be set to the value returned
+   * from the supplied callable. This task is useful when doing basic
+   * computation that does not require asynchrony. It is not appropriate for
+   * long running or blocking tasks.
+   *
+   * @param name a name that describes the action
+   * @param callable the callable to execute when this task is run
+   * @param <T> the type of the return value for this task
+   * @return the new task
+   */
+  public static <T> Task<T> callable(final String name,
+                                     final ThrowableCallable<? extends T> callable)
+  {
+    return new CallableTask<T>(name, callable);
+  }
+
+  /**
    * Creates a new task that will run the given tasks sequentially (e.g.
    * task1 will be finished before task2 starts). The value of the seq task will
    * be the result of the last task in the sequence.
