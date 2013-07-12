@@ -1,3 +1,9 @@
+v1.3.3
+------
+
+* Added "ThrowableCallable" a Callable that allows a Throwable to be thrown
+* Use slf4j-api to replace slf4j-log4j12 in build dependency.
+
 v1.3.2
 ------
 
