@@ -255,7 +255,7 @@ public class ListLogger extends MarkerIgnoringBase
   {
     if (isLevelEnabled(level))
     {
-      final String msg = MessageFormatter.format(s, o);
+      final String msg = MessageFormatter.format(s, o).getMessage();
       _entries.add(new Entry(level, msg));
     }
   }
@@ -265,7 +265,7 @@ public class ListLogger extends MarkerIgnoringBase
   {
     if (isLevelEnabled(level))
     {
-      final String msg = MessageFormatter.format(s, o, o1);
+      final String msg = MessageFormatter.format(s, o, o1).getMessage();
       _entries.add(new Entry(level, msg));
     }
   }
@@ -274,7 +274,7 @@ public class ListLogger extends MarkerIgnoringBase
   {
     if (isLevelEnabled(level))
     {
-      final String msg = MessageFormatter.arrayFormat(s, objects);
+      final String msg = MessageFormatter.arrayFormat(s, objects).getMessage();
       _entries.add(new Entry(level, msg));
     }
   }
