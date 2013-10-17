@@ -34,6 +34,10 @@
   max-width: 20em;
 }
 
+.tableview td .expandable {
+  cursor: pointer;
+}
+
 .tableview td:last-child {
   width: 50%;
 }

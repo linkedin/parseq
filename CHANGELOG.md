@@ -1,3 +1,8 @@
+v1.3.4
+------
+
+* Renamed trace.html in tracevis tool to index.html
+
 v1.3.3
 ------
 

@@ -104,10 +104,8 @@
         <make-jar destfile="${dist.dir}/${ant.project.name}-${version}-sources.jar" basedir="${src.dir}" />
     </target>
 
-    <target name="tar-tracevis" depends="prepare" description="Creates a tarball of the tracevis tool">
-        <tar destfile="${dist.dir}/${ant.project.name}-tracevis-${version}.tar.gz" compression="gzip">
-            <tarfileset dir="${tools.dir}/tracevis" prefix="tracevis" />
-        </tar>
+    <target name="tar-tracevis" depends="prepare, dist-tracevis" description="Creates a tarball of the tracevis tool">
+        <copy file="${tools.dir}/tracevis/dist/parseq-tracevis.tar.gz" todir="${dist.dir}"/>
     </target>
 
     <target name="doc" description="Build the javadoc." depends="build-src">
@@ -189,6 +187,14 @@
         <make dir="${tools.dir}/tracevis">
             <args>
                 <arg value="test" />
+            </args>
+        </make>
+    </target>
+
+    <target name="dist-tracevis" description="Builds the tracevis package">
+        <make dir="${tools.dir}/tracevis">
+            <args>
+                <arg value="dist" />
             </args>
         </make>
     </target>
