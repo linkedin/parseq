@@ -20,19 +20,21 @@ TEST_UNIT_FILES = $(wildcard test/unit/*.js test/unit/**/*.js)
 TEST_INT_FILES = $(wildcard test/int/*.js)
 TEST_FILES = $(TEST_UNIT_FILES) $(TEST_INT_FILES)
 
-COVERAGE_UNIT=build/coverage/unit
+TEST_UNIT_COV = build/coverage/unit
 
 # Targets
 .PHONY: all \
 		test test-unit test-int lint \
 		clean fullclean
 
+.DELETE_ON_ERROR:
+
 all: build test
 
 build: build/$(MODULE_JS) build/$(MODULE_MIN_JS) build/$(MODULE)
 
 build/$(MODULE_JS): browser.js node_modules $(SRC_FILES)
-	mkdir -p build
+	mkdir -p $(@D)
 	$(BROWSERIFY) -x node_modules/d3/index-browserify.js $(BROWSERIFY_OPTS) $< > $@
 
 build/$(MODULE_MIN_JS): build/$(MODULE_JS)
@@ -51,27 +53,31 @@ build/$(MODULE)/js: build/$(MODULE_JS) build/$(MODULE_MIN_JS) node_modules/d3/d3
 dist: test dist/$(MODULE_TAR_GZ)
 
 dist/$(MODULE_TAR_GZ): build/$(MODULE)
-	mkdir -p dist
+	mkdir -p $(@D)
 	tar cfzC $@ build $(MODULE)
 	@echo
 
-test: test-unit test-int lint
+test: test-unit test-int
 
-test-unit: $(COVERAGE_UNIT)
+test-unit: $(TEST_UNIT_COV) lint
 
-$(COVERAGE_UNIT): $(TEST_UNIT_FILES) node_modules
-	$(ISTANBUL) cover $(MOCHA) --dir $@ -x **/lib/render/** -- $(MOCHA_OPTS) $(TEST_UNIT_FILES)
+$(TEST_UNIT_COV): $(TEST_UNIT_FILES) | node_modules
+	$(ISTANBUL) cover $(MOCHA) --dir $@ -x **/lib/render/** -- $(MOCHA_OPTS) $^
 
 test-int: build/test-int
 
-build/test-int: $(TEST_INT_FILES) node_modules build/$(MODULE)
-	$(PHANTOMJS) $^ | tee $@
+build/test-int: $(TEST_INT_FILES) | node_modules build/$(MODULE)
+	mkdir -p $(@D)
+	$(PHANTOMJS) $^
+	touch $@
 	@echo
 
 lint: build/lint
 
 build/lint: $(SRC_FILES) $(TEST_FILES)
-	$(JSHINT) $^ | tee $@
+	mkdir -p $(@D)
+	$(JSHINT) $?
+	touch $@
 	@echo
 
 clean:
