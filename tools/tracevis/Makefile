@@ -21,10 +21,12 @@ TEST_INT_FILES = $(wildcard test/int/*.js)
 TEST_FILES = $(TEST_UNIT_FILES) $(TEST_INT_FILES)
 
 TEST_UNIT_COV = build/coverage/unit
+TEST_INT_COV = build/coverage/int
+TEST_ALL_COV = build/coverage/all
 
 # Targets
 .PHONY: all \
-		test test-unit test-int lint \
+		test test-unit test-int lint coverage \
 		clean fullclean
 
 .DELETE_ON_ERROR:
@@ -47,8 +49,9 @@ build/$(MODULE): bootstrap css index.html | build/$(MODULE)/js
 	@echo
 
 build/$(MODULE)/js: build/$(MODULE_JS) build/$(MODULE_MIN_JS) node_modules/d3/d3.min.js
+	rm -rf $@
 	mkdir -p $@
-	cp $? $@
+	cp $^ $@
 
 dist: test dist/$(MODULE_TAR_GZ)
 
@@ -57,20 +60,46 @@ dist/$(MODULE_TAR_GZ): build/$(MODULE)
 	tar cfzC $@ build $(MODULE)
 	@echo
 
-test: test-unit test-int
+test: coverage
 
 test-unit: $(TEST_UNIT_COV) lint
 
-$(TEST_UNIT_COV): $(TEST_UNIT_FILES) | node_modules
-	$(ISTANBUL) cover $(MOCHA) --dir $@ -x **/lib/render/** -- $(MOCHA_OPTS) $^
+$(TEST_UNIT_COV): $(TEST_UNIT_FILES) $(SRC_FILES) | node_modules
+	rm -rf $@
+	$(ISTANBUL) cover $(MOCHA) --dir $@ -x **/lib/render/** --report none -- $(MOCHA_OPTS) $(TEST_UNIT_FILES)
 
-test-int: build/test-int
+test-int: $(TEST_INT_COV)
 
-build/test-int: $(TEST_INT_FILES) | node_modules build/$(MODULE)
+build/instrumentation:
+	mkdir -p $@
+
+build/instrumentation/lib: $(SRC_FILES)
+	rm -rf $@
 	mkdir -p $(@D)
-	$(PHANTOMJS) $^
+	$(ISTANBUL) instrument lib --output $@
+
+build/instrumentation/%.js: %.js | build/instrumentation
+	cp $< $@
+
+build/instrumentation/$(MODULE_JS): build/instrumentation/browser.js build/instrumentation/index.js node_modules build/instrumentation/lib
+	$(BROWSERIFY) -x node_modules/d3/index-browserify.js $< > $@
+
+build/instrumentation/$(MODULE): build/$(MODULE) build/instrumentation/$(MODULE_JS)
+	rm -rf $@
+	cp -r $< $@
+	cp build/instrumentation/$(MODULE_JS) $@/js/$(MODULE_MIN_JS)
+
+$(TEST_INT_COV): $(TEST_INT_FILES) build/instrumentation/$(MODULE)
+	mkdir -p $(@D)
+	$(PHANTOMJS) $<
 	touch $@
 	@echo
+
+coverage: $(TEST_ALL_COV)
+
+$(TEST_ALL_COV): $(TEST_UNIT_COV) $(TEST_INT_COV)
+	rm -rf $@
+	$(ISTANBUL) report --root build/coverage --dir $@ lcov
 
 lint: build/lint
 
