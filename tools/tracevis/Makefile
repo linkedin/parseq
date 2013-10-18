@@ -41,7 +41,7 @@ build/$(MODULE_MIN_JS): build/$(MODULE_JS)
 build/$(MODULE): bootstrap css index.html | build/$(MODULE)/js
 	mkdir -p $@
 	cp -r $^ $@
-	sed -i '' -e "s|node_modules/d3/d3.js|js/d3.min.js|" -e "s|build/$(MODULE_JS)|js/$(MODULE_MIN_JS)|" build/$(MODULE)/index.html
+	sed -e "s|node_modules/d3/d3.js|js/d3.min.js|" -e "s|build/$(MODULE_JS)|js/$(MODULE_MIN_JS)|" index.html > build/$(MODULE)/index.html
 	@echo
 
 build/$(MODULE)/js: build/$(MODULE_JS) build/$(MODULE_MIN_JS) node_modules/d3/d3.min.js
