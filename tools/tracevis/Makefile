@@ -66,6 +66,9 @@ test-unit: $(TEST_UNIT_COV) lint
 
 $(TEST_UNIT_COV): $(TEST_UNIT_FILES) $(SRC_FILES) | node_modules
 	rm -rf $@
+	$(MOCHA) $(MOCHA_OPTS) $(TEST_UNIT_FILES)
+# Instanbul instrumentation appears to mess up stack traces, so we run it after
+# ensuring the tests are passing
 	$(ISTANBUL) cover $(MOCHA) --dir $@ -x **/lib/render/** --report none -- $(MOCHA_OPTS) $(TEST_UNIT_FILES)
 
 test-int: $(TEST_INT_COV)
