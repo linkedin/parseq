@@ -14,15 +14,20 @@
  * the License.
  */
 
-package com.linkedin.parseq.trace;
+package com.linkedin.parseq.internal.trace;
 
 import com.linkedin.parseq.EarlyFinishException;
 import com.linkedin.parseq.Task;
+import com.linkedin.parseq.trace.Related;
+import com.linkedin.parseq.trace.Relationship;
+import com.linkedin.parseq.trace.ResultType;
+import com.linkedin.parseq.trace.ShallowTraceBuilder;
+import com.linkedin.parseq.trace.Trace;
 
 import java.util.Set;
 
 /**
- * An Object that can be used to construct {@link Trace}s for {@link Task}s.
+ * An Object that can be used to construct {@link com.linkedin.parseq.trace.Trace}s for {@link Task}s.
  *
  * @author Chi Chan (ckchan@linkedin.com)
  */

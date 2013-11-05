@@ -14,9 +14,11 @@
  * the License.
  */
 
-package com.linkedin.parseq.trace;
+package com.linkedin.parseq.internal.trace;
 
 import com.linkedin.parseq.internal.ArgumentUtil;
+import com.linkedin.parseq.trace.Related;
+import com.linkedin.parseq.trace.Relationship;
 
 import java.util.Collections;
 import java.util.Set;

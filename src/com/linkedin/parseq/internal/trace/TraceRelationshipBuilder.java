@@ -14,9 +14,13 @@
  * the License.
  */
 
-package com.linkedin.parseq.trace;
+package com.linkedin.parseq.internal.trace;
 
 import com.linkedin.parseq.internal.ArgumentUtil;
+import com.linkedin.parseq.trace.Related;
+import com.linkedin.parseq.trace.Relationship;
+import com.linkedin.parseq.trace.ShallowTrace;
+import com.linkedin.parseq.trace.Trace;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -25,7 +29,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * TraceRelationshipBuilder is a helper for building {@link Trace} instances.
+ * TraceRelationshipBuilder is a helper for building {@link com.linkedin.parseq.trace.Trace} instances.
  * <p/>
  * This class is not thread-safe.
  *

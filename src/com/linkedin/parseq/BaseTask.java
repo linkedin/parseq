@@ -23,13 +23,13 @@ import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 import com.linkedin.parseq.trace.Related;
 import com.linkedin.parseq.trace.Relationship;
-import com.linkedin.parseq.trace.RelationshipBuilder;
+import com.linkedin.parseq.internal.trace.RelationshipBuilder;
 import com.linkedin.parseq.trace.ResultType;
 import com.linkedin.parseq.trace.ShallowTrace;
 import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.Trace;
-import com.linkedin.parseq.trace.TraceBuilder;
-import com.linkedin.parseq.trace.TraceBuilderImpl;
+import com.linkedin.parseq.internal.trace.TraceBuilder;
+import com.linkedin.parseq.internal.trace.TraceBuilderImpl;
 
 import java.util.Collection;
 import java.util.Set;

@@ -16,6 +16,7 @@
 
 package com.linkedin.parseq.trace;
 
+import com.linkedin.parseq.internal.trace.TraceRelationshipBuilder;
 import org.testng.annotations.Test;
 
 import java.util.Collections;

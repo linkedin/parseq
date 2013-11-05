@@ -24,7 +24,7 @@ import java.util.Set;
  * this point in time will be after the task has completed, but traces can
  * also be taken of tasks that are currently executing.
  * <p/>
- * Traces are immutable and thread-safe. Use {@link TraceBuilder} to
+ * Traces are immutable and thread-safe. Use {@link com.linkedin.parseq.internal.trace.TraceBuilder} to
  * create new traces.
  * <p/>
  * Use a {@link com.linkedin.parseq.trace.codec.TraceCodec} to serialize and

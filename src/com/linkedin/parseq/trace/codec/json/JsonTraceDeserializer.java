@@ -19,7 +19,7 @@ package com.linkedin.parseq.trace.codec.json;
 import com.linkedin.parseq.trace.ResultType;
 import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.Trace;
-import com.linkedin.parseq.trace.TraceRelationshipBuilder;
+import com.linkedin.parseq.internal.trace.TraceRelationshipBuilder;
 import org.codehaus.jackson.JsonNode;
 
 import java.io.IOException;

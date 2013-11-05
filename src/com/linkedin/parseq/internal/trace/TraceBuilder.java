@@ -14,9 +14,10 @@
  * the License.
  */
 
-package com.linkedin.parseq.trace;
+package com.linkedin.parseq.internal.trace;
 
 import com.linkedin.parseq.Task;
+import com.linkedin.parseq.trace.Trace;
 
 /**
  * Generate trace data.
@@ -26,7 +27,7 @@ import com.linkedin.parseq.Task;
 public interface TraceBuilder
 {
   /**
-   * Returns a {@link Trace} instance with tracing information for the
+   * Returns a {@link com.linkedin.parseq.trace.Trace} instance with tracing information for the
    * provided task. The trace will include the task, its predecessors, and its children.
    *
    * @param task the task used to generate the trace
