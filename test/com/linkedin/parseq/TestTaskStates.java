@@ -16,7 +16,6 @@
 
 package com.linkedin.parseq;
 
-import com.linkedin.parseq.internal.TaskLogger;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseException;
 import com.linkedin.parseq.promise.PromiseUnresolvedException;
@@ -24,8 +23,6 @@ import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 import org.testng.annotations.Test;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -43,9 +40,6 @@ import static org.testng.AssertJUnit.fail;
  */
 public class TestTaskStates
 {
-  private static Task<?> NO_PARENT = null;
-  private static Collection<Task<?>> NO_PREDECESSORS = Collections.emptySet();
-
   @Test
   public void testInit()
   {
@@ -103,12 +97,12 @@ public class TestTaskStates
 
     runTask(task);
 
-    task.await();
+    task.await(5, TimeUnit.SECONDS);
 
     assertDone(task, result);
   }
 
-  @Test
+  @Test(expectedExceptions = IllegalStateException.class)
   public void testRunAfterRun() throws InterruptedException
   {
     final AtomicInteger runCount = new AtomicInteger();
@@ -127,18 +121,6 @@ public class TestTaskStates
 
     // Run it again
     runTask(task);
-
-    // We'll give each task some time to hit run
-    Thread.sleep(50);
-
-    assertEquals(1, runCount.get());
-
-    promise.done(null);
-
-    // Again give the other task some time to enter run
-    Thread.sleep(50);
-
-    assertEquals(1, runCount.get());
   }
 
   @Test
@@ -156,7 +138,7 @@ public class TestTaskStates
 
     runTask(task);
 
-    task.await();
+    task.await(5, TimeUnit.SECONDS);
 
     assertFailed(task, exception);
   }
@@ -178,7 +160,7 @@ public class TestTaskStates
 
     runTask(task);
 
-    task.await();
+    task.await(5, TimeUnit.SECONDS);
 
     assertFailed(task, exception);
   }
@@ -198,7 +180,7 @@ public class TestTaskStates
 
     runTask(task);
 
-    task.await();
+    task.await(5, TimeUnit.SECONDS);
 
     assertFalse(task.setPriority(5));
     assertEquals(0, task.getPriority());
@@ -223,7 +205,7 @@ public class TestTaskStates
       public String call() throws Exception
       {
         startLatch.countDown();
-        finishLatch.await();
+        finishLatch.await(5, TimeUnit.SECONDS);
         return result;
       }
     });
@@ -239,7 +221,7 @@ public class TestTaskStates
     thread.setDaemon(true);
     thread.start();
 
-    startLatch.await();
+    startLatch.await(5, TimeUnit.SECONDS);
 
     assertFalse(task.cancel(new Exception()));
 
@@ -247,7 +229,7 @@ public class TestTaskStates
 
     finishLatch.countDown();
 
-    task.await();
+    task.await(5, TimeUnit.SECONDS);
 
     assertDone(task, result);
   }
@@ -282,7 +264,7 @@ public class TestTaskStates
     final Exception reason = new Exception();
     assertTrue(task.cancel(reason));
 
-    task.await();
+    task.await(5, TimeUnit.SECONDS);
 
     assertFailed(task, reason);
   }
@@ -302,7 +284,7 @@ public class TestTaskStates
 
     runTask(task);
 
-    task.await();
+    task.await(5, TimeUnit.SECONDS);
 
     assertDone(task, result);
 
@@ -313,7 +295,9 @@ public class TestTaskStates
 
   private void runTask(final Task<?> task)
   {
-    task.contextRun(new NullContext(), new NullTaskLog(), NO_PARENT, NO_PREDECESSORS);
+    final Context ctx = new NullContext();
+    task.assignContext(ctx);
+    task.contextRun();
   }
 
   private void assertInitOrScheduled(final Task<?> task)
@@ -384,7 +368,6 @@ public class TestTaskStates
 
   private void assertFailed(final Task<?> task, Exception exception)
   {
-
     assertTrue(task.isDone());
     assertTrue(task.isFailed());
     assertEquals(exception, task.getError());
@@ -404,48 +387,27 @@ public class TestTaskStates
 
   private static class NullContext implements Context
   {
-
     @Override
-    public Cancellable createTimer(final long time, final TimeUnit unit,
-                                   final Task<?> task)
+    public Cancellable createTimer(long time, TimeUnit unit, Task<?> task)
     {
-      throw new UnsupportedOperationException();
+      return null;
     }
 
     @Override
-    public void run(final Task<?>... tasks)
+    public void run(Task<?>... tasks)
     {
-      throw new UnsupportedOperationException();
     }
 
     @Override
-    public After after(final Promise<?>... promises)
+    public After after(Promise<?>... promises)
     {
-      throw new UnsupportedOperationException();
+      return null;
     }
 
     @Override
     public Object getEngineProperty(String key)
     {
-      throw new UnsupportedOperationException();
-    }
-  }
-
-  private static class NullTaskLog extends TaskLogger
-  {
-    public NullTaskLog()
-    {
-      super(null, null, null, null);
-    }
-
-    @Override
-    public void logTaskStart(final Task<?> task)
-    {
-    }
-
-    @Override
-    public void logTaskEnd(final Task<?> task)
-    {
+      return null;
     }
   }
 }

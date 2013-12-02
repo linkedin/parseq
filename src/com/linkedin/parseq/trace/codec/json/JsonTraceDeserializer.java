@@ -16,10 +16,11 @@
 
 package com.linkedin.parseq.trace.codec.json;
 
+import com.linkedin.parseq.internal.trace.MutableTrace;
+import com.linkedin.parseq.trace.Relationship;
 import com.linkedin.parseq.trace.ResultType;
 import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.Trace;
-import com.linkedin.parseq.internal.trace.TraceRelationshipBuilder;
 import org.codehaus.jackson.JsonNode;
 
 import java.io.IOException;
@@ -34,12 +35,11 @@ class JsonTraceDeserializer
 
   public static Trace deserialize(final JsonNode rootNode) throws IOException
   {
-    final TraceRelationshipBuilder<Integer> traceBuilder = new TraceRelationshipBuilder<Integer>();
+    final MutableTrace trace = new MutableTrace();
     try
     {
-      parseTraces(rootNode, traceBuilder);
-      parseRelationships(rootNode, traceBuilder);
-      return traceBuilder.buildRoot();
+      parseTrace(rootNode, trace);
+      return trace.freeze();
     }
     catch (RuntimeException e)
     {
@@ -47,7 +47,15 @@ class JsonTraceDeserializer
     }
   }
 
-  private static void parseTraces(final JsonNode rootNode, final TraceRelationshipBuilder<Integer> builder) throws IOException
+  private static void parseTrace(final JsonNode rootNode, final MutableTrace trace) throws IOException
+  {
+    trace.setSnapshotNanos(getLongField(rootNode, JsonTraceCodec.SNAPSHOT_NANOS));
+    parseShallowTraces(rootNode, trace);
+    parseRelationships(rootNode, trace);
+  }
+
+  private static void parseShallowTraces(final JsonNode rootNode,
+                                         final MutableTrace trace) throws IOException
   {
     for (JsonNode traceNode : getField(rootNode, JsonTraceCodec.TRACES))
     {
@@ -74,24 +82,19 @@ class JsonTraceDeserializer
       if (traceNode.get(JsonTraceCodec.TRACE_END_NANOS) != null)
         shallowBuilder.setEndNanos(getLongField(traceNode, JsonTraceCodec.TRACE_END_NANOS));
 
-      builder.addTrace(traceId, shallowBuilder.build());
+      trace.addTrace(traceId, shallowBuilder.build());
     }
   }
 
   private static void parseRelationships(final JsonNode rootNode,
-                                         final TraceRelationshipBuilder<Integer> builder) throws IOException
+                                         final MutableTrace trace) throws IOException
   {
-    if (builder.isEmpty())
-    {
-      throw new IOException("No traces in the document");
-    }
-
     for (JsonNode node : getField(rootNode, JsonTraceCodec.RELATIONSHIPS))
     {
-      final String relationship = getTextField(node, JsonTraceCodec.RELATIONSHIP_RELATIONSHIP);
+      final Relationship relationship = Relationship.valueOf(getTextField(node, JsonTraceCodec.RELATIONSHIP_RELATIONSHIP));
       final int from = getIntField(node, JsonTraceCodec.RELATIONSHIP_FROM);
       final int to = getIntField(node, JsonTraceCodec.RELATIONSHIP_TO);
-      builder.addRelationship(relationship, from, to);
+      trace.addRelationship(from, to, relationship);
     }
   }
 

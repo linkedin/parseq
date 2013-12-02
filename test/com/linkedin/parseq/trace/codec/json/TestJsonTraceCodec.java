@@ -16,11 +16,12 @@
 
 package com.linkedin.parseq.trace.codec.json;
 
-import com.linkedin.parseq.internal.trace.TraceRelationshipBuilder;
-import com.linkedin.parseq.trace.Related;
+import com.linkedin.parseq.internal.trace.MutableTrace;
 import com.linkedin.parseq.trace.Relationship;
+import com.linkedin.parseq.trace.RelationshipEntry;
 import com.linkedin.parseq.trace.ResultType;
 import com.linkedin.parseq.trace.ShallowTraceBuilder;
+import com.linkedin.parseq.trace.ShallowTraceEntry;
 import com.linkedin.parseq.trace.Trace;
 import com.linkedin.parseq.trace.codec.TraceCodec;
 import org.testng.annotations.Test;
@@ -28,8 +29,8 @@ import org.testng.annotations.Test;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.Set;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
@@ -45,66 +46,46 @@ public class TestJsonTraceCodec
   @Test
   public void testReversibleUnstartedTrace() throws IOException
   {
-    final Trace trace = new TraceRelationshipBuilder<Integer>()
-        .addTrace(0, new ShallowTraceBuilder("test", ResultType.UNFINISHED).build())
-        .buildRoot();
+    final MutableTrace trace = new MutableTrace();
+    trace.addTrace(0, new ShallowTraceBuilder("test", ResultType.UNFINISHED).build());
     assertReversible(trace);
   }
 
   @Test
   public void testReversibleSuccessfulTrace() throws IOException
   {
-    final Trace trace = new TraceRelationshipBuilder<Integer>()
-        .addTrace(0, new ShallowTraceBuilder("test", ResultType.SUCCESS)
-            .setValue("test value")
-            .setStartNanos(0L)
-            .setPendingNanos(50L)
-            .setEndNanos(100L)
-            .build())
-        .buildRoot();
+    final MutableTrace trace = new MutableTrace();
+    trace.addTrace(0, new ShallowTraceBuilder("test", ResultType.SUCCESS)
+        .setValue("test value")
+        .setStartNanos(0L)
+        .setPendingNanos(50L)
+        .setEndNanos(100L)
+        .build());
     assertReversible(trace);
   }
 
   @Test
   public void testReversibleSuccessfulTraceWithNullValue() throws IOException
   {
-    final Trace trace = new TraceRelationshipBuilder<Integer>()
-        .addTrace(0, new ShallowTraceBuilder("test", ResultType.SUCCESS)
-            .setStartNanos(0L)
-            .setPendingNanos(50L)
-            .setEndNanos(100L)
-            .build())
-        .buildRoot();
-    assertReversible(trace);
-  }
-
-  @Test
-  public void testReversibleWithNoAttributes() throws IOException
-  {
-    Set<String> attributes = new HashSet<String>();
-
-    final Trace trace = new TraceRelationshipBuilder<Integer>()
-            .addTrace(0, new ShallowTraceBuilder("test", ResultType.SUCCESS)
-                    .setStartNanos(0L)
-                    .setPendingNanos(50L)
-                    .setEndNanos(100L)
-                    .build())
-            .buildRoot();
+    final MutableTrace trace = new MutableTrace();
+    trace.addTrace(0, new ShallowTraceBuilder("test", ResultType.SUCCESS)
+                                .setStartNanos(0L)
+                                .setPendingNanos(50L)
+                                .setEndNanos(100L)
+                                .build());
     assertReversible(trace);
   }
 
   @Test
   public void testReversibleErrorTrace() throws IOException
   {
-    final Trace trace = new TraceRelationshipBuilder<Integer>()
-        .addTrace(0, new ShallowTraceBuilder("test", ResultType.ERROR)
-            .setValue("error value")
-            .setStartNanos(0L)
-            .setPendingNanos(50L)
-            .setEndNanos(100L)
-            .build())
-        .buildRoot();
-
+    final MutableTrace trace = new MutableTrace();
+    trace.addTrace(0, new ShallowTraceBuilder("test", ResultType.ERROR)
+        .setValue("error value")
+        .setStartNanos(0L)
+        .setPendingNanos(50L)
+        .setEndNanos(100L)
+        .build());
     assertReversible(trace);
   }
 
@@ -112,108 +93,100 @@ public class TestJsonTraceCodec
   public void testReversibleUnfinishedTrace() throws IOException
   {
     // If we have started a task we also must set the end time
-    final Trace trace = new TraceRelationshipBuilder<Integer>()
-        .addTrace(0, new ShallowTraceBuilder("test", ResultType.UNFINISHED)
-            .setStartNanos(0L)
-            .setPendingNanos(50L)
-            .setEndNanos(100L)
-            .build())
-        .buildRoot();
-
+    final MutableTrace trace = new MutableTrace();
+    trace.addTrace(0, new ShallowTraceBuilder("test", ResultType.UNFINISHED)
+                                .setStartNanos(0L)
+                                .setPendingNanos(50L)
+                                .setEndNanos(100L)
+                                .build());
     assertReversible(trace);
   }
 
   @Test
   public void testReversibleWithHiddenTrace() throws IOException
   {
-    final Trace trace = new TraceRelationshipBuilder<Integer>()
-            .addTrace(0, new ShallowTraceBuilder("test", ResultType.SUCCESS)
-                    .setStartNanos(0L)
-                    .setPendingNanos(50L)
-                    .setEndNanos(100L)
-                    .setHidden(true)
-                    .build())
-            .buildRoot();
+    final MutableTrace trace = new MutableTrace();
+    trace.addTrace(0, new ShallowTraceBuilder("test", ResultType.SUCCESS)
+        .setStartNanos(0L)
+        .setPendingNanos(50L)
+        .setEndNanos(100L)
+        .setHidden(true)
+        .build());
     assertReversible(trace);
   }
 
   @Test
   public void testReversibleTraceWithChild() throws IOException
   {
-    final Trace trace = new TraceRelationshipBuilder<Integer>()
-        .addTrace(0, new ShallowTraceBuilder("parent", ResultType.SUCCESS)
-            .setValue("parent value")
-            .setStartNanos(0L)
-            .setPendingNanos(100L)
-            .setEndNanos(200L)
-            .build())
-        .addTrace(1, new ShallowTraceBuilder("child", ResultType.SUCCESS)
-            .setValue("child value")
-            .setStartNanos(50L)
-            .setPendingNanos(75L)
-            .setEndNanos(100L)
-            .build())
-        .addRelationship(Relationship.PARENT_OF, 0, 1)
-        .buildRoot();
+    final MutableTrace trace = new MutableTrace();
+    trace.addTrace(0, new ShallowTraceBuilder("parent", ResultType.SUCCESS)
+        .setValue("parent value")
+        .setStartNanos(0L)
+        .setPendingNanos(100L)
+        .setEndNanos(200L)
+        .build());
+    trace.addTrace(1, new ShallowTraceBuilder("child", ResultType.SUCCESS)
+        .setValue("child value")
+        .setStartNanos(50L)
+        .setPendingNanos(75L)
+        .setEndNanos(100L)
+        .build());
+    trace.addRelationship(0, 1, Relationship.PARENT_OF);
     assertReversible(trace);
   }
 
   @Test
   public void testReversibleTraceWithPredecessor() throws IOException
   {
-    final Trace trace = new TraceRelationshipBuilder<Integer>()
-        .addTrace(0, new ShallowTraceBuilder("successor", ResultType.SUCCESS)
-            .setValue("successor value")
-            .setStartNanos(100L)
-            .setPendingNanos(150L)
-            .setEndNanos(200L)
-            .build())
-        .addTrace(1, new ShallowTraceBuilder("predecessor", ResultType.SUCCESS)
-            .setValue("predecessor value")
-            .setStartNanos(0L)
-            .setPendingNanos(50L)
-            .setEndNanos(100L)
-            .build())
-        .addRelationship(Relationship.SUCCESSOR_OF, 0, 1)
-        .buildRoot();
-
+    final MutableTrace trace = new MutableTrace();
+    trace.addTrace(0, new ShallowTraceBuilder("successor", ResultType.SUCCESS)
+        .setValue("successor value")
+        .setStartNanos(100L)
+        .setPendingNanos(150L)
+        .setEndNanos(200L)
+        .build());
+     trace.addTrace(1, new ShallowTraceBuilder("predecessor", ResultType.SUCCESS)
+         .setValue("predecessor value")
+         .setStartNanos(0L)
+         .setPendingNanos(50L)
+         .setEndNanos(100L)
+         .build());
+    trace.addRelationship(0, 1, Relationship.SUCCESSOR_OF);
     assertReversible(trace);
   }
 
   @Test
   public void testReversibleTraceWithDiamond() throws IOException
   {
-    final Trace trace = new TraceRelationshipBuilder<Integer>()
-        .addTrace(0, new ShallowTraceBuilder("source", ResultType.SUCCESS)
-              .setValue("source value")
-              .setStartNanos(0L)
-              .setPendingNanos(25L)
-              .setEndNanos(50L)
-              .build())
-        .addTrace(1, new ShallowTraceBuilder("left", ResultType.SUCCESS)
-            .setValue("left value")
-            .setStartNanos(50L)
-            .setPendingNanos(75L)
-            .setEndNanos(100L)
-            .build())
-        .addTrace(2, new ShallowTraceBuilder("right", ResultType.SUCCESS)
-            .setValue("right value")
-            .setStartNanos(50L)
-            .setPendingNanos(75L)
-            .setEndNanos(100L)
-            .build())
-        .addTrace(3, new ShallowTraceBuilder("sink", ResultType.SUCCESS)
-            .setValue("sink value")
-            .setStartNanos(100L)
-            .setPendingNanos(125L)
-            .setEndNanos(150L)
-            .build())
-        .addRelationship(Relationship.SUCCESSOR_OF, 1, 0)
-        .addRelationship(Relationship.SUCCESSOR_OF, 2, 0)
-        .addRelationship(Relationship.SUCCESSOR_OF, 3, 1)
-        .addRelationship(Relationship.SUCCESSOR_OF, 3, 2)
-        .buildRoot();
-
+    final MutableTrace trace = new MutableTrace();
+    trace.addTrace(0, new ShallowTraceBuilder("source", ResultType.SUCCESS)
+                                .setValue("source value")
+                                .setStartNanos(0L)
+                                .setPendingNanos(25L)
+                                .setEndNanos(50L)
+                                .build());
+    trace.addTrace(1, new ShallowTraceBuilder("left", ResultType.SUCCESS)
+                                .setValue("left value")
+                                .setStartNanos(50L)
+                                .setPendingNanos(75L)
+                                .setEndNanos(100L)
+                                .build());
+    trace.addTrace(2, new ShallowTraceBuilder("right", ResultType.SUCCESS)
+                                .setValue("right value")
+                                .setStartNanos(50L)
+                                .setPendingNanos(75L)
+                                .setEndNanos(100L)
+                                .build());
+    trace.addTrace(3, new ShallowTraceBuilder("sink", ResultType.SUCCESS)
+                                .setValue("sink value")
+                                .setStartNanos(100L)
+                                .setPendingNanos(125L)
+                                .setEndNanos(150L)
+                                .build());
+    trace.addRelationship(1, 0, Relationship.SUCCESSOR_OF);
+    trace.addRelationship(2, 0, Relationship.SUCCESSOR_OF);
+    trace.addRelationship(3, 1, Relationship.SUCCESSOR_OF);
+    trace.addRelationship(3, 2, Relationship.SUCCESSOR_OF);
     assertReversible(trace);
   }
 
@@ -221,10 +194,12 @@ public class TestJsonTraceCodec
   @Test
   public void testCustomBuilding() throws IOException
   {
-    final String json = buildJson(new String[]{traceStr(1, "parent", ResultType.UNFINISHED, false),
-        traceStr(2, "child", ResultType.UNFINISHED, false),
-        traceStr(3, "predecessor", ResultType.UNFINISHED, false)},
-        new String[]{hierStr(1, 2), orderStr(3, 1)});
+    final long snapshotNanos = System.nanoTime();
+    final String json = buildJson(snapshotNanos,
+                                  new String[] {traceStr(1, "parent", ResultType.UNFINISHED, false),
+                                                traceStr(2, "child", ResultType.UNFINISHED, false),
+                                                traceStr(3, "predecessor", ResultType.UNFINISHED, false)},
+                                  new String[] {hierStr(1, 2), orderStr(3, 1)});
     final Trace trace;
 
     try
@@ -237,27 +212,11 @@ public class TestJsonTraceCodec
       return;
     }
 
-    assertEquals("parent", trace.getName());
-    assertEquals(ResultType.UNFINISHED, trace.getResultType());
-
-    assertEquals(2, trace.getRelated().size());
-
-    String childName = null;
-    String predecessorName = null;
-    for (Related<Trace> related : trace.getRelated())
-    {
-      if (related.getRelationship().equals(Relationship.PARENT_OF.name()))
-      {
-        childName = related.getRelated().getName();
-      }
-      else if (related.getRelationship().equals(Relationship.SUCCESSOR_OF.name()))
-      {
-        predecessorName = related.getRelated().getName();
-      }
-    }
-
-    assertEquals("child", childName);
-    assertEquals("predecessor", predecessorName);
+    assertEquals(snapshotNanos, trace.getSnapshotNanos());
+    assertEquals("parent", trace.getShallowTrace(1).getName());
+    assertEquals(ResultType.UNFINISHED, trace.getShallowTrace(1).getResultType());
+    assertEquals(Collections.singleton(Relationship.PARENT_OF), trace.getRelationships(1, 2));
+    assertEquals(Collections.singleton(Relationship.SUCCESSOR_OF), trace.getRelationships(1, 3));
   }
 
   @Test
@@ -275,24 +234,10 @@ public class TestJsonTraceCodec
   }
 
   @Test
-  public void testDocWithNoTraces() throws IOException
-  {
-    final String json = buildJson(new String[0], new String[0]);
-    try
-    {
-      decodeString(json);
-      fail("Expected IOException");
-    }
-    catch (IOException e)
-    {
-      // expected case
-    }
-  }
-
-  @Test
   public void testDocWitInvalidPredecessorReference() throws IOException
   {
-    final String json = buildJson(new String[]{traceStr(1, "name", ResultType.UNFINISHED, false)},
+    final String json = buildJson(System.nanoTime(),
+                                  new String[]{traceStr(1, "name", ResultType.UNFINISHED, false)},
                                   new String[]{orderStr(2, 1)});
     try
     {
@@ -308,7 +253,8 @@ public class TestJsonTraceCodec
   @Test
   public void testDocWitInvalidSuccessorReference()
   {
-    final String json = buildJson(new String[] {traceStr(1, "name", ResultType.UNFINISHED, false)},
+    final String json = buildJson(System.nanoTime(),
+                                  new String[] {traceStr(1, "name", ResultType.UNFINISHED, false)},
                                   new String[] {orderStr(1, 2)});
     try
     {
@@ -324,7 +270,8 @@ public class TestJsonTraceCodec
   @Test
   public void testDocWitInvalidChildReference() throws IOException
   {
-    final String json = buildJson(new String[]{traceStr(1, "name", ResultType.UNFINISHED, false)},
+    final String json = buildJson(System.nanoTime(),
+                                  new String[]{traceStr(1, "name", ResultType.UNFINISHED, false)},
                                   new String[]{hierStr(1, 2)});
     try
     {
@@ -340,7 +287,8 @@ public class TestJsonTraceCodec
   @Test
   public void testDocWitInvalidParentReference() throws IOException
   {
-    final String json = buildJson(new String[]{traceStr(1, "name", ResultType.UNFINISHED, false)},
+    final String json = buildJson(System.nanoTime(),
+                                  new String[]{traceStr(1, "name", ResultType.UNFINISHED, false)},
                                   new String[]{hierStr(2, 1)});
     try
     {
@@ -353,49 +301,44 @@ public class TestJsonTraceCodec
     }
   }
 
-  private String buildJson(final String[] traces,
+  private String buildJson(final long snapshotNanos,
+                           final String[] traces,
                            final String[] related)
   {
-    final StringBuilder sb = new StringBuilder();
-    sb.append("{")
-        .append(arrayFieldStr(JsonTraceCodec.TRACES, traces)).append(",")
-        .append(arrayFieldStr(JsonTraceCodec.RELATIONSHIPS, related))
-      .append("}");
-    return sb.toString();
+    return "{" +
+              quote(JsonTraceCodec.SNAPSHOT_NANOS) + ": " + snapshotNanos + "," +
+              arrayFieldStr(JsonTraceCodec.TRACES, traces) + "," +
+              arrayFieldStr(JsonTraceCodec.RELATIONSHIPS, related) +
+           "}";
   }
 
   private String traceStr(final int id, final String name, final ResultType resultType, final boolean hidden)
   {
-    final StringBuilder sb = new StringBuilder();
-    sb.append("{")
-        .append(quote(JsonTraceCodec.TRACE_ID)).append(": ").append(id).append(",")
-        .append(quote(JsonTraceCodec.TRACE_NAME)).append(": ").append(quote(name)).append(",")
-        .append(quote(JsonTraceCodec.TRACE_HIDDEN)).append(": ").append(hidden).append(",")
-        .append(quote(JsonTraceCodec.TRACE_RESULT_TYPE)).append(": ").append(quote(resultType.toString()))
-        .append("}");
-    return sb.toString();
+    return "{" +
+              quote(JsonTraceCodec.TRACE_ID) + ": " + id + "," +
+              quote(JsonTraceCodec.TRACE_NAME) + ": " + quote(name) + "," +
+              quote(JsonTraceCodec.TRACE_HIDDEN) + ": " + hidden + "," +
+              quote(JsonTraceCodec.TRACE_RESULT_TYPE) + ": " +
+              quote(resultType.toString()) +
+           "}";
   }
 
   private String hierStr(final int parentId, final int childId)
   {
-    final StringBuilder sb = new StringBuilder();
-    sb.append("{")
-        .append(quote(JsonTraceCodec.RELATIONSHIP_RELATIONSHIP)).append(": ").append(quote(Relationship.PARENT_OF.name())).append(",")
-        .append(quote(JsonTraceCodec.RELATIONSHIP_FROM)).append(": ").append(parentId).append(",")
-        .append(quote(JsonTraceCodec.RELATIONSHIP_TO)).append(": ").append(childId)
-        .append("}");
-    return sb.toString();
+    return "{" +
+              quote(JsonTraceCodec.RELATIONSHIP_RELATIONSHIP) + ": " + quote(Relationship.PARENT_OF.name()) + "," +
+              quote(JsonTraceCodec.RELATIONSHIP_FROM) + ": " + parentId + "," +
+              quote(JsonTraceCodec.RELATIONSHIP_TO) + ": " + childId +
+           "}";
   }
 
   private String orderStr(final int predecessorId, final int successorId)
   {
-    final StringBuilder sb = new StringBuilder();
-    sb.append("{")
-        .append(quote(JsonTraceCodec.RELATIONSHIP_RELATIONSHIP)).append(": ").append(quote(Relationship.SUCCESSOR_OF.name())).append(",")
-        .append(quote(JsonTraceCodec.RELATIONSHIP_FROM)).append(": ").append(successorId).append(",")
-        .append(quote(JsonTraceCodec.RELATIONSHIP_TO)).append(": ").append(predecessorId)
-      .append("}");
-    return sb.toString();
+    return "{" +
+              quote(JsonTraceCodec.RELATIONSHIP_RELATIONSHIP) + ": " + quote(Relationship.SUCCESSOR_OF.name()) + "," +
+              quote(JsonTraceCodec.RELATIONSHIP_FROM) + ": " + successorId + "," +
+              quote(JsonTraceCodec.RELATIONSHIP_TO) + ": " + predecessorId +
+           "}";
   }
 
   private String arrayFieldStr(final String name, final String... elems)
@@ -447,7 +390,7 @@ public class TestJsonTraceCodec
       return;
     }
 
-    assertEquals(trace, deserialized);
+    assertTraceGraphEquals(trace, deserialized);
   }
 
   private void assertReversibleString(final Trace trace) throws IOException
@@ -466,6 +409,14 @@ public class TestJsonTraceCodec
       return;
     }
 
-    assertEquals(trace, deserialized);
+    assertTraceGraphEquals(trace, deserialized);
+  }
+
+  private void assertTraceGraphEquals(final Trace expected,
+                                      final Trace actual)
+  {
+
+    assertEquals(new HashSet<ShallowTraceEntry>(expected.traces()), new HashSet<ShallowTraceEntry>(actual.traces()));
+    assertEquals(new HashSet<RelationshipEntry>(expected.relationships()), new HashSet<RelationshipEntry>(actual.relationships()));
   }
 }

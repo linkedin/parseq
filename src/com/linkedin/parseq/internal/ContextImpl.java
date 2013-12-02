@@ -21,13 +21,14 @@ import com.linkedin.parseq.Cancellable;
 import com.linkedin.parseq.Context;
 import com.linkedin.parseq.EarlyFinishException;
 import com.linkedin.parseq.Task;
+import com.linkedin.parseq.internal.trace.TraceCapturer;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
+import com.linkedin.parseq.trace.Trace;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
@@ -36,10 +37,10 @@ import java.util.concurrent.TimeUnit;
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Chi Chan (ckchan@linkedin.com)
  */
-public class ContextImpl implements Context, Cancellable
+public class ContextImpl implements InternalContext, Context, Cancellable
 {
-  private static final Task<?> NO_PARENT = null;
-  private static final List<Task<?>> NO_PREDECESSORS = Collections.emptyList();
+  private static final Integer NO_PARENT = null;
+  private static final List<Integer> NO_PREDECESSORS = Collections.emptyList();
 
   private static final Exception EARLY_FINISH_EXCEPTION;
 
@@ -49,7 +50,8 @@ public class ContextImpl implements Context, Cancellable
 
     // Clear out everything but the last frame
     final StackTraceElement[] stackTrace = EARLY_FINISH_EXCEPTION.getStackTrace();
-    if (stackTrace.length > 0) {
+    if (stackTrace.length > 0)
+    {
       EARLY_FINISH_EXCEPTION.setStackTrace(Arrays.copyOf(EARLY_FINISH_EXCEPTION.getStackTrace(), 1));
     }
   }
@@ -59,33 +61,59 @@ public class ContextImpl implements Context, Cancellable
    */
   private final PlanContext _planContext;
 
+  /**
+   * The task managed by this context
+   */
   private final Task<Object> _task;
 
-  // A thread local that holds the root task iff the root task is being executed
-  // on the current thread. In all other cases, this thread local will hold a
-  // null value.
+  /**
+   * The id of this task for tracing purposes.
+   */
+  private final int _taskId;
+
+  /**
+   * The id of the parent of this task, for tracing purposes. {@code null} if
+   * this task has no parent (i.e. it is the plan's root).
+   */
+  private final Integer _parentId;
+
+  /**
+   * The ids of all predecessors of this task, for tracing purposes.
+   */
+  private final List<Integer> _predecessorIds;
+
+  /**
+   * A thread local that holds the root task iff the root task is being executed
+   * on the current thread. In all other cases, this thread local will hold a
+   * null value.
+   */
   private final ThreadLocal<Task<?>> _inTask = new ThreadLocal<Task<?>>();
 
-  private final Task<?> _parent;
-  private final List<Task<?>> _predecessorTasks;
 
+  /**
+   * A list of tasks / timers that should be cancelled when the task managed by
+   * this context completes.
+   */
   private final ConcurrentLinkedQueue<Cancellable> _cancellables = new ConcurrentLinkedQueue<Cancellable>();
 
   public ContextImpl(final PlanContext planContext,
-                     final Task<?> task)
+                     final Task<?> task,
+                     final int taskId)
   {
-    this(planContext, task, NO_PARENT, NO_PREDECESSORS);
+    this(planContext, task, taskId, NO_PARENT, NO_PREDECESSORS);
   }
 
   private ContextImpl(final PlanContext planContext,
                       final Task<?> task,
-                      final Task<?> parent,
-                      final List<Task<?>> predecessorTasks)
+                      final int taskId,
+                      final Integer parentId,
+                      final List<Integer> predecessorIds)
   {
     _planContext = planContext;
     _task = InternalUtil.unwildcardTask(task);
-    _parent = parent;
-    _predecessorTasks = predecessorTasks;
+    _taskId = taskId;
+    _parentId = parentId;
+    _predecessorIds = predecessorIds;
   }
 
   public void runTask()
@@ -96,11 +124,10 @@ public class ContextImpl implements Context, Cancellable
       @Override
       public void onResolved(Promise<Object> resolvedPromise)
       {
-        for (Iterator<Cancellable> it = _cancellables.iterator(); it.hasNext(); )
+        Cancellable cancellable;
+        while ((cancellable = _cancellables.poll()) != null)
         {
-          final Cancellable cancellable = it.next();
           cancellable.cancel(EARLY_FINISH_EXCEPTION);
-          it.remove();
         }
       }
     });
@@ -110,14 +137,36 @@ public class ContextImpl implements Context, Cancellable
       @Override
       public void run()
       {
-        _inTask.set(_task);
-        try
+        if (_task.assignContext(ContextImpl.this))
         {
-          _task.contextRun(ContextImpl.this, _planContext.getTaskLogger(), _parent, _predecessorTasks);
+          if (_parentId != null)
+          {
+            getTraceCapturer().setParent(_taskId, _parentId);
+          }
+          getTraceCapturer().addPredecessors(_taskId, _predecessorIds);
+
+          if (_planContext.getTaskLogger().isEnabled(_task))
+          {
+            _task.addTaskListener(_planContext.getTaskLogger());
+          }
+
+          _inTask.set(_task);
+          try
+          {
+            _task.contextRun();
+          }
+          finally
+          {
+            _inTask.remove();
+          }
         }
-        finally
+        else
         {
-          _inTask.remove();
+          if (_parentId != null)
+          {
+            getTraceCapturer().addPotentialParent(_taskId, _parentId);
+          }
+          getTraceCapturer().addPotentialPredecessors(_taskId, _predecessorIds);
         }
       }
 
@@ -134,15 +183,17 @@ public class ContextImpl implements Context, Cancellable
                                  final Task<?> task)
   {
     checkInTask();
+    final int taskId = getTraceCapturer().registerTask(task);
     final Cancellable cancellable = _planContext.schedule(time, unit, new Runnable()
     {
       @Override
       public void run()
       {
-        runSubTask(task, NO_PREDECESSORS);
+        runSubTask(task, taskId, NO_PREDECESSORS);
       }
     });
     _cancellables.add(cancellable);
+    getTraceCapturer().addPotentialParent(_taskId, taskId);
     return cancellable;
   }
 
@@ -152,7 +203,9 @@ public class ContextImpl implements Context, Cancellable
     checkInTask();
     for (final Task<?> task : tasks)
     {
-      runSubTask(task, NO_PREDECESSORS);
+      final int taskId = getTraceCapturer().registerTask(task);
+      runSubTask(task, taskId, NO_PREDECESSORS);
+      getTraceCapturer().addPotentialParent(_taskId, taskId);
     }
   }
 
@@ -161,28 +214,31 @@ public class ContextImpl implements Context, Cancellable
   {
     checkInTask();
 
-    final List<Task<?>> tmpPredecessorTasks = new ArrayList<Task<?>>();
+    final List<Integer> predecessorIds = new ArrayList<Integer>(promises.length);
     for (Promise<?> promise : promises)
     {
       if (promise instanceof Task)
       {
-        tmpPredecessorTasks.add((Task<?>) promise);
+        predecessorIds.add(getTraceCapturer().registerTask((Task)promise));
       }
     }
-    final List<Task<?>> predecessorTasks = Collections.unmodifiableList(tmpPredecessorTasks);
 
-    return new After() {
+    return new After()
+    {
       @Override
       public void run(final Task<?> task)
       {
+        final int taskId = getTraceCapturer().registerTask(task);
         InternalUtil.after(new PromiseListener()
         {
           @Override
           public void onResolved(Promise resolvedPromise)
           {
-            runSubTask(task, predecessorTasks);
+            runSubTask(task, taskId, predecessorIds);
           }
         }, promises);
+
+        getTraceCapturer().addPotentialPredecessors(taskId, predecessorIds);
       }
     };
   }
@@ -190,10 +246,7 @@ public class ContextImpl implements Context, Cancellable
   @Override
   public boolean cancel(Exception reason)
   {
-    boolean result = _task.cancel(reason);
-    //run the task to capture the trace data
-    _task.contextRun(this, _planContext.getTaskLogger(), _parent, _predecessorTasks);
-    return result;
+    return _task.cancel(reason);
   }
 
   @Override
@@ -202,20 +255,25 @@ public class ContextImpl implements Context, Cancellable
     return _planContext.getEngineProperty(key);
   }
 
-  private ContextImpl createSubContext(final Task<?> task, final List<Task<?>> predecessors)
+  @Override
+  public Trace getTrace()
   {
-    return new ContextImpl(_planContext, task, _task, predecessors);
+    return getTraceCapturer().getTrace();
   }
 
-  private void runSubTask(final Task<?> task, final List<Task<?>> predecessors)
+  private ContextImpl createSubContext(final Task<?> task, final int taskId, final List<Integer> predecessorIds)
   {
-    final ContextImpl subContext = createSubContext(task, predecessors);
+    return new ContextImpl(_planContext, task, taskId, _taskId, predecessorIds);
+  }
+
+  private void runSubTask(final Task<?> task, final int taskId, final List<Integer> predecessorIds)
+  {
+    final ContextImpl subContext = createSubContext(task, taskId, predecessorIds);
     if (!isDone())
     {
       _cancellables.add(subContext);
       subContext.runTask();
-    }
-    else
+    } else
     {
       subContext.cancel(EARLY_FINISH_EXCEPTION);
     }
@@ -232,5 +290,10 @@ public class ContextImpl implements Context, Cancellable
     {
       throw new IllegalStateException("Context method invoked while not in context's task");
     }
+  }
+
+  private TraceCapturer getTraceCapturer()
+  {
+    return _planContext.getTraceCapturer();
   }
 }

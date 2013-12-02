@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
@@ -32,14 +34,13 @@ import java.util.concurrent.TimeUnit;
 {
   private static final Logger LOGGER = LoggerFactory.getLogger(SettablePromiseImpl.class);
 
-  private final Object _lock = new Object();
-  private final List<PromiseListener<T>> _listeners = new ArrayList<PromiseListener<T>>();
-
-  private final CountDownLatch _valueLatch = new CountDownLatch(1);
   private final CountDownLatch _awaitLatch = new CountDownLatch(1);
 
+  private final Lock _lock = new ReentrantLock();
+  private List<PromiseListener<T>> _listeners = new ArrayList<PromiseListener<T>>();
   private volatile T _value;
   private volatile Throwable _error;
+  private volatile boolean _done;
 
   @Override
   public void done(final T value) throws PromiseResolvedException
@@ -97,13 +98,18 @@ import java.util.concurrent.TimeUnit;
   @Override
   public void addListener(final PromiseListener<T> listener)
   {
-    synchronized (_lock)
+    _lock.lock();
+    try
     {
       if (!isDone())
       {
         _listeners.add(listener);
         return;
       }
+    }
+    finally
+    {
+      _lock.unlock();
     }
 
     notifyListener(listener);
@@ -112,7 +118,7 @@ import java.util.concurrent.TimeUnit;
   @Override
   public boolean isDone()
   {
-    return _valueLatch.getCount() == 0;
+    return _done;
   }
 
   @Override
@@ -125,14 +131,19 @@ import java.util.concurrent.TimeUnit;
   {
     final List<PromiseListener<T>> listeners;
 
-    synchronized (_lock)
+    _lock.lock();
+    try
     {
       ensureNotDone();
       _value = value;
       _error = error;
-      _valueLatch.countDown();
-      listeners = new ArrayList<PromiseListener<T>>(_listeners);
-      _listeners.clear();
+      listeners = _listeners;
+      _listeners = null;
+      _done = true;
+    }
+    finally
+    {
+      _lock.unlock();
     }
 
     for (int i = listeners.size() - 1; i >= 0; i--)

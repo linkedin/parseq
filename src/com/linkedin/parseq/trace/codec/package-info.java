@@ -1,5 +1,5 @@
 /**
- * {@link com.linkedin.parseq.trace.Trace} codec API.
+ * {@link com.linkedin.parseq.trace.ShallowTrace} codec API.
  *
  * @see com.linkedin.parseq.trace.codec.TraceCodec
  */

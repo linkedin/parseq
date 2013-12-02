@@ -42,6 +42,7 @@ public class JsonTraceCodec implements TraceCodec
   private static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
 
   // Top Level Fields
+  static final String SNAPSHOT_NANOS = "snapshotNanos";
   static final String TRACES = "traces";
   static final String RELATIONSHIPS = "relationships";
 
