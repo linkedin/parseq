@@ -19,17 +19,15 @@ package com.linkedin.parseq;
 import com.linkedin.parseq.internal.ContextImpl;
 import com.linkedin.parseq.internal.InternalUtil;
 import com.linkedin.parseq.internal.SerialExecutor;
-import com.linkedin.parseq.internal.TaskLogImpl;
+import com.linkedin.parseq.internal.TaskLogger;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -125,8 +123,8 @@ public class Engine
     } while (!_stateRef.compareAndSet(currState, newState));
 
     final Logger planLogger = _loggerFactory.getLogger(LOGGER_BASE + ":planClass=" + task.getClass().getName());
-    final TaskLog taskLog = new TaskLogImpl(task, _allLogger, _rootLogger, planLogger);
-    new ContextImpl(new SerialExecutor(_taskExecutor), _timerExecutor, task, taskLog, this).runTask();
+    final TaskLogger taskLogger = new TaskLogger(task, _allLogger, _rootLogger, planLogger);
+    new ContextImpl(new SerialExecutor(_taskExecutor), _timerExecutor, task, taskLogger, this).runTask();
 
     InternalUtil.unwildcardTask(task).addListener(_taskDoneListener);
   }

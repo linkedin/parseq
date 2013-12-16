@@ -17,7 +17,6 @@
 package com.linkedin.parseq.internal;
 
 import com.linkedin.parseq.Task;
-import com.linkedin.parseq.TaskLog;
 import com.linkedin.parseq.trace.ResultType;
 import com.linkedin.parseq.trace.ShallowTrace;
 import org.slf4j.Logger;
@@ -38,7 +37,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class TaskLogImpl implements TaskLog
+public class TaskLogger
 {
   private static final String START_TASK_FORMAT = "[plan={}]: Starting task '{}'";
   private static final String END_TASK_DEBUG_FORMAT = "[plan={}]: Ending task '{}'. Elapsed: {}ms, Result type: {}.";
@@ -46,21 +45,26 @@ public class TaskLogImpl implements TaskLog
 
   private static final AtomicLong _nextPlanId = new AtomicLong();
 
+  /**
+   * The root task for the plan. Used to determine if a given task should be
+   * logged using the plan logger.
+   */
   private final Task<?> _root;
 
+  /** A locally assigned plan id to disambiguate plan logging. */
   private final long _planId;
 
-  // Logs every trace it finds
+  /** Logs every trace it finds. */
   private final Logger _allLogger;
 
-  // Logs only root traces
+  /** Logs only root traces. */
   private final Logger _rootLogger;
 
-  // Logs all tasks for this this plan
+  /** Logs all tasks for this this plan. */
   private final Logger _planLogger;
 
-  public TaskLogImpl(final Task<?> root, final Logger allLogger,
-                     final Logger rootLogger, final Logger planLogger)
+  public TaskLogger(final Task<?> root, final Logger allLogger,
+                    final Logger rootLogger, final Logger planLogger)
   {
     _allLogger = allLogger;
     _rootLogger = rootLogger;
@@ -69,7 +73,6 @@ public class TaskLogImpl implements TaskLog
     _planId = _nextPlanId.getAndIncrement();
   }
 
-  @Override
   public void logTaskStart(final Task<?> task)
   {
     if (_planLogger.isDebugEnabled())
@@ -86,15 +89,14 @@ public class TaskLogImpl implements TaskLog
     }
   }
 
-  @Override
   public void logTaskEnd(final Task<?> task)
   {
     if (_planLogger.isTraceEnabled())
     {
       _planLogger.trace(END_TASK_TRACE_FORMAT,
-                        new Object[] {_planId, task.getName(),
-                                      elapsedMillis(task),
-                                      ResultType.fromTask(task), stringValue(task)});
+          new Object[]{_planId, task.getName(),
+              elapsedMillis(task),
+              ResultType.fromTask(task), stringValue(task)});
     }
     else if (_planLogger.isDebugEnabled())
     {
@@ -105,9 +107,9 @@ public class TaskLogImpl implements TaskLog
     else if (_root == task && _rootLogger.isTraceEnabled())
     {
       _rootLogger.trace(END_TASK_TRACE_FORMAT,
-                        new Object[] {_planId, task.getName(),
-                            elapsedMillis(task),
-                            ResultType.fromTask(task), stringValue(task)});
+          new Object[]{_planId, task.getName(),
+              elapsedMillis(task),
+              ResultType.fromTask(task), stringValue(task)});
     }
     else if (_root == task && _rootLogger.isDebugEnabled())
     {

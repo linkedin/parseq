@@ -16,6 +16,7 @@
 
 package com.linkedin.parseq;
 
+import com.linkedin.parseq.internal.TaskLogger;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseException;
 import com.linkedin.parseq.promise.PromiseUnresolvedException;
@@ -430,8 +431,13 @@ public class TestTaskStates
     }
   }
 
-  private static class NullTaskLog implements TaskLog
+  private static class NullTaskLog extends TaskLogger
   {
+    public NullTaskLog()
+    {
+      super(null, null, null, null);
+    }
+
     @Override
     public void logTaskStart(final Task<?> task)
     {
