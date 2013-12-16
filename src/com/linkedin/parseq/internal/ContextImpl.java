@@ -23,7 +23,6 @@ import com.linkedin.parseq.DelayedExecutor;
 import com.linkedin.parseq.EarlyFinishException;
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.Task;
-import com.linkedin.parseq.TaskLog;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
 
@@ -79,7 +78,7 @@ public class ContextImpl implements Context, Cancellable
 
   private final Task<?> _parent;
   private final List<Task<?>> _predecessorTasks;
-  private final TaskLog _taskLog;
+  private final TaskLogger _taskLogger;
 
   private final Engine _engine;
 
@@ -88,10 +87,10 @@ public class ContextImpl implements Context, Cancellable
   public ContextImpl(final Executor taskExecutor,
                      final DelayedExecutor timerScheduler,
                      final Task<?> task,
-                     final TaskLog taskLog,
+                     final TaskLogger taskLogger,
                      final Engine engine)
   {
-    this(taskExecutor, timerScheduler, task, NO_PARENT, NO_PREDECESSORS, taskLog, engine);
+    this(taskExecutor, timerScheduler, task, NO_PARENT, NO_PREDECESSORS, taskLogger, engine);
   }
 
   private ContextImpl(final Executor taskExecutor,
@@ -99,7 +98,7 @@ public class ContextImpl implements Context, Cancellable
                       final Task<?> task,
                       final Task<?> parent,
                       final List<Task<?>> predecessorTasks,
-                      final TaskLog taskLog,
+                      final TaskLogger taskLogger,
                       final Engine engine)
   {
     _timerScheduler = timerScheduler;
@@ -107,7 +106,7 @@ public class ContextImpl implements Context, Cancellable
     _task = InternalUtil.unwildcardTask(task);
     _parent = parent;
     _predecessorTasks = predecessorTasks;
-    _taskLog = taskLog;
+    _taskLogger = taskLogger;
     _engine = engine;
   }
 
@@ -136,7 +135,7 @@ public class ContextImpl implements Context, Cancellable
         _inTask.set(_task);
         try
         {
-          _task.contextRun(ContextImpl.this, _taskLog, _parent, _predecessorTasks);
+          _task.contextRun(ContextImpl.this, _taskLogger, _parent, _predecessorTasks);
         }
         finally
         {
@@ -215,7 +214,7 @@ public class ContextImpl implements Context, Cancellable
   {
     boolean result = _task.cancel(reason);
     //run the task to capture the trace data
-    _task.contextRun(this, _taskLog, _parent, _predecessorTasks);
+    _task.contextRun(this, _taskLogger, _parent, _predecessorTasks);
     return result;
   }
 
@@ -227,7 +226,7 @@ public class ContextImpl implements Context, Cancellable
 
   private ContextImpl createSubContext(final Task<?> task, final List<Task<?>> predecessors)
   {
-    return new ContextImpl(_taskExecutor, _timerScheduler, task, _task, predecessors, _taskLog, _engine);
+    return new ContextImpl(_taskExecutor, _timerScheduler, task, _task, predecessors, _taskLogger, _engine);
   }
 
   private void runSubTask(final Task<?> task, final List<Task<?>> predecessors)

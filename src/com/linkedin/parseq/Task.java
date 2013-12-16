@@ -16,6 +16,7 @@
 
 package com.linkedin.parseq;
 
+import com.linkedin.parseq.internal.TaskLogger;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.trace.Related;
 import com.linkedin.parseq.trace.ShallowTrace;
@@ -74,11 +75,11 @@ public interface Task<T> extends Promise<T>, Cancellable
    * reserved for use by {@link Engine} and {@link Context}.
    *
    * @param context the context to use while running this step
-   * @param taskLog the logger used for task events
+   * @param taskLogger the logger used for task events
    * @param parent the parent of this task
    * @param predecessors that lead to the execution of this task
    */
-  void contextRun(Context context, TaskLog taskLog,
+  void contextRun(Context context, TaskLogger taskLogger,
                   Task<?> parent, Collection<Task<?>> predecessors);
 
 

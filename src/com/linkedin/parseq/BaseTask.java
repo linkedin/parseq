@@ -16,6 +16,7 @@
 
 package com.linkedin.parseq;
 
+import com.linkedin.parseq.internal.TaskLogger;
 import com.linkedin.parseq.promise.DelegatingPromise;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
@@ -139,7 +140,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
 
   @Override
   public final void contextRun(final Context context,
-                               final TaskLog taskLog,
+                               final TaskLogger taskLogger,
                                final Task<?> parent,
                                final Collection<Task<?>> predecessors)
   {
@@ -154,7 +155,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
         }
         _relationshipBuilder.addRelationship(Relationship.SUCCESSOR_OF, predecessors);
 
-        taskLog.logTaskStart(this);
+        taskLogger.logTaskStart(this);
         try
         {
           promise = doContextRun(context);
@@ -171,18 +172,18 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
           {
             if (promise.isFailed())
             {
-              fail(promise.getError() , taskLog);
+              fail(promise.getError() , taskLogger);
             }
             else
             {
-              done(promise.get(), taskLog);
+              done(promise.get(), taskLogger);
             }
           }
         });
       }
       catch (Throwable t)
       {
-        fail(t, taskLog);
+        fail(t, taskLogger);
       }
     }
     else
@@ -256,7 +257,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
    */
   protected abstract Promise<? extends T> run(final Context context) throws Throwable;
 
-  private void done(final T value, final TaskLog taskLog)
+  private void done(final T value, final TaskLogger taskLog)
   {
     if (transitionDone())
     {
@@ -265,7 +266,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     }
   }
 
-  private void fail(final Throwable error, final TaskLog taskLog)
+  private void fail(final Throwable error, final TaskLogger taskLog)
   {
     if (transitionDone())
     {

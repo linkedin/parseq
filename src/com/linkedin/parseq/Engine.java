@@ -21,7 +21,7 @@ import com.linkedin.parseq.internal.InternalUtil;
 import com.linkedin.parseq.internal.RejectedSerialExecutionHandler;
 import com.linkedin.parseq.internal.SerialExecutionException;
 import com.linkedin.parseq.internal.SerialExecutor;
-import com.linkedin.parseq.internal.TaskLogImpl;
+import com.linkedin.parseq.internal.TaskLogger;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
 import org.slf4j.ILoggerFactory;
@@ -127,9 +127,9 @@ public class Engine
     } while (!_stateRef.compareAndSet(currState, newState));
 
     final Logger planLogger = _loggerFactory.getLogger(LOGGER_BASE + ":planClass=" + task.getClass().getName());
-    final TaskLog taskLog = new TaskLogImpl(task, _allLogger, _rootLogger, planLogger);
+    final TaskLogger taskLogger = new TaskLogger(task, _allLogger, _rootLogger, planLogger);
     new ContextImpl(new SerialExecutor(_taskExecutor, new CancelPlanRejectionHandler(task)),
-                    _timerExecutor, task, taskLog, this).runTask();
+                    _timerExecutor, task, taskLogger, this).runTask();
 
     InternalUtil.unwildcardTask(task).addListener(_taskDoneListener);
   }
