@@ -49,6 +49,7 @@ public class BaseEngineTest
         .setTimerScheduler(_scheduler)
         .setLoggerFactory(_loggerFactory);
     AsyncCallableTask.register(engineBuilder, _asyncExecutor);
+    AsyncCallableTaskWithSLA.register(engineBuilder, _asyncExecutor);
     _engine = engineBuilder.build();
   }
 
