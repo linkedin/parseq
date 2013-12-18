@@ -38,7 +38,7 @@ GRAPHVIZ = (function() {
     var color = _traceToColor(trace);
     _appendLine(level, acc, 'T' + trace.id +
         ' [label="' + _escapeLabel(trace.name) + "\\l" +
-        '|{' + _startMillis(trace) + '|' + _elapsedMillis(trace) + '}",' +
+        '|{' + _startMillis(trace) + '\\r|' + _runMillis(trace) + '\\r|' + _totalMillis(trace) + '\\r}",' +
         'style=filled,shape=Mrecord,fillcolor="' + color + '\"]');
   };
 
@@ -49,7 +49,7 @@ GRAPHVIZ = (function() {
     _appendLine(level, acc, 'subgraph "cluster_' + trace.id + '" {');
     level++;
     _appendLine(level, acc, 'label="' + _escapeLabel(trace.name) + ' (' +
-        _startMillis(trace) + ', ' + _elapsedMillis(trace) + ')"');
+        _startMillis(trace) + ', ' + _runMillis(trace) + ', ' + _totalMillis(trace) + ')"');
     _appendLine(level, acc, 'labeljust="l"');
     _appendLine(level, acc, 'color="#aaaaaa"');
     _appendLine(level, acc, 'style="dashed"');
@@ -233,8 +233,9 @@ GRAPHVIZ = (function() {
         .replace(_matchNewLines, "\\l");
   };
 
-  var _startMillis = function(trace) { return '@' + trace.start; };
-  var _elapsedMillis = function(trace) { return '+' + trace.elapsed; };
+  var _startMillis = function(trace) { return '@' + TRACE.alignMillis(trace.startMillis); };
+  var _runMillis = function(trace) { return TRACE.alignMillis(trace.runMillis); };
+  var _totalMillis = function(trace) { return '+' + TRACE.alignMillis(trace.totalMillis); };
 
   var _sourceId = function(source) { return "T" + (source.children ? source.id + "_source" : source.id); };
   var _sinkId   = function(sink) { return "T" + (sink.children ? sink.id + "_sink" : sink.id); };

@@ -67,7 +67,8 @@ public class TestShallowTraceBuilder
     final ShallowTraceBuilder builder = new ShallowTraceBuilder("test", ResultType.SUCCESS);
     builder.setValue("value");
     builder.setStartNanos(123L);
-    builder.setEndNanos(456L);
+    builder.setPendingNanos(234L);
+    builder.setEndNanos(345L);
 
     ShallowTraceBuilder builderCopy = new ShallowTraceBuilder(builder);
     assertEquals(builder.build(), builderCopy.build());

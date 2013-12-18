@@ -26,7 +26,9 @@ var TABLE = (function() {
     var thead = table.append("thead");
     thead.append("th").text("Name");
     thead.append("th").html("Start<br>(ms)");
-    thead.append("th").html("Elapsed<br>(ms)");
+    thead.append("th").html("Run<br>(ms)");
+    thead.append("th").html("Total<br>(ms)");
+    thead.append("th").html("End<br>(ms)");
     thead.append("th").text("Result");
     thead.append("th").text("Value");
     return table;
@@ -64,11 +66,19 @@ var TABLE = (function() {
 
       rowsEnter.append("td")
         .classed("numeric", true)
-        .text(function(d) { return d.start; });
+        .text(function(d) { return TRACE.alignMillis(d.startMillis); });
 
       rowsEnter.append("td")
         .classed("numeric", true)
-        .text(function(d) { return d.elapsed; });
+        .text(function(d) { return 'runMillis' in d ? TRACE.alignMillis(d.runMillis) : '?'; });
+
+      rowsEnter.append("td")
+        .classed("numeric", true)
+        .text(function(d) { return TRACE.alignMillis(d.totalMillis); });
+
+      rowsEnter.append("td")
+        .classed("numeric", true)
+        .text(function(d) { return TRACE.alignMillis(d.startMillis + d.totalMillis); });
 
       rowsEnter.append("td")
         .attr("class", function(d) { return d.resultType; })

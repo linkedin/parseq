@@ -1,15 +1,14 @@
 .waterfallview .trace rect { stroke: #999; }
 
-.waterfallview .trace rect { fill: #DDD; }
-.waterfallview .trace.success rect { fill: #E0FFE0; }
-.waterfallview .trace.error rect { fill: #FFE0E0; }
-.waterfallview .trace.early_finish rect { fill: #FFC; }
+.waterfallview .trace rect { fill: #ACACAC; }
+.waterfallview .trace rect.success { fill: #60D060; }
+.waterfallview .trace rect.error { fill: #FF6F6F; }
+.waterfallview .trace rect.early_finish { fill: #FFFD76; }
 
 .waterfallview .trace text,
 .waterfallview .trace text tspan {
   fill: #333;
   font-family: arial;
-  pointer-events: none;
 }
 
 .waterfallview .trace.composite {

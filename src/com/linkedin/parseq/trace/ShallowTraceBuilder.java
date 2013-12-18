@@ -38,6 +38,7 @@ public class ShallowTraceBuilder
   private volatile String _value;
   private volatile ResultType _resultType;
   private volatile Long _startNanos;
+  private volatile Long _pendingNanos;
   private volatile Long _endNanos;
   private volatile boolean _systemHidden;
   private final Map<String,String> _attributes;
@@ -47,6 +48,7 @@ public class ShallowTraceBuilder
     this(shallowTrace.getName(), shallowTrace.getResultType());
     setValue(shallowTrace.getValue());
     setStartNanos(shallowTrace.getStartNanos());
+    setPendingNanos(shallowTrace.getPendingNanos());
     setEndNanos(shallowTrace.getEndNanos());
     setHidden(shallowTrace.getHidden());
     setSystemHidden(shallowTrace.getSystemHidden());
@@ -68,7 +70,6 @@ public class ShallowTraceBuilder
   {
     setResultType(resultType);
     _attributes = new ConcurrentHashMap<String, String>();
-
   }
 
   public boolean getHidden()
@@ -119,6 +120,12 @@ public class ShallowTraceBuilder
     return this;
   }
 
+  public ShallowTraceBuilder setPendingNanos(Long pendingNanos)
+  {
+    _pendingNanos = pendingNanos;
+    return this;
+  }
+
   public ShallowTraceBuilder setEndNanos(Long endNanos)
   {
     _endNanos = endNanos;
@@ -143,6 +150,11 @@ public class ShallowTraceBuilder
   public Long getStartNanos()
   {
     return _startNanos;
+  }
+
+  public Long getPendingNanos()
+  {
+    return _pendingNanos;
   }
 
   public Long getEndNanos()
@@ -172,6 +184,6 @@ public class ShallowTraceBuilder
 
   public ShallowTrace build()
   {
-    return new ShallowTrace(_name, _hidden, _systemHidden, _resultType, _value, _startNanos, _endNanos, _attributes);
+    return new ShallowTrace(_name, _hidden, _systemHidden, _resultType, _value, _startNanos, _pendingNanos, _endNanos, _attributes);
   }
 }

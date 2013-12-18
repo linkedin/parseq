@@ -35,6 +35,7 @@
 }
 
 .tableview td.numeric {
+  font-family: monospace;
   text-align: right;
 }
 

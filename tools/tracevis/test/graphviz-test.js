@@ -248,7 +248,7 @@ describe('graphviz createView', function() {
   var _buildSubGraph = function(level, arr, node) {
     _appendLine(level, arr, 'subgraph "cluster_' + node.id + '" {');
     level++;
-    _appendLine(level, arr, 'label="' + node.name + ' (@1, +1)"');
+    _appendLine(level, arr, 'label="' + node.name + ' (@1.000, 1.000, +2.000)"');
     _appendLine(level, arr, 'labeljust="l"');
     _appendLine(level, arr, 'color="#aaaaaa"');
     _appendLine(level, arr, 'style="dashed"');
@@ -269,7 +269,7 @@ describe('graphviz createView', function() {
   };
 
   var _buildNode = function(level, arr, node) {
-    _appendLine(level, arr, 'T' + node.id + ' [label="' + node.name + "\\l" + '|{@1|+1}",style=filled,shape=Mrecord,fillcolor="#e0ffe0\"]');
+    _appendLine(level, arr, 'T' + node.id + ' [label="' + node.name + "\\l" + '|{@1.000\\r|1.000\\r|+2.000\\r}",style=filled,shape=Mrecord,fillcolor="#e0ffe0\"]');
   };
 
   var _sourceId = function(source) { return "T" + (source.children ? source.id + "_source" : source.id); };
