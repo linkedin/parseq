@@ -59,7 +59,7 @@ var WATERFALL = (function() {
         }
       }
     }
-    ancestorPreorder(root)
+    ancestorPreorder(root);
 
     var svg = selection.append("svg")
       .attr("width", w + margin.left + margin.right);
@@ -237,10 +237,10 @@ var WATERFALL = (function() {
     function mouseout(d) {
       vis.selectAll("g.trace")
         .filter(function(e) { return e.waterfallDimmed; })
-        .style("opacity", function() { return d3.select(this).classed("hidden") ? 0 : 1 })
+        .style("opacity", function() { return d3.select(this).classed("hidden") ? 0 : 1; })
         .each(function(e) { delete e.waterfallDimmed; });
     }
-  };
+  }
 
   return {
     render: render

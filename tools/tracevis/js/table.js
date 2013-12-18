@@ -30,7 +30,7 @@ var TABLE = (function() {
     thead.append("th").text("Result");
     thead.append("th").text("Value");
     return table;
-  }
+  };
 
   /**
    * Renders the view and append it to a d3 selection.
@@ -44,7 +44,7 @@ var TABLE = (function() {
 
       var rows = table.selectAll("tr")
         .classed("hidden", false)
-        .data(data, function(d) { return d.id; })
+        .data(data, function(d) { return d.id; });
 
       var rowsEnter = rows.enter().append("tr");
 

@@ -85,7 +85,7 @@ GRAPHVIZ = (function() {
     if (!_graphvizContainsPathToSet(child, allChildren)) {
       _graphvizDependency(_sinkId(child), _sinkId(trace), acc);
     }
-  }
+  };
 
   var _graphvizPotentialChildSourceSink = function(child, acc) {
     if (child.potentialParents) {
@@ -93,8 +93,9 @@ GRAPHVIZ = (function() {
         var allChildren = pP.children.concat(pP.potentialChildren);
 
         // Set up source links for potential parent
+        var node;
         if (!_graphvizContainsPathToSet(child, allChildren)) {
-          var node = _graphvizGetClosestNode(child, pP.children);
+          node = _graphvizGetClosestNode(child, pP.children);
           if (node) {
             _graphvizInvisibleDependency(_sinkId(child), _sinkId(node), acc);
           }
@@ -103,7 +104,7 @@ GRAPHVIZ = (function() {
 
         // Set up sink links for potential parent
         if (!_graphvizContainsPathFromSet(allChildren, child)) {
-          var node = _graphvizGetClosestNode(child, pP.children);
+          node = _graphvizGetClosestNode(child, pP.children);
           if (node) {
             _graphvizInvisibleDependency(_sourceId(pP), _sourceId(node), acc);
           }
@@ -111,7 +112,7 @@ GRAPHVIZ = (function() {
         }
       });
     }
-  }
+  };
 
   var _graphvizEdges = function(trace, visited, acc) {
     if (visited[trace.id]) {
@@ -166,7 +167,7 @@ GRAPHVIZ = (function() {
     if (toSet) {
       toSet.forEach(function(t) {
         if (from !== t) {
-          var edge = from["path"][t.id];
+          var edge = from.path[t.id];
           if (edge.distance < min) {
             min = edge.distance;
             result = t;
@@ -175,14 +176,14 @@ GRAPHVIZ = (function() {
       });
     }
     return result;
-  }
+  };
 
   var _graphvizContainsPathFromSet = function(fromSet, to) {
     var result = false;
     if (fromSet) {
       for (var i = 0; i < fromSet.length; i++) {
         if (to !== fromSet[i]) {
-          if (fromSet[i]["path"][to.id].distance !== Number.POSITIVE_INFINITY) {
+          if (fromSet[i].path[to.id].distance !== Number.POSITIVE_INFINITY) {
             result = true;
             break;
           }
@@ -197,7 +198,7 @@ GRAPHVIZ = (function() {
     if (toSet) {
       for (var i = 0 ; i < toSet.length; i++) {
         if (from !== toSet[i]) {
-          if (from["path"][toSet[i].id].distance !== Number.POSITIVE_INFINITY) {
+          if (from.path[toSet[i].id].distance !== Number.POSITIVE_INFINITY) {
             result = true;
             break;
           }
@@ -232,8 +233,8 @@ GRAPHVIZ = (function() {
         .replace(_matchNewLines, "\\l");
   };
 
-  var _startMillis = function(trace) { return '@' + trace.start; }
-  var _elapsedMillis = function(trace) { return '+' + trace.elapsed; }
+  var _startMillis = function(trace) { return '@' + trace.start; };
+  var _elapsedMillis = function(trace) { return '+' + trace.elapsed; };
 
   var _sourceId = function(source) { return "T" + (source.children ? source.id + "_source" : source.id); };
   var _sinkId   = function(sink) { return "T" + (sink.children ? sink.id + "_sink" : sink.id); };
@@ -243,10 +244,10 @@ GRAPHVIZ = (function() {
     for (var i = 0; i < level; i++) {
       indent += "    ";
     }
-    acc.push(indent)
+    acc.push(indent);
     acc.push(str);
     acc.push('\n');
-  }
+  };
 
   var _traceToColor = function(trace) {
     switch (trace.resultType) {
