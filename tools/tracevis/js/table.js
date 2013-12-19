@@ -105,6 +105,8 @@ var TABLE = (function() {
             }
           });
 
+      rows.filter(":not(.hidden)")
+        .classed("oddrow", function(_, i) { return i % 2; });
     }
 
     update(root);
