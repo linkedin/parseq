@@ -156,7 +156,7 @@ function refreshView() {
 
   var root = TRACE.parseJson(json, excludeUserTasks, excludeSystemTasks, excludeParentTasks);
   TRACE.appendPath(root);
-  view.render(d3.select("#resultView"), root);
+  view.render(d3.select("#resultView").attr('class', 'row-fluid'), root);
 }
 
 /**
