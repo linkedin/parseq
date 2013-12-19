@@ -234,7 +234,7 @@ GRAPHVIZ = (function() {
   };
 
   var _startMillis = function(trace) { return '@' + TRACE.alignMillis(trace.startMillis); };
-  var _runMillis = function(trace) { return TRACE.alignMillis(trace.runMillis); };
+  var _runMillis = function(trace) { return 'runMillis' in trace ? TRACE.alignMillis(trace.runMillis) : '?'; };
   var _totalMillis = function(trace) { return '+' + TRACE.alignMillis(trace.totalMillis); };
 
   var _sourceId = function(source) { return "T" + (source.children ? source.id + "_source" : source.id); };

@@ -90,7 +90,11 @@ var WATERFALL = (function() {
 
       traces.forEach(function(d, i) {
         d.x = x(d.startMillis);
-        d.runWidth = Math.max(x('runMillis' in d ? d.runMillis : d.totalMillis), minBarWidth);
+        if ('runMillis' in d) {
+          d.runWidth = Math.max(x(d.runMillis), minBarWidth);
+        } else {
+          d.runWidth = 0;
+        }
         d.totalWidth = Math.max(x(d.totalMillis), minBarWidth);
 
         d.y = i * (barHeight + barSpacing);
