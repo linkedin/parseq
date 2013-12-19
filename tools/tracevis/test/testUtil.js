@@ -17,19 +17,20 @@
 TESTUTIL = (function() {
   var createDefaultNode = function(id, parent) {
     var name = "" + id;
-    return createNode(id, name, false, false, 1, 1, 1000, 1, "success", "value", parent);
+    return createNode(id, name, false, false, 1000000, 2000000, 3000000, "success", "value", parent);
   };
 
-  var createNode = function(id, name, hidden, systemHidden, startNanos, start, elapsedNanos, elapsed, resultType, value, parent) {
+  var createNode = function(id, name, hidden, systemHidden, startNanos, pendingNanos, endNanos, resultType, value, parent) {
     var node = {
       id: id,
       name: name,
       hidden: hidden,
       systemHidden: systemHidden,
       startNanos: startNanos,
-      start: startNanos,
-      elapsedNanos: elapsedNanos,
-      elapsed: elapsed,
+      startMillis: startNanos / 1000000,
+      runMillis: (pendingNanos - startNanos) / 1000000,
+      totalNanos: endNanos - startNanos,
+      totalMillis: (endNanos - startNanos) / 1000000,
       resultType : resultType,
       value: value
     };
@@ -60,7 +61,7 @@ TESTUTIL = (function() {
   var _setRelationship = function(from, to, fromField, toField) {
     _pushElement(from, to, fromField);
     _pushElement(to, from, toField);
-  }
+  };
 
   var _pushElement = function(target, element, field) {
     if (target[field] !== undefined) {

@@ -68,6 +68,9 @@ class JsonTraceDeserializer
       if (traceNode.get(JsonTraceCodec.TRACE_START_NANOS) != null)
         shallowBuilder.setStartNanos(getLongField(traceNode, JsonTraceCodec.TRACE_START_NANOS));
 
+      if (traceNode.get(JsonTraceCodec.TRACE_PENDING_NANOS) != null)
+        shallowBuilder.setPendingNanos(getLongField(traceNode, JsonTraceCodec.TRACE_PENDING_NANOS));
+
       if (traceNode.get(JsonTraceCodec.TRACE_END_NANOS) != null)
         shallowBuilder.setEndNanos(getLongField(traceNode, JsonTraceCodec.TRACE_END_NANOS));
 

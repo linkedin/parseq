@@ -36,12 +36,7 @@ var WATERFALL = (function() {
         // transition duration
         defaultDuration = 250,
 
-        alphaDimmed = 0.3,
-
-        taskFill = { "default":       "#DDD",
-                     "success":       "#E0FFE0",
-                     "error":         "#FFE0E0",
-                     "early_finish":  "#FFC" };
+        alphaDimmed = 0.3;
 
     // Mapping of descendant to a set (expressed as an object) of a ancestors
     var ancestors = {};
@@ -59,7 +54,7 @@ var WATERFALL = (function() {
         }
       }
     }
-    ancestorPreorder(root)
+    ancestorPreorder(root);
 
     var svg = selection.append("svg")
       .attr("width", w + margin.left + margin.right);
@@ -84,7 +79,7 @@ var WATERFALL = (function() {
       var traces = TRACE.flatten(root);
 
       var x = d3.scale.linear()
-        .domain([0, d3.max(traces, function(d) { return d.start + d.elapsed; })])
+        .domain([0, d3.max(traces, function(d) { return d.startMillis + d.totalMillis; })])
         .range([0, w]);
 
       // Resize the canvas
@@ -94,13 +89,13 @@ var WATERFALL = (function() {
       }
 
       traces.forEach(function(d, i) {
-        d.x = x(_toMillisFloat(d.startNanos));
-        d.w = x(_toMillisFloat(d.startNanos + d.elapsedNanos)) - d.x;
-
-        if (d.w < minBarWidth) {
-          d.x = Math.max(d.x - minBarWidth, d.parent ? d.parent.x : 0);
-          d.w = minBarWidth;
+        d.x = x(d.startMillis);
+        if ('runMillis' in d) {
+          d.runWidth = Math.max(x(d.runMillis), minBarWidth);
+        } else {
+          d.runWidth = 0;
         }
+        d.totalWidth = Math.max(x(d.totalMillis), minBarWidth);
 
         d.y = i * (barHeight + barSpacing);
         d.h = barHeight;
@@ -131,6 +126,8 @@ var WATERFALL = (function() {
         .classed("hidden", false)
         .attr("transform", function(d) { return "translate(" + source.x0 + "," + source.y0 + ")"; })
         .style("opacity", 1e-6)
+        .on("mouseover", mouseover)
+        .on("mouseout", mouseout)
         .on("click", toggleCollapse);
 
       trace.classed("collapsed", function(d) { return d._children; });
@@ -140,17 +137,25 @@ var WATERFALL = (function() {
         .attr("y", -barHeight / 2)
         .attr("rx", 3)
         .attr("height", function(d) { return d.h; })
-        .attr("width", function(d) { return d.w; })
-        .style("fill", function(d) { return taskFill[d.resultType] || taskFill["default"]; })
-        .on("mouseover", mouseover)
-        .on("mouseout", mouseout);
+        .attr("width", function(d) { return d.runWidth; })
+        .each(function(d) { d3.select(this).classed(d.resultType, true); })
+        .style("stroke-opacity", 0);
+
+      traceEnter.append("rect")
+        .attr("y", -barHeight / 2)
+        .attr("rx", 3)
+        .attr("height", function(d) { return d.h; })
+        .attr("width", function(d) { return d.totalWidth; })
+        .each(function(d) { d3.select(this).classed(d.resultType, true); })
+        .style("fill-opacity", 0.3);
+
 
       var textEnter = traceEnter.append("text")
         .attr("dy", 4)
         .attr("dx", 6);
 
       textEnter.append("tspan").attr("class", "expando");
-      textEnter.append("tspan").text(function(d) { return d.name + " (" + d.elapsed + " ms)"; });
+      textEnter.append("tspan").text(function(d) { return d.name + " (" + d.totalMillis + " ms)"; });
 
       var text = trace.select("text tspan.expando")
           .style("font-family", "monospace")
@@ -237,10 +242,10 @@ var WATERFALL = (function() {
     function mouseout(d) {
       vis.selectAll("g.trace")
         .filter(function(e) { return e.waterfallDimmed; })
-        .style("opacity", function() { return d3.select(this).classed("hidden") ? 0 : 1 })
+        .style("opacity", function() { return d3.select(this).classed("hidden") ? 0 : 1; })
         .each(function(e) { delete e.waterfallDimmed; });
     }
-  };
+  }
 
   return {
     render: render

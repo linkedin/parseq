@@ -39,6 +39,7 @@ public class ShallowTrace
   private final ResultType _resultType;
   private final String _value;
   private final Long _startNanos;
+  private final Long _pendingNanos;
   private final Long _endNanos;
   private final Map<String, String> _attributes;
 
@@ -48,6 +49,7 @@ public class ShallowTrace
                                      final ResultType resultType,
                                      final String value,
                                      final Long startNanos,
+                                     final Long pendingNanos,
                                      final Long endNanos,
                                      final Map<String, String> attributes)
   {
@@ -59,6 +61,7 @@ public class ShallowTrace
     _value = value;
     _resultType = resultType;
     _startNanos = startNanos;
+    _pendingNanos = pendingNanos;
     _endNanos = endNanos;
     _systemHidden = systemHidden;
 
@@ -73,10 +76,14 @@ public class ShallowTrace
           throw new IllegalArgumentException("value cannot be set if the task is finished early");
         }
         ArgumentUtil.notNull(startNanos, "startNanos");
+        ArgumentUtil.notNull(pendingNanos, "pendingNanos");
+        ArgumentUtil.notNull(endNanos, "endNanos");
         break;
       case ERROR:
       case SUCCESS:
         ArgumentUtil.notNull(startNanos, "startNanos");
+        ArgumentUtil.notNull(pendingNanos, "pendingNanos");
+        ArgumentUtil.notNull(endNanos, "endNanos");
         break;
       case UNFINISHED:
         if (value != null)
@@ -90,6 +97,7 @@ public class ShallowTrace
 
     if (startNanos != null && resultType != ResultType.UNFINISHED)
     {
+      ArgumentUtil.notNull(pendingNanos, "pendingNanos");
       ArgumentUtil.notNull(endNanos, "endNanos");
     }
   }
@@ -124,6 +132,11 @@ public class ShallowTrace
     return _startNanos;
   }
 
+  public Long getPendingNanos()
+  {
+    return _pendingNanos;
+  }
+
   public Long getEndNanos()
   {
     return _endNanos;
@@ -135,33 +148,26 @@ public class ShallowTrace
   }
 
   @Override
-  public boolean equals(final Object o)
+  public boolean equals(Object o)
   {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    final ShallowTrace trace = (ShallowTrace) o;
+    ShallowTrace that = (ShallowTrace) o;
 
-    if (_attributes.size() != trace.getAttributes().size())
+    if (_hidden != that._hidden) return false;
+    if (_systemHidden != that._systemHidden) return false;
+    if (_attributes != null ? !_attributes.equals(that._attributes) : that._attributes != null)
       return false;
-
-    for(Map.Entry<String, String> entry : trace.getAttributes().entrySet())
-    {
-      if (!_attributes.containsKey(entry.getKey()))
-        return false;
-
-      if (!_attributes.get(entry.getKey()).equals(entry.getValue()))
-        return false;
-    }
-    if (_endNanos != null ? !_endNanos.equals(trace._endNanos) : trace._endNanos != null)
+    if (_endNanos != null ? !_endNanos.equals(that._endNanos) : that._endNanos != null)
       return false;
-    if (!_name.equals(trace._name)) return false;
-    if (_hidden != trace.getHidden()) return false;
-    if (_systemHidden != trace.getSystemHidden()) return false;
-    if (_resultType != trace._resultType) return false;
-    if (_startNanos != null ? !_startNanos.equals(trace._startNanos) : trace._startNanos != null)
+    if (!_name.equals(that._name)) return false;
+    if (_pendingNanos != null ? !_pendingNanos.equals(that._pendingNanos) : that._pendingNanos != null)
       return false;
-    if (_value != null ? !_value.equals(trace._value) : trace._value != null)
+    if (_resultType != that._resultType) return false;
+    if (_startNanos != null ? !_startNanos.equals(that._startNanos) : that._startNanos != null)
+      return false;
+    if (_value != null ? !_value.equals(that._value) : that._value != null)
       return false;
 
     return true;
@@ -171,17 +177,14 @@ public class ShallowTrace
   public int hashCode()
   {
     int result = _name.hashCode();
-    result = 31 * result + (_hidden == true ? Boolean.TRUE.hashCode() : Boolean.FALSE.hashCode());
-    result = 31 * result + (_systemHidden == true ? Boolean.TRUE.hashCode() : Boolean.FALSE.hashCode());
+    result = 31 * result + (_hidden ? 1 : 0);
+    result = 31 * result + (_systemHidden ? 1 : 0);
     result = 31 * result + _resultType.hashCode();
     result = 31 * result + (_value != null ? _value.hashCode() : 0);
     result = 31 * result + (_startNanos != null ? _startNanos.hashCode() : 0);
+    result = 31 * result + (_pendingNanos != null ? _pendingNanos.hashCode() : 0);
     result = 31 * result + (_endNanos != null ? _endNanos.hashCode() : 0);
-
-    for(Map.Entry<String, String> attribute : _attributes.entrySet())
-    {
-      result = 31 * result + attribute.hashCode();
-    }
+    result = 31 * result + (_attributes != null ? _attributes.hashCode() : 0);
     return result;
   }
 
@@ -195,6 +198,7 @@ public class ShallowTrace
         ", _resultType=" + _resultType +
         ", _value='" + _value + '\'' +
         ", _startNanos=" + _startNanos +
+        ", _pendingNanos=" + _pendingNanos +
         ", _endNanos=" + _endNanos +
         ", _attributes=" + _attributes +
         '}';

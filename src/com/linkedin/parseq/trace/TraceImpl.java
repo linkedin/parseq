@@ -68,6 +68,11 @@ import java.util.Set;
     return _shallowTrace.getStartNanos();
   }
 
+  public Long getPendingNanos()
+  {
+    return _shallowTrace.getPendingNanos();
+  }
+
   public Long getEndNanos()
   {
     return _shallowTrace.getEndNanos();

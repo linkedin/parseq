@@ -76,6 +76,11 @@ class JsonTraceSerializer
       generator.writeNumberField(JsonTraceCodec.TRACE_START_NANOS, trace.getStartNanos());
     }
 
+    if (trace.getPendingNanos() != null)
+    {
+      generator.writeNumberField(JsonTraceCodec.TRACE_PENDING_NANOS, trace.getPendingNanos());
+    }
+
     if (trace.getEndNanos() != null)
     {
       generator.writeNumberField(JsonTraceCodec.TRACE_END_NANOS, trace.getEndNanos());

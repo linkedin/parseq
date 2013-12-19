@@ -155,8 +155,14 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
         _relationshipBuilder.addRelationship(Relationship.SUCCESSOR_OF, predecessors);
 
         taskLog.logTaskStart(this);
-        promise = doContextRun(context);
-        transitionPending();
+        try
+        {
+          promise = doContextRun(context);
+        }
+        finally
+        {
+          transitionPending();
+        }
 
         promise.addListener(new PromiseListener<T>()
         {
@@ -272,7 +278,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
   {
     State state;
     State newState;
-    Long startNanos;
+    final long startNanos = System.nanoTime();
     do
     {
       state = _stateRef.get();
@@ -280,7 +286,6 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
       {
         return false;
       }
-      startNanos = System.nanoTime();
       newState = new State(StateType.RUN, state._priority);
     }
     while (!_stateRef.compareAndSet(state, newState));
@@ -293,6 +298,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
   {
     State state;
     State newState;
+    final long pendingNanos = System.nanoTime();
     do
     {
       state = _stateRef.get();
@@ -300,18 +306,17 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
       {
         return;
       }
-
       newState = new State(StateType.PENDING, state._priority);
     }
     while (!_stateRef.compareAndSet(state, newState));
+    _shallowTraceBuilder.setPendingNanos(pendingNanos);
   }
 
   private boolean transitionCancel()
   {
     State state;
     State newState;
-    long endNanos;
-    long startNanos;
+    final long endNanos = System.nanoTime();
     do
     {
       state = _stateRef.get();
@@ -321,15 +326,19 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
         return false;
       }
 
-      endNanos = System.nanoTime();
-      startNanos = _shallowTraceBuilder.getStartNanos() == null ? endNanos : _shallowTraceBuilder.getStartNanos();
-
       newState = new State(StateType.DONE, state._priority);
     }
     while (!_stateRef.compareAndSet(state, newState));
 
+    if (_shallowTraceBuilder.getStartNanos() == null)
+    {
+      _shallowTraceBuilder.setStartNanos(endNanos);
+    }
+    if (_shallowTraceBuilder.getPendingNanos() == null)
+    {
+      _shallowTraceBuilder.setPendingNanos(endNanos);
+    }
     _shallowTraceBuilder.setEndNanos(endNanos);
-    _shallowTraceBuilder.setStartNanos(startNanos);
 
     return true;
   }

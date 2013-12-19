@@ -10,6 +10,14 @@
   display: none;
 }
 
+.tableview tr {
+  background-color: #FFF;
+}
+
+.tableview tr.oddrow {
+  background-color: #F8F8F8;
+}
+
 .tableview td {
   word-wrap: break-word;
 }
@@ -35,6 +43,7 @@
 }
 
 .tableview td.numeric {
+  font-family: monospace;
   text-align: right;
 }
 

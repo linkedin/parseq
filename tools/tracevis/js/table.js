@@ -25,12 +25,13 @@ var TABLE = (function() {
     var table = selection.append("table").attr("class", "table table-bordered");
     var thead = table.append("thead");
     thead.append("th").text("Name");
-    thead.append("th").html("Start<br>(ms)");
-    thead.append("th").html("Elapsed<br>(ms)");
+    thead.append("th").html("Start (ms)");
+    thead.append("th").html("Run (ms)");
+    thead.append("th").html("Total (ms)");
     thead.append("th").text("Result");
     thead.append("th").text("Value");
     return table;
-  }
+  };
 
   /**
    * Renders the view and append it to a d3 selection.
@@ -44,7 +45,7 @@ var TABLE = (function() {
 
       var rows = table.selectAll("tr")
         .classed("hidden", false)
-        .data(data, function(d) { return d.id; })
+        .data(data, function(d) { return d.id; });
 
       var rowsEnter = rows.enter().append("tr");
 
@@ -64,11 +65,24 @@ var TABLE = (function() {
 
       rowsEnter.append("td")
         .classed("numeric", true)
-        .text(function(d) { return d.start; });
+        .html(function(d) { return "<br/>" + TRACE.alignMillis(d.startMillis); });
 
       rowsEnter.append("td")
         .classed("numeric", true)
-        .text(function(d) { return d.elapsed; });
+        .html(function(d) {
+          if ('runMillis' in d) {
+            return "+" + TRACE.alignMillis(d.runMillis) + "<br/>" +
+                   TRACE.alignMillis(d.startMillis + d.runMillis);
+          }
+          return '?';
+        });
+
+      rowsEnter.append("td")
+        .classed("numeric", true)
+        .html(function(d) {
+          return "+" + TRACE.alignMillis(d.totalMillis) + "<br/>" +
+                 TRACE.alignMillis(d.startMillis + d.totalMillis);
+        });
 
       rowsEnter.append("td")
         .attr("class", function(d) { return d.resultType; })
@@ -91,6 +105,8 @@ var TABLE = (function() {
             }
           });
 
+      rows.filter(":not(.hidden)")
+        .classed("oddrow", function(_, i) { return i % 2; });
     }
 
     update(root);

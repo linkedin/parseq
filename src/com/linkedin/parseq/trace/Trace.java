@@ -80,6 +80,15 @@ public interface Trace
   Long getStartNanos();
 
   /**
+   * Returns the time at which the task finished its run method in nanoseconds.
+   * If the task has not finished its run method yet this method will return
+   * {@code null}.
+   *
+   * @return the time at which this task finished its run method or {@code null}.
+   */
+  Long getPendingNanos();
+
+  /**
    * Returns the time at which the task was finished in nanoseconds. If the
    * task had not yet finished, this method will return {@code null}.
    *

@@ -87,7 +87,7 @@ TRACE = (function() {
   };
 
   var _toMillis = function(d) {
-    return Math.round(d / 1000000);
+    return Math.round(d / 1000) / 1000;
   };
 
   var _sources = function(trace) {
@@ -118,7 +118,7 @@ TRACE = (function() {
     } else {
       obj[field] = [elem];
     }
-  }
+  };
 
   var _applyPotentialParentsHierarchy = function(traceMap, hierarchy) {
     hierarchy.forEach(function (d) {
@@ -255,20 +255,24 @@ TRACE = (function() {
     var traceMap = {};
     json.traces.forEach(function(d) {
       var startNanos   = d.startNanos - minStartNanos,
-          elapsedNanos = d.endNanos - d.startNanos;
+          totalNanos = d.endNanos - d.startNanos;
 
-      traceMap[d.id] = {
+      var entry = traceMap[d.id] = {
         id: d.id,
         name: d.name,
         hidden: d.hidden,
         systemHidden: d.systemHidden,
         startNanos: startNanos,
-        start: _toMillis(startNanos),
-        elapsedNanos: elapsedNanos,
-        elapsed: _toMillis(elapsedNanos),
+        startMillis: _toMillis(startNanos),
+        totalNanos: totalNanos,
+        totalMillis: _toMillis(totalNanos),
         resultType : d.resultType.toLowerCase(),
         value: d.value
       };
+
+      if ('pendingNanos' in d) {
+        entry.runMillis = _toMillis(d.pendingNanos - d.startNanos);
+      }
     });
 
     if (json.relationships) {
@@ -380,6 +384,22 @@ TRACE = (function() {
     });
   }
 
+  function alignMillis(millis) {
+    var millisStr = String(millis);
+    var indexOfPoint = millisStr.indexOf('.');
+    if (indexOfPoint === -1) {
+      return millisStr + ".000";
+    } else {
+      var delta = millisStr.length - indexOfPoint - 1;
+      if (delta < 3) {
+        millisStr += new Array(4 - delta).join("0");
+      } else if (delta > 3) {
+        millisStr = millisStr.substring(0, indexOfPoint + 4);
+      }
+    }
+    return millisStr;
+  }
+
   return {
     first: first,
     min: min,
@@ -387,6 +407,7 @@ TRACE = (function() {
 
     parseJson : parseJson,
     flatten: flatten,
-    appendPath : appendPath
+    appendPath : appendPath,
+    alignMillis: alignMillis
   };
 })();
