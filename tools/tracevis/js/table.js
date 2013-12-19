@@ -25,10 +25,9 @@ var TABLE = (function() {
     var table = selection.append("table").attr("class", "table table-bordered");
     var thead = table.append("thead");
     thead.append("th").text("Name");
-    thead.append("th").html("Start<br>(ms)");
-    thead.append("th").html("Run<br>(ms)");
-    thead.append("th").html("Total<br>(ms)");
-    thead.append("th").html("End<br>(ms)");
+    thead.append("th").html("Start (ms)");
+    thead.append("th").html("Run (ms)");
+    thead.append("th").html("Total (ms)");
     thead.append("th").text("Result");
     thead.append("th").text("Value");
     return table;
@@ -66,19 +65,24 @@ var TABLE = (function() {
 
       rowsEnter.append("td")
         .classed("numeric", true)
-        .text(function(d) { return TRACE.alignMillis(d.startMillis); });
+        .html(function(d) { return "<br/>" + TRACE.alignMillis(d.startMillis); });
 
       rowsEnter.append("td")
         .classed("numeric", true)
-        .text(function(d) { return 'runMillis' in d ? TRACE.alignMillis(d.runMillis) : '?'; });
+        .html(function(d) {
+          if ('runMillis' in d) {
+            return "+" + TRACE.alignMillis(d.runMillis) + "<br/>" +
+                   TRACE.alignMillis(d.startMillis + d.runMillis);
+          }
+          return '?';
+        });
 
       rowsEnter.append("td")
         .classed("numeric", true)
-        .text(function(d) { return TRACE.alignMillis(d.totalMillis); });
-
-      rowsEnter.append("td")
-        .classed("numeric", true)
-        .text(function(d) { return TRACE.alignMillis(d.startMillis + d.totalMillis); });
+        .html(function(d) {
+          return "+" + TRACE.alignMillis(d.totalMillis) + "<br/>" +
+                 TRACE.alignMillis(d.startMillis + d.totalMillis);
+        });
 
       rowsEnter.append("td")
         .attr("class", function(d) { return d.resultType; })
