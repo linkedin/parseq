@@ -55,9 +55,6 @@ public class JsonTraceCodec implements TraceCodec
   static final String TRACE_START_NANOS = "startNanos";
   static final String TRACE_PENDING_NANOS = "pendingNanos";
   static final String TRACE_END_NANOS = "endNanos";
-  static final String TRACE_ATTRIBUTES = "attributes";
-  static final String TRACE_ATTRIBUTE_KEY = "key";
-  static final String TRACE_ATTRIBUTE_VALUE = "value";
 
   // Relationship Fields
   static final String RELATIONSHIP_RELATIONSHIP = "relationship";

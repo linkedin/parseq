@@ -16,12 +16,12 @@
 
 package com.linkedin.parseq.trace.codec.json;
 
+import com.linkedin.parseq.internal.trace.TraceRelationshipBuilder;
 import com.linkedin.parseq.trace.Related;
 import com.linkedin.parseq.trace.Relationship;
 import com.linkedin.parseq.trace.ResultType;
 import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.Trace;
-import com.linkedin.parseq.internal.trace.TraceRelationshipBuilder;
 import com.linkedin.parseq.trace.codec.TraceCodec;
 import org.testng.annotations.Test;
 
@@ -90,88 +90,6 @@ public class TestJsonTraceCodec
                     .setEndNanos(100L)
                     .build())
             .buildRoot();
-    assertReversible(trace);
-  }
-
-  @Test
-  public void testReversibleWithSingleAttributes() throws IOException
-  {
-    Set<String> attributes = new HashSet<String>();
-    attributes.add("value1");
-    final Trace trace = new TraceRelationshipBuilder<Integer>()
-            .addTrace(0, new ShallowTraceBuilder("test", ResultType.SUCCESS)
-                    .setStartNanos(0L)
-                    .setPendingNanos(50L)
-                    .setEndNanos(100L)
-                    .addAttribute("key1", "value1")
-                    .build())
-            .buildRoot();
-    assertReversible(trace);
-  }
-
-  @Test
-  public void testReversibleWithMultipleAttributes() throws IOException
-  {
-    final Trace trace = new TraceRelationshipBuilder<Integer>()
-            .addTrace(0, new ShallowTraceBuilder("test", ResultType.SUCCESS)
-                    .setStartNanos(0L)
-                    .setPendingNanos(50L)
-                    .setEndNanos(100L)
-                    .addAttribute("key1", "value1")
-                    .addAttribute("key2", "value2")
-                    .addAttribute("key3", "value3")
-                    .build())
-            .buildRoot();
-    assertReversible(trace);
-  }
-
-  @Test
-  public void testReversibleWithRemoveAttributes() throws IOException
-  {
-    final Trace trace = new TraceRelationshipBuilder<Integer>()
-            .addTrace(0, new ShallowTraceBuilder("test", ResultType.SUCCESS)
-                    .setStartNanos(0L)
-                    .setPendingNanos(50L)
-                    .setEndNanos(100L)
-                    .addAttribute("key1", "value1")
-                    .addAttribute("key2", "value1")
-                    .removeAttribute("key1")
-                    .removeAttribute("key2")
-                    .build())
-            .buildRoot();
-    assertReversible(trace);
-  }
-
-  @Test
-  public void testWithDupAttributes() throws IOException
-  {
-    final Trace trace = new TraceRelationshipBuilder<Integer>()
-            .addTrace(0, new ShallowTraceBuilder("test", ResultType.SUCCESS)
-                    .setStartNanos(0L)
-                    .setPendingNanos(50L)
-                    .setEndNanos(100L)
-                    .addAttribute("key1", "value1")
-                    .addAttribute("key2", "value2")
-                    .addAttribute("key2", "value3")
-                    .build())
-            .buildRoot();
-
-    assertReversible(trace);
-
-  }
-
-  @Test
-  public void testWithNonExistingRemoveAttributes() throws IOException
-  {
-    final Trace trace = new TraceRelationshipBuilder<Integer>()
-            .addTrace(0, new ShallowTraceBuilder("test", ResultType.SUCCESS)
-                    .setStartNanos(0L)
-                    .setPendingNanos(50L)
-                    .setEndNanos(100L)
-                    .removeAttribute("key1")
-                    .build())
-            .buildRoot();
-
     assertReversible(trace);
   }
 
@@ -303,10 +221,10 @@ public class TestJsonTraceCodec
   @Test
   public void testCustomBuilding() throws IOException
   {
-    final String json = buildJson(new String[] {traceStr(1, "parent", ResultType.UNFINISHED, false),
-                                                traceStr(2, "child", ResultType.UNFINISHED, false),
-                                                traceStr(3, "predecessor", ResultType.UNFINISHED, false)},
-                                  new String[] {hierStr(1, 2), orderStr(3, 1)});
+    final String json = buildJson(new String[]{traceStr(1, "parent", ResultType.UNFINISHED, false),
+        traceStr(2, "child", ResultType.UNFINISHED, false),
+        traceStr(3, "predecessor", ResultType.UNFINISHED, false)},
+        new String[]{hierStr(1, 2), orderStr(3, 1)});
     final Trace trace;
 
     try

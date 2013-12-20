@@ -86,19 +86,6 @@ class JsonTraceSerializer
       generator.writeNumberField(JsonTraceCodec.TRACE_END_NANOS, trace.getEndNanos());
     }
 
-    if (trace.getAttributes() != null && trace.getAttributes().size() > 0)
-    {
-      generator.writeArrayFieldStart(JsonTraceCodec.TRACE_ATTRIBUTES);
-      for(Map.Entry<String, String> attribute :  trace.getAttributes().entrySet())
-      {
-        generator.writeStartObject();
-        generator.writeStringField(JsonTraceCodec.TRACE_ATTRIBUTE_KEY, attribute.getKey());
-        generator.writeStringField(JsonTraceCodec.TRACE_ATTRIBUTE_VALUE, attribute.getValue());
-        generator.writeEndObject();
-      }
-      generator.writeEndArray();
-    }
-
     generator.writeEndObject();
   }
 

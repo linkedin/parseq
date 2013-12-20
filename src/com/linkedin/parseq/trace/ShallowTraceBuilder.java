@@ -18,11 +18,6 @@ package com.linkedin.parseq.trace;
 
 import com.linkedin.parseq.internal.ArgumentUtil;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Use this class to build new {@link ShallowTrace} instances.
  * <p/>
@@ -41,7 +36,6 @@ public class ShallowTraceBuilder
   private volatile Long _pendingNanos;
   private volatile Long _endNanos;
   private volatile boolean _systemHidden;
-  private final Map<String,String> _attributes;
 
   public ShallowTraceBuilder(final ShallowTrace shallowTrace)
   {
@@ -52,7 +46,6 @@ public class ShallowTraceBuilder
     setEndNanos(shallowTrace.getEndNanos());
     setHidden(shallowTrace.getHidden());
     setSystemHidden(shallowTrace.getSystemHidden());
-    _attributes.putAll(shallowTrace.getAttributes());
   }
 
   public ShallowTraceBuilder(final ShallowTraceBuilder builder)
@@ -69,7 +62,6 @@ public class ShallowTraceBuilder
   public ShallowTraceBuilder(ResultType resultType)
   {
     setResultType(resultType);
-    _attributes = new ConcurrentHashMap<String, String>();
   }
 
   public boolean getHidden()
@@ -162,28 +154,8 @@ public class ShallowTraceBuilder
     return _endNanos;
   }
 
-  public Map<String, String> getAttributes()
-  {
-    return Collections.unmodifiableMap(_attributes);
-  }
-
-  public ShallowTraceBuilder addAttribute(String key, String value)
-  {
-    ArgumentUtil.notNull(key, "key");
-    ArgumentUtil.notNull(value, "value");
-    _attributes.put(key, value);
-    return this;
-  }
-
-  public ShallowTraceBuilder removeAttribute(String key)
-  {
-    ArgumentUtil.notNull(key, "key");
-    _attributes.remove(key);
-    return this;
-  }
-
   public ShallowTrace build()
   {
-    return new ShallowTrace(_name, _hidden, _systemHidden, _resultType, _value, _startNanos, _pendingNanos, _endNanos, _attributes);
+    return new ShallowTrace(_name, _hidden, _systemHidden, _resultType, _value, _startNanos, _pendingNanos, _endNanos);
   }
 }

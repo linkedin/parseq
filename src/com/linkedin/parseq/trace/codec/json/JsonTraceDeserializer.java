@@ -74,16 +74,6 @@ class JsonTraceDeserializer
       if (traceNode.get(JsonTraceCodec.TRACE_END_NANOS) != null)
         shallowBuilder.setEndNanos(getLongField(traceNode, JsonTraceCodec.TRACE_END_NANOS));
 
-      if(traceNode.get(JsonTraceCodec.TRACE_ATTRIBUTES) != null)
-      {
-        for(JsonNode node : getField(traceNode, JsonTraceCodec.TRACE_ATTRIBUTES))
-        {
-          String key = getTextField(node, JsonTraceCodec.TRACE_ATTRIBUTE_KEY);
-          String value = getTextField(node, JsonTraceCodec.TRACE_ATTRIBUTE_VALUE);
-          shallowBuilder.addAttribute(key, value);
-        }
-      }
-
       builder.addTrace(traceId, shallowBuilder.build());
     }
   }

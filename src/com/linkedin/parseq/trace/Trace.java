@@ -102,10 +102,4 @@ public interface Trace
    * @return a set of traces that are related to this trace.
    */
   Set<Related<Trace>> getRelated();
-
-  /**
-   * Get the set of attributes related to this trace.
-   * @return the map of attributes related to this trace.
-   */
-  Map<String, String> getAttributes();
 }

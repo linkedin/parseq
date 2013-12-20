@@ -89,12 +89,6 @@ import java.util.Set;
   }
 
   @Override
-  public Map<String, String> getAttributes()
-  {
-    return _shallowTrace.getAttributes();
-  }
-
-  @Override
   public boolean equals(final Object o)
   {
     if (this == o) return true;
