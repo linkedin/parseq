@@ -18,7 +18,7 @@ package com.linkedin.parseq;
 
 import com.linkedin.parseq.internal.ContextImpl;
 import com.linkedin.parseq.internal.InternalUtil;
-import com.linkedin.parseq.internal.SerialExecutor;
+import com.linkedin.parseq.internal.PlanContext;
 import com.linkedin.parseq.internal.TaskLogger;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -45,6 +46,8 @@ public class Engine
   private static final State TERMINATED = new State(StateName.TERMINATED, 0);
 
   private static enum StateName { RUN, SHUTDOWN, TERMINATED }
+
+  private final AtomicLong NEXT_PLAN_ID = new AtomicLong();
 
   private final Executor _taskExecutor;
   private final DelayedExecutor _timerExecutor;
@@ -122,9 +125,10 @@ public class Engine
       newState = new State(StateName.RUN, currState._pendingCount + 1);
     } while (!_stateRef.compareAndSet(currState, newState));
 
+    final long planId = NEXT_PLAN_ID.getAndIncrement();
     final Logger planLogger = _loggerFactory.getLogger(LOGGER_BASE + ":planClass=" + task.getClass().getName());
     final TaskLogger taskLogger = new TaskLogger(task, _allLogger, _rootLogger, planLogger);
-    new ContextImpl(new SerialExecutor(_taskExecutor), _timerExecutor, task, taskLogger, this).runTask();
+    new ContextImpl(new PlanContext(planId, this, _taskExecutor, _timerExecutor, taskLogger), task).runTask();
 
     InternalUtil.unwildcardTask(task).addListener(_taskDoneListener);
   }
