@@ -77,7 +77,7 @@ public class EngineBuilder
   public EngineBuilder setTimerScheduler(final DelayedExecutor timerScheduler)
   {
     ArgumentUtil.notNull(timerScheduler, "timerScheduler");
-    _timerScheduler = new IndirectDelayedExecutor(timerScheduler);
+    _timerScheduler = timerScheduler;
     return this;
   }
 
@@ -143,7 +143,7 @@ public class EngineBuilder
     }
     Engine engine =  new Engine(
         _taskExecutor,
-        _timerScheduler,
+        new IndirectDelayedExecutor(_timerScheduler),
         _loggerFactory != null ? _loggerFactory : LoggerFactory.getILoggerFactory(),
         _properties
         );
