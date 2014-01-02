@@ -17,17 +17,13 @@
 package com.linkedin.parseq;
 
 import com.linkedin.parseq.internal.ArgumentUtil;
-import com.linkedin.parseq.internal.CancellableScheduledFuture;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * A configurable builder that makes {@link Engine}s.
@@ -45,7 +41,6 @@ public class EngineBuilder
   private Executor _taskExecutor;
   private DelayedExecutor _timerScheduler;
   private ILoggerFactory _loggerFactory = null;
-  private ExecutorService _wrappedAsyncExecutor = null;
 
   private Map<String, Object> _properties = new HashMap<String, Object>();
 
