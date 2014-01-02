@@ -19,9 +19,7 @@ package com.linkedin.parseq.internal;
 import com.linkedin.parseq.After;
 import com.linkedin.parseq.Cancellable;
 import com.linkedin.parseq.Context;
-import com.linkedin.parseq.DelayedExecutor;
 import com.linkedin.parseq.EarlyFinishException;
-import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
@@ -32,7 +30,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -57,17 +54,10 @@ public class ContextImpl implements Context, Cancellable
     }
   }
 
-  private final DelayedExecutor _timerScheduler;
-
-  /* An executor that provides two guarantees:
-   *
-   * 1. Only one task is executed at a time
-   * 2. The completion of a task happens-before the execution of the next task
-   *
-   * For more on the happens-before constraint see the java.util.concurrent
-   * package documentation.
+  /**
+   * Plan level configuration and facilities.
    */
-  private final Executor _taskExecutor;
+  private final PlanContext _planContext;
 
   private final Task<Object> _task;
 
@@ -78,36 +68,24 @@ public class ContextImpl implements Context, Cancellable
 
   private final Task<?> _parent;
   private final List<Task<?>> _predecessorTasks;
-  private final TaskLogger _taskLogger;
-
-  private final Engine _engine;
 
   private final ConcurrentLinkedQueue<Cancellable> _cancellables = new ConcurrentLinkedQueue<Cancellable>();
 
-  public ContextImpl(final Executor taskExecutor,
-                     final DelayedExecutor timerScheduler,
-                     final Task<?> task,
-                     final TaskLogger taskLogger,
-                     final Engine engine)
+  public ContextImpl(final PlanContext planContext,
+                     final Task<?> task)
   {
-    this(taskExecutor, timerScheduler, task, NO_PARENT, NO_PREDECESSORS, taskLogger, engine);
+    this(planContext, task, NO_PARENT, NO_PREDECESSORS);
   }
 
-  private ContextImpl(final Executor taskExecutor,
-                      final DelayedExecutor timerScheduler,
+  private ContextImpl(final PlanContext planContext,
                       final Task<?> task,
                       final Task<?> parent,
-                      final List<Task<?>> predecessorTasks,
-                      final TaskLogger taskLogger,
-                      final Engine engine)
+                      final List<Task<?>> predecessorTasks)
   {
-    _timerScheduler = timerScheduler;
-    _taskExecutor = taskExecutor;
+    _planContext = planContext;
     _task = InternalUtil.unwildcardTask(task);
     _parent = parent;
     _predecessorTasks = predecessorTasks;
-    _taskLogger = taskLogger;
-    _engine = engine;
   }
 
   public void runTask()
@@ -127,7 +105,7 @@ public class ContextImpl implements Context, Cancellable
       }
     });
 
-    _taskExecutor.execute(new PrioritizableRunnable()
+    _planContext.execute(new PrioritizableRunnable()
     {
       @Override
       public void run()
@@ -135,7 +113,7 @@ public class ContextImpl implements Context, Cancellable
         _inTask.set(_task);
         try
         {
-          _task.contextRun(ContextImpl.this, _taskLogger, _parent, _predecessorTasks);
+          _task.contextRun(ContextImpl.this, _planContext.getTaskLogger(), _parent, _predecessorTasks);
         }
         finally
         {
@@ -156,7 +134,7 @@ public class ContextImpl implements Context, Cancellable
                                  final Task<?> task)
   {
     checkInTask();
-    final Cancellable cancellable = _timerScheduler.schedule(time, unit, new Runnable()
+    final Cancellable cancellable = _planContext.schedule(time, unit, new Runnable()
     {
       @Override
       public void run()
@@ -214,19 +192,19 @@ public class ContextImpl implements Context, Cancellable
   {
     boolean result = _task.cancel(reason);
     //run the task to capture the trace data
-    _task.contextRun(this, _taskLogger, _parent, _predecessorTasks);
+    _task.contextRun(this, _planContext.getTaskLogger(), _parent, _predecessorTasks);
     return result;
   }
 
   @Override
   public Object getEngineProperty(String key)
   {
-    return _engine.getProperty(key);
+    return _planContext.getEngineProperty(key);
   }
 
   private ContextImpl createSubContext(final Task<?> task, final List<Task<?>> predecessors)
   {
-    return new ContextImpl(_taskExecutor, _timerScheduler, task, _task, predecessors, _taskLogger, _engine);
+    return new ContextImpl(_planContext, task, _task, predecessors);
   }
 
   private void runSubTask(final Task<?> task, final List<Task<?>> predecessors)
