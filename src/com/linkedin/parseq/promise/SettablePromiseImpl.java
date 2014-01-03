@@ -19,12 +19,10 @@ package com.linkedin.parseq.promise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
@@ -36,11 +34,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
   private final CountDownLatch _awaitLatch = new CountDownLatch(1);
 
-  private final Lock _lock = new ReentrantLock();
-  private List<PromiseListener<T>> _listeners = new ArrayList<PromiseListener<T>>();
-  private volatile T _value;
-  private volatile Throwable _error;
-  private volatile boolean _done;
+  private final AtomicReference<Result<T>> _result = new AtomicReference<Result<T>>();
+  private final ConcurrentLinkedQueue<PromiseListener<T>> _listeners = new ConcurrentLinkedQueue<PromiseListener<T>>();
 
   @Override
   public void done(final T value) throws PromiseResolvedException
@@ -57,30 +52,29 @@ import java.util.concurrent.locks.ReentrantLock;
   @Override
   public T get() throws PromiseException
   {
-    ensureDone();
-    if (_error != null)
+    Result<T> result = getResult();
+    if (result._error != null)
     {
-      throw new PromiseException(_error);
+      throw new PromiseException(result._error);
     }
-    return _value;
+    return result._value;
   }
 
   @Override
   public Throwable getError() throws PromiseUnresolvedException
   {
-    ensureDone();
-    return _error;
+    return getResult()._error;
   }
 
   @Override
   public T getOrDefault(final T defaultValue) throws PromiseUnresolvedException
   {
-    ensureDone();
-    if (_error != null)
+    Result<T> result = getResult();
+    if (result._error != null)
     {
       return defaultValue;
     }
-    return _value;
+    return result._value;
   }
 
   @Override
@@ -98,87 +92,86 @@ import java.util.concurrent.locks.ReentrantLock;
   @Override
   public void addListener(final PromiseListener<T> listener)
   {
-    _lock.lock();
-    try
+    if (isDone())
     {
-      if (!isDone())
-      {
-        _listeners.add(listener);
-        return;
-      }
-    }
-    finally
-    {
-      _lock.unlock();
+      listener.onResolved(this);
+      return;
     }
 
-    notifyListener(listener);
+    _listeners.add(listener);
+
+    if (isDone())
+      purgeListeners();
   }
 
   @Override
   public boolean isDone()
   {
-    return _done;
+    return _result.get() != null;
   }
 
   @Override
   public boolean isFailed()
   {
-    return isDone() && _error != null;
+    final Result voe = _result.get();
+    return voe != null && voe._error != null;
   }
 
   private void doFinish(T value, Throwable error) throws PromiseResolvedException
   {
-    final List<PromiseListener<T>> listeners;
-
-    _lock.lock();
-    try
+    if (!_result.compareAndSet(null, new Result<T>(value, error)))
     {
-      ensureNotDone();
-      _value = value;
-      _error = error;
-      listeners = _listeners;
-      _listeners = null;
-      _done = true;
-    }
-    finally
-    {
-      _lock.unlock();
+      throw new PromiseResolvedException("Promise has already been satisfied");
     }
 
-    for (int i = listeners.size() - 1; i >= 0; i--)
-    {
-      notifyListener(listeners.get(i));
-    }
+    purgeListeners();
 
     _awaitLatch.countDown();
   }
 
-  private void notifyListener(final PromiseListener<T> listener)
+  private void purgeListeners()
   {
-    try
+    PromiseListener<T> listener;
+    while((listener = _listeners.poll()) != null)
     {
-      listener.onResolved(this);
-    }
-    catch (Exception e)
-    {
-      LOGGER.warn("An exception was thrown by listener: " + listener.getClass(), e);
-    }
-  }
-
-  private void ensureNotDone() throws PromiseResolvedException
-  {
-    if (isDone())
-    {
-      throw new PromiseResolvedException("Promise has already been satisfied");
+      try
+      {
+        listener.onResolved(this);
+      }
+      catch (Exception e)
+      {
+        LOGGER.warn("An exception was thrown by listener: " + listener.getClass(), e);
+      }
     }
   }
 
-  private void ensureDone() throws PromiseUnresolvedException
+  private Result<T> getResult() throws PromiseUnresolvedException
   {
-    if (!isDone())
+    final Result<T> voe = _result.get();
+    if (voe == null)
     {
       throw new PromiseUnresolvedException("Promise has not yet been satisfied");
+    }
+    return voe;
+  }
+
+  private static class Result<T>
+  {
+    private final T _value;
+    private final Throwable _error;
+
+    public Result(T value, Throwable error)
+    {
+      if (error != null)
+      {
+        _value = null;
+        _error = error;
+      }
+      else
+      {
+        _value = value;
+        _error = null;
+      }
     }
   }
 }
