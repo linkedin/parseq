@@ -193,7 +193,7 @@ public class ContextImpl implements InternalContext, Context, Cancellable
       }
     });
     _cancellables.add(cancellable);
-    getTraceCapturer().addPotentialParent(_taskId, taskId);
+    getTraceCapturer().addPotentialParent(taskId, _taskId);
     return cancellable;
   }
 
@@ -205,7 +205,7 @@ public class ContextImpl implements InternalContext, Context, Cancellable
     {
       final int taskId = getTraceCapturer().registerTask(task);
       runSubTask(task, taskId, NO_PREDECESSORS);
-      getTraceCapturer().addPotentialParent(_taskId, taskId);
+      getTraceCapturer().addPotentialParent(taskId, _taskId);
     }
   }
 
@@ -219,7 +219,9 @@ public class ContextImpl implements InternalContext, Context, Cancellable
     {
       if (promise instanceof Task)
       {
-        predecessorIds.add(getTraceCapturer().registerTask((Task)promise));
+        final Task<?> task = (Task)promise;
+        final int taskId = getTraceCapturer().registerTask(task);
+        predecessorIds.add(taskId);
       }
     }
 
@@ -229,6 +231,10 @@ public class ContextImpl implements InternalContext, Context, Cancellable
       public void run(final Task<?> task)
       {
         final int taskId = getTraceCapturer().registerTask(task);
+
+        getTraceCapturer().addPotentialParent(taskId, _taskId);
+        getTraceCapturer().addPotentialPredecessors(taskId, predecessorIds);
+
         InternalUtil.after(new PromiseListener()
         {
           @Override
@@ -237,8 +243,6 @@ public class ContextImpl implements InternalContext, Context, Cancellable
             runSubTask(task, taskId, predecessorIds);
           }
         }, promises);
-
-        getTraceCapturer().addPotentialPredecessors(taskId, predecessorIds);
       }
     };
   }

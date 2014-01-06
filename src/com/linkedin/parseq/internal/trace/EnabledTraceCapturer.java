@@ -124,17 +124,32 @@ public class EnabledTraceCapturer implements TraceCapturer, TaskListener
       {
         int id = entry.getKey();
         TraceData value = entry.getValue();
-        if (id != _rootTaskId)
+
+        boolean parentSet = false;
+        if (value._parent != null)
         {
-          traceGraph.addRelationship(value._parent != null ? value._parent : _rootTaskId, id, Relationship.PARENT_OF);
+          traceGraph.addRelationship(value._parent, id, Relationship.PARENT_OF);
+          parentSet = true;
         }
 
         for (int potentialParent : value._potentialParents)
         {
-          if (value._parent != null && potentialParent != value._parent)
+          // For backwards compatibility we arbitrarily set the parent of a task
+          // to the first potential parent we find.
+          if (!parentSet)
+          {
+            traceGraph.addRelationship(potentialParent, id, Relationship.PARENT_OF);
+            parentSet = true;
+          }
+          else if (value._parent != null && potentialParent != value._parent)
           {
             traceGraph.addRelationship(potentialParent, id, Relationship.POTENTIAL_PARENT_OF);
           }
+        }
+
+        if (!parentSet && id != _rootTaskId)
+        {
+          traceGraph.addRelationship(_rootTaskId, id, Relationship.PARENT_OF);
         }
 
         for (int predecessor : value._predecessors)
