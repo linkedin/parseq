@@ -22,11 +22,20 @@ module.exports = parse;
  * Parses `json` and returns a directed graph representation.
  */
 function parse(json) {
-  var g = new CDigraph();
+  var g = new CDigraph(),
+      snapshotNanos = json.snapshotNanos;
+
   json.traces.forEach(function(trace) {
     trace = shallowCopy(trace);
     var id = trace.id;
     delete trace.id;
+
+    if (trace.pendingNanos === undefined)
+      trace.pendingNanos = snapshotNanos;
+
+    if (trace.endNanos === undefined)
+      trace.endNanos = snapshotNanos;
+
     g.addNode(id, trace);
   });
   if (json.relationships) {
