@@ -26,37 +26,42 @@ function parse(json) {
       snapshotNanos = json.snapshotNanos;
 
   json.traces.forEach(function(trace) {
-    trace = shallowCopy(trace);
-    var id = trace.id;
-    delete trace.id;
+    // If the task was not even started, then don't display it...
+    if (trace.startNanos !== undefined) {
+      trace = shallowCopy(trace);
+      var id = trace.id;
+      delete trace.id;
 
-    if (trace.pendingNanos === undefined)
-      trace.pendingNanos = snapshotNanos;
+      if (trace.pendingNanos === undefined)
+        trace.pendingNanos = snapshotNanos;
 
-    if (trace.endNanos === undefined)
-      trace.endNanos = snapshotNanos;
+      if (trace.endNanos === undefined)
+        trace.endNanos = snapshotNanos;
 
-    g.addNode(id, trace);
+      g.addNode(id, trace);
+    }
   });
   if (json.relationships) {
     json.relationships.forEach(function(rel) {
-      switch(rel.relationship) {
-        case 'PARENT_OF':
-          g.parent(rel.to, rel.from);
-          break;
-        case 'SUCCESSOR_OF':
-          g.addEdge(null, rel.to, rel.from, { relationship: 'SUCCESSOR' });
-          break;
-        case 'POSSIBLE_SUCCESSOR_OF':
-          // Note that the change of name from POSSIBLE_SUCCESSOR_OF to
-          // POTENTIAL_SUCCESSOR is intentional. The trace format is
-          // inconsistent but we'll at least keep the visualization code
-          // consistent.
-          g.addEdge(null, rel.to, rel.from, { relationship: 'POTENTIAL_SUCCESSOR' });
-          break;
-        case 'POTENTIAL_PARENT_OF':
-          g.addEdge(null, rel.to, rel.from, { relationship: 'POTENTIAL_PARENT' });
-          break;
+      if (g.hasNode(rel.to) && g.hasNode(rel.from)) {
+        switch(rel.relationship) {
+          case 'PARENT_OF':
+            g.parent(rel.to, rel.from);
+            break;
+          case 'SUCCESSOR_OF':
+            g.addEdge(null, rel.to, rel.from, { relationship: 'SUCCESSOR' });
+            break;
+          case 'POSSIBLE_SUCCESSOR_OF':
+            // Note that the change of name from POSSIBLE_SUCCESSOR_OF to
+            // POTENTIAL_SUCCESSOR is intentional. The trace format is
+            // inconsistent but we'll at least keep the visualization code
+            // consistent.
+            g.addEdge(null, rel.to, rel.from, { relationship: 'POTENTIAL_SUCCESSOR' });
+            break;
+          case 'POTENTIAL_PARENT_OF':
+            g.addEdge(null, rel.to, rel.from, { relationship: 'POTENTIAL_PARENT' });
+            break;
+        }
       }
     });
   }

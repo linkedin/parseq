@@ -1,5 +1,15 @@
 var assert = require('./assert'),
-    parse = require('../..').trace.parse;
+    parseFunc = require('../..').trace.parse;
+
+// Slightly modify the parse function to ensure required properties are always
+// present.
+function parse(json) {
+  json.traces.forEach(function(trace) {
+    if (trace.startNanos === undefined)
+      trace.startNanos = 0;
+  });
+  return parseFunc(json);
+}
 
 describe('parse', function() {
   it('can parse a task\'s name', function() {
