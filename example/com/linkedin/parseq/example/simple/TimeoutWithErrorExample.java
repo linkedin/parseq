@@ -31,7 +31,7 @@ public class TimeoutWithErrorExample extends AbstractExample
     final Task<String> fetchWithTimeout =
         timeoutWithError(50, TimeUnit.MILLISECONDS, fetch);
 
-    engine.run(fetchWithTimeout);
+    engine.run(fetchWithTimeout, true);
 
     fetchWithTimeout.await();
 

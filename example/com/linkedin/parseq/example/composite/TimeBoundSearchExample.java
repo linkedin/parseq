@@ -78,7 +78,7 @@ public class TimeBoundSearchExample extends AbstractExample
     System.out.println("Execution:");
     System.out.println("----------");
     final long startMillis = System.currentTimeMillis();
-    engine.run(example);
+    engine.run(example, true);
     example.await();
     final long endMillis = System.currentTimeMillis();
 

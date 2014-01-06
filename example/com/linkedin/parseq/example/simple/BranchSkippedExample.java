@@ -51,7 +51,7 @@ public class BranchSkippedExample extends AbstractExample
     };
 
     final Task<Integer> bigX = seq(fetchX, enlargeX);
-    engine.run(bigX);
+    engine.run(bigX, true);
 
     bigX.await();
 

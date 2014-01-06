@@ -42,7 +42,7 @@ public class FanInExample extends AbstractExample
 
     final Task<?> parFetch = par(fetchBing, fetchGoogle, fetchYahoo);
     final Task<?> fanIn = seq(parFetch, printResults);
-    engine.run(fanIn);
+    engine.run(fanIn, true);
 
     fanIn.await();
 
