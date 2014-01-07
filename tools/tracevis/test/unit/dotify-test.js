@@ -162,6 +162,20 @@ describe('dotify', function() {
       assertEdgesFrom(dotify(g), 't1', { 'sink_root': 'solid' });
     });
 
+    it('adds a dashed edge from EARLY_FINISH sink tasks to the sink node', function() {
+      g.addNode('t1', { resultType: 'EARLY_FINISH' });
+      g.parent('t1', root);
+      assertEdgesFrom(dotify(g), 't1', { 'sink_root': 'dashed' });
+    });
+
+    it('adds a dashed edge from EARLY_FINISH sink nodes to successor tasks', function() {
+      g.parent(g.addNode('parent', { resultType: 'EARLY_FINISH' }), root);
+      g.parent(g.addNode('t1'), 'parent');
+      g.parent(g.addNode('t2'), root);
+      g.addEdge(null, 'parent', 't2', { relationship: 'SUCCESSOR' });
+      assertEdgesFrom(dotify(g), 'sink_parent', { 't2': 'dashed' });
+    });
+
     it('does not add any edges from the sink node', function() {
       g.addNode('t1');
       g.parent('t1', root);
@@ -232,6 +246,14 @@ describe('dotify', function() {
       assertEdge(dotify(g), 't1', 'sink_pp', 'solid');
     });
 
+    it('creates a dashed edge to a potential parent\'s sink if the task\'s result was EARLY_FINISH', function() {
+      g.parent(g.addNode('t1', { resultType: 'EARLY_FINISH' }), root);
+      g.addNode('pp');
+      g.parent(g.addNode('t2'), 'pp');
+      g.addEdge(null, 't1', 'pp', { relationship: 'POTENTIAL_PARENT' });
+      assertEdge(dotify(g), 't1', 'sink_pp', 'dashed');
+    });
+
     it('creates an invisible edge if the path to a task\'s closest sibling involves a non-sibling node', function() {
       g.parent(g.addNode('t1'), root);
       g.parent(g.addNode('t2'), root);
@@ -255,12 +277,10 @@ describe('dotify', function() {
 
       var d = dotify(g);
       assertEdgesFrom(d, rootSource,      { t1: 'solid' });
-      // Currently we end up with two edges from t1 to source_parent, one being invisible.
-      //assertEdgesFrom(d, 't1',            { source_parent: 'solid' });
+      assertEdgesFrom(d, 't1',            { source_parent: 'solid' });
       assertEdgesFrom(d, 'source_parent', { t2: 'solid' });
       assertEdgesFrom(d, 't2',            { 'sink_parent': 'solid' });
-      // Currently we end up with two edges from sink_parent to t3, one being invisible.
-      //assertEdgesFrom(d, 'sink_parent',   { 't3': 'solid' });
+      assertEdgesFrom(d, 'sink_parent',   { 't3': 'solid' });
       assertEdgesFrom(d, 't3',            { sink_root: 'solid' });
     });
 

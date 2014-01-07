@@ -77,14 +77,16 @@ function rewriteNodes(g, parents) {
         labeljust: 'l',
         style:     'dashed',
         color:     '#aaaaaa',
-        fillcolor: fillcolor(value.resultType)
+        fillcolor: fillcolor(value.resultType),
+        resultType: value.resultType
       });
     } else {
       g.node(u, {
         label: escapeLabel(value.name) + '\\l|{' + start + '\\r|' + run + '\\r|' + total + '\\r}',
         shape: 'Mrecord',
         style: 'filled',
-        fillcolor: fillcolor(value.resultType)
+        fillcolor: fillcolor(value.resultType),
+        resultType: value.resultType
       });
     }
   });
@@ -135,7 +137,11 @@ function expandClusters(g, parents) {
 
     // Anything that u points at should be pointed at by u's sink node
     g.outEdges(u).forEach(function(e) {
-      addSolidEdge(g, sink, g.target(e));
+      if (wasFinished(value)) {
+        addSolidEdge(g, sink, g.target(e));
+      } else {
+        addDashedEdge(g, sink, g.target(e));
+      }
       g.delEdge(e);
     });
 
@@ -147,7 +153,7 @@ function expandClusters(g, parents) {
 function addSourceSinkEdges(g, potentialParents, parents, originalG) {
   var paths = dijkstraAll(originalG),
       allKids = allChildren(originalG, potentialParents);
-  originalG.eachNode(function(u) {
+  originalG.eachNode(function(u, uValue) {
     var parent = g.parent(u);
 
     if (parent !== null) {
@@ -163,7 +169,11 @@ function addSourceSinkEdges(g, potentialParents, parents, originalG) {
       }
 
       if (!hasPathToSet(u, allKids[parent], paths)) {
-        addSolidEdge(g, u, parentSink);
+        if (wasFinished(uValue) && wasFinished(parentValue)) {
+          addSolidEdge(g, u, parentSink);
+        } else {
+          addDashedEdge(g, u, parentSink);
+        }
       } else if (!hasPathToSet(u, sibs, paths)) {
         addInvisEdge(g, u, parentSink);
       }
@@ -184,7 +194,11 @@ function addSourceSinkEdges(g, potentialParents, parents, originalG) {
               ppChildren = originalG.children(potentialParent);
 
           if (!hasPathToSet(u, ppChildren, paths)) {
-            addSolidEdge(g, u, ppSink);
+            if (wasFinished(uValue) && wasFinished(ppValue)) {
+              addSolidEdge(g, u, ppSink);
+            } else {
+              addDashedEdge(g, u, ppSink);
+            }
           }
           if (!hasPathFromSet(ppChildren, u, paths)) {
             addDashedEdge(g, ppSource, u);
@@ -297,7 +311,11 @@ function addDashedEdge(g, u, v) {
 function addInvisEdge(g, u, v) {
   if (g.node(u).sink !== undefined) { u = g.node(u).sink; }
   if (g.node(v).source !== undefined) { v = g.node(v).source; }
-  g.addEdge(null, u, v, { style: 'invis' });
+
+  // Only add an invisible edge if it would not produce a multi-edge
+  if (!g.outEdges(u, v).length) {
+    g.addEdge(null, u, v, { style: 'invis' });
+  }
 }
 
 function createParentSet(g, pp) {
@@ -324,3 +342,13 @@ function fillcolor(resultType) {
   }
 }
 
+/*
+ * Helper that returns true only if the task was completed without an early
+ * finish state.
+ */
+function wasFinished(taskValue) {
+  if (!taskValue) return true;
+
+  var resultType = taskValue.resultType;
+  return !resultType || resultType === 'SUCCESS' || resultType === 'ERROR';
+}
