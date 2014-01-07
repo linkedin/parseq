@@ -135,7 +135,7 @@ public class TestContext extends BaseEngineTest
 
     getEngine().run(task);
 
-    assertTrue(task.await(100, TimeUnit.MILLISECONDS));
+    assertTrue(task.await(5, TimeUnit.SECONDS));
     assertEquals(value, task.get());
   }
 
@@ -165,7 +165,7 @@ public class TestContext extends BaseEngineTest
 
     getEngine().run(task);
 
-    assertTrue(task.await(100, TimeUnit.MILLISECONDS));
+    assertTrue(task.await(5, TimeUnit.SECONDS));
     assertEquals(value, task.get());
   }
 
@@ -209,7 +209,7 @@ public class TestContext extends BaseEngineTest
 
     getEngine().run(task);
 
-    assertTrue(task.await(100, TimeUnit.MILLISECONDS));
+    assertTrue(task.await(5, TimeUnit.SECONDS));
     assertEquals(successorValue, successorTask.get());
     assertEquals(predecessorValue, predecessorValueRef.get());
   }
@@ -250,7 +250,7 @@ public class TestContext extends BaseEngineTest
 
     getEngine().run(task);
 
-    task.await();
+    assertTrue(task.await(5, TimeUnit.SECONDS));
 
     final Queue<Integer> ints = task.get();
     assertEquals((Integer)2, ints.poll());
