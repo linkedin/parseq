@@ -57,7 +57,7 @@ public class ClassifierDriver
     try
     {
       final Task<Map<Long, Classification>> classifications = classifier.classify(viewerId, unclassified);
-      engine.run(classifications);
+      engine.run(classifications, true);
       classifications.await();
       System.out.println(classifications.get());
 

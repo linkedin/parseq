@@ -23,7 +23,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * Interface for encoding/decoding the {@link com.linkedin.parseq.trace.Trace}
+ * Interface for encoding/decoding the {@link com.linkedin.parseq.trace.ShallowTrace}
  * @author Chi Chan (ckchan@linkedin.com)
  */
 public interface TraceCodec
@@ -31,8 +31,8 @@ public interface TraceCodec
   /**
    * Decode the InputStream to an Trace.
    *
-   * @param inputStream the InputStream of the TaskTrace
-   * @return the decoded Trace
+   * @param inputStream the InputStream of the trace
+   * @return the decoded trace
    * @throws IOException if an error occur during decoding
    */
   Trace decode(InputStream inputStream) throws IOException;
@@ -41,8 +41,8 @@ public interface TraceCodec
    * Similar to {@link #decode(java.io.InputStream)} but takes a String instead
    * of an InputStream.
    *
-   * @param traceStr a String representation of a Trace
-   * @return the decoded Trace
+   * @param traceStr a String representation of a trace
+   * @return the decoded trace
    * @throws IOException if an error occur during decoding
    */
   Trace decode(String traceStr) throws IOException;
@@ -50,18 +50,18 @@ public interface TraceCodec
   /**
    * Encodes a Trace to an OutputStream.
    *
-   * @param trace the Trace to encode
+   * @param trace the trace to encode
    * @param outputStream the OutputStream used to encode
    * @throws IOException if an error occurs during encoding
    */
   void encode(Trace trace, OutputStream outputStream) throws IOException;
 
   /**
-   * Similar to {@link #encode(com.linkedin.parseq.trace.Trace, java.io.OutputStream)}
+   * Similar to {@link #encode(com.linkedin.parseq.trace.ShallowTrace, java.io.OutputStream)}
    * but produces a String that contains the trace instead of writing it to an
    * OutputStream.
    *
-   * @param trace the Trace to encode
+   * @param trace the trace to encode
    * @return a String representation for the given trace
    * @throws IOException if an error occurs during encoding
    */

@@ -45,30 +45,5 @@ public enum ResultType
   /**
    * Indicates that the task has not yet been resolved.
    */
-  UNFINISHED;
-
-  /**
-   * Given a task this method will return a {@link ResultType} classification.
-   *
-   * @param task the task to classify
-   * @return the result type classification for the task
-   */
-  public static ResultType fromTask(final Task<?> task)
-  {
-    if (!task.isDone())
-    {
-      return UNFINISHED;
-    }
-    else if (task.isFailed())
-    {
-      if (task.getError() instanceof EarlyFinishException)
-      {
-        return EARLY_FINISH;
-      }
-
-      return ERROR;
-    }
-
-    return SUCCESS;
-  }
+  UNFINISHED
 }

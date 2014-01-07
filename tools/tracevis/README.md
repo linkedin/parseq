@@ -1,20 +1,32 @@
-Running Visualization
-=====================
+ParSeq Trace Visualization
+==========================
 
-To run the visualizations in your browser, add this directory to any web
-server.
+This project includes a trace visualizer for
+[https://github.com/linkedin/parseq](ParSeq) traces.
 
-Probably the easiest approach is to use Python's SimpleHTTPServer from
-this directory. To start SimpleHTTPServer on port 8888 use:
 
-```sh
-python -m SimpleHTTPServer 8888
-```
+Building
+========
 
-Then connect to [http://localhost:8888/trace.html](http://localhost:8888/trace.html).
+To build the trace visualizer, use `make dist`. This creates a package for the
+trace visualizer at `dist/parseq-tracevis.tar.gz`.
 
-Running Unit Tests for Visualization
-====================================
 
-The unit tests requires node package manager (npm). Once it is installed, use
-`make test` to run the tests.
+Running the Trace Visualizer
+============================
+
+To run the trace visualizer, extract `parseq-tracevis.tar.gz` and open
+index.html in a browser. The tool can also be hosted from a web server.
+
+For coding / debugging, the trace visualizer can also be run from the directory
+that hosts this README.
+
+More Info
+=========
+
+For more information, see the [ParSeq trace wiki](https://github.com/linkedin/parseq/wiki/Tracing#wiki-trace-tools).
+
+License
+=======
+
+This tool is licensed under the terms of the Apache License, Version 2.0.

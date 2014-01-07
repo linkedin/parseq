@@ -40,7 +40,7 @@ public class ErrorRecoveryExample extends AbstractExample
 
     final Task<Integer> fetchAndLength = seq(fetch, length);
 
-    engine.run(fetchAndLength);
+    engine.run(fetchAndLength, true);
 
     fetchAndLength.await();
 

@@ -36,14 +36,4 @@ public class EarlyFinishException extends Exception
   {
     super(message);
   }
-
-  public EarlyFinishException(final String message, final Throwable cause)
-  {
-    super(message, cause);
-  }
-
-  public EarlyFinishException(final Throwable cause)
-  {
-    super(cause);
-  }
 }

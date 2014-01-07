@@ -55,13 +55,14 @@ public class TwoStageFanoutExample extends AbstractExample
       public void run()
       {
         System.out.println(fanout.get());
-        printTracingResults(fanout);
       }
     });
 
-    engine.run(seq(fanout, printResults));
+    final Task<?> plan = seq(fanout, printResults);
+    engine.run(plan, true);
 
-    printResults.await();
+    plan.await();
+    printTracingResults(plan);
   }
 
   private static class FanoutTask extends BaseTask<String>
@@ -81,7 +82,8 @@ public class TwoStageFanoutExample extends AbstractExample
       final Task<String> twoStage =
           seq(par(fetchAndLog("http://www.bing.com"),
                   fetchAndLog("http://www.yahoo.com")),
-              fetchAndLog("http://www.google.com"),
+              par(fetchAndLog("http://www.google.com"),
+                  fetchAndLog("https://duckduckgo.com/")),
               buildResult());
       ctx.run(twoStage);
       return twoStage;

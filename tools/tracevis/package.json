@@ -1,20 +1,20 @@
 {
-  "name": "tracevis",
-  "version": "0.0.1",
-  "description": "trace visualization",
+  "name": "parseq-tracevis",
+  "description": "A trace visualizer for ParSeq traces",
   "main": "index.js",
-  "directories": {
-    "src": "js",
-    "test": "test"
-  },
-  "scripts": {
-    "test": "mocha -R spec"
-  },
-  "keywords": [
-    "visualization",
-    "trace"
-  ],
   "devDependencies": {
-    "mocha": "1.2.x"
+    "browserify": "~2.33.1",
+    "chai": "1.8.x",
+    "cp-data": "1.1.0",
+    "jshint": "~2.1.11",
+    "istanbul": "~0.1.44",
+    "mocha": "1.2.x",
+    "phantomjs": "~1.9.2-2",
+    "uglify-js": "1.2.3"
+  },
+  "dependencies": {
+    "d3": "3.3.5",
+    "graphlib": "0.7.1",
+    "graphlib-dot": "0.4.9"
   }
 }

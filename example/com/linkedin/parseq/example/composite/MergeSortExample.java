@@ -51,7 +51,7 @@ public class MergeSortExample extends AbstractExample
     final int[] toSort = createRandomArray(10, new Random());
 
     final Task<int[]> mergeSort = new MergeSortPlan(toSort);
-    engine.run(mergeSort);
+    engine.run(mergeSort, true);
     mergeSort.await();
 
     System.out.println("Before sort: " + Arrays.toString(toSort));
