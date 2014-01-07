@@ -17,12 +17,8 @@
 package com.linkedin.parseq.internal;
 
 import com.linkedin.parseq.Task;
-import com.linkedin.parseq.TaskLog;
-import com.linkedin.parseq.trace.ResultType;
 import com.linkedin.parseq.trace.ShallowTrace;
 import org.slf4j.Logger;
-
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * The trace logger will log to the first logger in the following sequence that
@@ -38,38 +34,67 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class TaskLogImpl implements TaskLog
+public class TaskLogger implements TaskListener
 {
   private static final String START_TASK_FORMAT = "[plan={}]: Starting task '{}'";
   private static final String END_TASK_DEBUG_FORMAT = "[plan={}]: Ending task '{}'. Elapsed: {}ms, Result type: {}.";
   private static final String END_TASK_TRACE_FORMAT = "[plan={}]: Ending task '{}'. Elapsed: {}ms, Result type: {}. Value: {}.";
 
-  private static final AtomicLong _nextPlanId = new AtomicLong();
-
+  /**
+   * The root task for the plan. Used to determine if a given task should be
+   * logged using the plan logger.
+   */
   private final Task<?> _root;
 
+  /** A locally assigned plan id to disambiguate plan logging. */
   private final long _planId;
 
-  // Logs every trace it finds
+  /** Logs every trace it finds. */
   private final Logger _allLogger;
 
-  // Logs only root traces
+  /** Logs only root traces. */
   private final Logger _rootLogger;
 
-  // Logs all tasks for this this plan
+  /** Logs all tasks for this this plan. */
   private final Logger _planLogger;
 
-  public TaskLogImpl(final Task<?> root, final Logger allLogger,
-                     final Logger rootLogger, final Logger planLogger)
+  public TaskLogger(final long planId,
+                    final Task<?> root,
+                    final Logger allLogger,
+                    final Logger rootLogger,
+                    final Logger planLogger)
   {
+    _planId = planId;
+    _root = root;
     _allLogger = allLogger;
     _rootLogger = rootLogger;
     _planLogger = planLogger;
-    _root = root;
-    _planId = _nextPlanId.getAndIncrement();
+  }
+
+  /**
+   * {@code true} if one or more of the loggers in this object would log events
+   * for the given task.
+   */
+  public boolean isEnabled(final Task<?> task)
+  {
+    return (_planLogger.isDebugEnabled() ||
+           (_rootLogger.isDebugEnabled() && _root == task) ||
+           (_allLogger.isDebugEnabled()));
   }
 
   @Override
+  public void onUpdate(Task<?> task, ShallowTrace shallowTrace)
+  {
+    if (shallowTrace.getStartNanos() != null && shallowTrace.getPendingNanos() == null && shallowTrace.getEndNanos() == null)
+    {
+      logTaskStart(task);
+    }
+    else if (shallowTrace.getEndNanos() != null)
+    {
+      logTaskEnd(task, shallowTrace);
+    }
+  }
+
   public void logTaskStart(final Task<?> task)
   {
     if (_planLogger.isDebugEnabled())
@@ -86,73 +111,57 @@ public class TaskLogImpl implements TaskLog
     }
   }
 
-  @Override
-  public void logTaskEnd(final Task<?> task)
+  public void logTaskEnd(final Task<?> task, final ShallowTrace shallowTrace)
   {
     if (_planLogger.isTraceEnabled())
     {
       _planLogger.trace(END_TASK_TRACE_FORMAT,
                         new Object[] {_planId, task.getName(),
-                                      elapsedMillis(task),
-                                      ResultType.fromTask(task), stringValue(task)});
+                                      elapsedMillis(shallowTrace),
+                                      shallowTrace.getResultType(),
+                                      shallowTrace.getValue()});
     }
     else if (_planLogger.isDebugEnabled())
     {
       _planLogger.debug(END_TASK_DEBUG_FORMAT,
                         new Object[] {_planId, task.getName(),
-                                      elapsedMillis(task), ResultType.fromTask(task)});
+                                      elapsedMillis(shallowTrace),
+                                      shallowTrace.getResultType()});
     }
     else if (_root == task && _rootLogger.isTraceEnabled())
     {
       _rootLogger.trace(END_TASK_TRACE_FORMAT,
                         new Object[] {_planId, task.getName(),
-                            elapsedMillis(task),
-                            ResultType.fromTask(task), stringValue(task)});
+                            elapsedMillis(shallowTrace),
+                            shallowTrace.getResultType(),
+                            shallowTrace.getValue()});
     }
     else if (_root == task && _rootLogger.isDebugEnabled())
     {
       _rootLogger.debug(END_TASK_DEBUG_FORMAT,
                         new Object[] {_planId, task.getName(),
-                            elapsedMillis(task), ResultType.fromTask(task)});
+                            elapsedMillis(shallowTrace),
+                            shallowTrace.getResultType()});
     }
     else if (_allLogger.isTraceEnabled())
     {
       _allLogger.trace(END_TASK_TRACE_FORMAT,
                        new Object[] {_planId, task.getName(),
-                           elapsedMillis(task),
-                           ResultType.fromTask(task), stringValue(task)});
+                           elapsedMillis(shallowTrace),
+                           shallowTrace.getResultType(),
+                           shallowTrace.getValue()});
     }
     else if (_allLogger.isDebugEnabled())
     {
       _allLogger.debug(END_TASK_DEBUG_FORMAT,
                        new Object[] {_planId, task.getName(),
-                           elapsedMillis(task), ResultType.fromTask(task)});
+                           elapsedMillis(shallowTrace),
+                           shallowTrace.getResultType()});
     }
   }
 
-  private String stringValue(final Task<?> task)
+  private long elapsedMillis(final ShallowTrace shallowTrace)
   {
-    if (task.isFailed())
-    {
-      return task.getError().toString();
-    }
-    else
-    {
-      final Object value = task.get();
-      if (value != null)
-      {
-        return value.toString();
-      }
-      else
-      {
-        return "null";
-      }
-    }
-  }
-
-  private long elapsedMillis(final Task<?> task)
-  {
-    final ShallowTrace trace = task.getShallowTrace();
-    return (trace.getEndNanos() - trace.getStartNanos()) / 1000000;
+    return (shallowTrace.getEndNanos() - shallowTrace.getStartNanos()) / 1000000;
   }
 }

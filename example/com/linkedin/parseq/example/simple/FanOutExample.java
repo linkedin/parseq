@@ -29,7 +29,7 @@ public class FanOutExample extends AbstractExample
     final Task<String> fetchGoogle = fetchUrl(httpClient, "http://www.google.com");
 
     final Task<?> parFetch = par(fetchBing, fetchGoogle, fetchYahoo);
-    engine.run(parFetch);
+    engine.run(parFetch, true);
 
     parFetch.await();
 

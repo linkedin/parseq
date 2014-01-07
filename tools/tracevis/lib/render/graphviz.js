@@ -14,23 +14,19 @@
  * the License.
  */
 
-package com.linkedin.parseq.trace;
+var dot = require('graphlib-dot'),
+    dotify = require('../trace/dotify');
 
-import com.linkedin.parseq.Task;
+module.exports = render;
 
-/**
- * Generate trace data.
- *
- * @author Chi Chan (ckchan@linkedin.com)
- */
-public interface TraceBuilder
-{
-  /**
-   * Returns a {@link Trace} instance with tracing information for the
-   * provided task. The trace will include the task, its predecessors, and its children.
-   *
-   * @param task the task used to generate the trace
-   * @return the trace related to the task
-   */
-  Trace getTrace(Task<?> task);
+function render(root, graph) {
+  root.classed('graphvizview', true);
+
+  var textarea = root.append('textarea')
+    .style('width', '100%')
+    .style('height', '600px');
+
+  graph = dotify(graph);
+
+  textarea.text(dot.write(graph));
 }

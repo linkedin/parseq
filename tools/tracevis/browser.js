@@ -1,4 +1,5 @@
-/*
+/**
+ * @license
  * Copyright 2012 LinkedIn, Inc
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -13,27 +14,4 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-
-package com.linkedin.parseq;
-
-/**
- * The task log provides a facility for logging task events.
- *
- * @author Chris Pettitt (cpettitt@linkedin.com)
- */
-public interface TaskLog
-{
-  /**
-   * Logs that a task has been started.
-   *
-   * @param task the task that started
-   */
-  void logTaskStart(Task<?> task);
-
-  /**
-   * Logs that a task has finished.
-   *
-   * @param task the task that finished
-   */
-  void logTaskEnd(Task<?> task);
-}
+global.parseqTracevis = require("./index");

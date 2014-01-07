@@ -59,7 +59,7 @@ public class TwoStageFanoutExample extends AbstractExample
       }
     });
 
-    engine.run(seq(fanout, printResults));
+    engine.run(seq(fanout, printResults), true);
 
     printResults.await();
   }

@@ -29,7 +29,7 @@ import static org.testng.AssertJUnit.fail;
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class TestTaskLogging extends BaseEngineTest
+public class TestTaskLogger extends BaseEngineTest
 {
   private static final String ALL_LOGGER = Engine.class.getName() + ":all";
   private static final String ROOT_LOGGER = Engine.class.getName() + ":root";
@@ -219,7 +219,7 @@ public class TestTaskLogging extends BaseEngineTest
     {
       final String message = entries.get(i).getMessage();
       if (message.contains("Ending task") && message.contains(task.getName()) &&
-          message.contains(ResultType.fromTask(task).toString()))
+          message.contains(task.getShallowTrace().getResultType().toString()))
       {
         return i;
       }

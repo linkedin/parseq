@@ -18,10 +18,6 @@ package com.linkedin.parseq.trace;
 
 import com.linkedin.parseq.internal.ArgumentUtil;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * A shallow trace is a trace without any relationship information. Use
  * {@link ShallowTraceBuilder} to construct new instances of this class.
@@ -41,7 +37,6 @@ public class ShallowTrace
   private final Long _startNanos;
   private final Long _pendingNanos;
   private final Long _endNanos;
-  private final Map<String, String> _attributes;
 
   /* package private */ ShallowTrace(final String name,
                                      final boolean hidden,
@@ -50,8 +45,7 @@ public class ShallowTrace
                                      final String value,
                                      final Long startNanos,
                                      final Long pendingNanos,
-                                     final Long endNanos,
-                                     final Map<String, String> attributes)
+                                     final Long endNanos)
   {
     assert name != null;
     assert resultType != null;
@@ -65,15 +59,12 @@ public class ShallowTrace
     _endNanos = endNanos;
     _systemHidden = systemHidden;
 
-    Map<String, String> attributeMap = new HashMap<String, String>(attributes);
-    _attributes = Collections.unmodifiableMap(attributeMap);
-
     switch (resultType)
     {
       case EARLY_FINISH:
         if (value != null)
         {
-          throw new IllegalArgumentException("value cannot be set if the task is finished early");
+            throw new IllegalArgumentException("value cannot be set if the task is finished early");
         }
         ArgumentUtil.notNull(startNanos, "startNanos");
         ArgumentUtil.notNull(pendingNanos, "pendingNanos");
@@ -86,19 +77,13 @@ public class ShallowTrace
         ArgumentUtil.notNull(endNanos, "endNanos");
         break;
       case UNFINISHED:
-        if (value != null)
+       if (value != null)
         {
           throw new IllegalArgumentException("value cannot be set if the task is UNFINISHED");
         }
         break;
       default:
         throw new IllegalArgumentException("Unexpected result type: " + resultType);
-    }
-
-    if (startNanos != null && resultType != ResultType.UNFINISHED)
-    {
-      ArgumentUtil.notNull(pendingNanos, "pendingNanos");
-      ArgumentUtil.notNull(endNanos, "endNanos");
     }
   }
 
@@ -142,11 +127,6 @@ public class ShallowTrace
     return _endNanos;
   }
 
-  public Map<String,String> getAttributes()
-  {
-    return _attributes;
-  }
-
   @Override
   public boolean equals(Object o)
   {
@@ -157,13 +137,11 @@ public class ShallowTrace
 
     if (_hidden != that._hidden) return false;
     if (_systemHidden != that._systemHidden) return false;
-    if (_attributes != null ? !_attributes.equals(that._attributes) : that._attributes != null)
+    if (_pendingNanos != null ? !_pendingNanos.equals(that._pendingNanos) : that._pendingNanos != null)
       return false;
     if (_endNanos != null ? !_endNanos.equals(that._endNanos) : that._endNanos != null)
       return false;
     if (!_name.equals(that._name)) return false;
-    if (_pendingNanos != null ? !_pendingNanos.equals(that._pendingNanos) : that._pendingNanos != null)
-      return false;
     if (_resultType != that._resultType) return false;
     if (_startNanos != null ? !_startNanos.equals(that._startNanos) : that._startNanos != null)
       return false;
@@ -184,7 +162,6 @@ public class ShallowTrace
     result = 31 * result + (_startNanos != null ? _startNanos.hashCode() : 0);
     result = 31 * result + (_pendingNanos != null ? _pendingNanos.hashCode() : 0);
     result = 31 * result + (_endNanos != null ? _endNanos.hashCode() : 0);
-    result = 31 * result + (_attributes != null ? _attributes.hashCode() : 0);
     return result;
   }
 
@@ -200,7 +177,6 @@ public class ShallowTrace
         ", _startNanos=" + _startNanos +
         ", _pendingNanos=" + _pendingNanos +
         ", _endNanos=" + _endNanos +
-        ", _attributes=" + _attributes +
         '}';
   }
 }

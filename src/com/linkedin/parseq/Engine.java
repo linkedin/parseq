@@ -18,19 +18,21 @@ package com.linkedin.parseq;
 
 import com.linkedin.parseq.internal.ContextImpl;
 import com.linkedin.parseq.internal.InternalUtil;
-import com.linkedin.parseq.internal.SerialExecutor;
-import com.linkedin.parseq.internal.TaskLogImpl;
+import com.linkedin.parseq.internal.PlanContext;
+import com.linkedin.parseq.internal.TaskLogger;
+import com.linkedin.parseq.internal.trace.DisabledTraceCapturer;
+import com.linkedin.parseq.internal.trace.EnabledTraceCapturer;
+import com.linkedin.parseq.internal.trace.TraceCapturer;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -47,6 +49,8 @@ public class Engine
   private static final State TERMINATED = new State(StateName.TERMINATED, 0);
 
   private static enum StateName { RUN, SHUTDOWN, TERMINATED }
+
+  private final AtomicLong NEXT_PLAN_ID = new AtomicLong();
 
   private final Executor _taskExecutor;
   private final DelayedExecutor _timerExecutor;
@@ -105,11 +109,24 @@ public class Engine
 
   /**
    * Runs the given task with its own context. Use {@code Tasks.seq} and
-   * {@code Tasks.par} to create and run composite tasks.
+   * {@code Tasks.par} to create and run composite tasks. This method does not
+   * enable tracing. Use {@link #run(Task, boolean)} to enable tracing.
    *
    * @param task the task to run
    */
   public void run(final Task<?> task)
+  {
+    run(task, false);
+  }
+
+  /**
+   * Runs the given task with its own context. Use {@code Tasks.seq} and
+   * {@code Tasks.par} to create and run composite tasks.
+   *
+   * @param task the task to run
+   * @param enableTrace true if tracing should be enabled
+   */
+  public void run(final Task<?> task, boolean enableTrace)
   {
     State currState, newState;
     do
@@ -124,9 +141,12 @@ public class Engine
       newState = new State(StateName.RUN, currState._pendingCount + 1);
     } while (!_stateRef.compareAndSet(currState, newState));
 
+    final long planId = NEXT_PLAN_ID.getAndIncrement();
     final Logger planLogger = _loggerFactory.getLogger(LOGGER_BASE + ":planClass=" + task.getClass().getName());
-    final TaskLog taskLog = new TaskLogImpl(task, _allLogger, _rootLogger, planLogger);
-    new ContextImpl(new SerialExecutor(_taskExecutor), _timerExecutor, task, taskLog, this).runTask();
+    final TaskLogger taskLogger = new TaskLogger(planId, task, _allLogger, _rootLogger, planLogger);
+    final TraceCapturer traceCapturer = enableTrace ? new EnabledTraceCapturer(task) : DisabledTraceCapturer.INSTANCE;
+    final int taskId = traceCapturer.registerTask(task);
+    new ContextImpl(new PlanContext(planId, this, _taskExecutor, _timerExecutor, traceCapturer, taskLogger), task, taskId).runTask();
 
     InternalUtil.unwildcardTask(task).addListener(_taskDoneListener);
   }

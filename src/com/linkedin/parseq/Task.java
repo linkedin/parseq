@@ -16,13 +16,10 @@
 
 package com.linkedin.parseq;
 
+import com.linkedin.parseq.internal.TaskListener;
 import com.linkedin.parseq.promise.Promise;
-import com.linkedin.parseq.trace.Related;
 import com.linkedin.parseq.trace.ShallowTrace;
 import com.linkedin.parseq.trace.Trace;
-
-import java.util.Collection;
-import java.util.Set;
 
 /**
  * A task represents a deferred execution that also contains its resulting
@@ -37,11 +34,11 @@ import java.util.Set;
 public interface Task<T> extends Promise<T>, Cancellable
 {
   /**
-   * Returns the name of this task.
-   *
-   * @return the name of this task
+   * Returns the name of this task. If no name was set during construction
+   * this method will return the value of {@link #toString()}. In most
+   * cases it is preferable to explicitly set a name.
    */
-  public String getName();
+  String getName();
 
   /**
    * Returns the priority for this task.
@@ -70,41 +67,38 @@ public interface Task<T> extends Promise<T>, Cancellable
   boolean setPriority(int priority);
 
   /**
-   * Attempts to run the task with the given context. This method is
-   * reserved for use by {@link Engine} and {@link Context}.
-   *
-   * @param context the context to use while running this step
-   * @param taskLog the logger used for task events
-   * @param parent the parent of this task
-   * @param predecessors that lead to the execution of this task
-   */
-  void contextRun(Context context, TaskLog taskLog,
-                  Task<?> parent, Collection<Task<?>> predecessors);
-
-
-  /**
-   * Returns the ShallowTrace for this task. The ShallowTask will be
-   * a point-in-time snapshot and may change over time until the task is
-   * completed.
-   *
-   * @return the ShallowTrace related to this task
+   * Returns a trace for this task alone. The trace is a point-in-time
+   * snapshot, so successive invocations of {@code getShallowTrace} may
+   * return different results.
    */
   ShallowTrace getShallowTrace();
 
   /**
-   * Returns the Trace for this task. The Trace will be a point-in-time snapshot
+   * Returns the trace for this task. The trace will be a point-in-time snapshot
    * and may change over time until the task is completed.
    *
-   * @return the Trace related to this task
+   * @return the trace related to this task
    */
   Trace getTrace();
 
   /**
-   * Returns the set of relationships of this task. The parent relationships are not included.
+   * Attempts to bind this task to the given context. A task may only be bound
+   * once. This method is reserved for use by the ParSeq framework only.
    *
-   * @see com.linkedin.parseq.trace.Relationship the available relationships
-   * @return the set of relationships of this task.
+   * @param context the context to assign to this task.
+   * @return {@code true} if the assignment was successful.
    */
-  Set<Related<Task<?>>> getRelationships();
+  boolean assignContext(Context context);
 
+  /**
+   * Attempts to run the task with the given context. This method is for use by
+   * the ParSeq framework only.
+   */
+  void contextRun();
+
+  /**
+   * Adds a listener to this task that is notified each time the task changes
+   * state. This method is for use by the ParSeq framework only.
+   */
+  void addTaskListener(TaskListener tracingTaskListener);
 }
