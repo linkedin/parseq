@@ -63,7 +63,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * changed.
    *
    * @param priority the new priority for the task.
-   * @return {@code true} if the priority was be set; otherwise {@code false}.
+   * @return {@code true} if the priority was set; otherwise {@code false}.
    * @throws IllegalArgumentException if the priority is out of range
    * @see Priority
    */
@@ -83,7 +83,7 @@ public interface Task<T> extends Promise<T>, Cancellable
 
 
   /**
-   * Returns the ShallowTrace for this task. The ShallowTask will be
+   * Returns the ShallowTrace for this task. The ShallowTrace will be
    * a point-in-time snapshot and may change over time until the task is
    * completed.
    *
