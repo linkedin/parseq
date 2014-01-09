@@ -105,7 +105,7 @@
     </target>
 
     <target name="tar-tracevis" depends="prepare, dist-tracevis" description="Creates a tarball of the tracevis tool">
-        <copy file="${tools.dir}/tracevis/dist/parseq-tracevis.tar.gz" todir="${dist.dir}"/>
+        <copy file="${tools.dir}/tracevis/dist/parseq-tracevis.tar.gz" tofile="${dist.dir}/parseq-tracevis-${version}.tar.gz"/>
     </target>
 
     <target name="doc" description="Build the javadoc." depends="build-src">
