@@ -76,7 +76,7 @@ var WATERFALL = (function() {
     update(root, 0);
 
     function update(source, duration) {
-      var traces = TRACE.flatten(root);
+      var traces = TRACE.identifyLowestChild(TRACE.flatten(root));
 
       var x = d3.scale.linear()
         .domain([0, d3.max(traces, function(d) { return d.startMillis + d.totalMillis; })])
@@ -131,6 +131,51 @@ var WATERFALL = (function() {
         .on("click", toggleCollapse);
 
       trace.classed("collapsed", function(d) { return d._children; });
+      
+      var verticalEnter = traceEnter.filter( function(d) { return d.children || d._children;; } )
+      verticalEnter.append("line")
+      .classed("vertical", true)
+      .attr("x1", -3)
+      .attr("y1", 4)
+      .attr("x2", -3)
+      .attr("y2", function (d) {
+      	  if (d.lowestChild)
+      	    return (d.lowestChild  - d.level) * (barHeight + barSpacing);
+      	  else
+      	    4;
+      	} )
+      .style("stroke", "black")
+      .style("stroke-width", 1)
+      .style("stroke-linecap", "round")
+      .style("stroke-dasharray", 3);
+
+      var vertical = trace.select("line.vertical");
+
+      vertical.attr("y2", function (d) {
+      	  if (d.lowestChild)
+      	    return (d.lowestChild  - d.level) * (barHeight + barSpacing)
+      	  else
+      	    this.y2;
+      	} );
+
+      var noRootEnter = traceEnter.filter( function (d, i) { return i != 0 })
+      noRootEnter.append("line")
+      .attr("x1", -4)
+      .attr("y1", 0)
+      .attr("x2", function (d) {
+    	  return -4 - d.x + d.parent.x;
+	  	} )
+      .attr("y2", 0)
+      .style("stroke", "black")
+      .style("stroke-width", 1)
+      .style("stroke-linecap", "round")
+      .style("stroke-dasharray", 3);
+      
+      traceEnter.append("circle")
+      .attr("r", 4)
+      .attr("cx", -3)
+      .style("stroke", "black")
+      .style("stroke-width", 1);
 
       // Enter any new traces at the parent's previous position.
       traceEnter.append("rect")

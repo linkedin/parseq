@@ -321,8 +321,26 @@ TRACE = (function() {
     }
 
     return flat;
-  }
+  };
 
+  function identifyLowestChild(flat) {
+      for (var i = 0; i < flat.length; i++) {
+      	flat[i].level = i;
+      	if (flat[i].lowestChild) {
+      		delete flat[i].lowestChild;
+      	}
+      }
+
+      for (var i = 0; i < flat.length; i++) {
+      	if (flat[i].parent) {
+      		var parent = flat[i].parent;
+          	if (!parent.lowestChild || parent.lowestChild < i) {
+          		parent.lowestChild = i;
+          	}
+      	}
+      }
+      return flat;
+  }
 
   function appendPath(root) {
     //build graph
@@ -407,6 +425,7 @@ TRACE = (function() {
 
     parseJson : parseJson,
     flatten: flatten,
+    identifyLowestChild: identifyLowestChild,
     appendPath : appendPath,
     alignMillis: alignMillis
   };
