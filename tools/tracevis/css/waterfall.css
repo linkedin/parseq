@@ -4,6 +4,7 @@
 .waterfallview .trace rect.success { fill: #60D060; }
 .waterfallview .trace rect.error { fill: #FF6F6F; }
 .waterfallview .trace rect.early_finish { fill: #FFFD76; }
+.waterfallview .trace circle { fill: #FFFFFF; }
 
 .waterfallview .trace text,
 .waterfallview .trace text tspan {
