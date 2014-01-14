@@ -34,5 +34,10 @@ ${ivy.pom.header}
             <name>Chi Kit Chan</name>
             <email>ckchan@linkedin.com</email>
         </developer>
+        <developer>
+            <id>jodzga</id>
+            <name>Jaroslaw Odzga</name>
+            <email>jodzga@linkedin.com</email>
+        </developer>
     </developers>
 </project>
