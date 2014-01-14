@@ -147,18 +147,23 @@
     <target name="dist" depends="jar-src, zip-src, tar-tracevis, zip-doc"
             description="Builds all distributables to ${dist.dir}">
         <ivy:deliver deliverpattern="${dist.dir}/[artifact]-[revision].[ext]" pubrevision="${version}" validate="true"/>
-        <ivy:resolve file="ivy-tracevis.xml" conf="default"/>
+
+        <ivy:resolve file="tracevis-ivy.xml" conf="default"/>
         <ivy:deliver deliverpattern="${dist.dir}/tracevis-[artifact]-[revision].[ext]" pubrevision="${version}" validate="true"/>
 
         <property name="ivy.pom.description" value="ParSeq is a framework that makes it easier to write and maintain fast, scalable applications in Java"/>
         <property name="ivy.pom.url" value="https://github.com/linkedin/parseq"/>
+
         <ivy:makepom ivyfile="${dist.dir}/ivy-${version}.xml" pomfile="${dist.dir}/parseq-${version}.pom" templatefile="${basedir}/build-templates/template.pom" conf="build">
             <mapping conf="build" scope="compile"/>
         </ivy:makepom>
+
+        <ivy:makepom ivyfile="${dist.dir}/tracevis-ivy-${version}.xml" pomfile="${dist.dir}/parseq-tracevis-${version}.pom" templatefile="${basedir}/build-templates/template.pom" conf="build">
+        </ivy:makepom>
     </target>
 
-    <target name="bundle" depends="dist"
-            description="Builds a release bundle to ${dist.dir}/bundle.jar">
+    <target name="bundle-parseq" depends="dist"
+            description="Builds a release bundle to ${dist.dir}/parseq-${version}-bundle.jar">
         <sign file="${dist.dir}/parseq-${version}.pom"/>
         <sign file="${dist.dir}/parseq-${version}.jar"/>
         <sign file="${dist.dir}/parseq-${version}-sources.jar"/>
@@ -174,6 +179,21 @@
             <include name="parseq-${version}-javadoc.jar.asc"/>
         </jar>
     </target>
+
+    <target name="bundle-tracevis" depends="dist"
+	    description="Builds a release bundle to ${dist.dir}/parseq-tracevis-${version}-bundle.jar">
+        <sign file="${dist.dir}/parseq-tracevis-${version}.pom"/>
+        <sign file="${dist.dir}/parseq-tracevis-${version}.tar.gz"/>
+	<jar destfile="${dist.dir}/parseq-tracevis-${version}-bundle.jar" basedir="${dist.dir}">
+	    <include name="parseq-tracevis-${version}.pom"/>
+	    <include name="parseq-tracevis-${version}.pom.asc"/>
+	    <include name="parseq-tracevis-${version}.tar.gz"/>
+	    <include name="parseq-tracevis-${version}.tar.gz.asc"/>
+	</jar>
+    </target>
+
+    <target name="bundle" depends="bundle-parseq, bundle-tracevis"
+	    description="Builds all release bundsles to ${dist.dir}"/>
 
     <target name="clean" description="Cleans build and dist dirs">
         <delete dir="${build.dir}" />
