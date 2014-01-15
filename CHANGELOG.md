@@ -1,3 +1,9 @@
+v1.3.4
+------
+
+* Publish parseq-tracevis package.
+* Minor fixes to tests and examples.
+
 v1.3.3
 ------
 
