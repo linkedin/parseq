@@ -134,32 +134,30 @@ var WATERFALL = (function() {
 
       var verticalEnter = traceEnter.filter( function(d) { return d.children || d._children; } )
 
-      verticalEnter.append("line")
+      verticalEnter.append("path")
         .classed("vertical", true)
-        .attr("x1", -3)
-        .attr("y1", 4)
-        .attr("x2", -3)
-        .attr("y2", function (d) {
-          if (d.lowestChild)
-            return (d.lowestChild  - d.level) * (barHeight + barSpacing);
-          else
-            4;
-          } )
+        .attr("d", function (d) {
+           if (d.lowestChild)
+             return "M-3 4 L-3 " + (d.lowestChild  - d.level) * (barHeight + barSpacing);
+           else
+             return "M-3 4 L-3 4";
+         })
         .style("stroke", "black")
         .style("stroke-width", 1)
         .style("stroke-linecap", "round")
         .style("stroke-dasharray", 3);
 
-      var vertical = trace.select("line.vertical");
+      trace.select("path.vertical")
+        .transition()
+        .duration(duration)
+        .attr("d", function (d) {
+           if (d.lowestChild)
+             return "M-3 4 L-3 " + (d.lowestChild  - d.level) * (barHeight + barSpacing);
+           else
+             return "M-3 4 L-3 4";
+         })
 
-      vertical.attr("y2", function (d) {
-        if (d.lowestChild)
-          return (d.lowestChild  - d.level) * (barHeight + barSpacing)
-        else
-          this.y2;
-      } );
-
-      var noRootEnter = traceEnter.filter( function (d, i) { return i != 0 })
+      var noRootEnter = traceEnter.filter( function (d, i) { return (i != 0) && (d.parent)})
         noRootEnter.append("line")
         .attr("x1", -4)
         .attr("y1", 0)
@@ -170,7 +168,8 @@ var WATERFALL = (function() {
         .style("stroke-linecap", "round")
         .style("stroke-dasharray", 3);
       
-      traceEnter.append("circle")
+      traceEnter.filter( function (d, i) { return d.parent || d.children || d._children})
+        .append("circle")
         .attr("r", 4)
         .attr("cx", -3)
         .style("stroke", "black")
