@@ -106,7 +106,13 @@
 
     <target name="tar-tracevis" depends="prepare" description="Creates a tarball of the tracevis tool">
         <tar destfile="${dist.dir}/${ant.project.name}-tracevis-${version}.tar.gz" compression="gzip">
-            <tarfileset dir="${tools.dir}/tracevis" prefix="tracevis" />
+            <tarfileset dir="${tools.dir}/tracevis" prefix="tracevis">
+                <include name="bootstrap/**"/>
+                <include name="css/**"/>
+                <include name="js/**"/>
+                <include name="lib/**"/>
+                <include name="trace.html"/>
+            </tarfileset>
         </tar>
     </target>
 

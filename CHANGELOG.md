@@ -1,3 +1,8 @@
+v1.3.6
+------
+
+* Fixes to tracevis packaging.
+
 v1.3.5
 ------
 
