@@ -323,4 +323,45 @@ public class TestSettablePromise
     latch.await();
     assertEquals("done!", resultRef.get());
   }
+
+  @Test
+  public void testListenerThrowsException() throws InterruptedException
+  {
+    // This test ensures that we properly resolve the promise even when
+    // one of its listeners throws an Error.
+    final SettablePromise<String> promise = Promises.settable();
+    promise.addListener(new PromiseListener<String>()
+    {
+      @Override
+      public void onResolved(Promise<String> promise)
+      {
+        throw new RuntimeException();
+      }
+    });
+
+    promise.done("Done!");
+    assertTrue(promise.await(5, TimeUnit.SECONDS));
+    assertEquals("Done!", promise.get());
+  }
+
+
+  @Test
+  public void testListenerThrowsError() throws InterruptedException
+  {
+    // This test ensures that we properly resolve the promise even when
+    // one of its listeners throws an Error.
+    final SettablePromise<String> promise = Promises.settable();
+    promise.addListener(new PromiseListener<String>()
+    {
+      @Override
+      public void onResolved(Promise<String> promise)
+      {
+        throw new Error();
+      }
+    });
+
+    promise.done("Done!");
+    assertTrue(promise.await(5, TimeUnit.SECONDS));
+    assertEquals("Done!", promise.get());
+  }
 }

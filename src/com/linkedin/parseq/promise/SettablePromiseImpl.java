@@ -145,11 +145,17 @@ import java.util.concurrent.TimeUnit;
 
   private void notifyListener(final PromiseListener<T> listener)
   {
+    // We intentionally catch Throwable around the listener invocation because
+    // it will cause the notifier loop and subsequent count down in doFinish to
+    // be skipped, which will certainly lead to bad behavior. It could be argued
+    // that the catch should not apply for use of notifyListener from
+    // addListener, but it seems better to err on the side of consistency and
+    // least surprise.
     try
     {
       listener.onResolved(this);
     }
-    catch (Exception e)
+    catch (Throwable e)
     {
       LOGGER.warn("An exception was thrown by listener: " + listener.getClass(), e);
     }
