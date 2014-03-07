@@ -1,3 +1,9 @@
+v1.3.7
+------
+
+* We now cancel a plan if its execution fails due to a
+  RejectedExecutionException being raised from the engine's task executor.
+
 v1.3.6
 ------
 

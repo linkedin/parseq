@@ -18,18 +18,19 @@ package com.linkedin.parseq;
 
 import com.linkedin.parseq.internal.ContextImpl;
 import com.linkedin.parseq.internal.InternalUtil;
+import com.linkedin.parseq.internal.RejectedSerialExecutionHandler;
+import com.linkedin.parseq.internal.SerialExecutionException;
 import com.linkedin.parseq.internal.SerialExecutor;
 import com.linkedin.parseq.internal.TaskLogImpl;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -42,6 +43,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class Engine
 {
   private static final String LOGGER_BASE = Engine.class.getName();
+  private static final Logger LOG = LoggerFactory.getLogger(LOGGER_BASE);
 
   private static final State INIT = new State(StateName.RUN, 0);
   private static final State TERMINATED = new State(StateName.TERMINATED, 0);
@@ -126,7 +128,8 @@ public class Engine
 
     final Logger planLogger = _loggerFactory.getLogger(LOGGER_BASE + ":planClass=" + task.getClass().getName());
     final TaskLog taskLog = new TaskLogImpl(task, _allLogger, _rootLogger, planLogger);
-    new ContextImpl(new SerialExecutor(_taskExecutor), _timerExecutor, task, taskLog, this).runTask();
+    new ContextImpl(new SerialExecutor(_taskExecutor, new CancelPlanRejectionHandler(task)),
+                    _timerExecutor, task, taskLog, this).runTask();
 
     InternalUtil.unwildcardTask(task).addListener(_taskDoneListener);
   }
@@ -232,6 +235,25 @@ public class Engine
     {
       _pendingCount = pendingCount;
       _stateName = stateName;
+    }
+  }
+
+  private static class CancelPlanRejectionHandler implements RejectedSerialExecutionHandler
+  {
+    private final Task<?> _task;
+
+    private CancelPlanRejectionHandler(Task<?> task)
+    {
+      _task = task;
+    }
+
+    @Override
+    public void rejectedExecution(Throwable error)
+    {
+      final String msg = "Serial executor loop failed for plan: " + _task.getName();
+      final SerialExecutionException ex = new SerialExecutionException(msg, error);
+      final boolean wasCancelled = _task.cancel(ex);
+      LOG.error(msg + ". The plan was " + (wasCancelled ? "" : "not ") + "cancelled.", ex);
     }
   }
 }

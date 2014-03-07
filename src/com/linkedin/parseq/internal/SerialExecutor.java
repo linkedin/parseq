@@ -27,19 +27,31 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p/>
  * For more on the happens-before constraint see the {@code java.util.concurrent}
  * package documentation.
+ * <p/>
+ * It is possible for the underlying executor to throw an exception signaling
+ * that it is not able to accept new work. For example, this can occur with an
+ * executor that has a bounded queue size and an
+ * {@link java.util.concurrent.ThreadPoolExecutor.AbortPolicy}. If this occurs
+ * the executor will run the {@code rejectionHandler} to signal this failure
+ * to a layer that can more appropriate handle this event.
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
 public class SerialExecutor implements Executor
 {
   private final Executor _executor;
+  private final RejectedSerialExecutionHandler _rejectionHandler;
   private final ExecutorLoop _executorLoop = new ExecutorLoop();
   private final FIFOPriorityQueue<Runnable> _queue = new FIFOPriorityQueue<Runnable>();
   private final AtomicInteger _pendingCount = new AtomicInteger();
 
-  public SerialExecutor(final Executor executor)
+  public SerialExecutor(final Executor executor, final RejectedSerialExecutionHandler rejectionHandler)
   {
+    assert executor != null;
+    assert rejectionHandler != null;
+
     _executor = executor;
+    _rejectionHandler = rejectionHandler;
   }
 
   public void execute(final Runnable runnable)
@@ -47,7 +59,19 @@ public class SerialExecutor implements Executor
     _queue.add(runnable);
     if (_pendingCount.getAndIncrement() == 0)
     {
+      tryExecuteLoop();
+    }
+  }
+
+  private void tryExecuteLoop()
+  {
+    try
+    {
       _executor.execute(_executorLoop);
+    }
+    catch (Throwable t)
+    {
+      _rejectionHandler.rejectedExecution(t);
     }
   }
 
@@ -78,7 +102,7 @@ public class SerialExecutor implements Executor
         // above for more details.
         if (_pendingCount.decrementAndGet() > 0)
         {
-          _executor.execute(this);
+          tryExecuteLoop();
         }
       }
     }
