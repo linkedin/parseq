@@ -22,9 +22,13 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -154,5 +158,67 @@ public class TestEngine
 
     assertTrue(sucTask.await(50, TimeUnit.MILLISECONDS));
     assertEquals(sucValue, sucTask.get());
+  }
+
+  @Test
+  public void testFailPlanExecution() throws InterruptedException
+  {
+    // This test ensures that if execution of a plan's serial executor loop
+    // fails, e.g. in the case that the underlying executor is saturated, that
+    // we fail the plan. To simplify this test, we constructor our own executor
+    // instead of using the default executor set up for test.
+    final ExecutorService executorService = new ThreadPoolExecutor(1, 1,
+                                                                   0, TimeUnit.SECONDS,
+                                                                   new ArrayBlockingQueue<Runnable>(1),
+                                                                   new ThreadPoolExecutor.AbortPolicy());
+    final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+
+    try
+    {
+      final Engine engine = new EngineBuilder()
+          .setTaskExecutor(executorService)
+          .setTimerScheduler(scheduledExecutorService)
+          .build();
+
+      // First we submit two tasks that will never finish. This saturates the
+      // underlying executor by using its only thread and saturating its
+      // single slot queue.
+      engine.run(neverEndingBlockingTask());
+      engine.run(neverEndingBlockingTask());
+
+      // Now we submit another task. The execution loop for this task will fail
+      // during submit to the underlying executor. We expect that it will be
+      // cancelled.
+      final Task<?> task = neverEndingBlockingTask();
+      engine.run(task);
+      assertTrue(task.await(5, TimeUnit.SECONDS));
+      assertTrue(task.isFailed());
+      assertTrue("Expected underlying exception to be instance of RejectedExecutionException, but was: " + task.getError().getCause(),
+                 task.getError().getCause() instanceof RejectedExecutionException);
+
+      engine.shutdown();
+    }
+    finally
+    {
+      scheduledExecutorService.shutdownNow();
+      executorService.shutdownNow();
+    }
+  }
+
+  /**
+   * A task that blocks forever when it is executed, tying up whatever thread
+   * executes it.
+   */
+  private Task<?> neverEndingBlockingTask()
+  {
+    return new BaseTask<Object>()
+    {
+      @Override
+      protected Promise<?> run(Context context) throws Throwable
+      {
+        new CountDownLatch(1).await();
+        return Promises.value("A value that should never be seen!");
+      }
+    };
   }
 }
