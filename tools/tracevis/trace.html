@@ -49,7 +49,7 @@ textarea.error {
     <div class="page-header">
       <h2>View Configuration</h2>
     </div>
-    <form>
+    <form action="javascript:void(0);">
       <fieldset>
         <div class="span2">
           <ul class="nav nav-list">
@@ -85,16 +85,15 @@ textarea.error {
   </div>
 </div>
 
-<script src="bootstrap/js/bootstrap.min.js"></script>
-<script src="lib/dig.min.js"></script>
-<script src="lib/d3.v2.min.js"></script>
-
-<script src="js/trace.js"></script>
-<script src="js/table.js"></script>
-<script src="js/waterfall.js"></script>
-<script src="js/graphviz.js"></script>
+<script src="node_modules/d3/d3.js"></script>
+<script src="build/parseq-tracevis.js"></script>
 
 <script>
+  var
+    WATERFALL = parseqTracevis.renderWaterfall,
+    GRAPHVIZ = parseqTracevis.renderGraphviz,
+    TABLE = parseqTracevis.renderTable;
+
 var inputJSON = d3.select("#jsonText");
 
 var currentView;
@@ -140,8 +139,9 @@ function refreshView() {
     return;
   }
 
+  var json;
   try {
-    var json = JSON.parse(jsonText);
+    json = JSON.parse(jsonText);
     inputJSON.classed("error", false);
     inputJSON.attr("title", null);
   } catch (err) {
@@ -150,22 +150,17 @@ function refreshView() {
     throw err;
   }
 
-  var excludeUserTasks = d3.select("#checkboxExcludeUser").property("checked");
-  var excludeSystemTasks = d3.select("#checkboxExcludeSystem").property("checked");
-  var excludeParentTasks = d3.select("#checkboxExcludeParent").property("checked");
-
-  var root = TRACE.parseJson(json, excludeUserTasks, excludeSystemTasks, excludeParentTasks);
-  TRACE.appendPath(root);
-  view.render(d3.select("#resultView").attr('class', 'row-fluid'), root);
-}
-
-/**
- * This function is deprecated and will be removed in the future. To
- * programmatically render a trace, use `renderTrace`.
- */
-function viewWaterfall() {
-  setView("waterfall");
-  refreshView();
+  var g = parseqTracevis.trace.parse(json);
+  if (d3.select("#checkboxExcludeUser").property("checked")) {
+    parseqTracevis.trace.excludeUserTasks(g);
+  }
+  if (d3.select("#checkboxExcludeSystem").property("checked")) {
+    parseqTracevis.trace.excludeSystemTasks(g);
+  }
+  if (d3.select("#checkboxExcludeParent").property("checked")) {
+    parseqTracevis.trace.excludeParentTasks(g);
+  }
+  view(d3.select("#resultView").attr('class', 'row-fluid'), g);
 }
 
 /**

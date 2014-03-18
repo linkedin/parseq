@@ -16,16 +16,16 @@
   cursor: pointer;
 }
 
-.waterfallview .axis path,
-.waterfallview .axis line {
+.waterfallview .x-axis path,
+.waterfallview .x-axis line {
   pointer-events: none;
   fill: none;
   stroke: black;
   shape-rendering: crispEdges;
-  stroke-opacity: .2;
+  stroke-opacity: .1;
 }
 
-.waterfallview .axis.grid line.tick.minor {
+.waterfallview .x-axis .minor-grid line {
   stroke-opacity: .05;
 }
 
