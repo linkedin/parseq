@@ -79,6 +79,12 @@ function redraw(svg, vis, data, ancestors, transitionTime, rootCoords) {
     .domain([0, nodes.length])
     .range([0, height]);
 
+  nodes.forEach(function(d, i) {
+    d.x = x(d.startMillis);
+    d.y = y(i);
+    d.deleted = false;
+  });
+
   // Dynamically determine height required to render all tasks and resize the
   // svg canvas if needed.
   var svgHeight = height + MARGIN.top + MARGIN.bottom;
@@ -96,15 +102,40 @@ function redraw(svg, vis, data, ancestors, transitionTime, rootCoords) {
     .enter()
     .append('g')
       .classed('trace', true)
-      .classed('composite', function(d) {
-          return d.children || d._children;
-      })
-      .classed('hidden', false)
+      .classed('component', function(d) { return d.parent.id !== null; })
+      .classed('composite', function(d) { return d.children || d._children; })
       .style('opacity', 1e-6)
       .on('mouseover', mouseover)
       .on('mouseout', mouseout);
 
   bars.classed('collapsed', function(d) { return d._children; });
+
+  // Append hierarchy lines before we draw the bars
+  barsEnter.each(function(d) {
+    if (d.children || d._children) {
+      d3.select(this).append('path')
+        .attr('d', 'M10 5 L0 10 L0 0 Z');
+    } else if (d.parent.id !== null) {
+      d3.select(this).append('circle')
+        .attr('r', 4)
+        .attr('cx', -5)
+        .attr('cy', BAR_HEIGHT / 2);
+    }
+  });
+
+  barsEnter.append('line')
+    .classed('vertical', true)
+    .attr('x1', -5)
+    .attr('y1', BAR_HEIGHT / 2)
+    .attr('x2', -5)
+    .attr('y2', BAR_HEIGHT / 2);
+ 
+  barsEnter.append('line')
+    .classed('horizontal', true)
+    .attr('x1', -5)
+    .attr('y1', BAR_HEIGHT / 2)
+    .attr('x2', -5)
+    .attr('y2', BAR_HEIGHT / 2);
 
   barsEnter
     .attr('transform', 'translate(' + rootCoords.x + ',' + rootCoords.y + ')')
@@ -127,7 +158,7 @@ function redraw(svg, vis, data, ancestors, transitionTime, rootCoords) {
   var textEnter = barsEnter
     .append('text')
       .attr('dy', '1.3em')
-      .attr('dx', '1em');
+      .attr('dx', '0.5em');
 
   textEnter
     .append('tspan')
@@ -135,45 +166,68 @@ function redraw(svg, vis, data, ancestors, transitionTime, rootCoords) {
       .style('font-family', 'monospace');
 
   bars
-    .on('click', toggleCollapse)
-    .selectAll('text tspan.collapse-toggle')
-      .text(function(d) {
-        if (d.children) {
-          return '[-] ';
-        } else if (d._children) {
-          return '[+] ';
-        } else {
-          return '';
-        }
-      });
+    .on('click', toggleCollapse);
 
   textEnter
     .append('tspan')
       .text(function(d) { return d.name + ' (' + util.alignMillis(d.totalMillis) + ' ms)'; });
 
   bars
-    .style('pointer-events', 'none')
-    .transition()
-      .duration(transitionTime)
-      .attr('transform', function(d, i) {
-        return 'translate(' + x(d.startMillis) + ',' + y(i) + ')';
-      })
-      .style('opacity', alpha)
+    .exit()
+    .each(function(d) {
+      if (d.parent) {
+        d.x = rootCoords.x;
+        d.y = rootCoords.y;
+      }
+      d.deleted = true;
+    });
+
+  createTransition(bars)
+    .selectAll('path')
+      .attr('transform', function(d) {
+        return 'translate(' + (d.children ? 0 : -10) + ',' + (BAR_HEIGHT / 2 - 5) + ') ' +
+               'rotate(' + (d.children ? 90 : 0) + ')';
+      });
+  createTransition(bars.exit())
+    .each('end', function() {
+      d3.select(this.remove());
+    });
+
+  function createTransition(selection) {
+    var transition = selection
+      .style('pointer-events', 'none')
+      .transition()
+        .duration(transitionTime)
+        .attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')'; })
+        .style('opacity', alpha);
+
+    transition
       .each('end', function() {
         d3.select(this).style('opacity', alpha);
         d3.select(this).style('pointer-events', undefined);
       });
 
-  bars
-    .exit()
-      .style('pointer-events', 'none')
-      .classed('hidden', true)
-      .transition()
-        .duration(transitionTime)
-        .attr('transform', 'translate(' + rootCoords.x + ',' + rootCoords.y + ')')
-        .style('opacity', 1e-6)
-        .each('end', function() { d3.select(this).style('pointer-events', undefined); })
-        .remove();
+    transition.selectAll('line.horizontal')
+      .attr('x2', function(d) {
+        var delta = 0;
+        // Check for id is important since we have a fake node at the root
+        if (d.parent.id !== null) {
+          delta = d.parent.x - d.x;
+        }
+        return delta - 4;
+      });
+
+    transition.selectAll('line.vertical')
+      .attr('y2', function(d) {
+        var delta = 0;
+        if (d.children) {
+          delta = Math.max.apply(Math, d.children.map(function(c) { return c.y; })) - d.y;
+        }
+        return delta + BAR_HEIGHT / 2;
+      });
+
+    return transition;
+  }
 
   function mouseover(d) {
     if (d.children || d._children) {
@@ -187,10 +241,8 @@ function redraw(svg, vis, data, ancestors, transitionTime, rootCoords) {
   function mouseout() {
     vis.selectAll('g.trace')
       .filter(function(d) { return d.waterfallDimmed; })
-      .style('opacity', function() {
-        return d3.select(this).classed('hidden') ? 0 : 1;
-      })
-      .each(function(d) { delete d.waterfallDimmed; });
+      .each(function(d) { delete d.waterfallDimmed; })
+      .style('opacity', alpha);
   }
 
   function toggleCollapse(d, i) {
@@ -226,7 +278,7 @@ function redraw(svg, vis, data, ancestors, transitionTime, rootCoords) {
 }
 
 function alpha(d) {
-  return d.waterfallDimmed ? DIMMED_ALPHA : 1;
+  return d.deleted ? 1e-6 : (d.waterfallDimmed ? DIMMED_ALPHA : 1);
 }
 
 function redrawGrid(svg, x, transitionTime, height) {

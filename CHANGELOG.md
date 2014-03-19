@@ -1,3 +1,8 @@
+v1.3.8
+------
+
+* Improvements to tracevis tool
+
 v1.3.7
 ------
 
