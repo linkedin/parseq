@@ -68,6 +68,7 @@ function redraw(svg, vis, data, ancestors, transitionTime, rootCoords) {
     .sort(function(a, b) { return a.order - b.order; })
     (data);
 
+  // Remove the fake root node
   nodes = nodes.filter(function(d) { return d.id !== null; });
 
   var x = d3.scale.linear()
@@ -79,6 +80,7 @@ function redraw(svg, vis, data, ancestors, transitionTime, rootCoords) {
     .domain([0, nodes.length])
     .range([0, height]);
 
+  // Pre-compute the target x, y coordinates for each bar
   nodes.forEach(function(d, i) {
     d.x = x(d.startMillis);
     d.y = y(i);
@@ -102,71 +104,51 @@ function redraw(svg, vis, data, ancestors, transitionTime, rootCoords) {
     .enter()
     .append('g')
       .classed('trace', true)
-      .classed('component', function(d) { return d.parent.id !== null; })
       .classed('composite', function(d) { return d.children || d._children; })
       .style('opacity', 1e-6)
       .on('mouseover', mouseover)
       .on('mouseout', mouseout);
 
-  bars.classed('collapsed', function(d) { return d._children; });
-
-  // Append hierarchy lines before we draw the bars
+  // Add expand / collapse icon and lines indicating parent / child relationships
   barsEnter.each(function(d) {
+    var elem = d3.select(this);
     if (d.children || d._children) {
-      d3.select(this).append('path')
-        .attr('d', 'M10 5 L0 10 L0 0 Z');
+      elem.append('path').attr('d', 'M10 5 L0 10 L0 0 Z');
+      elem.append('line')
+        .classed('vertical', true)
+        .attr('x1', -5)
+        .attr('y1', BAR_HEIGHT / 2)
+        .attr('x2', -5)
+        .attr('y2', BAR_HEIGHT / 2);
     } else if (d.parent.id !== null) {
-      d3.select(this).append('circle')
+      elem.append('circle')
         .attr('r', 4)
         .attr('cx', -5)
         .attr('cy', BAR_HEIGHT / 2);
     }
+
+    if (d.parent.id !== null) {
+      elem.append('line')
+        .classed('horizontal', true)
+        .attr('x1', -5)
+        .attr('y1', BAR_HEIGHT / 2)
+        .attr('x2', -5)
+        .attr('y2', BAR_HEIGHT / 2);
+    }
   });
-
-  barsEnter.append('line')
-    .classed('vertical', true)
-    .attr('x1', -5)
-    .attr('y1', BAR_HEIGHT / 2)
-    .attr('x2', -5)
-    .attr('y2', BAR_HEIGHT / 2);
  
-  barsEnter.append('line')
-    .classed('horizontal', true)
-    .attr('x1', -5)
-    .attr('y1', BAR_HEIGHT / 2)
-    .attr('x2', -5)
-    .attr('y2', BAR_HEIGHT / 2);
+  drawBars(barsEnter, function(d) { return x(d.runMillis); })
+    .style('stroke-opacity', 0);
 
-  barsEnter
-    .attr('transform', 'translate(' + rootCoords.x + ',' + rootCoords.y + ')')
-    .append('rect')
-      .attr('rx', 3)
-      .attr('width', function(d) { return Math.max(x(d.runMillis), MIN_BAR_WIDTH); })
-      .attr('height', function() { return BAR_HEIGHT; })
-      .each(function(d) { d3.select(this).classed(d.resultType.toLowerCase(), true); })
-      .style('stroke-opacity', 0);
+  drawBars(barsEnter, function(d) { return x(d.totalMillis); })
+    .style('fill-opacity', 0.3);
 
-  barsEnter
-    .attr('transform', 'translate(' + rootCoords.x + ',' + rootCoords.y + ')')
-    .append('rect')
-      .attr('rx', 3)
-      .attr('width', function(d) { return Math.max(x(d.totalMillis), MIN_BAR_WIDTH); })
-      .attr('height', function() { return BAR_HEIGHT; })
-      .each(function(d) { d3.select(this).classed(d.resultType.toLowerCase(), true); })
-      .style('fill-opacity', 0.3);
+  bars.on('click', toggleCollapse);
 
   var textEnter = barsEnter
     .append('text')
       .attr('dy', '1.3em')
       .attr('dx', '0.5em');
-
-  textEnter
-    .append('tspan')
-      .classed('collapse-toggle', true)
-      .style('font-family', 'monospace');
-
-  bars
-    .on('click', toggleCollapse);
 
   textEnter
     .append('tspan')
@@ -182,51 +164,26 @@ function redraw(svg, vis, data, ancestors, transitionTime, rootCoords) {
       d.deleted = true;
     });
 
-  createTransition(bars)
+  createTransition(bars, transitionTime)
     .selectAll('path')
       .attr('transform', function(d) {
         return 'translate(' + (d.children ? 0 : -10) + ',' + (BAR_HEIGHT / 2 - 5) + ') ' +
                'rotate(' + (d.children ? 90 : 0) + ')';
       });
-  createTransition(bars.exit())
+
+  createTransition(bars.exit(), transitionTime)
     .each('end', function() {
       d3.select(this.remove());
     });
 
-  function createTransition(selection) {
-    var transition = selection
-      .style('pointer-events', 'none')
-      .transition()
-        .duration(transitionTime)
-        .attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')'; })
-        .style('opacity', alpha);
-
-    transition
-      .each('end', function() {
-        d3.select(this).style('opacity', alpha);
-        d3.select(this).style('pointer-events', undefined);
-      });
-
-    transition.selectAll('line.horizontal')
-      .attr('x2', function(d) {
-        var delta = 0;
-        // Check for id is important since we have a fake node at the root
-        if (d.parent.id !== null) {
-          delta = d.parent.x - d.x;
-        }
-        return delta - 4;
-      });
-
-    transition.selectAll('line.vertical')
-      .attr('y2', function(d) {
-        var delta = 0;
-        if (d.children) {
-          delta = Math.max.apply(Math, d.children.map(function(c) { return c.y; })) - d.y;
-        }
-        return delta + BAR_HEIGHT / 2;
-      });
-
-    return transition;
+  function drawBars(selection, widthFunction) {
+    return selection
+      .attr('transform', 'translate(' + rootCoords.x + ',' + rootCoords.y + ')')
+      .append('rect')
+        .attr('rx', 3)
+        .attr('width', function(d) { return Math.max(widthFunction(d), MIN_BAR_WIDTH); })
+        .attr('height', function() { return BAR_HEIGHT; })
+        .each(function(d) { d3.select(this).classed(d.resultType.toLowerCase(), true); });
   }
 
   function mouseover(d) {
@@ -253,26 +210,62 @@ function redraw(svg, vis, data, ancestors, transitionTime, rootCoords) {
     }
     redraw(svg, vis, data, ancestors, TRANSITION_TIME, { x: x(d.startMillis), y: y(i) });
   }
+}
 
-  function recursiveCollapse(d, collapse) {
-    collapseOne(d, collapse);
-    var children = d.children || d._children || [];
-    children.forEach(function(child) {
-      recursiveCollapse(child, collapse);
+function createTransition(selection, transitionTime) {
+  var transition = selection
+    .style('pointer-events', 'none')
+    .transition()
+      .duration(transitionTime)
+      .attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')'; })
+      .style('opacity', alpha);
+
+  transition
+    .each('end', function() {
+      d3.select(this).style('opacity', alpha);
+      d3.select(this).style('pointer-events', undefined);
     });
-  }
 
-  function collapseOne(d, collapse) {
-    if (collapse) {
+  transition.selectAll('line.horizontal')
+    .attr('x2', function(d) {
+      var delta = 0;
+      // Check for id is important since we have a fake node at the root
+      if (d.parent.id !== null) {
+        delta = d.parent.x - d.x;
+      }
+      return delta - 4;
+    });
+
+  transition.selectAll('line.vertical')
+    .attr('y2', function(d) {
+      var delta = 0;
       if (d.children) {
-        d._children = d.children;
-        delete d.children;
+        delta = Math.max.apply(Math, d.children.map(function(c) { return c.y; })) - d.y;
       }
-    } else {
-      if (d._children) {
-        d.children = d._children;
-        delete d._children;
-      }
+      return delta + BAR_HEIGHT / 2;
+    });
+
+  return transition;
+}
+
+function recursiveCollapse(d, collapse) {
+  collapseOne(d, collapse);
+  var children = d.children || d._children || [];
+  children.forEach(function(child) {
+    recursiveCollapse(child, collapse);
+  });
+}
+
+function collapseOne(d, collapse) {
+  if (collapse) {
+    if (d.children) {
+      d._children = d.children;
+      delete d.children;
+    }
+  } else {
+    if (d._children) {
+      d.children = d._children;
+      delete d._children;
     }
   }
 }

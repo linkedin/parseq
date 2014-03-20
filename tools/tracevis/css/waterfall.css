@@ -6,28 +6,16 @@
 .waterfallview .trace rect.early_finish { fill: #FFFD76; }
 
 .waterfallview .trace circle {
-  opacity: 0;
   fill: #FFFFFF;
   stroke: #333;
   stroke-width: 1px;
 }
 
-.waterfallview .trace.composite circle,
-.waterfallview .trace.component circle {
-  opacity: 1;
-}
-
 .waterfallview .trace line {
-  opacity: 0;
   stroke: #333;
   stroke-width: 1px;
   stroke-linecap: round;
   stroke-dasharray: 3;
-}
-
-.waterfallview .trace.composite line,
-.waterfallview .trace.component line {
-  opacity: 1;
 }
 
 .waterfallview .trace text,
