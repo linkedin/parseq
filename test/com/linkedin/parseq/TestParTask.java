@@ -622,4 +622,11 @@ public class TestParTask extends BaseEngineTest
     assertTrue(par.await(5, TimeUnit.SECONDS));
     assertEquals(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), par.get());
   }
+
+  @Test
+  public void testParIsSystemHidden()
+  {
+    final ParTask<String> par = par(Collections.singleton(value("value")));
+    assertTrue(par.getShallowTrace().getSystemHidden());
+  }
 }

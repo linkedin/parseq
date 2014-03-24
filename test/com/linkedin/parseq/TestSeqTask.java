@@ -215,4 +215,5 @@ public class TestSeqTask extends BaseEngineTest
     assertTrue(seq.await(5, TimeUnit.SECONDS));
     assertEquals("result", seq.get());
   }
+
 }

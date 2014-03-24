@@ -16,6 +16,7 @@
 
 package com.linkedin.parseq;
 
+import com.linkedin.parseq.internal.SystemHiddenTask;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
@@ -35,7 +36,7 @@ import java.util.List;
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Chi Chan (ckchan@linkedin.com)
  */
-/* package private */ class SeqTask<T> extends BaseTask<T>
+/* package private */ class SeqTask<T> extends SystemHiddenTask<T>
 {
   private final List<Task<?>> _tasks;
 
@@ -77,14 +78,5 @@ import java.util.List;
     Promises.propagateResult(typedPrevTask, result);
     context.run(_tasks.get(0));
     return result;
-  }
-
-  @Override
-  public ShallowTrace getShallowTrace()
-  {
-    ShallowTrace shallowTrace = super.getShallowTrace();
-    ShallowTraceBuilder builder = new ShallowTraceBuilder(shallowTrace);
-    builder.setSystemHidden(true);
-    return builder.build();
   }
 }
