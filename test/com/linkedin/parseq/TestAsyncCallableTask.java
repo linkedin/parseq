@@ -5,13 +5,15 @@ import org.testng.annotations.Test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.TimeoutException;
 
 import static com.linkedin.parseq.Tasks.par;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 
 /**
@@ -20,32 +22,70 @@ import static org.testng.AssertJUnit.assertTrue;
  */
 public class TestAsyncCallableTask extends BaseEngineTest
 {
-  protected static final String SUCCESS = "success";
-  protected static final String FAIL_TIME_OUT = "Failure - Timed out";
-
   @Test
   public void testConcurrentTasks() throws InterruptedException
   {
-    final int size = 2; // Should be <= CallableWrapperTask size
+    // This test ensures that a single plan can run more than one blocking task
+    // at a time if the AsyncCallableTask feature is used.
 
-    final List<AsyncCallableTask<String>> tasks = new ArrayList<AsyncCallableTask<String>>(size);
+    final int size = 2; // Degree of parallelism
+    final CountDownLatch latch = new CountDownLatch(size);
+
+    final List<AsyncCallableTask<Void>> tasks = new ArrayList<AsyncCallableTask<Void>>(size);
     for (int counter = 0; counter < size; counter++)
     {
-      tasks.add(counter, new AsyncCallableTask<String>(new ConcurrentCallable(size)));
+      tasks.add(counter, new AsyncCallableTask<Void>(new Callable<Void>() {
+        @Override
+        public Void call() throws Exception
+        {
+          latch.countDown();
+          if (!latch.await(5, TimeUnit.SECONDS))
+          {
+            throw new TimeoutException("Latch should have reached 0 before timeout");
+          }
+          return null;
+        }
+      }));
     }
 
-    final ParTask<?> par = par(tasks);
+    final ParTask<Void> par = par(tasks);
     getEngine().run(par);
 
-    par.await();
+    assertTrue(par.await(5, TimeUnit.SECONDS));
 
     assertEquals(2, par.getSuccessful().size());
     assertEquals(2, par.getTasks().size());
     assertEquals(2, par.get().size());
+
     for (int counter = 0; counter < size; counter++)
     {
-      assertEquals(SUCCESS, tasks.get(counter).get());
+      assertTrue(tasks.get(counter).isDone());
+      assertFalse(tasks.get(counter).isFailed());
     }
+  }
+
+  @Test
+  public void testThrowingCallable() throws InterruptedException
+  {
+    // Ensures that if a callable wrapped in an AsyncCallableTask throws that
+    // the wrapping task correctly reports the error state.
+    final Error error = new Error();
+    final Task<Void> task = new AsyncCallableTask<Void>(new Callable<Void>()
+    {
+      @Override
+      public Void call() throws Exception
+      {
+        throw error;
+      }
+    });
+
+    getEngine().run(task);
+
+    assertTrue(task.await(5, TimeUnit.SECONDS));
+
+    assertTrue(task.isDone());
+    assertTrue(task.isFailed());
+    assertEquals(error, task.getError());
   }
 
   @Test
@@ -70,7 +110,7 @@ public class TestAsyncCallableTask extends BaseEngineTest
       });
       engine.run(task);
 
-      task.await();
+      assertTrue(task.await(5, TimeUnit.SECONDS));
 
       assertTrue(task.isFailed());
       assertTrue(task.getError() instanceof IllegalStateException);
@@ -81,33 +121,5 @@ public class TestAsyncCallableTask extends BaseEngineTest
       engine.awaitTermination(1, TimeUnit.SECONDS);
       scheduler.shutdownNow();
     }
-  }
-}
-
-class ConcurrentCallable implements Callable<String>
-{
-  private static final long TEN_SECONDS = 10 * 1000;
-  private static AtomicInteger _counter = new AtomicInteger(0);
-
-  private Integer _gate;
-
-  protected ConcurrentCallable(int gate)
-  {
-    _gate = gate;
-  }
-  @Override
-  public String call() throws Exception
-  {
-    _counter.incrementAndGet();
-    long end = System.currentTimeMillis() + TEN_SECONDS; // Prevent the test for running more than 10 seconds.
-    while (_counter.get() < _gate)
-    {
-      if (end < System.currentTimeMillis())
-      {
-        return TestAsyncCallableTask.FAIL_TIME_OUT;
-      }
-      Thread.sleep(100);
-    }
-    return TestAsyncCallableTask.SUCCESS;
   }
 }
