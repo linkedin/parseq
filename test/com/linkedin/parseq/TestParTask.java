@@ -48,7 +48,7 @@ public class TestParTask extends BaseEngineTest
 
     getEngine().run(par);
 
-    par.await();
+    assertTrue(par.await(5, TimeUnit.SECONDS));
 
     assertEquals(1, par.get().size());
     assertEquals(valueStr, par.get().get(0));
@@ -80,7 +80,7 @@ public class TestParTask extends BaseEngineTest
     final ParTask<?> par = par(Arrays.asList(tasks));
     getEngine().run(par);
 
-    par.await();
+    assertTrue(par.await(5, TimeUnit.SECONDS));
 
     assertEquals(500, par.getSuccessful().size());
     assertEquals(500, par.getTasks().size());
@@ -211,7 +211,7 @@ public class TestParTask extends BaseEngineTest
     assertTrue("Par task did not finish in a reasonable amount of time",
         par.await(100, TimeUnit.MILLISECONDS));
 
-    par.await();
+    assertTrue(par.await(5, TimeUnit.SECONDS));
     List<String> result = par.get();
     assertEquals(3, par.getTasks().size());
     assertEquals("Count should only be 3.", 3, result.size());
@@ -233,7 +233,7 @@ public class TestParTask extends BaseEngineTest
 
     getEngine().run(par);
 
-    par.await();
+    assertTrue(par.await(5, TimeUnit.SECONDS));
     assertEquals(2, par.get().size());
     assertEquals(intVal, par.get().get(0));
     assertEquals(dblVal, par.get().get(1));
@@ -255,7 +255,7 @@ public class TestParTask extends BaseEngineTest
 
     getEngine().run(par);
 
-    par.await();
+    assertTrue(par.await(5, TimeUnit.SECONDS));
     assertEquals(2, par.get().size());
     assertEquals(intVal, par.get().get(0));
     assertEquals(dblVal, par.get().get(1));
@@ -293,7 +293,7 @@ public class TestParTask extends BaseEngineTest
 
     promise1.fail(new Exception());
     promise2.fail(new Exception());
-    par.await();
+    assertTrue(par.await(5, TimeUnit.SECONDS));
     if (!par.isFailed())
     {
       fail("par should have failed.");
@@ -353,7 +353,7 @@ public class TestParTask extends BaseEngineTest
     promise1.done("done1");
     promise2.fail(new Exception());
     promise3.done("done3");
-    par.await();
+    assertTrue(par.await(5, TimeUnit.SECONDS));
     if (!par.isFailed())
     {
       fail("par should have failed.");
@@ -418,7 +418,7 @@ public class TestParTask extends BaseEngineTest
     promise1.done("done1");
     promise2.fail(new EarlyFinishException());
     promise3.fail(new EarlyFinishException());
-    par.await();
+    assertTrue(par.await(5, TimeUnit.SECONDS));
 
     if (!par.isFailed())
     {
@@ -479,7 +479,7 @@ public class TestParTask extends BaseEngineTest
     promise1.done("done1");
     promise2.fail(new EarlyFinishException());
     promise3.fail(new Exception());
-    par.await();
+    assertTrue(par.await(5, TimeUnit.SECONDS));
 
     if (!par.isFailed())
     {
@@ -503,7 +503,7 @@ public class TestParTask extends BaseEngineTest
     final Task<List<Integer>> par = par(value(1),
         value(2));
     getEngine().run(par);
-    par.await();
+    assertTrue(par.await(5, TimeUnit.SECONDS));
     assertEquals(Arrays.asList(1, 2), par.get());
   }
 
@@ -514,7 +514,7 @@ public class TestParTask extends BaseEngineTest
         value(2),
         value(3));
     getEngine().run(par);
-    par.await();
+    assertTrue(par.await(5, TimeUnit.SECONDS));
     assertEquals(Arrays.asList(1, 2, 3), par.get());
   }
 
@@ -526,7 +526,7 @@ public class TestParTask extends BaseEngineTest
         value(3),
         value(4));
     getEngine().run(par);
-    par.await();
+    assertTrue(par.await(5, TimeUnit.SECONDS));
     assertEquals(Arrays.asList(1, 2, 3, 4), par.get());
   }
 
@@ -539,7 +539,7 @@ public class TestParTask extends BaseEngineTest
         value(4),
         value(5));
     getEngine().run(par);
-    par.await();
+    assertTrue(par.await(5, TimeUnit.SECONDS));
     assertEquals(Arrays.asList(1, 2, 3, 4, 5), par.get());
   }
 
@@ -553,7 +553,7 @@ public class TestParTask extends BaseEngineTest
         value(5),
         value(6));
     getEngine().run(par);
-    par.await();
+    assertTrue(par.await(5, TimeUnit.SECONDS));
     assertEquals(Arrays.asList(1, 2, 3, 4, 5, 6), par.get());
   }
 
@@ -568,7 +568,7 @@ public class TestParTask extends BaseEngineTest
         value(6),
         value(7));
     getEngine().run(par);
-    par.await();
+    assertTrue(par.await(5, TimeUnit.SECONDS));
     assertEquals(Arrays.asList(1, 2, 3, 4, 5, 6, 7), par.get());
   }
 
@@ -584,7 +584,7 @@ public class TestParTask extends BaseEngineTest
         value(7),
         value(8));
     getEngine().run(par);
-    par.await();
+    assertTrue(par.await(5, TimeUnit.SECONDS));
     assertEquals(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8), par.get());
   }
 
@@ -601,7 +601,7 @@ public class TestParTask extends BaseEngineTest
         value(8),
         value(9));
     getEngine().run(par);
-    par.await();
+    assertTrue(par.await(5, TimeUnit.SECONDS));
     assertEquals(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9), par.get());
   }
 
@@ -619,7 +619,7 @@ public class TestParTask extends BaseEngineTest
         value(9),
         value(10));
     getEngine().run(par);
-    par.await();
+    assertTrue(par.await(5, TimeUnit.SECONDS));
     assertEquals(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), par.get());
   }
 }

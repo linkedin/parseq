@@ -74,7 +74,7 @@ public class TestContext extends BaseEngineTest
 
     getEngine().run(task);
 
-    contextSetLatch.await();
+    assertTrue(contextSetLatch.await(5, TimeUnit.SECONDS));
 
     final Context context = contextRef.get();
 

@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static com.linkedin.parseq.Tasks.par;
 import static com.linkedin.parseq.Tasks.seq;
@@ -64,7 +65,7 @@ public class TestTaskToTrace extends BaseEngineTest
     final Task<String> task = value("taskName", "value");
 
     getEngine().run(task);
-    task.await();
+    assertTrue(task.await(5, TimeUnit.SECONDS));
 
     final Trace trace = task.getTrace();
     assertShallowTraceMatches(task, trace);
@@ -76,7 +77,7 @@ public class TestTaskToTrace extends BaseEngineTest
     final Task<String> task = value("taskName", null);
 
     getEngine().run(task);
-    task.await();
+    assertTrue(task.await(5, TimeUnit.SECONDS));
 
     final Trace trace = task.getTrace();
     assertShallowTraceMatches(task, trace);
@@ -88,7 +89,7 @@ public class TestTaskToTrace extends BaseEngineTest
     final Task<?> task = TestUtil.errorTask("taskName", new Exception("error message"));
 
     getEngine().run(task);
-    task.await();
+    assertTrue(task.await(5, TimeUnit.SECONDS));
 
     final Trace trace = task.getTrace();
     assertShallowTraceMatches(task, trace);
@@ -102,7 +103,7 @@ public class TestTaskToTrace extends BaseEngineTest
 
     final Task<?> seq1 = seq(task1, task2);
     getEngine().run(seq1);
-    seq1.await();
+    assertTrue(seq1.await(5, TimeUnit.SECONDS));
 
     assertTrue(seq1.getTrace().getSystemHidden());
 
@@ -123,7 +124,7 @@ public class TestTaskToTrace extends BaseEngineTest
     final Task<?> par1 = par(task1, task2);
 
     getEngine().run(par1);
-    par1.await();
+    assertTrue(par1.await(5, TimeUnit.SECONDS));
 
     assertTrue(par1.getTrace().getSystemHidden());
 
@@ -156,7 +157,7 @@ public class TestTaskToTrace extends BaseEngineTest
 
     final Task<?> par1 = par(task1, task2);
     getEngine().run(par1);
-    par1.await();
+    assertTrue(par1.await(5, TimeUnit.SECONDS));
 
     assertFalse(par1.getTrace().getHidden());
     assertFalse(task1.getTrace().getHidden());
@@ -204,7 +205,7 @@ public class TestTaskToTrace extends BaseEngineTest
 
     final Task<?> par1 = par(task1, task2);
     getEngine().run(par1);
-    par1.await();
+    assertTrue(par1.await(5, TimeUnit.SECONDS));
 
     assertFalse(par1.getTrace().getHidden());
     assertTrue(task1.getTrace().getHidden());
@@ -233,7 +234,7 @@ public class TestTaskToTrace extends BaseEngineTest
 
     getEngine().run(task);
 
-    cdl.await();
+    assertTrue(cdl.await(5, TimeUnit.SECONDS));
 
     final Trace trace = task.getTrace();
     assertShallowTraceMatches(task, trace);
@@ -250,7 +251,7 @@ public class TestTaskToTrace extends BaseEngineTest
 
     final Task<?> seq = seq(predecessor, successor);
     getEngine().run(seq);
-    seq.await();
+    assertTrue(seq.await(5, TimeUnit.SECONDS));
 
     final Trace sucTrace = successor.getTrace();
     assertShallowTraceMatches(successor, sucTrace);
@@ -272,7 +273,7 @@ public class TestTaskToTrace extends BaseEngineTest
     @SuppressWarnings("unchecked")
     final Task<?> seq = seq(Arrays.asList(task));
     getEngine().run(seq);
-    seq.await();
+    assertTrue(seq.await(5, TimeUnit.SECONDS));
 
     final Trace taskTrace = task.getTrace();
     assertShallowTraceMatches(task, taskTrace);
@@ -304,7 +305,7 @@ public class TestTaskToTrace extends BaseEngineTest
     };
 
     getEngine().run(task);
-    task.await();
+    assertTrue(task.await(5, TimeUnit.SECONDS));
 
     assertTrue(task.getTrace().getRelated().iterator().hasNext());
     Related<Trace> traceRelated = task.getTrace().getRelated().iterator().next();
@@ -335,7 +336,7 @@ public class TestTaskToTrace extends BaseEngineTest
       };
 
       getEngine().run(task);
-      task.await();
+      assertTrue(task.await(5, TimeUnit.SECONDS));
 
       assertTrue(task.getTrace().getRelated().iterator().hasNext());
     }
@@ -367,7 +368,7 @@ public class TestTaskToTrace extends BaseEngineTest
 
     Task<?> par = par(task1, task2);
     getEngine().run(par);
-    par.await();
+    assertTrue(par.await(5, TimeUnit.SECONDS));
 
     Set<Trace> tracesWithParent = new HashSet<Trace>();
     Map<Trace, Integer> traceWithPotentialParent = new HashMap<Trace, Integer>();
@@ -432,7 +433,7 @@ public class TestTaskToTrace extends BaseEngineTest
 
     Task<?> seq = seq(task1, task2, task3);
     getEngine().run(seq);
-    seq.await();
+    assertTrue(seq.await(5, TimeUnit.SECONDS));
 
     Set<Trace> tracesWithParent = new HashSet<Trace>();
     Map<Trace, Integer> traceWithPotentialParent = new HashMap<Trace, Integer>();
@@ -472,7 +473,7 @@ public class TestTaskToTrace extends BaseEngineTest
     };
 
     getEngine().run(parent);
-    parent.await();
+    assertTrue(parent.await(5, TimeUnit.SECONDS));
 
     assertShallowTraceMatches(parent, parent.getTrace());
     assertShallowTraceMatches(a, a.getTrace());

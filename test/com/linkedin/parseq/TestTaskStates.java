@@ -103,7 +103,7 @@ public class TestTaskStates
 
     runTask(task);
 
-    task.await();
+    assertTrue(task.await(5, TimeUnit.SECONDS));
 
     assertDone(task, result);
   }
@@ -156,7 +156,7 @@ public class TestTaskStates
 
     runTask(task);
 
-    task.await();
+    assertTrue(task.await(5, TimeUnit.SECONDS));
 
     assertFailed(task, exception);
   }
@@ -178,7 +178,7 @@ public class TestTaskStates
 
     runTask(task);
 
-    task.await();
+    assertTrue(task.await(5, TimeUnit.SECONDS));
 
     assertFailed(task, exception);
   }
@@ -198,7 +198,7 @@ public class TestTaskStates
 
     runTask(task);
 
-    task.await();
+    assertTrue(task.await(5, TimeUnit.SECONDS));
 
     assertFalse(task.setPriority(5));
     assertEquals(0, task.getPriority());
@@ -247,7 +247,7 @@ public class TestTaskStates
 
     finishLatch.countDown();
 
-    task.await();
+    assertTrue(task.await(5, TimeUnit.SECONDS));
 
     assertDone(task, result);
   }
@@ -282,7 +282,7 @@ public class TestTaskStates
     final Exception reason = new Exception();
     assertTrue(task.cancel(reason));
 
-    task.await();
+    assertTrue(task.await(5, TimeUnit.SECONDS));
 
     assertFailed(task, reason);
   }
@@ -302,7 +302,7 @@ public class TestTaskStates
 
     runTask(task);
 
-    task.await();
+    assertTrue(task.await(5, TimeUnit.SECONDS));
 
     assertDone(task, result);
 

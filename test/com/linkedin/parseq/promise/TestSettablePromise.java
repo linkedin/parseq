@@ -219,7 +219,7 @@ public class TestSettablePromise
       }
     }, 10, TimeUnit.MILLISECONDS);
 
-    promise.await();
+    assertTrue(promise.await(5, TimeUnit.SECONDS));
     assertEquals("done!", promise.get());
   }
 
@@ -237,7 +237,7 @@ public class TestSettablePromise
       }
     }, 10, TimeUnit.MILLISECONDS);
 
-    promise.await();
+    assertTrue(promise.await(5, TimeUnit.SECONDS));
     assertEquals(error, promise.getError());
   }
 

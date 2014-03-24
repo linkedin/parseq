@@ -55,7 +55,7 @@ public class TestTasks extends BaseEngineTest
 
     getEngine().run(task);
 
-    task.await();
+    assertTrue(task.await(5, TimeUnit.SECONDS));
 
     assertTrue(task.isFailed());
     assertEquals(error, task.getError());
@@ -87,7 +87,7 @@ public class TestTasks extends BaseEngineTest
     });
 
     getEngine().run(task);
-    task.await();
+    assertTrue(task.await(5, TimeUnit.SECONDS));
     assertEquals(Boolean.TRUE, resultRef.get());
   }
 
@@ -109,12 +109,12 @@ public class TestTasks extends BaseEngineTest
 
     getEngine().run(timeoutTask);
 
-    timeoutTask.await();
+    assertTrue(timeoutTask.await(5, TimeUnit.SECONDS));
 
     assertTrue(timeoutTask.isFailed());
     assertTrue(timeoutTask.getError() instanceof TimeoutException);
 
-    task.await();
+    assertTrue(task.await(5, TimeUnit.SECONDS));
 
     // The original task should also be failed - this time with an early finish
     // exception.
@@ -139,7 +139,7 @@ public class TestTasks extends BaseEngineTest
 
     getEngine().run(timeoutTask);
 
-    timeoutTask.await();
+    assertTrue(timeoutTask.await(5, TimeUnit.SECONDS));
 
     assertEquals(value, task.get());
 
