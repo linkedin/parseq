@@ -344,7 +344,6 @@ public class TestSettablePromise
     assertEquals("Done!", promise.get());
   }
 
-
   @Test
   public void testListenerThrowsError() throws InterruptedException
   {
@@ -363,5 +362,25 @@ public class TestSettablePromise
     promise.done("Done!");
     assertTrue(promise.await(5, TimeUnit.SECONDS));
     assertEquals("Done!", promise.get());
+  }
+
+  @Test
+  public void testListenerThrowsErrorAfterPromiseDone() throws InterruptedException
+  {
+    // This test ensures that we catch and do not rethrow errors from listeners
+    // even if they are added after the promise is done.
+    final SettablePromise<String> promise = Promises.settable();
+    promise.done("Done!");
+    assertTrue(promise.await(5, TimeUnit.SECONDS));
+
+    // This should not throw
+    promise.addListener(new PromiseListener<String>()
+    {
+      @Override
+      public void onResolved(Promise<String> promise)
+      {
+        throw new Error();
+      }
+    });
   }
 }
