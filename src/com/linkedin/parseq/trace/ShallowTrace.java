@@ -65,8 +65,15 @@ public class ShallowTrace
     _endNanos = endNanos;
     _systemHidden = systemHidden;
 
-    Map<String, String> attributeMap = new HashMap<String, String>(attributes);
-    _attributes = Collections.unmodifiableMap(attributeMap);
+    if (!attributes.isEmpty())
+    {
+      Map<String, String> attributeMap = new HashMap<String, String>(attributes);
+      _attributes = Collections.unmodifiableMap(attributeMap);
+    }
+    else
+    {
+      _attributes = Collections.emptyMap();
+    }
 
     switch (resultType)
     {

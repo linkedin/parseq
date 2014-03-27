@@ -19,7 +19,6 @@ package com.linkedin.parseq.trace;
 import com.linkedin.parseq.internal.ArgumentUtil;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -41,7 +40,7 @@ public class ShallowTraceBuilder
   private volatile Long _pendingNanos;
   private volatile Long _endNanos;
   private volatile boolean _systemHidden;
-  private final Map<String,String> _attributes;
+  private final Map<String,String> _attributes = new ConcurrentHashMap<String, String>();
 
   public ShallowTraceBuilder(final ShallowTrace shallowTrace)
   {
@@ -69,7 +68,6 @@ public class ShallowTraceBuilder
   public ShallowTraceBuilder(ResultType resultType)
   {
     setResultType(resultType);
-    _attributes = new ConcurrentHashMap<String, String>();
   }
 
   public boolean getHidden()
