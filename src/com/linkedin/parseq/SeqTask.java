@@ -20,8 +20,6 @@ import com.linkedin.parseq.internal.SystemHiddenTask;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
-import com.linkedin.parseq.trace.ShallowTrace;
-import com.linkedin.parseq.trace.ShallowTraceBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,7 +28,7 @@ import java.util.List;
 /**
  * A {@link Task} that will run the constructor-supplied tasks one after the other.
  * <p/>
- * Use {@link Tasks#seq(Iterable)} or {@link Tasks#seq(Task[])} to create
+ * Use {@link Tasks#seq(Iterable)} or {@link Tasks#seq(java.lang.Iterable)} to create
  * instances of this class.
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
@@ -38,7 +36,7 @@ import java.util.List;
  */
 /* package private */ class SeqTask<T> extends SystemHiddenTask<T>
 {
-  private final List<Task<?>> _tasks;
+  private volatile List<Task<?>> _tasks;
 
   public SeqTask(final String name, final Iterable<? extends Task<?>> tasks)
   {
@@ -53,7 +51,6 @@ import java.util.List;
     {
       throw new IllegalArgumentException("No tasks to sequence!");
     }
-
 
     _tasks = Collections.unmodifiableList(taskList);
   }
@@ -77,6 +74,9 @@ import java.util.List;
     final Task<T> typedPrevTask = (Task<T>)prevTask;
     Promises.propagateResult(typedPrevTask, result);
     context.run(_tasks.get(0));
+
+    _tasks = null;
+
     return result;
   }
 }
