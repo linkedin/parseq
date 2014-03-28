@@ -26,6 +26,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.linkedin.parseq.TestUtil.withDisabledLogging;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -339,7 +340,14 @@ public class TestSettablePromise
       }
     });
 
-    promise.done("Done!");
+    withDisabledLogging(new Runnable() {
+      @Override
+      public void run()
+      {
+        promise.done("Done!");
+      }
+    });
+
     assertTrue(promise.await(5, TimeUnit.SECONDS));
     assertEquals("Done!", promise.get());
   }
@@ -359,7 +367,14 @@ public class TestSettablePromise
       }
     });
 
-    promise.done("Done!");
+    withDisabledLogging(new Runnable() {
+      @Override
+      public void run()
+      {
+        promise.done("Done!");
+      }
+    });
+
     assertTrue(promise.await(5, TimeUnit.SECONDS));
     assertEquals("Done!", promise.get());
   }
@@ -373,13 +388,20 @@ public class TestSettablePromise
     promise.done("Done!");
     assertTrue(promise.await(5, TimeUnit.SECONDS));
 
-    // This should not throw
-    promise.addListener(new PromiseListener<String>()
+    withDisabledLogging(new Runnable()
     {
       @Override
-      public void onResolved(Promise<String> promise)
+      public void run()
       {
-        throw new Error();
+        // This should not throw
+        promise.addListener(new PromiseListener<String>()
+        {
+          @Override
+          public void onResolved(Promise<String> promise)
+          {
+            throw new Error();
+          }
+        });
       }
     });
   }

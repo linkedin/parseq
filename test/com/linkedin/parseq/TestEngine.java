@@ -31,6 +31,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import static com.linkedin.parseq.TestUtil.withDisabledLogging;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
@@ -190,8 +191,22 @@ public class TestEngine
       // during submit to the underlying executor. We expect that it will be
       // cancelled.
       final Task<?> task = neverEndingBlockingTask();
-      engine.run(task);
-      assertTrue(task.await(5, TimeUnit.SECONDS));
+      withDisabledLogging(new Runnable()
+      {
+        @Override
+        public void run()
+        {
+          engine.run(task);
+          try
+          {
+            assertTrue(task.await(5, TimeUnit.SECONDS));
+          }
+          catch (InterruptedException e)
+          {
+            // Ignore.
+          }
+        }
+      });
       assertTrue(task.isFailed());
       assertTrue("Expected underlying exception to be instance of RejectedExecutionException, but was: " + task.getError().getCause(),
                  task.getError().getCause() instanceof RejectedExecutionException);

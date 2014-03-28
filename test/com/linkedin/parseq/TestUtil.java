@@ -18,6 +18,9 @@ package com.linkedin.parseq;
 
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.spi.LoggerRepository;
 
 import static com.linkedin.parseq.Tasks.action;
 import static org.testng.AssertJUnit.assertTrue;
@@ -77,6 +80,22 @@ public class TestUtil
   public static <T> Task<T> value(final String name, final T value)
   {
     return new ValueTask<T>(name, value);
+  }
+
+  public static void withDisabledLogging(final Runnable r)
+  {
+    // Note: this assumes we're using Log4J and needs to be fixed up if this changes.
+    final LoggerRepository loggerRepo = LogManager.getLoggerRepository();
+    final Level oldLevel = loggerRepo.getThreshold();
+    loggerRepo.setThreshold(Level.OFF);
+    try
+    {
+      r.run();
+    }
+    finally
+    {
+      loggerRepo.setThreshold(oldLevel);
+    }
   }
 
   private static class ValueTask<T> extends BaseTask<T>
