@@ -16,6 +16,7 @@
 
 package com.linkedin.parseq.trace.codec.json;
 
+import com.linkedin.parseq.trace.ComparableTraceBuilder;
 import com.linkedin.parseq.trace.Related;
 import com.linkedin.parseq.trace.Relationship;
 import com.linkedin.parseq.trace.ResultType;
@@ -529,7 +530,7 @@ public class TestJsonTraceCodec
       return;
     }
 
-    assertEquals(trace, deserialized);
+    assertEquals(new ComparableTraceBuilder(trace).build(), new ComparableTraceBuilder(deserialized).build());
   }
 
   private void assertReversibleString(final Trace trace) throws IOException
@@ -548,6 +549,6 @@ public class TestJsonTraceCodec
       return;
     }
 
-    assertEquals(trace, deserialized);
+    assertEquals(new ComparableTraceBuilder(trace).build(), new ComparableTraceBuilder(deserialized).build());
   }
 }

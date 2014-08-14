@@ -253,16 +253,16 @@ public class TestTaskToTrace extends BaseEngineTest
     getEngine().run(seq);
     assertTrue(seq.await(5, TimeUnit.SECONDS));
 
-    final Trace sucTrace = successor.getTrace();
+    final ComparableTrace sucTrace = new ComparableTraceBuilder(successor.getTrace()).build();
     assertShallowTraceMatches(successor, sucTrace);
 
-    final Trace predTrace = predecessor.getTrace();
+    final ComparableTrace predTrace = new ComparableTraceBuilder(predecessor.getTrace()).build();
     assertShallowTraceMatches(predecessor, predTrace);
 
     final Set<Related<Trace>> related = sucTrace.getRelated();
     assertEquals(1,related.size());
     assertEquals(new Related<Trace>(Relationship.SUCCESSOR_OF, predTrace),
-            sucTrace.getRelated().iterator().next());
+      sucTrace.getRelated().iterator().next());
   }
 
   @Test
@@ -275,16 +275,16 @@ public class TestTaskToTrace extends BaseEngineTest
     getEngine().run(seq);
     assertTrue(seq.await(5, TimeUnit.SECONDS));
 
-    final Trace taskTrace = task.getTrace();
+    final ComparableTrace taskTrace = new ComparableTraceBuilder(task.getTrace()).build();
     assertShallowTraceMatches(task, taskTrace);
 
-    final Trace seqTrace = seq.getTrace();
+    final ComparableTrace seqTrace = new ComparableTraceBuilder(seq.getTrace()).build();
     assertShallowTraceMatches(seq, seqTrace);
 
     final Set<Related<Trace>> related = seqTrace.getRelated();
     assertEquals(1, related.size());
     assertEquals(new Related<Trace>(Relationship.PARENT_OF, taskTrace),
-                 related.iterator().next());
+      related.iterator().next());
   }
 
   @Test
@@ -307,13 +307,16 @@ public class TestTaskToTrace extends BaseEngineTest
     getEngine().run(task);
     assertTrue(task.await(5, TimeUnit.SECONDS));
 
-    assertTrue(task.getTrace().getRelated().iterator().hasNext());
-    Related<Trace> traceRelated = task.getTrace().getRelated().iterator().next();
-    assertShallowTraceMatches(task, task.getTrace());
-    assertShallowTraceMatches(innerTask, innerTask.getTrace());
-    assertEquals(innerTask.getTrace(), traceRelated.getRelated());
+    final ComparableTrace taskTrace = new ComparableTraceBuilder(task.getTrace()).build();
+    final ComparableTrace innerTaskTrace = new ComparableTraceBuilder(innerTask.getTrace()).build();
+
+    assertTrue(taskTrace.getRelated().iterator().hasNext());
+    Related<Trace> traceRelated = taskTrace.getRelated().iterator().next();
+    assertShallowTraceMatches(task, taskTrace);
+    assertShallowTraceMatches(innerTask, innerTaskTrace);
+    assertEquals(innerTaskTrace,traceRelated.getRelated());
     assertEquals(Relationship.PARENT_OF.name(), traceRelated.getRelationship());
-    assertEquals(ResultType.EARLY_FINISH, innerTask.getTrace().getResultType());
+    assertEquals(ResultType.EARLY_FINISH, innerTaskTrace.getResultType());
   }
 
   @Test
@@ -370,19 +373,24 @@ public class TestTaskToTrace extends BaseEngineTest
     getEngine().run(par);
     assertTrue(par.await(5, TimeUnit.SECONDS));
 
+    final ComparableTrace parTrace = new ComparableTraceBuilder(par.getTrace()).build();
+    final ComparableTrace innerTaskTrace = new ComparableTraceBuilder(innerTask.getTrace()).build();
+    final ComparableTrace task1Trace = new ComparableTraceBuilder(task1.getTrace()).build();
+    final ComparableTrace task2Trace = new ComparableTraceBuilder(task2.getTrace()).build();
+
     Set<Trace> tracesWithParent = new HashSet<Trace>();
     Map<Trace, Integer> traceWithPotentialParent = new HashMap<Trace, Integer>();
-    assertAndFindParent(par.getTrace(), tracesWithParent, traceWithPotentialParent);
+    assertAndFindParent(parTrace, tracesWithParent, traceWithPotentialParent);
     assertEquals(3, tracesWithParent.size());
-    assertEquals((Integer)1, traceWithPotentialParent.get(innerTask.getTrace()));
+    assertEquals((Integer)1, traceWithPotentialParent.get(innerTaskTrace));
     assertEquals(1, traceWithPotentialParent.size());
-    assertTrue(tracesWithParent.contains(task1.getTrace()));
-    assertTrue(tracesWithParent.contains(task2.getTrace()));
-    assertTrue(tracesWithParent.contains(innerTask.getTrace()));
-    assertShallowTraceMatches(task1, task1.getTrace());
-    assertShallowTraceMatches(task2, task2.getTrace());
-    assertShallowTraceMatches(innerTask, innerTask.getTrace());
-    assertEquals(ResultType.EARLY_FINISH, innerTask.getTrace().getResultType());
+    assertTrue(tracesWithParent.contains(task1Trace));
+    assertTrue(tracesWithParent.contains(task2Trace));
+    assertTrue(tracesWithParent.contains(innerTaskTrace));
+    assertShallowTraceMatches(task1, task1Trace);
+    assertShallowTraceMatches(task2, task2Trace);
+    assertShallowTraceMatches(innerTask, innerTaskTrace);
+    assertEquals(ResultType.EARLY_FINISH, innerTaskTrace.getResultType());
   }
 
   @Test
@@ -435,20 +443,26 @@ public class TestTaskToTrace extends BaseEngineTest
     getEngine().run(seq);
     assertTrue(seq.await(5, TimeUnit.SECONDS));
 
+    final ComparableTrace seqTrace = new ComparableTraceBuilder(seq.getTrace()).build();
+    final ComparableTrace innerTaskTrace = new ComparableTraceBuilder(innerTask.getTrace()).build();
+    final ComparableTrace task1Trace = new ComparableTraceBuilder(task1.getTrace()).build();
+    final ComparableTrace task2Trace = new ComparableTraceBuilder(task2.getTrace()).build();
+    final ComparableTrace task3Trace = new ComparableTraceBuilder(task3.getTrace()).build();
+
     Set<Trace> tracesWithParent = new HashSet<Trace>();
     Map<Trace, Integer> traceWithPotentialParent = new HashMap<Trace, Integer>();
-    assertAndFindParent(seq.getTrace(), tracesWithParent, traceWithPotentialParent);
+    assertAndFindParent(seqTrace, tracesWithParent, traceWithPotentialParent);
     assertEquals(4, tracesWithParent.size());
     assertEquals(1, traceWithPotentialParent.size());
-    assertEquals((Integer) 2, traceWithPotentialParent.get(innerTask.getTrace()));
-    assertTrue(tracesWithParent.contains(task1.getTrace()));
-    assertTrue(tracesWithParent.contains(task2.getTrace()));
-    assertTrue(tracesWithParent.contains(task3.getTrace()));
-    assertTrue(tracesWithParent.contains(innerTask.getTrace()));
-    assertShallowTraceMatches(task1, task1.getTrace());
-    assertShallowTraceMatches(task2, task2.getTrace());
-    assertShallowTraceMatches(task3, task3.getTrace());
-    assertShallowTraceMatches(innerTask, innerTask.getTrace());
+    assertEquals((Integer) 2, traceWithPotentialParent.get(innerTaskTrace));
+    assertTrue(tracesWithParent.contains(task1Trace));
+    assertTrue(tracesWithParent.contains(task2Trace));
+    assertTrue(tracesWithParent.contains(task3Trace));
+    assertTrue(tracesWithParent.contains(innerTaskTrace));
+    assertShallowTraceMatches(task1, task1Trace);
+    assertShallowTraceMatches(task2, task2Trace);
+    assertShallowTraceMatches(task3, task3Trace);
+    assertShallowTraceMatches(innerTask, innerTaskTrace);
   }
 
   @Test
@@ -475,21 +489,27 @@ public class TestTaskToTrace extends BaseEngineTest
     getEngine().run(parent);
     assertTrue(parent.await(5, TimeUnit.SECONDS));
 
-    assertShallowTraceMatches(parent, parent.getTrace());
-    assertShallowTraceMatches(a, a.getTrace());
-    assertShallowTraceMatches(b, b.getTrace());
-    assertShallowTraceMatches(c, c.getTrace());
-    assertShallowTraceMatches(d, d.getTrace());
+    final ComparableTrace parentTrace = new ComparableTraceBuilder(parent.getTrace()).build();
+    final ComparableTrace traceA = new ComparableTraceBuilder(a.getTrace()).build();
+    final ComparableTrace traceB = new ComparableTraceBuilder(b.getTrace()).build();
+    final ComparableTrace traceC = new ComparableTraceBuilder(c.getTrace()).build();
+    final ComparableTrace traceD = new ComparableTraceBuilder(d.getTrace()).build();
 
-    assertTrue(parent.getTrace().getRelated().contains(new Related<Trace>(Relationship.PARENT_OF, a.getTrace())));
-    assertTrue(parent.getTrace().getRelated().contains(new Related<Trace>(Relationship.PARENT_OF, b.getTrace())));
-    assertTrue(parent.getTrace().getRelated().contains(new Related<Trace>(Relationship.PARENT_OF, c.getTrace())));
-    assertTrue(parent.getTrace().getRelated().contains(new Related<Trace>(Relationship.PARENT_OF, d.getTrace())));
+    assertShallowTraceMatches(parent, parentTrace);
+    assertShallowTraceMatches(a, traceA);
+    assertShallowTraceMatches(b, traceB);
+    assertShallowTraceMatches(c, traceC);
+    assertShallowTraceMatches(d, traceD);
 
-    assertTrue(d.getTrace().getRelated().contains(new Related<Trace>(Relationship.SUCCESSOR_OF, b.getTrace())));
-    assertTrue(d.getTrace().getRelated().contains(new Related<Trace>(Relationship.SUCCESSOR_OF, c.getTrace())));
-    assertTrue(b.getTrace().getRelated().contains(new Related<Trace>(Relationship.SUCCESSOR_OF, a.getTrace())));
-    assertTrue(c.getTrace().getRelated().contains(new Related<Trace>(Relationship.SUCCESSOR_OF, a.getTrace())));
+    assertTrue(parentTrace.getRelated().contains(new Related<Trace>(Relationship.PARENT_OF, traceA)));
+    assertTrue(parentTrace.getRelated().contains(new Related<Trace>(Relationship.PARENT_OF, traceB)));
+    assertTrue(parentTrace.getRelated().contains(new Related<Trace>(Relationship.PARENT_OF, traceC)));
+    assertTrue(parentTrace.getRelated().contains(new Related<Trace>(Relationship.PARENT_OF, traceD)));
+
+    assertTrue(traceD.getRelated().contains(new Related<Trace>(Relationship.SUCCESSOR_OF, traceB)));
+    assertTrue(traceD.getRelated().contains(new Related<Trace>(Relationship.SUCCESSOR_OF, traceC)));
+    assertTrue(traceB.getRelated().contains(new Related<Trace>(Relationship.SUCCESSOR_OF, traceA)));
+    assertTrue(traceC.getRelated().contains(new Related<Trace>(Relationship.SUCCESSOR_OF, traceA)));
   }
 
   private void assertAndFindParent(Trace trace, Set<Trace> tracesWithParent, Map<Trace, Integer> traceWithPotentialParent)
