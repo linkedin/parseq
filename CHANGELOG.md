@@ -1,3 +1,8 @@
+v1.4.1
+------
+
+* Removed hashCode() and equals() from TraceImpl to speed up trace creation.
+
 v1.4.0
 ------
 
