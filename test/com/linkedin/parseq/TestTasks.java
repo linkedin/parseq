@@ -19,8 +19,13 @@ package com.linkedin.parseq;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
 import com.linkedin.parseq.promise.Promises;
+import com.linkedin.parseq.trace.codec.json.JsonTraceCodec;
+
 import org.testng.annotations.Test;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -169,6 +174,35 @@ public class TestTasks extends BaseEngineTest
 
     assertTrue(timeoutTask.isFailed());
     assertEquals(error, timeoutTask.getError());
+  }
+
+  @Test
+  public void testTimeoutTaskWithoutTimeoutWhenManyTasksAreOnQueeu() throws InterruptedException, IOException
+  {
+    final String value = "value";
+
+    List<Task<String>> tasks = new ArrayList<Task<String>>();
+    for (int i = 0; i < 50; i++) {
+      Task<String> t = Tasks.callable("task", new Callable<String>() {
+        @Override
+        public String call() throws Exception {
+          Thread.sleep(1); //this task is "busy" for 1 millisecond
+          return value;
+        }
+      });
+      tasks.add(Tasks.timeoutWithError(50, TimeUnit.MILLISECONDS, t));
+    }
+
+    final Task<?> timeoutTask = Tasks.par(tasks);
+
+    getEngine().run(timeoutTask);
+
+    assertTrue(timeoutTask.await(5, TimeUnit.SECONDS));
+
+    System.out.println(new JsonTraceCodec().encode(timeoutTask.getTrace()));
+
+    //tasks should not time out
+    assertEquals(false, timeoutTask.isFailed());
   }
 
   @Test
