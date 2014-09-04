@@ -48,6 +48,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
     _time = time;
     _unit = unit;
     _task = task;
+    setPriority(task.getPriority());
   }
 
   @Override
@@ -68,7 +69,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
       }
     });
 
+    //timeout tasks should run as early as possible
+    timeoutTask.setPriority(Priority.MAX_PRIORITY);
     context.createTimer(_time, _unit, timeoutTask);
+
+    //set priority of the task for which we just scheduled timeout
+    //to be executed next, unless there exist other tasks with higher priority
+    //e.g. other timeouts
+    _task.setPriority(higherThan(getPriority()));
     context.run(_task);
 
     _task.addListener(new PromiseListener<T>()
@@ -84,5 +92,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
     });
 
     return result;
+  }
+
+  /**
+   * Returns priority higher than given priority. If given
+   * priority has max value, then max is returned.
+   */
+  private static int higherThan(int priority) {
+    if (priority == Priority.MAX_PRIORITY) {
+      return Priority.MAX_PRIORITY;
+    } else {
+      return priority + 1;
+    }
   }
 }
