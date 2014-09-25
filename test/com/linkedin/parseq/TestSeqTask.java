@@ -81,15 +81,22 @@ public class TestSeqTask extends BaseEngineTest
 
     final Task<Integer> seq = seq(Arrays.asList(tasks));
     getEngine().run(seq);
-
     assertTrue(seq.await(5, TimeUnit.SECONDS));
-
     assertEquals(iters, (int)seq.get());
+  }
+
+  @Test
+  public void testIterablePlusSingleton() throws InterruptedException
+  {
+    final Task<?>[] tasks = new Task<?>[] { value(1), value(2) };
+    final Task<?> seq = seq(Arrays.asList(tasks), value("result"));
+    getEngine().run(seq);
+    assertTrue(seq.await(5, TimeUnit.SECONDS));
+    assertEquals("result", seq.get());
   }
 
   // For following testSeqX() tests, we verify that we can use different types
   // for the last element and the rest of the list.
-
   @Test
   public void testSeq2() throws InterruptedException
   {
