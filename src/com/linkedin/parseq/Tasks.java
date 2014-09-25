@@ -214,6 +214,38 @@ public class Tasks
   }
 
   /**
+   * Creates a new task that, when run, will run each of the supplied tasks in
+   * order, plus an additional task. The value of this new task is value of the last task in the
+   * sequence. <strong>This method is not type-safe</strong>.
+   *
+   * @param tasks the tasks to run sequentially
+   * @param task1 the last task to run
+   * @param <T> the result value for the sequence of tasks
+   * @return a new task that will run the given tasks sequentially
+   */
+  public static <T> Task<T> seq(final Iterable<? extends Task<?>> tasks, Task<?> task1)
+  {
+    final List<Task<T>> taskList = getTypedTaskList(tasks);
+    @SuppressWarnings("unchecked")
+    final Task<T> typedTask = (Task<T>) task1;
+    taskList.add(typedTask);
+
+    return new SeqTask<T>("seq", taskList);
+  }
+
+  private static <T> List<Task<T>> getTypedTaskList(Iterable<? extends Task<?>> tasks)
+  {
+    final List<Task<T>> taskList = new ArrayList<Task<T>>();
+    for (Task<?> task : tasks)
+    {
+      @SuppressWarnings("unchecked")
+      final Task<T> typedTask = (Task<T>) task;
+      taskList.add(typedTask);
+    }
+    return taskList;
+  }
+
+  /**
    * Creates a new task that will run the given tasks in parallel (e.g. task1
    * can be executed at the same time as task2). When all tasks complete
    * successfully, you can use {@link com.linkedin.parseq.ParTask#get()} to
