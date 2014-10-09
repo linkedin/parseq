@@ -79,7 +79,7 @@ public class TestUtil
 
   public static <T> Task<T> value(final String name, final T value)
   {
-    return new ValueTask<T>(name, value);
+    return Tasks.value(name, value);
   }
 
   public static void withDisabledLogging(final Runnable r)
@@ -95,23 +95,6 @@ public class TestUtil
     finally
     {
       loggerRepo.setThreshold(oldLevel);
-    }
-  }
-
-  private static class ValueTask<T> extends BaseTask<T>
-  {
-    private final T _value;
-
-    public ValueTask(final String name, final T value)
-    {
-      super(name);
-      _value = value;
-    }
-
-    @Override
-    protected Promise<? extends T> run(final Context context) throws Exception
-    {
-      return Promises.value(_value);
     }
   }
 }
