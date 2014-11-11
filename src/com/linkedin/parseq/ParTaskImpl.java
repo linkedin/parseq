@@ -23,8 +23,6 @@ import com.linkedin.parseq.promise.PromiseListener;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 import com.linkedin.parseq.trace.ResultType;
-import com.linkedin.parseq.trace.ShallowTrace;
-import com.linkedin.parseq.trace.ShallowTraceBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,11 +53,6 @@ import java.util.List;
       taskList.add(coercedTask);
     }
 
-    if (taskList.isEmpty())
-    {
-      throw new IllegalArgumentException("No tasks to parallelize!");
-    }
-
     _tasks = Collections.unmodifiableList(taskList);
 
   }
@@ -68,6 +61,11 @@ import java.util.List;
   protected Promise<List<T>> run(final Context context) throws Exception
   {
     final SettablePromise<List<T>> result = Promises.settable();
+    if(_tasks.isEmpty())
+    {
+      result.done(Collections.<T>emptyList());
+      return result;
+    }
 
     final PromiseListener<?> listener = new PromiseListener<Object>()
     {
