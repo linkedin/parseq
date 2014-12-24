@@ -441,5 +441,13 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
       _after.run(task);
       _relationshipBuilder.addRelationship(Relationship.POTENTIAL_PARENT_OF, task);
     }
+
+    @Override
+    public Task<?> runSideEffect(final Task<?> task)
+    {
+      Task<?> taskWrapper = _after.runSideEffect(task);
+      _relationshipBuilder.addRelationship(Relationship.POTENTIAL_PARENT_OF, taskWrapper);
+      return taskWrapper;
+    }
   }
 }

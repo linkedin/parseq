@@ -31,4 +31,13 @@ public interface After
    * @param task the task to run
    */
   void run(Task<?> task);
+
+  /**
+   * When all promises and tasks have been resolved successfully, the given
+   * task is run as a side effect.
+   *
+   * @param task the task to be run as a side effect.
+   * @return the wrapper task for the side effect
+   */
+  Task<?> runSideEffect(Task<?> task);
 }
