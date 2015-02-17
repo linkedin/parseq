@@ -17,6 +17,7 @@
 package com.linkedin.parseq.internal;
 
 import com.linkedin.parseq.After;
+import com.linkedin.parseq.BaseTask;
 import com.linkedin.parseq.Cancellable;
 import com.linkedin.parseq.Context;
 import com.linkedin.parseq.EarlyFinishException;
@@ -184,6 +185,21 @@ public class ContextImpl implements Context, Cancellable
           }
         }, promises);
       }
+
+      @Override
+      public Task<?> runSideEffect(final Task<?> task)
+      {
+        final Task<?> taskWrapper = createSideEffectWrapper(task, predecessorTasks);
+        InternalUtil.after(new PromiseListener()
+        {
+          @Override
+          public void onResolved(Promise resolvedPromise)
+          {
+            runSideEffectSubTask(taskWrapper, predecessorTasks);
+          }
+        }, promises);
+        return taskWrapper;
+      }
     };
   }
 
@@ -219,6 +235,32 @@ public class ContextImpl implements Context, Cancellable
     {
       subContext.cancel(EARLY_FINISH_EXCEPTION);
     }
+  }
+
+  private Task<?> createSideEffectWrapper(final Task<?> task, final List<Task<?>> predecessors)
+  {
+    Task<?> taskWrapper = new BaseTask<Object>("sideEffectWrapper")
+    {
+      @Override
+      protected Promise<?> run(Context context) throws Throwable
+      {
+        for (Task<?> predecessor : predecessors)
+          if (predecessor.isFailed())
+          {
+            return null;
+          }
+        context.run(task);
+        return task;
+      }
+    };
+    return taskWrapper;
+  }
+
+  private void runSideEffectSubTask(final Task<?> taskWrapper, final List<Task<?>> predecessors)
+  {
+
+    final ContextImpl subContext = createSubContext(taskWrapper, predecessors);
+    subContext.runTask();
   }
 
   private boolean isDone()

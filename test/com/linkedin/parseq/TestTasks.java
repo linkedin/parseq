@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.linkedin.parseq.Tasks.withSideEffect;
 import static com.linkedin.parseq.TestUtil.value;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -89,6 +90,98 @@ public class TestTasks extends BaseEngineTest
     getEngine().run(task);
     assertTrue(task.await(5, TimeUnit.SECONDS));
     assertEquals(Boolean.TRUE, resultRef.get());
+  }
+
+  @Test
+  public void testSideEffectPartialCompletion() throws InterruptedException
+  {
+    // ensure that the whole can finish before the individual side effect task finishes.
+    Task<String> fastTask = new BaseTask<String>()
+    {
+      @Override
+      protected Promise<? extends String> run(Context context) throws Exception
+      {
+        return Promises.value("fast");
+      }
+    };
+
+    // this task will not complete.
+    Task<String> settableTask = new BaseTask<String>()
+    {
+      @Override
+      protected Promise<? extends String> run(Context context) throws Exception
+      {
+        return Promises.settable();
+      }
+    };
+
+    Task<String> withSideEffect = withSideEffect(fastTask, settableTask);
+    getEngine().run(withSideEffect);
+    withSideEffect.await();
+    assertTrue(withSideEffect.isDone());
+    assertTrue(fastTask.isDone());
+    assertFalse(settableTask.isDone());
+  }
+
+  @Test
+  public void testSideEffectFullCompletion() throws InterruptedException
+  {
+    // ensure that the individual side effect task will be run
+    Task<String> taskOne = new BaseTask<String>()
+    {
+      @Override
+      protected Promise<? extends String> run(Context context) throws Exception
+      {
+        return Promises.value("one");
+      }
+    };
+
+    Task<String> taskTwo = new BaseTask<String>()
+    {
+      @Override
+      protected Promise<? extends String> run(Context context) throws Exception
+      {
+        return Promises.value("two");
+      }
+    };
+
+    Task<String> withSideEffect = withSideEffect(taskOne, taskTwo);
+    getEngine().run(withSideEffect);
+    withSideEffect.await();
+    taskTwo.await();
+    assertTrue(withSideEffect.isDone());
+    assertTrue(taskTwo.isDone());
+  }
+
+  @Test
+  public void testSideEffectCancelled() throws InterruptedException
+  {
+    // this task will not complete.
+    Task<String> settableTask = new BaseTask<String>()
+    {
+      @Override
+      protected Promise<? extends String> run(Context context) throws Exception
+      {
+        return Promises.settable();
+      }
+    };
+
+    Task<String> fastTask = new BaseTask<String>()
+    {
+      @Override
+      protected Promise<? extends String> run(Context context) throws Exception
+      {
+        return Promises.value("fast");
+      }
+    };
+
+    Task<String> withSideEffect = withSideEffect(settableTask, fastTask);
+    getEngine().run(withSideEffect);
+    assertTrue(settableTask.cancel(new Exception("task cancelled")));
+    withSideEffect.await();
+    fastTask.await(10, TimeUnit.MILLISECONDS);
+    assertTrue(withSideEffect.isDone());
+    assertFalse(fastTask.isDone());
   }
 
   @Test

@@ -214,6 +214,22 @@ public class Tasks
   }
 
   /**
+   * Creates a task that will run another task as a side effect once the primary task
+   * completes successfully. The side effect will not be run if the primary task fails or
+   * is canceled. The entire task is marked done once the base task completes, even if
+   * the side effect has not been run.
+   *
+   * @param parent the primary task.
+   * @param sideEffect the side effect of the primary task.
+   * @param <T> the result value of the parent task, and the resulting task.
+   * @return a new task that will be done once parent completes, but has the given side effect.
+   */
+  public static <T> Task<T> withSideEffect(final Task<T> parent, final Task<?> sideEffect)
+  {
+    return new WithSideEffectTask<T>("with side effect", parent, sideEffect);
+  }
+
+  /**
    * Creates a new task that will run the given tasks in parallel (e.g. task1
    * can be executed at the same time as task2). When all tasks complete
    * successfully, you can use {@link com.linkedin.parseq.ParTask#get()} to

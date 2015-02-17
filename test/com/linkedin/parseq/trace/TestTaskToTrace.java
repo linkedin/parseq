@@ -26,6 +26,7 @@ import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,6 +37,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.linkedin.parseq.Tasks.par;
 import static com.linkedin.parseq.Tasks.seq;
+import static com.linkedin.parseq.Tasks.withSideEffect;
 import static com.linkedin.parseq.TestUtil.value;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -134,6 +136,20 @@ public class TestTaskToTrace extends BaseEngineTest
 
     assertTrue(par2.getTrace().getSystemHidden());
   }
+
+  @Test
+  public void testSideEffectSystemTrace() throws InterruptedException
+  {
+    final Task<String> task1 = value("taskName1", "value1");
+    final Task<String> task2 = value("taskName2", "value2");
+
+    final Task<String> withSideEffects = withSideEffect(task1, task2);
+    getEngine().run(withSideEffects);
+    withSideEffects.await();
+
+    assertTrue(withSideEffects.getTrace().getSystemHidden());
+  }
+
   @Test
   public void testNotHiddenTrace() throws InterruptedException
   {
@@ -263,6 +279,52 @@ public class TestTaskToTrace extends BaseEngineTest
     assertEquals(1,related.size());
     assertEquals(new Related<Trace>(Relationship.SUCCESSOR_OF, predTrace),
       sucTrace.getRelated().iterator().next());
+  }
+
+  @Test
+  public void testSideEffectsPredecessorTrace() throws InterruptedException, IOException
+  {
+    final Task<String> baseTask = value("base", "baseValue");
+    final Task<String> sideEffect = value("sideEffect", "sideEffectValue");
+
+    final Task<String> withSideEffect = withSideEffect(baseTask, sideEffect);
+    getEngine().run(withSideEffect);
+    withSideEffect.await();
+    sideEffect.await();
+
+    final ComparableTrace wseTrace = new ComparableTraceBuilder(withSideEffect.getTrace()).build();
+    final Set<Related<Trace>> wseRelated = wseTrace.getRelated();
+    assertEquals(2, wseRelated.size());
+
+    final ComparableTrace seTrace = new ComparableTraceBuilder(sideEffect.getTrace()).build();
+    assertShallowTraceMatches(sideEffect, seTrace);
+
+    final ComparableTrace baseTrace = new ComparableTraceBuilder(baseTask.getTrace()).build();
+    assertShallowTraceMatches(baseTask, baseTrace);
+
+    boolean foundBase = false;
+    boolean foundSide = false;
+    for (Related<Trace> related : wseRelated)
+    {
+      if (related.equals(new Related<Trace>(Relationship.PARENT_OF, baseTrace)))
+      {
+        foundBase = true;
+      }
+      else
+      {
+        Set<Related<Trace>> relatedToSideEffectWrapper = related.getRelated().getRelated();
+        for (Related<Trace> possibleSideEffect : relatedToSideEffectWrapper)
+        {
+          if (possibleSideEffect.equals(new Related<Trace>(Relationship.PARENT_OF, seTrace)))
+          {
+            foundSide = true;
+          }
+        }
+      }
+    }
+
+    assertTrue(foundBase);
+    assertTrue(foundSide);
   }
 
   @Test
