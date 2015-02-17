@@ -1,3 +1,8 @@
+v1.4.2
+------
+
+* Added side effect task.
+
 v1.4.1
 ------
 
