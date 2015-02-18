@@ -16,14 +16,18 @@
 
 package com.linkedin.parseq.promise;
 
+
 /**
  * This class provides a set of static helper methods that make it easier to
  * work with {@link Promise}s.
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
+ * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
 public class Promises
 {
+  public static final Promise<Void> VOID = value(null);
+
   private Promises() {}
 
   /**
@@ -33,11 +37,17 @@ public class Promises
    * @param <T> the type of the value for the promise
    * @return the promise
    */
+  @SuppressWarnings("unchecked")
   public static <T> Promise<T> value(final T value)
   {
-    final SettablePromise<T> promise = settable();
-    promise.done(value);
-    return promise;
+    if (value == null) {
+      if (VOID == null) {
+        return new ResolvedValue<T>(value);
+      } else {
+        return (Promise<T>) VOID;
+      }
+    }
+    return new ResolvedValue<T>(value);
   }
 
   /**
@@ -49,9 +59,7 @@ public class Promises
    */
   public static <T> Promise<T> error(final Throwable error)
   {
-    final SettablePromise<T> promise = settable();
-    promise.fail(error);
-    return promise;
+    return new ResolvedError<T>(error);
   }
 
   /**
@@ -73,9 +81,9 @@ public class Promises
    * @param dest the destination promise
    * @param <T> the value type for both promises
    */
-  public static <T, S extends T> void propagateResult(final Promise<S> source,
-                                         final SettablePromise<? super T> dest)
+  public static <T> void propagateResult(final Promise<T> source,
+                                         final SettablePromise<T> dest)
   {
-    source.addListener(new PropagateResultListener<T, S>(source, dest));
+    source.addListener(new TransformingPromiseListener<T, T>(dest, PromiseTransformer.identity()));
   }
 }

@@ -43,8 +43,9 @@ public class TraceBuilderImpl implements TraceBuilder
       return;
     }
 
+    String value = valueToString(task);
     final ShallowTraceBuilder shallowBuilder = new ShallowTraceBuilder(task.getShallowTrace());
-    shallowBuilder.setValue(valueToString(task));
+    shallowBuilder.setValue(value);
 
     if (shallowBuilder.getResultType() == ResultType.UNFINISHED && shallowBuilder.getStartNanos() != null)
     {

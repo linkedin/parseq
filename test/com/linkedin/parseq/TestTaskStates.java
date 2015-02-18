@@ -22,6 +22,7 @@ import com.linkedin.parseq.promise.PromiseException;
 import com.linkedin.parseq.promise.PromiseUnresolvedException;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
+
 import org.testng.annotations.Test;
 
 import java.util.Collection;
@@ -427,6 +428,16 @@ public class TestTaskStates
     @Override
     public Object getEngineProperty(String key)
     {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void runSubTask(Task<?> task, Task<?> rootTask) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public After afterTask(Task<Object> rootTask, Promise<?>... promises) {
       throw new UnsupportedOperationException();
     }
   }

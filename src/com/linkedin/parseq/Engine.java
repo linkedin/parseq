@@ -25,6 +25,8 @@ import com.linkedin.parseq.internal.PlanContext;
 import com.linkedin.parseq.internal.TaskLogger;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
+import com.linkedin.parseq.Task;
+
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -131,6 +133,8 @@ public class Engine
     } while (!_stateRef.compareAndSet(currState, newState));
 
     final long planId = NEXT_PLAN_ID.getAndIncrement();
+    //TODO change per-task-class logging to something else
+    // because in log4j2 getting logger instance is expensive
     final Logger planLogger = _loggerFactory.getLogger(LOGGER_BASE + ":planClass=" + task.getClass().getName());
     final TaskLogger taskLogger = new TaskLogger(task, _allLogger, _rootLogger, planLogger);
     final Executor taskExecutor = new SerialExecutor(_taskExecutor, new CancelPlanRejectionHandler(task));

@@ -1,8 +1,8 @@
 package com.linkedin.parseq.internal;
 
-import com.linkedin.parseq.Cancellable;
 import com.linkedin.parseq.DelayedExecutor;
 import com.linkedin.parseq.Engine;
+import com.linkedin.parseq.Cancellable;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;

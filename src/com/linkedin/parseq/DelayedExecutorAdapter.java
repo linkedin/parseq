@@ -2,6 +2,7 @@ package com.linkedin.parseq;
 
 import com.linkedin.parseq.DelayedExecutor;
 import com.linkedin.parseq.internal.CancellableScheduledFuture;
+import com.linkedin.parseq.Cancellable;
 
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;

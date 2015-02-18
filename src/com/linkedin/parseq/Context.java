@@ -52,6 +52,13 @@ public interface Context
   void run(Task<?>... tasks);
 
   /**
+   * TODO
+   * @param task
+   * @param rootTask
+   */
+  void runSubTask(Task<?> task, Task<?> rootTask);
+
+  /**
    * Provides a mechanism of ordering the execution of some child tasks after
    * the resolution of the given promises (which may also be tasks).
    *
@@ -61,6 +68,9 @@ public interface Context
    *         after the given promises are resolved.
    */
   After after(Promise<?>... promises);
+
+  //TODO do we really need this???
+  After afterTask(Task<Object> rootTask, Promise<?>... promises);
 
   /**
    * Provides a mechanism for "plugins" to generate data which should be passed in via the context.

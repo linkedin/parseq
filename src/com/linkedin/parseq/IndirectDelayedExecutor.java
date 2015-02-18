@@ -3,12 +3,16 @@ package com.linkedin.parseq;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.linkedin.parseq.Cancellable;
+
 /**
  * A wrapper around a delayed executor that provides better behavior for
  * cancellation. If a task is cancelled (or run), we forget the reference to
  * that task. Without this indirection it is possible that the underlying
  * scheduled executor will hold a reference to the task - even if it has been
  * cancelled - thus keeping a path to the task from a GC root.
+ *
+ * TODO understand how this works and verify that it is expected
  *
  * @author Chris Pettitt
  */

@@ -16,12 +16,12 @@
 
 package com.linkedin.parseq.internal;
 
-import com.linkedin.parseq.Task;
 import com.linkedin.parseq.promise.CountDownPromiseListener;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
+import com.linkedin.parseq.Task;
 
 /**
  * @author Chi Chan (ckchan@linkedin.com)

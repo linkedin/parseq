@@ -37,6 +37,8 @@ public class WithSideEffectTask<T> extends BaseTask<T>
   @Override
   protected Promise<? extends T> run(Context context) throws Exception
   {
+    //TODO propagate results instead of returning parent task
+
     context.after(_parentTask).runSideEffect(_sideEffectTask);
     context.run(_parentTask);
     return _parentTask;

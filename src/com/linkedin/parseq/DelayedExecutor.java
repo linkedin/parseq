@@ -18,6 +18,8 @@ package com.linkedin.parseq;
 
 import java.util.concurrent.TimeUnit;
 
+import com.linkedin.parseq.Cancellable;
+
 /**
  * An object that allows a task to be scheduled for execution after some delay.
  *

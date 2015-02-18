@@ -16,22 +16,22 @@
 
 package com.linkedin.parseq.internal;
 
-import com.linkedin.parseq.After;
-import com.linkedin.parseq.BaseTask;
-import com.linkedin.parseq.Cancellable;
-import com.linkedin.parseq.Context;
-import com.linkedin.parseq.EarlyFinishException;
-import com.linkedin.parseq.Task;
-import com.linkedin.parseq.promise.Promise;
-import com.linkedin.parseq.promise.PromiseListener;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+
+import com.linkedin.parseq.promise.Promise;
+import com.linkedin.parseq.promise.PromiseListener;
+import com.linkedin.parseq.After;
+import com.linkedin.parseq.Cancellable;
+import com.linkedin.parseq.Context;
+import com.linkedin.parseq.Exceptions;
+import com.linkedin.parseq.Task;
+import com.linkedin.parseq.BaseTask;
 
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
@@ -41,19 +41,6 @@ public class ContextImpl implements Context, Cancellable
 {
   private static final Task<?> NO_PARENT = null;
   private static final List<Task<?>> NO_PREDECESSORS = Collections.emptyList();
-
-  private static final Exception EARLY_FINISH_EXCEPTION;
-
-  static
-  {
-    EARLY_FINISH_EXCEPTION = new EarlyFinishException("Task cancelled because parent was already finished");
-
-    // Clear out everything but the last frame
-    final StackTraceElement[] stackTrace = EARLY_FINISH_EXCEPTION.getStackTrace();
-    if (stackTrace.length > 0) {
-      EARLY_FINISH_EXCEPTION.setStackTrace(Arrays.copyOf(EARLY_FINISH_EXCEPTION.getStackTrace(), 1));
-    }
-  }
 
   /**
    * Plan level configuration and facilities.
@@ -65,7 +52,7 @@ public class ContextImpl implements Context, Cancellable
   // A thread local that holds the root task iff the root task is being executed
   // on the current thread. In all other cases, this thread local will hold a
   // null value.
-  private final ThreadLocal<Task<?>> _inTask = new ThreadLocal<Task<?>>();
+  private static final ThreadLocal<Task<?>> _inTask = new ThreadLocal<Task<?>>();
 
   private final Task<?> _parent;
   private final List<Task<?>> _predecessorTasks;
@@ -97,10 +84,11 @@ public class ContextImpl implements Context, Cancellable
       @Override
       public void onResolved(Promise<Object> resolvedPromise)
       {
+        //TODO is this iteration safe? can _cancellables be modified at the same time?
         for (Iterator<Cancellable> it = _cancellables.iterator(); it.hasNext(); )
         {
           final Cancellable cancellable = it.next();
-          cancellable.cancel(EARLY_FINISH_EXCEPTION);
+          cancellable.cancel(Exceptions.EARLY_FINISH_EXCEPTION);
           it.remove();
         }
       }
@@ -158,6 +146,34 @@ public class ContextImpl implements Context, Cancellable
   }
 
   @Override
+  public void runSubTask(Task<?> task, Task<?> rootTask) {
+    // check reference equality to make sure model is consistent i.e.
+    // subtasks have same parent
+    if (rootTask != _task)  {
+      throw new RuntimeException("Context method invoked associated with wrong task");
+    }
+    final Task<?> temp = _inTask.get();
+    _inTask.set(_task);
+    try
+    {
+      run(task);
+    }
+    finally
+    {
+      _inTask.set(temp);
+    }
+  }
+
+  /**
+   * TODO
+   * this is a way in from other threads to schedule task on this context
+   *
+   * Streaming idea: remember last task and once there is next task available call after to sequence
+   * tasks.
+   *
+   * for parallel we might need simply runSubTask(right away)
+   */
+  @Override
   public After after(final Promise<?>... promises)
   {
     checkInTask();
@@ -173,15 +189,28 @@ public class ContextImpl implements Context, Cancellable
     final List<Task<?>> predecessorTasks = Collections.unmodifiableList(tmpPredecessorTasks);
 
     return new After() {
+
       @Override
       public void run(final Task<?> task)
       {
-        InternalUtil.after(new PromiseListener()
+        InternalUtil.after(new PromiseListener<Object>()
         {
           @Override
-          public void onResolved(Promise resolvedPromise)
+          public void onResolved(Promise<Object> resolvedPromise)
           {
             runSubTask(task, predecessorTasks);
+          }
+        }, promises);
+      }
+
+      @Override
+      public void run(final Supplier<Task<?>> taskSupplier) {
+        InternalUtil.after(new PromiseListener<Object>()
+        {
+          @Override
+          public void onResolved(Promise<Object> resolvedPromise)
+          {
+            runSubTask(taskSupplier.get(), predecessorTasks);
           }
         }, promises);
       }
@@ -204,10 +233,31 @@ public class ContextImpl implements Context, Cancellable
   }
 
   @Override
+  public After afterTask(Task<Object> rootTask, Promise<?>... promises) {
+    // check reference equality to make sure model is consistent i.e.
+    // subtasks have same parent
+    if (rootTask != _task)  {
+      throw new RuntimeException("Context method invoked associated with wrong task");
+    }
+    final Task<?> temp = _inTask.get();
+    _inTask.set(_task);
+    try
+    {
+      return after(promises);
+    }
+    finally
+    {
+      _inTask.set(temp);
+    }
+  }
+
+  @Override
   public boolean cancel(Exception reason)
   {
     boolean result = _task.cancel(reason);
     //run the task to capture the trace data
+    //TODO this is dubious idea: running task to get a trace
+    //shouldn't we just add trace?
     _task.contextRun(this, _planContext.getTaskLogger(), _parent, _predecessorTasks);
     return result;
   }
@@ -233,7 +283,7 @@ public class ContextImpl implements Context, Cancellable
     }
     else
     {
-      subContext.cancel(EARLY_FINISH_EXCEPTION);
+      subContext.cancel(Exceptions.EARLY_FINISH_EXCEPTION);
     }
   }
 
@@ -270,7 +320,8 @@ public class ContextImpl implements Context, Cancellable
 
   private void checkInTask()
   {
-    if (_inTask.get() != _task)
+    Task<?> t = _inTask.get();
+    if (t != _task)
     {
       throw new IllegalStateException("Context method invoked while not in context's task");
     }

@@ -16,6 +16,12 @@
 
 package com.linkedin.parseq;
 
+import java.util.Collection;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
+
 import com.linkedin.parseq.internal.TaskLogger;
 import com.linkedin.parseq.promise.DelegatingPromise;
 import com.linkedin.parseq.promise.Promise;
@@ -31,11 +37,6 @@ import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.Trace;
 import com.linkedin.parseq.trace.TraceBuilder;
 import com.linkedin.parseq.trace.TraceBuilderImpl;
-
-import java.util.Collection;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * An abstract base class that can be used to build implementations of
@@ -63,7 +64,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     // The task has finished running, but the result has not yet been set.
     // This occurs for Tasks with AsyncTaskDefs.
     //
-    // A task in this state in cancellable, but cannot have its priority
+    // A task in this state in cancellable, and cannot have its priority
     // changed.
     PENDING,
 
@@ -74,7 +75,8 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     DONE
   }
 
-  private final AtomicReference<State> _stateRef;
+  private final AtomicReference<State<T>> _stateRef;
+  //TODO shouldn't _stateRef contain trace information?
   private final String _name;
   private final ShallowTraceBuilder _shallowTraceBuilder;
   private final RelationshipBuilder<Task<?>> _relationshipBuilder;
@@ -100,10 +102,10 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
 
     _name = name;
 
-    final State state = new State(StateType.INIT, Priority.DEFAULT_PRIORITY);
+    final State<T> state = new State<T>(StateType.INIT, Priority.DEFAULT_PRIORITY, null);
     _shallowTraceBuilder = new ShallowTraceBuilder(ResultType.UNFINISHED);
     _relationshipBuilder = new RelationshipBuilder<Task<?>>();
-    _stateRef = new AtomicReference<State>(state);
+    _stateRef = new AtomicReference<State<T>>(state);
 
   }
 
@@ -121,8 +123,8 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
       throw new IllegalArgumentException("Priority out of bounds: " + priority);
     }
 
-    State state;
-    State newState;
+    State<T> state;
+    State<T> newState;
     do
     {
       state = _stateRef.get();
@@ -131,7 +133,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
         return false;
       }
 
-      newState = new State(state._type, priority);
+      newState = new State<T>(state._type, priority, state._contextRunWrapper);
     }
     while (!_stateRef.compareAndSet(state, newState));
 
@@ -158,7 +160,13 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
         taskLogger.logTaskStart(this);
         try
         {
-          promise = doContextRun(context);
+          ContextRunWrapper<T> contextRunWrapper = _stateRef.get()._contextRunWrapper;
+          if (contextRunWrapper != null) {
+            contextRunWrapper.before(context);
+            promise = contextRunWrapper.after(context, doContextRun(context));
+          } else {
+            promise = doContextRun(context);
+          }
         }
         finally
         {
@@ -188,6 +196,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     }
     else
     {
+      //TODO this is only possible when task was cancelled - move this to cancel method?
       if (parent != null)
       {
         _relationshipBuilder.addRelationship(Relationship.POTENTIAL_CHILD_OF, parent);
@@ -277,8 +286,8 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
 
   private boolean transitionRun()
   {
-    State state;
-    State newState;
+    State<T> state;
+    State<T> newState;
     final long startNanos = System.nanoTime();
     do
     {
@@ -287,7 +296,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
       {
         return false;
       }
-      newState = new State(StateType.RUN, state._priority);
+      newState = new State<T>(StateType.RUN, state._priority, state._contextRunWrapper);
     }
     while (!_stateRef.compareAndSet(state, newState));
     _shallowTraceBuilder.setStartNanos(startNanos);
@@ -297,8 +306,8 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
 
   private void transitionPending()
   {
-    State state;
-    State newState;
+    State<T> state;
+    State<T> newState;
     final long pendingNanos = System.nanoTime();
     do
     {
@@ -307,7 +316,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
       {
         return;
       }
-      newState = new State(StateType.PENDING, state._priority);
+      newState = new State<T>(StateType.PENDING, state._priority, state._contextRunWrapper);
     }
     while (!_stateRef.compareAndSet(state, newState));
     _shallowTraceBuilder.setPendingNanos(pendingNanos);
@@ -315,9 +324,13 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
 
   private boolean transitionCancel()
   {
-    State state;
-    State newState;
+    State<T> state;
+    State<T> newState;
     final long endNanos = System.nanoTime();
+
+    //TODO if previous state was PENDING then notify
+    //asynchronous execution about the cancellation
+
     do
     {
       state = _stateRef.get();
@@ -327,7 +340,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
         return false;
       }
 
-      newState = new State(StateType.DONE, state._priority);
+      newState = new State<T>(StateType.DONE, state._priority, state._contextRunWrapper);
     }
     while (!_stateRef.compareAndSet(state, newState));
 
@@ -346,8 +359,8 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
 
   private boolean transitionDone()
   {
-    State state;
-    State newState;
+    State<T> state;
+    State<T> newState;
     long endNanos;
     do
     {
@@ -359,7 +372,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
 
       endNanos = System.nanoTime();
 
-      newState = new State(StateType.DONE, state._priority);
+      newState = new State<T>(StateType.DONE, state._priority, state._contextRunWrapper);
     }
     while (!_stateRef.compareAndSet(state, newState));
 
@@ -367,21 +380,25 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     return true;
   }
 
-  private SettablePromise<T> getSettableDelegate()
+  protected SettablePromise<T> getSettableDelegate()
   {
     return (SettablePromise<T>)super.getDelegate();
   }
 
-  private static class State
+  private static class State<T>
   {
     private final StateType _type;
     private final int _priority;
+    private final ContextRunWrapper<T> _contextRunWrapper;
+
 
     private State(final StateType type,
-                  final int priority)
+                  final int priority,
+                  ContextRunWrapper<T>contextRunWrapper)
     {
       _type = type;
       _priority = priority;
+      _contextRunWrapper = contextRunWrapper;
     }
   }
 
@@ -424,6 +441,17 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     {
       return _context.getEngineProperty(key);
     }
+
+    @Override
+    public void runSubTask(Task<?> task, Task<?> rootTask) {
+      _context.runSubTask(task, rootTask);
+      _relationshipBuilder.addRelationship(Relationship.POTENTIAL_PARENT_OF, task);
+    }
+
+    @Override
+    public After afterTask(Task<Object> rootTask, Promise<?>... promises) {
+      return new WrappedAfter(_context.afterTask(rootTask, promises));
+    }
   }
 
   private class WrappedAfter implements After
@@ -443,6 +471,15 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     }
 
     @Override
+    public void run(Supplier<Task<?>> taskSupplier) {
+      _after.run(() -> {
+        Task<?> task = taskSupplier.get();
+        _relationshipBuilder.addRelationship(Relationship.POTENTIAL_PARENT_OF, task);
+        return task;
+      });
+    }
+
+    @Override
     public Task<?> runSideEffect(final Task<?> task)
     {
       Task<?> taskWrapper = _after.runSideEffect(task);
@@ -450,4 +487,25 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
       return taskWrapper;
     }
   }
+
+  @Override
+  public void wrapContextRun(final ContextRunWrapper<T> wrapper) {
+    State<T> state;
+    State<T> newState;
+    do
+    {
+      state = _stateRef.get();
+      if (state._type != StateType.INIT)
+      {
+        throw new RuntimeException("wrapContextRun can be only called on task in INIT state, current state: " + state._type);
+      }
+      if (state._contextRunWrapper != null) {
+        newState = new State<T>(state._type, state._priority, state._contextRunWrapper.compose(wrapper));
+      } else {
+        newState = new State<T>(state._type, state._priority, wrapper);
+      }
+    }
+    while (!_stateRef.compareAndSet(state, newState));
+  }
+
 }

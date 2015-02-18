@@ -56,7 +56,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
     final SettablePromise<T> result = Promises.settable();
     final AtomicBoolean committed = new AtomicBoolean();
 
-    final Task<?> timeoutTask = Tasks.action("timeoutTimer", new Runnable()
+    final Task<?> timeoutTask = com.linkedin.parseq2.Tasks.action("timeoutTimer", new Runnable()
     {
       @Override
       public void run()

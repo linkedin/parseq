@@ -23,8 +23,10 @@ package com.linkedin.parseq.promise;
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Chi Chan (ckchan@linkedin.com)
+ * @author Jaroslaw Odzga (jodzga@linkedin.com)
  * @see Promise#addListener(PromiseListener)
  */
+@FunctionalInterface
 public interface PromiseListener<P>
 {
   /**

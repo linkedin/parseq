@@ -15,18 +15,22 @@
  */
 package com.linkedin.parseq;
 
+import com.linkedin.parseq.EngineBuilder;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
+import com.linkedin.parseq.util.Objects;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
+
+//TODO refactor this to use less hacky way of integrating external executor services
 
 /**
  * This class provides a wrapper to allow synchronous tasks to be treated as
  * asynchronous tasks. This can be used for tasks that are blocking and are not
  * CPU intensive, like JDBC requests. Unlike tasks created with
- * {@link com.linkedin.parseq.Tasks#callable(String, java.util.concurrent.Callable)},
+ * {@link com.linkedin.parseq.task.Tasks#sync(String, java.util.concurrent.Callable)},
  * tasks wrapped in AsyncCallableTask do not get any special memory consistency
  * guarantees and should not attempt to use shared state. In others, they should
  * act as a stateless function.
@@ -55,6 +59,7 @@ public class AsyncCallableTask<R> extends BaseTask<R>
   public AsyncCallableTask(final String name, final Callable<R> syncJob)
   {
     super(name);
+    Objects.requireNonNull(syncJob);
     _syncJob = syncJob;
   }
 
@@ -68,21 +73,13 @@ public class AsyncCallableTask<R> extends BaseTask<R>
     }
 
     final SettablePromise<R> promise = Promises.settable();
-    executor.execute(new Runnable()
-      {
-        @Override
-        public void run()
-        {
-          try
-          {
-            promise.done(_syncJob.call());
-          }
-          catch (Throwable t)
-          {
-            promise.fail(t);
-          }
-        }
-      });
+    executor.execute(() -> {
+      try {
+        promise.done(_syncJob.call());
+      } catch (Throwable t) {
+        promise.fail(t);
+      }
+    });
     return promise;
   }
 }
