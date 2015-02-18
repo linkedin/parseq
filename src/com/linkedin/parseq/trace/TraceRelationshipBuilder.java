@@ -49,8 +49,8 @@ public class TraceRelationshipBuilder<K>
 
   public TraceRelationshipBuilder<K> addTrace(K key, ShallowTrace trace)
   {
-    ArgumentUtil.notNull(key, "key");
-    ArgumentUtil.notNull(trace, "trace");
+    ArgumentUtil.requireNotNull(key, "key");
+    ArgumentUtil.requireNotNull(trace, "trace");
 
     if (containsKey(key))
     {
@@ -63,8 +63,8 @@ public class TraceRelationshipBuilder<K>
 
   public TraceRelationshipBuilder<K> replaceTrace(K key, ShallowTrace newTrace)
   {
-    ArgumentUtil.notNull(key, "key");
-    ArgumentUtil.notNull(newTrace, "trace");
+    ArgumentUtil.requireNotNull(key, "key");
+    ArgumentUtil.requireNotNull(newTrace, "trace");
 
     ensureContainsKey(key);
     _traces.put(key, newTrace);
@@ -172,16 +172,16 @@ public class TraceRelationshipBuilder<K>
    */
   public Trace buildTrace(K key)
   {
-    ArgumentUtil.notNull(key, "task");
+    ArgumentUtil.requireNotNull(key, "task");
     return buildTrace(key, new HashSet<K>(), new HashMap<K, Trace>());
   }
 
 
   private void validateRelationship(String relationship, K from, K to)
   {
-    ArgumentUtil.notNull(relationship, "relationship");
-    ArgumentUtil.notNull(from, "from");
-    ArgumentUtil.notNull(to, "to");
+    ArgumentUtil.requireNotNull(relationship, "relationship");
+    ArgumentUtil.requireNotNull(from, "from");
+    ArgumentUtil.requireNotNull(to, "to");
 
     ensureContainsKey(from);
     ensureContainsKey(to);

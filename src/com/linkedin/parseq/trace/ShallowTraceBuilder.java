@@ -94,7 +94,7 @@ public class ShallowTraceBuilder
 
   public ShallowTraceBuilder setName(final String name)
   {
-    ArgumentUtil.notEmpty(name, "name");
+    ArgumentUtil.requireNotEmpty(name, "name");
     _name = name;
     return this;
   }
@@ -107,7 +107,7 @@ public class ShallowTraceBuilder
 
   public ShallowTraceBuilder setResultType(ResultType resultType)
   {
-    ArgumentUtil.notNull(resultType, "resultType");
+    ArgumentUtil.requireNotNull(resultType, "resultType");
     _resultType = resultType;
     return this;
   }
@@ -167,15 +167,15 @@ public class ShallowTraceBuilder
 
   public ShallowTraceBuilder addAttribute(String key, String value)
   {
-    ArgumentUtil.notNull(key, "key");
-    ArgumentUtil.notNull(value, "value");
+    ArgumentUtil.requireNotNull(key, "key");
+    ArgumentUtil.requireNotNull(value, "value");
     _attributes.put(key, value);
     return this;
   }
 
   public ShallowTraceBuilder removeAttribute(String key)
   {
-    ArgumentUtil.notNull(key, "key");
+    ArgumentUtil.requireNotNull(key, "key");
     _attributes.remove(key);
     return this;
   }

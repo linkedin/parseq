@@ -16,9 +16,9 @@
 
 package com.linkedin.parseq;
 
+import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
-import com.linkedin.parseq.util.Objects;
 
 import java.util.concurrent.Callable;
 
@@ -43,7 +43,7 @@ public class CallableTask<T> extends BaseTask<T>
   public CallableTask(final String name, final ThrowableCallable<? extends T> callable)
   {
     super(name);
-    Objects.requireNonNull(callable);
+    ArgumentUtil.requireNonNull(callable);
     _callable = callable;
   }
 

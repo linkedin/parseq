@@ -82,15 +82,15 @@ public class ShallowTrace
         {
           throw new IllegalArgumentException("value cannot be set if the task is finished early");
         }
-        ArgumentUtil.notNull(startNanos, "startNanos");
-        ArgumentUtil.notNull(pendingNanos, "pendingNanos");
-        ArgumentUtil.notNull(endNanos, "endNanos");
+        ArgumentUtil.requireNotNull(startNanos, "startNanos");
+        ArgumentUtil.requireNotNull(pendingNanos, "pendingNanos");
+        ArgumentUtil.requireNotNull(endNanos, "endNanos");
         break;
       case ERROR:
       case SUCCESS:
-        ArgumentUtil.notNull(startNanos, "startNanos");
-        ArgumentUtil.notNull(pendingNanos, "pendingNanos");
-        ArgumentUtil.notNull(endNanos, "endNanos");
+        ArgumentUtil.requireNotNull(startNanos, "startNanos");
+        ArgumentUtil.requireNotNull(pendingNanos, "pendingNanos");
+        ArgumentUtil.requireNotNull(endNanos, "endNanos");
         break;
       case UNFINISHED:
         if (value != null)
@@ -104,8 +104,8 @@ public class ShallowTrace
 
     if (startNanos != null && resultType != ResultType.UNFINISHED)
     {
-      ArgumentUtil.notNull(pendingNanos, "pendingNanos");
-      ArgumentUtil.notNull(endNanos, "endNanos");
+      ArgumentUtil.requireNotNull(pendingNanos, "pendingNanos");
+      ArgumentUtil.requireNotNull(endNanos, "endNanos");
     }
   }
 

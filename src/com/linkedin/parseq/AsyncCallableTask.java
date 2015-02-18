@@ -16,10 +16,10 @@
 package com.linkedin.parseq;
 
 import com.linkedin.parseq.EngineBuilder;
+import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
-import com.linkedin.parseq.util.Objects;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
@@ -59,7 +59,7 @@ public class AsyncCallableTask<R> extends BaseTask<R>
   public AsyncCallableTask(final String name, final Callable<R> syncJob)
   {
     super(name);
-    Objects.requireNonNull(syncJob);
+    ArgumentUtil.requireNonNull(syncJob);
     _syncJob = syncJob;
   }
 

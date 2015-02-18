@@ -5,8 +5,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import com.linkedin.parseq.collection.transducer.Reducer.Step;
+import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.TaskOrValue;
-import com.linkedin.parseq.util.Integers;
 
 @FunctionalInterface
 public interface Transducer<T, R> extends Function<Reducer<Object, R>, Reducer<Object, T>> {
@@ -48,7 +48,7 @@ public interface Transducer<T, R> extends Function<Reducer<Object, R>, Reducer<O
   }
 
   default Transducer<T, R> take(final int n) {
-    Integers.requirePositive(n);
+    ArgumentUtil.requirePositive(n);
     final Counter counter = new Counter(0);
     return fr -> apply((z, r) ->
       fr.apply(z, r).map(s -> {
@@ -61,7 +61,7 @@ public interface Transducer<T, R> extends Function<Reducer<Object, R>, Reducer<O
   }
 
   default Transducer<T, R> drop(final int n) {
-    Integers.requirePositive(n);
+    ArgumentUtil.requirePositive(n);
       final Counter counter = new Counter(0);
       return fr -> apply((z, r) ->
       fr.apply(z, r).map(s -> {

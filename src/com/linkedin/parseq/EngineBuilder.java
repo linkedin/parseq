@@ -56,7 +56,7 @@ public class EngineBuilder
    */
   public EngineBuilder setTaskExecutor(final Executor taskExecutor)
   {
-    ArgumentUtil.notNull(taskExecutor, "taskExecutor");
+    ArgumentUtil.requireNotNull(taskExecutor, "taskExecutor");
     _taskExecutor = taskExecutor;
     return this;
   }
@@ -71,7 +71,7 @@ public class EngineBuilder
    */
   public EngineBuilder setTimerScheduler(final DelayedExecutor timerScheduler)
   {
-    ArgumentUtil.notNull(timerScheduler, "timerScheduler");
+    ArgumentUtil.requireNotNull(timerScheduler, "timerScheduler");
     _timerScheduler = timerScheduler;
     return this;
   }
@@ -86,7 +86,7 @@ public class EngineBuilder
    */
   public EngineBuilder setTimerScheduler(final ScheduledExecutorService timerScheduler)
   {
-    ArgumentUtil.notNull(timerScheduler, "timerScheduler");
+    ArgumentUtil.requireNotNull(timerScheduler, "timerScheduler");
     setTimerScheduler(adaptTimerScheduler(timerScheduler));
     return this;
   }
@@ -100,7 +100,7 @@ public class EngineBuilder
    */
   public EngineBuilder setLoggerFactory(final ILoggerFactory loggerFactory)
   {
-    ArgumentUtil.notNull(loggerFactory, "loggerFactory");
+    ArgumentUtil.requireNotNull(loggerFactory, "loggerFactory");
     _loggerFactory = loggerFactory;
     return this;
   }

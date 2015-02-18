@@ -16,9 +16,9 @@
 
 package com.linkedin.parseq;
 
+import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
-import com.linkedin.parseq.util.Objects;
 
 /**
  * A {@link Task} that runs a {@link Runnable} and returns no value. Use
@@ -40,7 +40,7 @@ public class ActionTask extends BaseTask<Void>
   public ActionTask(final String name, final Runnable runnable)
   {
     super(name);
-    Objects.requireNonNull(runnable);
+    ArgumentUtil.requireNonNull(runnable);
     _runnable = runnable;
   }
 

@@ -43,8 +43,8 @@ public class RelationshipBuilder<K>
 
   public void addRelationship(Relationship relationship, K to)
   {
-    ArgumentUtil.notNull(relationship, "relationship");
-    ArgumentUtil.notNull(to, "to");
+    ArgumentUtil.requireNotNull(relationship, "relationship");
+    ArgumentUtil.requireNotNull(to, "to");
     _relationships.add(new Related<K>(relationship, to));
   }
 
@@ -58,8 +58,8 @@ public class RelationshipBuilder<K>
 
   public void removeRelationship(Relationship relationship, K to)
   {
-    ArgumentUtil.notNull(relationship, "relationship");
-    ArgumentUtil.notNull(to, "to");
+    ArgumentUtil.requireNotNull(relationship, "relationship");
+    ArgumentUtil.requireNotNull(to, "to");
     if (!_relationships.remove(new Related<K>(relationship, to)))
     {
       throw new IllegalArgumentException("No such relationship " + relationship + " to " + to);

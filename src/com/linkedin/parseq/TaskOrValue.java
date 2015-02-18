@@ -3,7 +3,7 @@ package com.linkedin.parseq;
 import java.util.NoSuchElementException;
 import java.util.function.Function;
 
-import com.linkedin.parseq.util.Objects;
+import com.linkedin.parseq.internal.ArgumentUtil;
 
 
 /**
@@ -45,7 +45,7 @@ public class TaskOrValue<T> {
   }
 
   public static <A> TaskOrValue<A> task(Task<A> task) {
-    Objects.requireNonNull(task);
+    ArgumentUtil.requireNonNull(task);
     return new TaskOrValue<A>(task, null);
   }
 

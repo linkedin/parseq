@@ -13,7 +13,7 @@ public abstract class IterablePublisher<A, T> implements Publisher<TaskOrValue<T
   CancellableSubscription _subscription;
 
   public IterablePublisher(Function<A, TaskOrValue<T>> converter) {
-    ArgumentUtil.notNull(converter, "converter");
+    ArgumentUtil.requireNotNull(converter, "converter");
     _converter = converter;
   }
 
@@ -21,7 +21,7 @@ public abstract class IterablePublisher<A, T> implements Publisher<TaskOrValue<T
 
   @Override
   public void subscribe(final Subscriber<? super TaskOrValue<T>> subscriber) {
-    ArgumentUtil.notNull(subscriber, "subscriber");
+    ArgumentUtil.requireNotNull(subscriber, "subscriber");
     _subscriber = subscriber;
   }
 

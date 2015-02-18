@@ -23,7 +23,7 @@ public class ArgumentUtil
 {
   private ArgumentUtil() {}
 
-  public static void notNull(final Object obj, final String name)
+  public static void requireNotNull(final Object obj, final String name)
   {
     if (obj == null)
     {
@@ -31,12 +31,24 @@ public class ArgumentUtil
     }
   }
 
-  public static void notEmpty(final String str, final String name)
+  public static void requireNotEmpty(final String str, final String name)
   {
-    notNull(str, name);
+    requireNotNull(str, name);
     if (str.isEmpty())
     {
       throw new IllegalArgumentException(name + " is an empty string");
+    }
+  }
+
+  public static void requirePositive(final int n) {
+    if (n <= 0) {
+      throw new IllegalArgumentException("Argument must be a positive integer numebr, but is: " + n);
+    }
+  }
+
+  public static void requireNonNull(Object o) {
+    if (o == null) {
+      throw new IllegalArgumentException("Argument must not be null");
     }
   }
 }

@@ -8,34 +8,34 @@ public class TestArgumentUtil
         expectedExceptionsMessageRegExp = ".*foo.*")
   public void testNotNullWithNull()
   {
-    ArgumentUtil.notNull(null, "foo");
+    ArgumentUtil.requireNotNull(null, "foo");
   }
 
   @Test
   public void testNotNullWithNotNull()
   {
     // This should not throw
-    ArgumentUtil.notNull(new Object(), "foo");
+    ArgumentUtil.requireNotNull(new Object(), "foo");
   }
 
   @Test(expectedExceptions = NullPointerException.class,
         expectedExceptionsMessageRegExp = ".*foo.*")
   public void testNotEmptyWithNull()
   {
-    ArgumentUtil.notEmpty(null, "foo");
+    ArgumentUtil.requireNotEmpty(null, "foo");
   }
 
   @Test(expectedExceptions = IllegalArgumentException.class,
         expectedExceptionsMessageRegExp = ".*foo.*")
   public void testNotEmptyWithEmptyString()
   {
-    ArgumentUtil.notEmpty("", "foo");
+    ArgumentUtil.requireNotEmpty("", "foo");
   }
 
   @Test
   public void testNotEmptyWithNotEmptyString()
   {
     // This should not throw
-    ArgumentUtil.notEmpty("not empty string", "foo");
+    ArgumentUtil.requireNotEmpty("not empty string", "foo");
   }
 }
