@@ -22,8 +22,8 @@
     <!-- This has special meaning for the ivy:retrieve task: it points to the location the JARs will be placed -->
     <property name="ivy.lib.dir" value="${lib.build.dir}"/>
 
-    <property name="javac.source" value="1.6" />
-    <property name="javac.target" value="1.6" />
+    <property name="javac.source" value="1.8" />
+    <property name="javac.target" value="1.8" />
     <!-- Enables/disables inclusion of debug symbols in .class files. -->
     <property name="debug" value="true" />
 

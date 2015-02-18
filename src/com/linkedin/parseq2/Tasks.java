@@ -57,10 +57,6 @@ public class Tasks
     return new CallableTask<T>(name, callable);
   }
 
-  public static <T> Task<T> sync(final String name, final ThrowableCallable<? extends T> callable) {
-    return new CallableTask<T>(name, callable);
-  }
-
   public static <T> Task<T> async(final String name, final Callable<Promise<? extends T>> callable) {
     //TODO
 

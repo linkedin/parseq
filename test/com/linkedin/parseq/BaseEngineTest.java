@@ -16,14 +16,25 @@
 
 package com.linkedin.parseq;
 
+import static org.testng.AssertJUnit.assertTrue;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
+import com.linkedin.parseq.example.common.ExampleUtil;
+import com.linkedin.parseq.trace.Trace;
+import com.linkedin.parseq.trace.codec.json.JsonTraceCodec;
+
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import javax.management.RuntimeErrorException;
 
 /**
  * A base class that builds an Engine with default configuration.
@@ -32,6 +43,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class BaseEngineTest
 {
+  private static final Logger LOG = LoggerFactory.getLogger(BaseEngineTest.class.getName());
+
   private ScheduledExecutorService _scheduler;
   private ExecutorService _asyncExecutor;
   private Engine _engine;
@@ -70,6 +83,38 @@ public class BaseEngineTest
   {
     return _engine;
   }
+
+  protected void runWaitAndPrintTrace(final String test, Task<?> task)
+  {
+    try
+    {
+      _engine.run(task);
+      assertTrue(task.await(5, TimeUnit.SECONDS));
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    finally
+    {
+      outputTracingResults(test, task);
+    }
+  }
+
+  private void outputTracingResults(final String test, final Task<?> task)
+  {
+    final Trace trace = task.getTrace();
+
+    try
+    {
+      LOG.info("Trace [" + test + "]: " + new JsonTraceCodec().encode(trace));
+    }
+    catch (IOException e)
+    {
+      LOG.error("Failed to encode JSON");
+      e.printStackTrace();
+    }
+    System.out.println();
+  }
+
 
   protected void setLogLevel(final String loggerName, final int level)
   {

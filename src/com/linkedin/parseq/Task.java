@@ -283,8 +283,8 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   default Task<Try<T>> withTry() {
-    return map("withTry", t -> Success.of(t))
-             .recover("withTry", t -> Failure.of(t));
+    return map("map to Try", t -> Success.of(t))
+             .recover("recover to Try", t -> Failure.of(t));
   }
 
   /**
