@@ -16,22 +16,29 @@
 
 package com.linkedin.parseq;
 
-import com.linkedin.parseq.promise.Promise;
-import com.linkedin.parseq.promise.PromiseListener;
-import com.linkedin.parseq.promise.Promises;
-import org.testng.annotations.Test;
-
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
-
 import static com.linkedin.parseq.Tasks.withSideEffect;
 import static com.linkedin.parseq.TestUtil.value;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
+
+import org.testng.annotations.Test;
+
+import com.linkedin.parseq.promise.Promise;
+import com.linkedin.parseq.promise.PromiseListener;
+import com.linkedin.parseq.promise.Promises;
+import com.linkedin.parseq.promise.SettablePromise;
 
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
@@ -262,6 +269,49 @@ public class TestTasks extends BaseEngineTest
 
     assertTrue(timeoutTask.isFailed());
     assertEquals(error, timeoutTask.getError());
+  }
+
+  /**
+   * Test scenario in which there are many TimeoutWithErrorTasks scheduled for execution
+   * e.g. by using Tasks.par().
+   */
+  @Test
+  public void testManyTimeoutTaskWithoutTimeoutOnAQueue() throws InterruptedException, IOException
+  {
+    final String value = "value";
+    final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+    List<Task<String>> tasks = new ArrayList<Task<String>>();
+    for (int i = 0; i < 50; i++) {
+
+      // Task which simulates doing something for 0.5ms and setting response
+      // asynchronously after 5ms.
+      Task<String> t = new BaseTask<String>("test") {
+        @Override
+        protected Promise<? extends String> run(Context context) throws Throwable {
+          final SettablePromise<String> result = Promises.settable();
+          Thread.sleep(0, 500000);
+          scheduler.schedule(new Runnable() {
+            @Override
+            public void run() {
+              result.done(value);
+            }
+          }, 5, TimeUnit.MILLISECONDS);
+          return result;
+        }
+      }.withTimeout(50, TimeUnit.MILLISECONDS);
+      tasks.add(t);
+    }
+
+    // final task runs all the tasks in parallel
+    final Task<?> timeoutTask = Tasks.par(tasks);
+
+    runWaitAndPrintTrace("TestTasks.testManyTimeoutTaskWithoutTimeoutOnAQueue", timeoutTask);
+
+    scheduler.shutdown();
+
+    //tasks should not time out
+    assertEquals(false, timeoutTask.isFailed());
   }
 
   @Test
