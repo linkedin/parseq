@@ -19,7 +19,6 @@ import com.linkedin.parseq.collection.transducer.Transducible;
 import com.linkedin.parseq.collection.transducer.Reducer.Step;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.TaskOrValue;
-import com.linkedin.parseq2.Tasks;
 
 public class AsyncCollection<T, R> extends Transducible<T, R> implements ParSeqCollection<R> {
 
@@ -251,7 +250,7 @@ public class AsyncCollection<T, R> extends Transducible<T, R> implements ParSeqC
 
   public static <A> ParSeqCollection<A> fromValues(final Iterable<A> iterable) {
     IterablePublisher<A, A> publisher = new ValuesPublisher<A>(iterable);
-    Task<?> task = Tasks.action("values", publisher::run);
+    Task<?> task = Task.action("values", publisher::run);
     task.onResolve(p -> publisher.complete(p));
     return new AsyncCollection<>(publisher, Transducer.identity(),
         Optional.of(task));
@@ -259,7 +258,7 @@ public class AsyncCollection<T, R> extends Transducible<T, R> implements ParSeqC
 
   public static <A> ParSeqCollection<A> fromTasks(final Iterable<Task<A>> iterable) {
     IterablePublisher<Task<A>, A> publisher = new TasksPublisher<A>(iterable);
-    Task<?> task = Tasks.action("tasks", publisher::run);
+    Task<?> task = Task.action("tasks", publisher::run);
     task.onResolve(p -> publisher.complete(p));
     return new AsyncCollection<>(publisher, Transducer.identity(),
         Optional.of(task));
@@ -297,7 +296,7 @@ public class AsyncCollection<T, R> extends Transducible<T, R> implements ParSeqC
         subscriber.onComplete();
       }
     });
-    return Tasks.action("onSubscribe", () -> subscriber.onSubscribe(subscription)).andThen(fold);
+    return Task.action("onSubscribe", () -> subscriber.onSubscribe(subscription)).andThen(fold);
   }
 
   @Override

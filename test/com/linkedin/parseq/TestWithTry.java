@@ -5,7 +5,6 @@ import static org.testng.Assert.*;
 import org.testng.annotations.Test;
 
 import com.linkedin.parseq.function.Try;
-import com.linkedin.parseq2.Tasks;
 
 /**
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
@@ -16,7 +15,7 @@ public class TestWithTry extends BaseEngineTest
   @Test
   public void testHappyPath() throws InterruptedException
   {
-    final Task<Try<String>> task = Tasks.sync("test", () -> "hello")
+    final Task<Try<String>> task = Task.callable("test", () -> "hello")
         .withTry();
 
     runWait5sAndLogTrace("TestWithTry.testHappyPath", task);
@@ -29,7 +28,7 @@ public class TestWithTry extends BaseEngineTest
   public void testError() throws InterruptedException
   {
     @SuppressWarnings("unused")
-    final Task<Try<String>> task = Tasks.sync("test", () -> {
+    final Task<Try<String>> task = Task.callable("test", () -> {
       if (true) {
         throw new RuntimeException("boom");
       }

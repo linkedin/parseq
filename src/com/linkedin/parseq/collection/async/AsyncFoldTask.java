@@ -17,7 +17,6 @@ import com.linkedin.parseq.FusionTask;
 import com.linkedin.parseq.Priority;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.TaskOrValue;
-import com.linkedin.parseq2.Tasks;
 
 /**
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
@@ -202,7 +201,7 @@ public class AsyncFoldTask<Z, T> extends BaseTask<Z> implements Ref<Z> {
 
     @Override
     public void before(Context context) {
-      final Task<?> withinTask = Tasks.action("withinTimer", () -> {
+      final Task<?> withinTask = Task.action("withinTimer", () -> {
         if (_committed.compareAndSet(false, true)) {
           if (!_streamingComplete) {
             _streamingComplete = true;

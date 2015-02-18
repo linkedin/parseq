@@ -43,7 +43,7 @@ public class Tasks
    */
   public static Task<Void> action(final String name, final Runnable runnable)
   {
-    return new ActionTask(name, runnable);
+    return Task.action(name, runnable);
   }
 
   /**
@@ -60,7 +60,7 @@ public class Tasks
   public static <T> Task<T> callable(final String name,
                                      final Callable<? extends T> callable)
   {
-    return new CallableTask<T>(name, callable);
+    return Task.callable(name, callable);
   }
 
   /**

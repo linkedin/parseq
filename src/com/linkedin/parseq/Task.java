@@ -18,6 +18,7 @@ package com.linkedin.parseq;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -58,6 +59,9 @@ import com.linkedin.parseq.trace.Trace;
  */
 public interface Task<T> extends Promise<T>, Cancellable
 {
+
+  //------------------- interface definition -------------------
+
   /**
    * Returns the name of this task.
    *
@@ -129,6 +133,8 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @return the set of relationships of this task.
    */
   Set<Related<Task<?>>> getRelationships();
+
+  //------------------- default methods -------------------
 
   default <R> Task<R> apply(final String desc, final PromisePropagator<T, R> propagator) {
     return FusionTask.fuse(desc, this, propagator);
@@ -396,7 +402,7 @@ public interface Task<T> extends Promise<T>, Cancellable
 
     @Override
     public void before(Context context) {
-      final Task<?> timeoutTask = com.linkedin.parseq2.Tasks.action("timeoutTimer", () -> {
+      final Task<?> timeoutTask = action("timeoutTimer", () -> {
         if (_committed.compareAndSet(false, true)) {
           _result.fail(_exception);
         }
@@ -458,6 +464,42 @@ public interface Task<T> extends Promise<T>, Cancellable
         }
       };
     }
+  }
+
+  //------------------- static factory methods -------------------
+
+  /**
+   * Creates a new {@link Task} that have a value of type Void. Because the
+   * returned task returns no value, it is typically used to produce side-effects.
+   *
+   * @param name a name that describes the action
+   * @param runnable the action that will be executed when the task is run
+   * @return the new task
+   */
+  public static Task<Void> action(final String name, final Runnable runnable)
+  {
+    return new ActionTask(name, runnable);
+  }
+
+  public static <T> Task<T> callable(final String name, final Callable<? extends T> callable) {
+    return new CallableTask<T>(name, callable);
+  }
+
+  public static <T> Task<T> async(final String name, final Callable<Promise<? extends T>> callable) {
+    //TODO
+
+    return null;
+  }
+
+  public static <T1, T2> Tuple2Task<T1, T2> par(final Task<T1> task1,
+                                              final Task<T2> task2) {
+    return new Par2Task<T1, T2>("par", task1, task2);
+  }
+
+  public static <T1, T2, T3> Tuple3Task<T1, T2, T3> par(final Task<T1> task1,
+                                                      final Task<T2> task2,
+                                                      final Task<T3> task3) {
+    return new Par3Task<T1, T2, T3>("par", task1, task2, task3);
   }
 
 
