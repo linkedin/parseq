@@ -43,6 +43,10 @@ public class TraceBuilderImpl implements TraceBuilder
       return;
     }
 
+    // Order is important. We need to get value before checking result type because
+    // checking result type establishes happens-before edge and we need result type
+    // to be consistent with a value - it is illegal for task to have a value and
+    // have result type UNFINISHED.
     String value = valueToString(task);
     final ShallowTraceBuilder shallowBuilder = new ShallowTraceBuilder(task.getShallowTrace());
     shallowBuilder.setValue(value);
