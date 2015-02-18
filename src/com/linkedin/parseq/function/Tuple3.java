@@ -3,7 +3,6 @@ package com.linkedin.parseq.function;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.function.BiFunction;
 
 public class Tuple3<T1, T2, T3> implements Tuple {
 

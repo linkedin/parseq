@@ -486,9 +486,12 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   public static <T> Task<T> async(final String name, final Callable<Promise<? extends T>> callable) {
-    //TODO
-
-    return null;
+    return new BaseTask<T>(name) {
+      @Override
+      protected Promise<? extends T> run(Context context) throws Throwable {
+        return callable.call();
+      }
+    };
   }
 
   public static <T1, T2> Tuple2Task<T1, T2> par(final Task<T1> task1,
