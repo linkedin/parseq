@@ -49,9 +49,7 @@ public class TestAsyncCallableTask extends BaseEngineTest
     }
 
     final ParTask<Void> par = par(tasks);
-    getEngine().run(par);
-
-    assertTrue(par.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestAsyncCallableTask.testConcurrentTasks", par);
 
     assertEquals(2, par.getSuccessful().size());
     assertEquals(2, par.getTasks().size());
@@ -79,9 +77,7 @@ public class TestAsyncCallableTask extends BaseEngineTest
       }
     });
 
-    getEngine().run(task);
-
-    assertTrue(task.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestAsyncCallableTask.testThrowingCallable", task);
 
     assertTrue(task.isDone());
     assertTrue(task.isFailed());

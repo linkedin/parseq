@@ -21,7 +21,6 @@ import org.testng.annotations.Test;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
@@ -40,8 +39,7 @@ public class TestTaskLogging extends BaseEngineTest
   public void testSingleTaskWithDefaultLogging() throws InterruptedException
   {
     final Task<?> task = TestUtil.noop();
-    getEngine().run(task);
-    assertTrue(task.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestTaskLogging.testSingleTaskWithDefaultLogging", task);
 
     assertEquals(0, getLogEntries(ALL_LOGGER).size());
     assertEquals(0, getLogEntries(ROOT_LOGGER).size());
@@ -66,8 +64,7 @@ public class TestTaskLogging extends BaseEngineTest
 
         final Task<?> task = TestUtil.value("t1", taskValue);
         setLogLevel(logger, level);
-        getEngine().run(task);
-        assertTrue(task.await(5, TimeUnit.SECONDS));
+        runWait5sAndLogTrace("TestTaskLogging.testSingleTaskCombinations", task);
 
         for (String checkLogger : loggers)
         {
@@ -103,8 +100,7 @@ public class TestTaskLogging extends BaseEngineTest
 
         final Task<?> task = TestUtil.errorTask("t1", exception);
         setLogLevel(logger, level);
-        getEngine().run(task);
-        assertTrue(task.await(5, TimeUnit.SECONDS));
+        runWait5sAndLogTrace("TestTaskLogging.testSingleTaskWithErrorCombinations", task);
 
         for (String checkLogger : loggers)
         {
@@ -129,8 +125,7 @@ public class TestTaskLogging extends BaseEngineTest
     final Task<?> parent = Tasks.seq(child1, child2);
 
     setLogLevel(ALL_LOGGER, ListLogger.LEVEL_TRACE);
-    getEngine().run(parent);
-    assertTrue(parent.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestTaskLogging.testCompositeTaskWithAllLoggerTrace", parent);
 
     assertTaskLogged(parent, "null", ALL_LOGGER, ListLogger.LEVEL_TRACE);
     assertTaskLogged(child1, "value", ALL_LOGGER, ListLogger.LEVEL_TRACE);
@@ -145,8 +140,7 @@ public class TestTaskLogging extends BaseEngineTest
     final Task<?> parent = Tasks.seq(child1, child2);
 
     setLogLevel(ROOT_LOGGER, ListLogger.LEVEL_TRACE);
-    getEngine().run(parent);
-    assertTrue(parent.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestTaskLogging.testCompositeTaskWithRootLoggerTrace", parent);
 
     assertTaskLogged(parent, "null", ROOT_LOGGER, ListLogger.LEVEL_TRACE);
 
@@ -164,8 +158,7 @@ public class TestTaskLogging extends BaseEngineTest
     final String planClassLogger = planClassLogger(parent);
 
     setLogLevel(planClassLogger, ListLogger.LEVEL_TRACE);
-    getEngine().run(parent);
-    assertTrue(parent.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestTaskLogging.testCompositeTaskWithPlanClassLoggerTrace", parent);
 
     assertTaskLogged(parent, "null", planClassLogger, ListLogger.LEVEL_TRACE);
     assertTaskLogged(child1, "value", planClassLogger, ListLogger.LEVEL_TRACE);

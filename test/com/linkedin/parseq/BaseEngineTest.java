@@ -33,8 +33,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import javax.management.RuntimeErrorException;
-
 /**
  * A base class that builds an Engine with default configuration.
  *
@@ -83,7 +81,10 @@ public class BaseEngineTest
     return _engine;
   }
 
-  protected void runWaitAndPrintTrace(final String test, Task<?> task)
+  /**
+   * Runs task, verifies that task finishes within 5 sec and logs trace from the task execution.
+   */
+  protected void runWait5sAndLogTrace(final String test, Task<?> task)
   {
     try
     {
@@ -94,11 +95,11 @@ public class BaseEngineTest
     }
     finally
     {
-      outputTracingResults(test, task);
+      logTracingResults(test, task);
     }
   }
 
-  private void outputTracingResults(final String test, final Task<?> task)
+  protected void logTracingResults(final String test, final Task<?> task)
   {
     final Trace trace = task.getTrace();
 

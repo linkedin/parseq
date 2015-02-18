@@ -6,13 +6,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 
 import static com.linkedin.parseq.Tasks.callable;
 import static com.linkedin.parseq.Tasks.seq;
 import static com.linkedin.parseq.TestUtil.value;
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
 /**
@@ -41,9 +39,7 @@ public class TestSeqTask extends BaseEngineTest
     final Task<String> task = value("value", valueStr);
     final Task<List<String>> seq = seq(Collections.singleton(task));
 
-    getEngine().run(seq);
-
-    assertTrue(seq.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestSeqTask.testIterableSeqWithSingletonList", seq);
 
     assertEquals(valueStr, seq.get());
   }
@@ -80,9 +76,8 @@ public class TestSeqTask extends BaseEngineTest
     }
 
     final Task<Integer> seq = seq(Arrays.asList(tasks));
-    getEngine().run(seq);
 
-    assertTrue(seq.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestSeqTask.testIterableSeqWithMultipleElements", seq);
 
     assertEquals(iters, (int)seq.get());
   }
@@ -95,8 +90,7 @@ public class TestSeqTask extends BaseEngineTest
   {
     final Task<String> seq = seq(value(1),
         value("result"));
-    getEngine().run(seq);
-    assertTrue(seq.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestSeqTask.testSeq2", seq);
     assertEquals("result", seq.get());
   }
 
@@ -106,8 +100,7 @@ public class TestSeqTask extends BaseEngineTest
     final Task<String> seq = seq(value(1),
         value(2),
         value("result"));
-    getEngine().run(seq);
-    assertTrue(seq.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestSeqTask.testSeq3", seq);
     assertEquals("result", seq.get());
   }
 
@@ -118,8 +111,7 @@ public class TestSeqTask extends BaseEngineTest
         value(2),
         value(3),
         value("result"));
-    getEngine().run(seq);
-    assertTrue(seq.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestSeqTask.testSeq4", seq);
     assertEquals("result", seq.get());
   }
 
@@ -131,8 +123,7 @@ public class TestSeqTask extends BaseEngineTest
         value(3),
         value(4),
         value("result"));
-    getEngine().run(seq);
-    assertTrue(seq.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestSeqTask.testSeq5", seq);
     assertEquals("result", seq.get());
   }
 
@@ -145,8 +136,7 @@ public class TestSeqTask extends BaseEngineTest
         value(4),
         value(5),
         value("result"));
-    getEngine().run(seq);
-    assertTrue(seq.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestSeqTask.testSeq6", seq);
     assertEquals("result", seq.get());
   }
 
@@ -160,8 +150,7 @@ public class TestSeqTask extends BaseEngineTest
         value(5),
         value(6),
         value("result"));
-    getEngine().run(seq);
-    assertTrue(seq.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestSeqTask.testSeq7", seq);
     assertEquals("result", seq.get());
   }
 
@@ -176,8 +165,7 @@ public class TestSeqTask extends BaseEngineTest
         value(6),
         value(7),
         value("result"));
-    getEngine().run(seq);
-    assertTrue(seq.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestSeqTask.testSeq8", seq);
     assertEquals("result", seq.get());
   }
 
@@ -193,8 +181,7 @@ public class TestSeqTask extends BaseEngineTest
         value(7),
         value(8),
         value("result"));
-    getEngine().run(seq);
-    assertTrue(seq.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestSeqTask.testSeq9", seq);
     assertEquals("result", seq.get());
   }
 
@@ -211,8 +198,7 @@ public class TestSeqTask extends BaseEngineTest
         value(8),
         value(9),
         value("result"));
-    getEngine().run(seq);
-    assertTrue(seq.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestSeqTask.testSeq10", seq);
     assertEquals("result", seq.get());
   }
 

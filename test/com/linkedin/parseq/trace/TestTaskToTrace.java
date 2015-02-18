@@ -66,8 +66,7 @@ public class TestTaskToTrace extends BaseEngineTest
   {
     final Task<String> task = value("taskName", "value");
 
-    getEngine().run(task);
-    assertTrue(task.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestTaskToTrace.testSuccessfulTrace", task);
 
     final Trace trace = task.getTrace();
     assertShallowTraceMatches(task, trace);
@@ -78,8 +77,7 @@ public class TestTaskToTrace extends BaseEngineTest
   {
     final Task<String> task = value("taskName", null);
 
-    getEngine().run(task);
-    assertTrue(task.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestTaskToTrace.testSuccessfulTraceWithNullValue", task);
 
     final Trace trace = task.getTrace();
     assertShallowTraceMatches(task, trace);
@@ -90,8 +88,7 @@ public class TestTaskToTrace extends BaseEngineTest
   {
     final Task<?> task = TestUtil.errorTask("taskName", new Exception("error message"));
 
-    getEngine().run(task);
-    assertTrue(task.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestTaskToTrace.testErrorTrace", task);
 
     final Trace trace = task.getTrace();
     assertShallowTraceMatches(task, trace);
@@ -104,8 +101,7 @@ public class TestTaskToTrace extends BaseEngineTest
     final Task<String> task2 = value("taskName2", "value2");
 
     final Task<?> seq1 = seq(task1, task2);
-    getEngine().run(seq1);
-    assertTrue(seq1.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestTaskToTrace.testSeqSystemHiddenTrace", seq1);
 
     assertTrue(seq1.getTrace().getSystemHidden());
 
@@ -125,8 +121,7 @@ public class TestTaskToTrace extends BaseEngineTest
 
     final Task<?> par1 = par(task1, task2);
 
-    getEngine().run(par1);
-    assertTrue(par1.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestTaskToTrace.testParSystemHiddenTrace", par1);
 
     assertTrue(par1.getTrace().getSystemHidden());
 
@@ -144,8 +139,7 @@ public class TestTaskToTrace extends BaseEngineTest
     final Task<String> task2 = value("taskName2", "value2");
 
     final Task<String> withSideEffects = withSideEffect(task1, task2);
-    getEngine().run(withSideEffects);
-    withSideEffects.await();
+    runWait5sAndLogTrace("TestTaskToTrace.testSideEffectSystemTrace", withSideEffects);
 
     assertTrue(withSideEffects.getTrace().getSystemHidden());
   }
@@ -172,8 +166,7 @@ public class TestTaskToTrace extends BaseEngineTest
     };
 
     final Task<?> par1 = par(task1, task2);
-    getEngine().run(par1);
-    assertTrue(par1.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestTaskToTrace.testNotHiddenTrace", par1);
 
     assertFalse(par1.getTrace().getHidden());
     assertFalse(task1.getTrace().getHidden());
@@ -220,8 +213,7 @@ public class TestTaskToTrace extends BaseEngineTest
     };
 
     final Task<?> par1 = par(task1, task2);
-    getEngine().run(par1);
-    assertTrue(par1.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestTaskToTrace.testUserHiddenTrace", par1);
 
     assertFalse(par1.getTrace().getHidden());
     assertTrue(task1.getTrace().getHidden());
@@ -251,6 +243,7 @@ public class TestTaskToTrace extends BaseEngineTest
     getEngine().run(task);
 
     assertTrue(cdl.await(5, TimeUnit.SECONDS));
+    logTracingResults("TestTaskToTrace.testUnfinishedTrace", task);
 
     final Trace trace = task.getTrace();
     assertShallowTraceMatches(task, trace);
@@ -266,8 +259,7 @@ public class TestTaskToTrace extends BaseEngineTest
     final Task<String> successor = value("successor", "successorValue");
 
     final Task<?> seq = seq(predecessor, successor);
-    getEngine().run(seq);
-    assertTrue(seq.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestTaskToTrace.testTraceWithPredecessorTrace", seq);
 
     final ComparableTrace sucTrace = new ComparableTraceBuilder(successor.getTrace()).build();
     assertShallowTraceMatches(successor, sucTrace);
@@ -288,9 +280,8 @@ public class TestTaskToTrace extends BaseEngineTest
     final Task<String> sideEffect = value("sideEffect", "sideEffectValue");
 
     final Task<String> withSideEffect = withSideEffect(baseTask, sideEffect);
-    getEngine().run(withSideEffect);
-    withSideEffect.await();
-    sideEffect.await();
+    runWait5sAndLogTrace("TestTaskToTrace.testSideEffectsPredecessorTrace", withSideEffect);
+    assertTrue(sideEffect.await(5, TimeUnit.SECONDS));
 
     final ComparableTrace wseTrace = new ComparableTraceBuilder(withSideEffect.getTrace()).build();
     final Set<Related<Trace>> wseRelated = wseTrace.getRelated();
@@ -332,10 +323,8 @@ public class TestTaskToTrace extends BaseEngineTest
   {
     final Task<String> task = value("taskName", "value");
 
-    @SuppressWarnings("unchecked")
     final Task<?> seq = seq(Arrays.asList(task));
-    getEngine().run(seq);
-    assertTrue(seq.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestTaskToTrace.testTraceWithSuccessChild", seq);
 
     final ComparableTrace taskTrace = new ComparableTraceBuilder(task.getTrace()).build();
     assertShallowTraceMatches(task, taskTrace);
@@ -366,8 +355,7 @@ public class TestTaskToTrace extends BaseEngineTest
       }
     };
 
-    getEngine().run(task);
-    assertTrue(task.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestTaskToTrace.testTraceWithEarlyFinish", task);
 
     final ComparableTrace taskTrace = new ComparableTraceBuilder(task.getTrace()).build();
     final ComparableTrace innerTaskTrace = new ComparableTraceBuilder(innerTask.getTrace()).build();
@@ -400,8 +388,7 @@ public class TestTaskToTrace extends BaseEngineTest
         }
       };
 
-      getEngine().run(task);
-      assertTrue(task.await(5, TimeUnit.SECONDS));
+      runWait5sAndLogTrace("TestTaskToTrace.testTraceIsAddedBeforeAwaitCompletes", task);
 
       assertTrue(task.getTrace().getRelated().iterator().hasNext());
     }
@@ -432,8 +419,7 @@ public class TestTaskToTrace extends BaseEngineTest
     };
 
     Task<?> par = par(task1, task2);
-    getEngine().run(par);
-    assertTrue(par.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestTaskToTrace.testTraceWithMultiplePotentialParent", par);
 
     final ComparableTrace parTrace = new ComparableTraceBuilder(par.getTrace()).build();
     final ComparableTrace innerTaskTrace = new ComparableTraceBuilder(innerTask.getTrace()).build();
@@ -502,8 +488,7 @@ public class TestTaskToTrace extends BaseEngineTest
     };
 
     Task<?> seq = seq(task1, task2, task3);
-    getEngine().run(seq);
-    assertTrue(seq.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestTaskToTrace.testTraceWithMultiplePotentialParentAndParent", seq);
 
     final ComparableTrace seqTrace = new ComparableTraceBuilder(seq.getTrace()).build();
     final ComparableTrace innerTaskTrace = new ComparableTraceBuilder(innerTask.getTrace()).build();
@@ -548,8 +533,7 @@ public class TestTaskToTrace extends BaseEngineTest
       }
     };
 
-    getEngine().run(parent);
-    assertTrue(parent.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestTaskToTrace.testTraceWithDiamond", parent);
 
     final ComparableTrace parentTrace = new ComparableTraceBuilder(parent.getTrace()).build();
     final ComparableTrace traceA = new ComparableTraceBuilder(a.getTrace()).build();

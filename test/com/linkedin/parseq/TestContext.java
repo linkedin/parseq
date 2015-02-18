@@ -133,9 +133,7 @@ public class TestContext extends BaseEngineTest
       }
     };
 
-    getEngine().run(task);
-
-    assertTrue(task.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestContext.testCreateTimer", task);
     assertEquals(value, task.get());
   }
 
@@ -163,9 +161,7 @@ public class TestContext extends BaseEngineTest
       }
     };
 
-    getEngine().run(task);
-
-    assertTrue(task.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestContext.testRun", task);
     assertEquals(value, task.get());
   }
 
@@ -207,9 +203,7 @@ public class TestContext extends BaseEngineTest
       }
     };
 
-    getEngine().run(task);
-
-    assertTrue(task.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestContext.testAfter", task);
     assertEquals(successorValue, successorTask.get());
     assertEquals(predecessorValue, predecessorValueRef.get());
   }
@@ -248,9 +242,7 @@ public class TestContext extends BaseEngineTest
       }
     };
 
-    getEngine().run(task);
-
-    assertTrue(task.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestContext.testPrioritizedTasks", task);
 
     final Queue<Integer> ints = task.get();
     assertEquals((Integer)2, ints.poll());

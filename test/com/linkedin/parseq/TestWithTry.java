@@ -19,7 +19,7 @@ public class TestWithTry extends BaseEngineTest
     final Task<Try<String>> task = Tasks.sync("test", () -> "hello")
         .withTry();
 
-    runWaitAndPrintTrace("TestWithTry.testHappyPath", task);
+    runWait5sAndLogTrace("TestWithTry.testHappyPath", task);
 
     assertFalse(task.get().isFailed());
     assertEquals("hello", task.get().get());
@@ -36,7 +36,7 @@ public class TestWithTry extends BaseEngineTest
       return "hello";
     }).withTry();
 
-    runWaitAndPrintTrace("TestWithTry.testError", task);
+    runWait5sAndLogTrace("TestWithTry.testError", task);
 
     assertTrue(task.get().isFailed());
     assertTrue(task.get().getError() instanceof RuntimeException);

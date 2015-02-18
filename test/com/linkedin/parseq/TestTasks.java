@@ -61,9 +61,7 @@ public class TestTasks extends BaseEngineTest
       }
     };
 
-    getEngine().run(task);
-
-    assertTrue(task.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestTasks.testTaskThatThrows", task);
 
     assertTrue(task.isFailed());
     assertEquals(error, task.getError());
@@ -94,8 +92,7 @@ public class TestTasks extends BaseEngineTest
       }
     });
 
-    getEngine().run(task);
-    assertTrue(task.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestTasks.testAwait", task);
     assertEquals(Boolean.TRUE, resultRef.get());
   }
 
@@ -123,8 +120,7 @@ public class TestTasks extends BaseEngineTest
     };
 
     Task<String> withSideEffect = withSideEffect(fastTask, settableTask);
-    getEngine().run(withSideEffect);
-    withSideEffect.await();
+    runWait5sAndLogTrace("TestTasks.testSideEffectPartialCompletion", withSideEffect);
     assertTrue(withSideEffect.isDone());
     assertTrue(fastTask.isDone());
     assertFalse(settableTask.isDone());
@@ -153,8 +149,7 @@ public class TestTasks extends BaseEngineTest
     };
 
     Task<String> withSideEffect = withSideEffect(taskOne, taskTwo);
-    getEngine().run(withSideEffect);
-    withSideEffect.await();
+    runWait5sAndLogTrace("TestTasks.testSideEffectFullCompletion", withSideEffect);
     taskTwo.await();
     assertTrue(withSideEffect.isDone());
     assertTrue(taskTwo.isDone());
@@ -207,9 +202,7 @@ public class TestTasks extends BaseEngineTest
 
     final Task<String> timeoutTask = Tasks.timeoutWithError(200, TimeUnit.MILLISECONDS, task);
 
-    getEngine().run(timeoutTask);
-
-    assertTrue(timeoutTask.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestTasks.testTimeoutTaskWithTimeout", timeoutTask);
 
     assertTrue(timeoutTask.isFailed());
     assertTrue(timeoutTask.getError() instanceof TimeoutException);
@@ -237,9 +230,7 @@ public class TestTasks extends BaseEngineTest
 
     final Task<String> timeoutTask = Tasks.timeoutWithError(200, TimeUnit.MILLISECONDS, task);
 
-    getEngine().run(timeoutTask);
-
-    assertTrue(timeoutTask.await(5, TimeUnit.SECONDS));
+    runWait5sAndLogTrace("TestTasks.testTimeoutTaskWithoutTimeout", timeoutTask);
 
     assertEquals(value, task.get());
 
@@ -306,7 +297,7 @@ public class TestTasks extends BaseEngineTest
     // final task runs all the tasks in parallel
     final Task<?> timeoutTask = Tasks.par(tasks);
 
-    runWaitAndPrintTrace("TestTasks.testManyTimeoutTaskWithoutTimeoutOnAQueue", timeoutTask);
+    runWait5sAndLogTrace("TestTasks.testManyTimeoutTaskWithoutTimeoutOnAQueue", timeoutTask);
 
     scheduler.shutdown();
 
