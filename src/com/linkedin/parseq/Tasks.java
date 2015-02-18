@@ -64,6 +64,20 @@ public class Tasks
   }
 
   /**
+   * Creates a new {@link Task} that just returns the supplied parameter.
+   * This can be useful when returning a fixed value for cases when
+   * a Task is required in general, but the task just returns
+   * a simple value in some instances.
+   *
+   * @param value the value to be returned
+   * @return the new task
+   */
+  public static <T> Task<T> value(String name, final T value)
+  {
+    return new ValueTask<T>(name, value);
+  }
+
+  /**
    * Creates a new {@link Task} that's value will be set to the value returned
    * from the supplied callable. This task is useful when doing basic
    * computation that does not require asynchrony. It is not appropriate for
