@@ -21,28 +21,28 @@ import static com.linkedin.parseq.function.Tuples.tuple;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.linkedin.parseq.function.Function3;
-import com.linkedin.parseq.function.Tuple3;
+import com.linkedin.parseq.function.Function5;
+import com.linkedin.parseq.function.Tuple5;
 import com.linkedin.parseq.internal.InternalUtil;
 import com.linkedin.parseq.internal.SystemHiddenTask;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 
-public class Par3Task<T1, T2, T3> extends SystemHiddenTask<Tuple3<T1, T2, T3>> implements Tuple3Task<T1, T2, T3>
+public class Par5Task<T1, T2, T3, T4, T5> extends SystemHiddenTask<Tuple5<T1, T2, T3, T4, T5>> implements Tuple5Task<T1, T2, T3, T4, T5>
 {
-  private final Tuple3<Task<T1>, Task<T2>, Task<T3>> _tasks;
+  private final Tuple5<Task<T1>, Task<T2>, Task<T3>, Task<T4>, Task<T5>> _tasks;
 
-  public Par3Task(final String name, Task<T1> task1, Task<T2> task2, Task<T3> task3)
+  public Par5Task(final String name, Task<T1> task1, Task<T2> task2, Task<T3> task3, Task<T4> task4, Task<T5> task5)
   {
     super(name);
-    _tasks = tuple(task1, task2, task3);
+    _tasks = tuple(task1, task2, task3, task4, task5);
   }
 
   @Override
-  protected Promise<Tuple3<T1, T2, T3>> run(final Context context) throws Exception
+  protected Promise<Tuple5<T1, T2, T3, T4, T5>> run(final Context context) throws Exception
   {
-    final SettablePromise<Tuple3<T1, T2, T3>> result = Promises.settable();
+    final SettablePromise<Tuple5<T1, T2, T3, T4, T5>> result = Promises.settable();
 
     InternalUtil.after(p -> {
       final List<Throwable> errors = new ArrayList<Throwable>();
@@ -57,20 +57,24 @@ public class Par3Task<T1, T2, T3> extends SystemHiddenTask<Tuple3<T1, T2, T3>> i
       } else {
         result.done(tuple(_tasks._1().get(),
                           _tasks._2().get(),
-                          _tasks._3().get()));
+                          _tasks._3().get(),
+                          _tasks._4().get(),
+                          _tasks._5().get()));
       }
     },
     _tasks._1(),
     _tasks._2(),
-    _tasks._3());
+    _tasks._3(),
+    _tasks._4(),
+    _tasks._5());
 
     _tasks.forEach(t -> context.run((Task<?>)t));
 
     return result;
   }
 
-  public <R> Task<R> map(final Function3<T1, T2, T3, R> f) {
-    return map(tuple -> f.apply(tuple._1(), tuple._2(), tuple._3()));
+  public <R> Task<R> map(final Function5<T1, T2, T3, T4, T5, R> f) {
+    return map(tuple -> f.apply(tuple._1(), tuple._2(), tuple._3(), tuple._4(), tuple._5()));
   }
 
 

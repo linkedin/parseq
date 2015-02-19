@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import com.linkedin.parseq.function.Tuple3;
+import com.linkedin.parseq.function.Tuple9;
 import com.linkedin.parseq.internal.TaskLogger;
 import com.linkedin.parseq.promise.PromiseException;
 import com.linkedin.parseq.promise.PromiseListener;
@@ -13,11 +13,11 @@ import com.linkedin.parseq.trace.Related;
 import com.linkedin.parseq.trace.ShallowTrace;
 import com.linkedin.parseq.trace.Trace;
 
-public class Tuple3TaskDelegate<T1, T2, T3> implements Tuple3Task<T1, T2, T3> {
+public class Tuple9TaskDelegate<T1, T2, T3, T4, T5, T6, T7, T8, T9> implements Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> {
 
-  private final Task<Tuple3<T1, T2, T3>> _task;
+  private final Task<Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9>> _task;
 
-  public Tuple3TaskDelegate(Task<Tuple3<T1, T2, T3>> task) {
+  public Tuple9TaskDelegate(Task<Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9>> task) {
     _task = task;
   }
 
@@ -25,7 +25,7 @@ public class Tuple3TaskDelegate<T1, T2, T3> implements Tuple3Task<T1, T2, T3> {
     return _task.cancel(reason);
   }
 
-  public Tuple3<T1, T2, T3> get() throws PromiseException {
+  public Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9> get() throws PromiseException {
     return _task.get();
   }
 
@@ -33,7 +33,7 @@ public class Tuple3TaskDelegate<T1, T2, T3> implements Tuple3Task<T1, T2, T3> {
     return _task.getError();
   }
 
-  public Tuple3<T1, T2, T3> getOrDefault(Tuple3<T1, T2, T3> defaultValue) throws PromiseUnresolvedException {
+  public Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9> getOrDefault(Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9> defaultValue) throws PromiseUnresolvedException {
     return _task.getOrDefault(defaultValue);
   }
 
@@ -61,7 +61,7 @@ public class Tuple3TaskDelegate<T1, T2, T3> implements Tuple3Task<T1, T2, T3> {
     return _task.await(time, unit);
   }
 
-  public void wrapContextRun(ContextRunWrapper<Tuple3<T1, T2, T3>> wrapper) {
+  public void wrapContextRun(ContextRunWrapper<Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9>> wrapper) {
     _task.wrapContextRun(wrapper);
   }
 
@@ -69,7 +69,7 @@ public class Tuple3TaskDelegate<T1, T2, T3> implements Tuple3Task<T1, T2, T3> {
     return _task.getShallowTrace();
   }
 
-  public void addListener(PromiseListener<Tuple3<T1, T2, T3>> listener) {
+  public void addListener(PromiseListener<Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9>> listener) {
     _task.addListener(listener);
   }
 

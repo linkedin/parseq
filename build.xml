@@ -4,6 +4,8 @@
 
     <property name="example.dir" value="${basedir}/example" />
     <property name="src.dir" value="${basedir}/src" />
+	<property name="src.fmpp.dir" location="${basedir}/fmpp/templates" />
+	<property name="src.fmpp.data" location="${basedir}/fmpp/data" />
     <property name="test.dir" value="${basedir}/test" />
     <property name="tools.dir" value="${basedir}/tools" />
     <property name="build.dir" value="${basedir}/build" />
@@ -63,6 +65,13 @@
             </classpath>
         </taskdef>
 
+        <!-- load fmpp taskdefs -->
+    	<taskdef name="fmpp" classname="fmpp.tools.AntTask">
+            <classpath>
+                <fileset dir="${lib.build.dir}/bootstrap" includes="*.jar"/>
+            </classpath>
+        </taskdef>
+    	
         <property name="bootstrap.done" value="true"/>
     </target>
 
@@ -83,7 +92,15 @@
         <ivy:retrieve pattern="${ivy.lib.dir}/[conf]/[artifact].[ext]"/>
     </target>
 
-    <target name="build-src" depends="prepare" description="Builds src and example files.">
+    <target name="generate-src" depends="prepare"
+        description="Builds java source files from templates.">
+        <fmpp excludes="**/macros.ftl"
+            sourceRoot="${src.fmpp.dir}"
+            outputRoot="${src.dir}"
+            data="tdd(../data/fmpp.tdd)"/>
+    </target>
+
+    <target name="build-src" depends="prepare, generate-src" description="Builds src and example files.">
         <javac includeantruntime="false" destdir="${src.build.dir}" source="${javac.source}" target="${javac.target}" debug="${debug}">
             <src path="${src.dir}"/>
             <classpath refid="build.classpath"/>

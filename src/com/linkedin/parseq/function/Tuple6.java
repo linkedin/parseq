@@ -4,16 +4,22 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
-public class Tuple3<T1, T2, T3> implements Tuple {
+public class Tuple6<T1, T2, T3, T4, T5, T6> implements Tuple {
 
   private final T1 _1;
   private final T2 _2;
   private final T3 _3;
+  private final T4 _4;
+  private final T5 _5;
+  private final T6 _6;
 
-  public Tuple3(final T1 t1, final T2 t2, final T3 t3) {
+  public Tuple6(final T1 t1, final T2 t2, final T3 t3, final T4 t4, final T5 t5, final T6 t6) {
     _1 = t1;
     _2 = t2;
     _3 = t3;
+    _4 = t4;
+    _5 = t5;
+    _6 = t6;
   }
 
   public T1 _1() {
@@ -25,9 +31,18 @@ public class Tuple3<T1, T2, T3> implements Tuple {
   public T3 _3() {
     return _3;
   }
+  public T4 _4() {
+    return _4;
+  }
+  public T5 _5() {
+    return _5;
+  }
+  public T6 _6() {
+    return _6;
+  }
 
-  public <C> C map(final Function3<T1, T2, T3, C> f) {
-    return f.apply(_1, _2, _3);
+  public <C> C map(final Function6<T1, T2, T3, T4, T5, T6, C> f) {
+    return f.apply(_1, _2, _3, _4, _5, _6);
   }
 
   @Override
@@ -51,6 +66,15 @@ public class Tuple3<T1, T2, T3> implements Tuple {
           case 2:
             _index++;
             return _3;
+          case 3:
+            _index++;
+            return _4;
+          case 4:
+            _index++;
+            return _5;
+          case 5:
+            _index++;
+            return _6;
         }
         throw new NoSuchElementException();
       }
@@ -59,16 +83,19 @@ public class Tuple3<T1, T2, T3> implements Tuple {
 
   @Override
   public int arity() {
-    return 3;
+    return 6;
   }
 
   @Override
   public boolean equals(Object other) {
-      if(other instanceof Tuple3) {
-          Tuple3<?, ?, ?> that = (Tuple3<?, ?, ?>) other;
+      if(other instanceof Tuple6) {
+          Tuple6<?, ?, ?, ?, ?, ?> that = (Tuple6<?, ?, ?, ?, ?, ?>) other;
           return Objects.equals(this._1, that._1)
                   && Objects.equals(this._2, that._2)
-                  && Objects.equals(this._3, that._3);
+                  && Objects.equals(this._3, that._3)
+                  && Objects.equals(this._4, that._4)
+                  && Objects.equals(this._5, that._5)
+                  && Objects.equals(this._6, that._6);
       } else {
           return false;
       }
@@ -76,7 +103,7 @@ public class Tuple3<T1, T2, T3> implements Tuple {
 
   @Override
   public int hashCode() {
-      return Objects.hash(_1, _2, _3);
+      return Objects.hash(_1, _2, _3, _4, _5, _6);
   }
 
   @Override
@@ -85,6 +112,9 @@ public class Tuple3<T1, T2, T3> implements Tuple {
               + Objects.toString(_1)
        + ", " + Objects.toString(_2)
        + ", " + Objects.toString(_3)
+       + ", " + Objects.toString(_4)
+       + ", " + Objects.toString(_5)
+       + ", " + Objects.toString(_6)
               + ")";
   }
 

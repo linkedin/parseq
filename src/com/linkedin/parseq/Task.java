@@ -495,15 +495,71 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   public static <T1, T2> Tuple2Task<T1, T2> par(final Task<T1> task1,
-                                              final Task<T2> task2) {
-    return new Par2Task<T1, T2>("par", task1, task2);
+                                                final Task<T2> task2) {
+    return new Par2Task<T1, T2>("par2", task1, task2);
   }
 
   public static <T1, T2, T3> Tuple3Task<T1, T2, T3> par(final Task<T1> task1,
-                                                      final Task<T2> task2,
-                                                      final Task<T3> task3) {
-    return new Par3Task<T1, T2, T3>("par", task1, task2, task3);
+                                                        final Task<T2> task2,
+                                                        final Task<T3> task3) {
+    return new Par3Task<T1, T2, T3>("par3", task1, task2, task3);
   }
 
+  public static <T1, T2, T3, T4> Tuple4Task<T1, T2, T3, T4> par(final Task<T1> task1,
+                                                                final Task<T2> task2,
+                                                                final Task<T3> task3,
+                                                                final Task<T4> task4) {
+    return new Par4Task<T1, T2, T3, T4>("par4", task1, task2, task3, task4);
+  }
+
+  public static <T1, T2, T3, T4, T5> Tuple5Task<T1, T2, T3, T4, T5> par(final Task<T1> task1,
+                                                                        final Task<T2> task2,
+                                                                        final Task<T3> task3,
+                                                                        final Task<T4> task4,
+                                                                        final Task<T5> task5) {
+    return new Par5Task<T1, T2, T3, T4, T5>("par5", task1, task2, task3, task4, task5);
+  }
+
+  public static <T1, T2, T3, T4, T5, T6> Tuple6Task<T1, T2, T3, T4, T5, T6> par(final Task<T1> task1,
+                                                                                final Task<T2> task2,
+                                                                                final Task<T3> task3,
+                                                                                final Task<T4> task4,
+                                                                                final Task<T5> task5,
+                                                                                final Task<T6> task6) {
+    return new Par6Task<T1, T2, T3, T4, T5, T6>("par6", task1, task2, task3, task4, task5, task6);
+  }
+
+  public static <T1, T2, T3, T4, T5, T6, T7> Tuple7Task<T1, T2, T3, T4, T5, T6, T7> par(final Task<T1> task1,
+                                                                                        final Task<T2> task2,
+                                                                                        final Task<T3> task3,
+                                                                                        final Task<T4> task4,
+                                                                                        final Task<T5> task5,
+                                                                                        final Task<T6> task6,
+                                                                                        final Task<T7> task7) {
+    return new Par7Task<T1, T2, T3, T4, T5, T6, T7>("par7", task1, task2, task3, task4, task5, task6, task7);
+  }
+
+  public static <T1, T2, T3, T4, T5, T6, T7, T8> Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> par(final Task<T1> task1,
+                                                                                                final Task<T2> task2,
+                                                                                                final Task<T3> task3,
+                                                                                                final Task<T4> task4,
+                                                                                                final Task<T5> task5,
+                                                                                                final Task<T6> task6,
+                                                                                                final Task<T7> task7,
+                                                                                                final Task<T8> task8) {
+    return new Par8Task<T1, T2, T3, T4, T5, T6, T7, T8>("par8", task1, task2, task3, task4, task5, task6, task7, task8);
+  }
+
+  public static <T1, T2, T3, T4, T5, T6, T7, T8, T9> Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> par(final Task<T1> task1,
+                                                                                                        final Task<T2> task2,
+                                                                                                        final Task<T3> task3,
+                                                                                                        final Task<T4> task4,
+                                                                                                        final Task<T5> task5,
+                                                                                                        final Task<T6> task6,
+                                                                                                        final Task<T7> task7,
+                                                                                                        final Task<T8> task8,
+                                                                                                        final Task<T9> task9) {
+    return new Par9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9>("par9", task1, task2, task3, task4, task5, task6, task7, task8, task9);
+  }
 
 }
