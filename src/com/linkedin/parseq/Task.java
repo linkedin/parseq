@@ -146,8 +146,6 @@ public interface Task<T> extends Promise<T>, Cancellable
     return apply(desc, new PromiseTransformer<T, R>(f));
   }
 
-  //TODO move description to be a last parameter and add enum or fla to signify if it is supposed to be hidden
-
   default <R> Task<R> map(final Function<T, R> f) {
     return map("map", f);
   }
@@ -207,13 +205,35 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   default Task<T> withSideEffect(final Function<T, Task<?>> f) {
-    //TODO
-    return null;
+    return withSideEffect("withSideEffect", f);
   }
 
-  default Task<T> withSideEffect(final String desription, final Function<T, Task<?>> f) {
-    //TODO
-    return null;
+  default Task<T> withSideEffect(final String desc, final Function<T, Task<?>> f) {
+    final Task<T> that = this;
+    return new SystemHiddenTask<T>(desc) {
+      @Override
+      protected Promise<T> run(Context context) throws Throwable {
+        context.after(that).runSideEffect(f.apply(that.get()));
+        context.run(that);
+        return that;
+      }
+    };
+  }
+
+  default Task<T> withSideEffect(final Task<?> sideEffect) {
+    return withSideEffect("withSideEffect", sideEffect);
+  }
+
+  default Task<T> withSideEffect(final String desc, final Task<?> sideEffect) {
+    final Task<T> that = this;
+    return new SystemHiddenTask<T>(desc) {
+      @Override
+      protected Promise<T> run(Context context) throws Throwable {
+        context.after(that).runSideEffect(sideEffect);
+        context.run(that);
+        return that;
+      }
+    };
   }
 
   /**
@@ -436,7 +456,7 @@ public interface Task<T> extends Promise<T>, Cancellable
     return this;
   }
 
-  public interface ContextRunWrapper<T> {
+  public static interface ContextRunWrapper<T> {
 
     void before(Context context);
 

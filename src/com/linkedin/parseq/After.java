@@ -50,7 +50,6 @@ public interface After
    * task is run as a side effect.
    *
    * @param task the task to be run as a side effect.
-   * @return the wrapper task for the side effect
    */
-  Task<?> runSideEffect(Task<?> task);
+  void runSideEffect(Task<?> task);
 }

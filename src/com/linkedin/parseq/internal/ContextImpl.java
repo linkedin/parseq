@@ -31,7 +31,6 @@ import com.linkedin.parseq.Cancellable;
 import com.linkedin.parseq.Context;
 import com.linkedin.parseq.Exceptions;
 import com.linkedin.parseq.Task;
-import com.linkedin.parseq.BaseTask;
 
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
@@ -216,18 +215,16 @@ public class ContextImpl implements Context, Cancellable
       }
 
       @Override
-      public Task<?> runSideEffect(final Task<?> task)
+      public void runSideEffect(final Task<?> task)
       {
-        final Task<?> taskWrapper = createSideEffectWrapper(task, predecessorTasks);
-        InternalUtil.after(new PromiseListener()
+        InternalUtil.after(new PromiseListener<Object>()
         {
           @Override
-          public void onResolved(Promise resolvedPromise)
+          public void onResolved(Promise<Object> resolvedPromise)
           {
-            runSideEffectSubTask(taskWrapper, predecessorTasks);
+            runSideEffectSubTask(task, predecessorTasks);
           }
         }, promises);
-        return taskWrapper;
       }
     };
   }
@@ -287,28 +284,15 @@ public class ContextImpl implements Context, Cancellable
     }
   }
 
-  private Task<?> createSideEffectWrapper(final Task<?> task, final List<Task<?>> predecessors)
-  {
-    Task<?> taskWrapper = new BaseTask<Object>("sideEffectWrapper")
-    {
-      @Override
-      protected Promise<?> run(Context context) throws Throwable
-      {
-        for (Task<?> predecessor : predecessors)
-          if (predecessor.isFailed())
-          {
-            return null;
-          }
-        context.run(task);
-        return task;
-      }
-    };
-    return taskWrapper;
-  }
-
   private void runSideEffectSubTask(final Task<?> taskWrapper, final List<Task<?>> predecessors)
   {
-
+    //don't run side-effect if any of the predecessors failed or were cancelled
+    for (Task<?> predecessor : predecessors)
+    {
+      if (predecessor.isFailed()) {
+        return;
+      }
+    }
     final ContextImpl subContext = createSubContext(taskWrapper, predecessors);
     subContext.runTask();
   }

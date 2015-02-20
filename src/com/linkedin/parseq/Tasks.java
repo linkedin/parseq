@@ -226,7 +226,7 @@ public class Tasks
    */
   public static <T> Task<T> withSideEffect(final Task<T> parent, final Task<?> sideEffect)
   {
-    return new WithSideEffectTask<T>("with side effect", parent, sideEffect);
+    return parent.withSideEffect(sideEffect);
   }
 
   /**

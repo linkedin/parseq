@@ -294,28 +294,15 @@ public class TestTaskToTrace extends BaseEngineTest
     assertShallowTraceMatches(baseTask, baseTrace);
 
     boolean foundBase = false;
-    boolean foundSide = false;
     for (Related<Trace> related : wseRelated)
     {
       if (related.equals(new Related<Trace>(Relationship.PARENT_OF, baseTrace)))
       {
         foundBase = true;
       }
-      else
-      {
-        Set<Related<Trace>> relatedToSideEffectWrapper = related.getRelated().getRelated();
-        for (Related<Trace> possibleSideEffect : relatedToSideEffectWrapper)
-        {
-          if (possibleSideEffect.equals(new Related<Trace>(Relationship.PARENT_OF, seTrace)))
-          {
-            foundSide = true;
-          }
-        }
-      }
     }
 
     assertTrue(foundBase);
-    assertTrue(foundSide);
   }
 
   @Test
