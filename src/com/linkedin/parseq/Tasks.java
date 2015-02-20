@@ -22,14 +22,17 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
+import com.linkedin.parseq.collection.ParSeqCollections;
+
 /**
  * This class provides a set of factory methods for create common
  * {@link Task}s.
  *
+ * @deprecated  As of 2.0.0, replaced by static methods in {@link #Task}
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Chi Chan (ckchan@linkedin.com)
  */
-public class Tasks
+@Deprecated public class Tasks
 {
   private Tasks() {}
 
@@ -37,11 +40,12 @@ public class Tasks
    * Creates a new {@link Task} that have a value of type Void. Because the
    * returned task has no value, it is typically used to produce side-effects.
    *
+   * @deprecated  As of 2.0.0, replaced by {@link Task#action(String, Runnable) Task.action}
    * @param name a name that describes the action
    * @param runnable the action that will be executed when the task is run
    * @return the new task
    */
-  public static Task<Void> action(final String name, final Runnable runnable)
+  @Deprecated public static Task<Void> action(final String name, final Runnable runnable)
   {
     return Task.action(name, runnable);
   }
@@ -52,12 +56,13 @@ public class Tasks
    * computation that does not require asynchrony. It is not appropriate for
    * long running or blocking tasks.
    *
+   * @deprecated  As of 2.0.0, replaced by {@link Task#callable(String, Callable) Task.callable}
    * @param name a name that describes the action
    * @param callable the callable to execute when this task is run
    * @param <T> the type of the return value for this task
    * @return the new task
    */
-  public static <T> Task<T> callable(final String name,
+  @Deprecated public static <T> Task<T> callable(final String name,
                                      final Callable<? extends T> callable)
   {
     return Task.callable(name, callable);
@@ -69,12 +74,13 @@ public class Tasks
    * computation that does not require asynchrony. It is not appropriate for
    * long running or blocking tasks.
    *
+   * @deprecated  As of 2.0.0, replaced by {@link Task#callable(String, Callable) Task.callable}
    * @param name a name that describes the action
    * @param callable the callable to execute when this task is run
    * @param <T> the type of the return value for this task
    * @return the new task
    */
-  public static <T> Task<T> callable(final String name,
+  @Deprecated public static <T> Task<T> callable(final String name,
                                      final ThrowableCallable<? extends T> callable)
   {
     return new CallableTask<T>(name, callable);
@@ -84,17 +90,31 @@ public class Tasks
    * Creates a new task that will run the given tasks sequentially (e.g.
    * task1 will be finished before task2 starts). The value of the seq task will
    * be the result of the last task in the sequence.
+   *
+   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, java.util.function.Function) Task.map},
+   * {@link Task#flatMap(String, java.util.function.Function) Task.flatMap},
+   * {@link Task#andThen(String, Task) Task.andThen} and other methods in {@link Task}.
+   * @see Task#map(String, java.util.function.Function) Task.map
+   * @see Task#flatMap(String, java.util.function.Function) Task.flatMap
+   * @see Task#andThen(String, Task) Task.andThen
+   * @see Task
    */
-  public static <T> Task<T> seq(Task<?> task1,
+  @Deprecated public static <T> Task<T> seq(Task<?> task1,
                                 Task<T> task2)
   {
     return vaseq(task1, task2);
   }
 
   /**
-   * @see #seq(Task, Task)
+   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, java.util.function.Function) Task.map},
+   * {@link Task#flatMap(String, java.util.function.Function) Task.flatMap},
+   * {@link Task#andThen(String, Task) Task.andThen} and other methods in {@link Task}.
+   * @see Task#map(String, java.util.function.Function) Task.map
+   * @see Task#flatMap(String, java.util.function.Function) Task.flatMap
+   * @see Task#andThen(String, Task) Task.andThen
+   * @see Task
    */
-  public static <T> Task<T> seq(Task<?> task1,
+  @Deprecated public static <T> Task<T> seq(Task<?> task1,
                                 Task<?> task2,
                                 Task<T> task3)
   {
@@ -102,9 +122,15 @@ public class Tasks
   }
 
   /**
-   * @see #seq(Task, Task)
+   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, java.util.function.Function) Task.map},
+   * {@link Task#flatMap(String, java.util.function.Function) Task.flatMap},
+   * {@link Task#andThen(String, Task) Task.andThen} and other methods in {@link Task}.
+   * @see Task#map(String, java.util.function.Function) Task.map
+   * @see Task#flatMap(String, java.util.function.Function) Task.flatMap
+   * @see Task#andThen(String, Task) Task.andThen
+   * @see Task
    */
-  public static <T> Task<T> seq(Task<?> task1,
+  @Deprecated public static <T> Task<T> seq(Task<?> task1,
                                 Task<?> task2,
                                 Task<?> task3,
                                 Task<T> task4)
@@ -113,9 +139,15 @@ public class Tasks
   }
 
   /**
-   * @see #seq(Task, Task)
+   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, java.util.function.Function) Task.map},
+   * {@link Task#flatMap(String, java.util.function.Function) Task.flatMap},
+   * {@link Task#andThen(String, Task) Task.andThen} and other methods in {@link Task}.
+   * @see Task#map(String, java.util.function.Function) Task.map
+   * @see Task#flatMap(String, java.util.function.Function) Task.flatMap
+   * @see Task#andThen(String, Task) Task.andThen
+   * @see Task
    */
-  public static <T> Task<T> seq(Task<?> task1,
+  @Deprecated public static <T> Task<T> seq(Task<?> task1,
                                 Task<?> task2,
                                 Task<?> task3,
                                 Task<?> task4,
@@ -125,9 +157,15 @@ public class Tasks
   }
 
   /**
-   * @see #seq(Task, Task)
+   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, java.util.function.Function) Task.map},
+   * {@link Task#flatMap(String, java.util.function.Function) Task.flatMap},
+   * {@link Task#andThen(String, Task) Task.andThen} and other methods in {@link Task}.
+   * @see Task#map(String, java.util.function.Function) Task.map
+   * @see Task#flatMap(String, java.util.function.Function) Task.flatMap
+   * @see Task#andThen(String, Task) Task.andThen
+   * @see Task
    */
-  public static <T> Task<T> seq(Task<?> task1,
+  @Deprecated public static <T> Task<T> seq(Task<?> task1,
                                 Task<?> task2,
                                 Task<?> task3,
                                 Task<?> task4,
@@ -138,9 +176,15 @@ public class Tasks
   }
 
   /**
-   * @see #seq(Task, Task)
+   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, java.util.function.Function) Task.map},
+   * {@link Task#flatMap(String, java.util.function.Function) Task.flatMap},
+   * {@link Task#andThen(String, Task) Task.andThen} and other methods in {@link Task}.
+   * @see Task#map(String, java.util.function.Function) Task.map
+   * @see Task#flatMap(String, java.util.function.Function) Task.flatMap
+   * @see Task#andThen(String, Task) Task.andThen
+   * @see Task
    */
-  public static <T> Task<T> seq(Task<?> task1,
+  @Deprecated public static <T> Task<T> seq(Task<?> task1,
                                 Task<?> task2,
                                 Task<?> task3,
                                 Task<?> task4,
@@ -152,9 +196,15 @@ public class Tasks
   }
 
   /**
-   * @see #seq(Task, Task)
+   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, java.util.function.Function) Task.map},
+   * {@link Task#flatMap(String, java.util.function.Function) Task.flatMap},
+   * {@link Task#andThen(String, Task) Task.andThen} and other methods in {@link Task}.
+   * @see Task#map(String, java.util.function.Function) Task.map
+   * @see Task#flatMap(String, java.util.function.Function) Task.flatMap
+   * @see Task#andThen(String, Task) Task.andThen
+   * @see Task
    */
-  public static <T> Task<T> seq(Task<?> task1,
+  @Deprecated public static <T> Task<T> seq(Task<?> task1,
                                 Task<?> task2,
                                 Task<?> task3,
                                 Task<?> task4,
@@ -167,9 +217,15 @@ public class Tasks
   }
 
   /**
-   * @see #seq(Task, Task)
+   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, java.util.function.Function) Task.map},
+   * {@link Task#flatMap(String, java.util.function.Function) Task.flatMap},
+   * {@link Task#andThen(String, Task) Task.andThen} and other methods in {@link Task}.
+   * @see Task#map(String, java.util.function.Function) Task.map
+   * @see Task#flatMap(String, java.util.function.Function) Task.flatMap
+   * @see Task#andThen(String, Task) Task.andThen
+   * @see Task
    */
-  public static <T> Task<T> seq(Task<?> task1,
+  @Deprecated public static <T> Task<T> seq(Task<?> task1,
                                 Task<?> task2,
                                 Task<?> task3,
                                 Task<?> task4,
@@ -183,9 +239,15 @@ public class Tasks
   }
 
   /**
-   * @see #seq(Task, Task)
+   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, java.util.function.Function) Task.map},
+   * {@link Task#flatMap(String, java.util.function.Function) Task.flatMap},
+   * {@link Task#andThen(String, Task) Task.andThen} and other methods in {@link Task}.
+   * @see Task#map(String, java.util.function.Function) Task.map
+   * @see Task#flatMap(String, java.util.function.Function) Task.flatMap
+   * @see Task#andThen(String, Task) Task.andThen
+   * @see Task
    */
-  public static <T> Task<T> seq(Task<?> task1,
+  @Deprecated public static <T> Task<T> seq(Task<?> task1,
                                 Task<?> task2,
                                 Task<?> task3,
                                 Task<?> task4,
@@ -207,8 +269,15 @@ public class Tasks
    * @param tasks the tasks to run sequentially
    * @param <T> the result value for the sequence of tasks
    * @return a new task that will run the given tasks sequentially
+   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, java.util.function.Function) Task.map},
+   * {@link Task#flatMap(String, java.util.function.Function) Task.flatMap},
+   * {@link Task#andThen(String, Task) Task.andThen} and other methods in {@link Task}.
+   * @see Task#map(String, java.util.function.Function) Task.map
+   * @see Task#flatMap(String, java.util.function.Function) Task.flatMap
+   * @see Task#andThen(String, Task) Task.andThen
+   * @see Task
    */
-  public static <T> Task<T> seq(final Iterable<? extends Task<?>> tasks)
+  @Deprecated public static <T> Task<T> seq(final Iterable<? extends Task<?>> tasks)
   {
     return new SeqTask<T>("seq", tasks);
   }
@@ -223,8 +292,10 @@ public class Tasks
    * @param sideEffect the side effect of the primary task.
    * @param <T> the result value of the parent task, and the resulting task.
    * @return a new task that will be done once parent completes, but has the given side effect.
+   * @deprecated  As of 2.0.0, replaced by {@link Task#withSideEffect(String, Task) Task.withSideEffect}
+   * @see Task#withSideEffect(String, Task) Task.withSideEffect
    */
-  public static <T> Task<T> withSideEffect(final Task<T> parent, final Task<?> sideEffect)
+  @Deprecated public static <T> Task<T> withSideEffect(final Task<T> parent, final Task<?> sideEffect)
   {
     return parent.withSideEffect(sideEffect);
   }
@@ -237,17 +308,24 @@ public class Tasks
    * also be marked as failed. Use {@link com.linkedin.parseq.ParTask#getTasks()}
    * or {@link com.linkedin.parseq.ParTask#getSuccessful()} to get results in
    * this case.
+   * @deprecated  As of 2.0.0, replaced by {@link Task#par(Task, Task) Task.par} or
+   * {@link ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks}.
+   * @see Task#par(Task, Task) Task.par
+   * @see ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks
    */
-  public static <T> ParTask<T> par(Task<? extends T> task1,
+  @Deprecated public static <T> ParTask<T> par(Task<? extends T> task1,
                                    Task<? extends T> task2)
   {
     return vapar(task1, task2);
   }
 
   /**
-   * @see #par(Task, Task)
+   * @deprecated  As of 2.0.0, replaced by {@link Task#par(Task, Task) Task.par} or
+   * {@link ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks}.
+   * @see Task#par(Task, Task) Task.par
+   * @see ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks
    */
-  public static <T> ParTask<T> par(Task<? extends T> task1,
+  @Deprecated public static <T> ParTask<T> par(Task<? extends T> task1,
                                    Task<? extends T> task2,
                                    Task<? extends T> task3)
   {
@@ -255,9 +333,12 @@ public class Tasks
   }
 
   /**
-   * @see #par(Task, Task)
+   * @deprecated  As of 2.0.0, replaced by {@link Task#par(Task, Task) Task.par} or
+   * {@link ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks}.
+   * @see Task#par(Task, Task) Task.par
+   * @see ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks
    */
-  public static <T> ParTask<T> par(Task<? extends T> task1,
+  @Deprecated public static <T> ParTask<T> par(Task<? extends T> task1,
                                    Task<? extends T> task2,
                                    Task<? extends T> task3,
                                    Task<? extends T> task4)
@@ -266,9 +347,12 @@ public class Tasks
   }
 
   /**
-   * @see #par(Task, Task)
+   * @deprecated  As of 2.0.0, replaced by {@link Task#par(Task, Task) Task.par} or
+   * {@link ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks}.
+   * @see Task#par(Task, Task) Task.par
+   * @see ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks
    */
-  public static <T> ParTask<T> par(Task<? extends T> task1,
+  @Deprecated public static <T> ParTask<T> par(Task<? extends T> task1,
                                    Task<? extends T> task2,
                                    Task<? extends T> task3,
                                    Task<? extends T> task4,
@@ -278,9 +362,12 @@ public class Tasks
   }
 
   /**
-   * @see #par(Task, Task)
+   * @deprecated  As of 2.0.0, replaced by {@link Task#par(Task, Task) Task.par} or
+   * {@link ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks}.
+   * @see Task#par(Task, Task) Task.par
+   * @see ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks
    */
-  public static <T> ParTask<T> par(Task<? extends T> task1,
+  @Deprecated public static <T> ParTask<T> par(Task<? extends T> task1,
                                    Task<? extends T> task2,
                                    Task<? extends T> task3,
                                    Task<? extends T> task4,
@@ -291,9 +378,12 @@ public class Tasks
   }
 
   /**
-   * @see #par(Task, Task)
+   * @deprecated  As of 2.0.0, replaced by {@link Task#par(Task, Task) Task.par} or
+   * {@link ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks}.
+   * @see Task#par(Task, Task) Task.par
+   * @see ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks
    */
-  public static <T> ParTask<T> par(Task<? extends T> task1,
+  @Deprecated public static <T> ParTask<T> par(Task<? extends T> task1,
                                    Task<? extends T> task2,
                                    Task<? extends T> task3,
                                    Task<? extends T> task4,
@@ -305,9 +395,12 @@ public class Tasks
   }
 
   /**
-   * @see #par(Task, Task)
+   * @deprecated  As of 2.0.0, replaced by {@link Task#par(Task, Task) Task.par} or
+   * {@link ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks}.
+   * @see Task#par(Task, Task) Task.par
+   * @see ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks
    */
-  public static <T> ParTask<T> par(Task<? extends T> task1,
+  @Deprecated public static <T> ParTask<T> par(Task<? extends T> task1,
                                    Task<? extends T> task2,
                                    Task<? extends T> task3,
                                    Task<? extends T> task4,
@@ -320,9 +413,12 @@ public class Tasks
   }
 
   /**
-   * @see #par(Task, Task)
+   * @deprecated  As of 2.0.0, replaced by {@link Task#par(Task, Task) Task.par} or
+   * {@link ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks}.
+   * @see Task#par(Task, Task) Task.par
+   * @see ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks
    */
-  public static <T> ParTask<T> par(Task<? extends T> task1,
+  @Deprecated public static <T> ParTask<T> par(Task<? extends T> task1,
                                    Task<? extends T> task2,
                                    Task<? extends T> task3,
                                    Task<? extends T> task4,
@@ -336,9 +432,12 @@ public class Tasks
   }
 
   /**
-   * @see #par(Task, Task)
+   * @deprecated  As of 2.0.0, replaced by {@link Task#par(Task, Task) Task.par} or
+   * {@link ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks}.
+   * @see Task#par(Task, Task) Task.par
+   * @see ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks
    */
-  public static <T> ParTask<T> par(Task<? extends T> task1,
+  @Deprecated public static <T> ParTask<T> par(Task<? extends T> task1,
                                    Task<? extends T> task2,
                                    Task<? extends T> task3,
                                    Task<? extends T> task4,
@@ -366,8 +465,12 @@ public class Tasks
    *
    * @param tasks the tasks to run in parallel
    * @return The results of the tasks
+   * @deprecated  As of 2.0.0, replaced by {@link Task#par(Task, Task) Task.par} or
+   * {@link ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks}.
+   * @see Task#par(Task, Task) Task.par
+   * @see ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks
    */
-  public static <T> ParTask<T> par(final Iterable<? extends Task<? extends T>> tasks)
+  @Deprecated public static <T> ParTask<T> par(final Iterable<? extends Task<? extends T>> tasks)
   {
     return new ParTaskImpl<T>("par", tasks);
   }
@@ -384,8 +487,10 @@ public class Tasks
    * @param task the task to wrap
    * @param <T> the value type for the task
    * @return the new timeout task
+   * @deprecated  As of 2.0.0, replaced by {@link Task#withTimeout(long, TimeUnit) Task.withTimeout}.
+   * @see Task#withTimeout(long, TimeUnit) Task.withTimeout
    */
-  public static <T> Task<T> timeoutWithError(final long time, final TimeUnit unit,
+  @Deprecated public static <T> Task<T> timeoutWithError(final long time, final TimeUnit unit,
                                              final Task<T> task)
   {
     return timeoutWithError("timeoutWithError", time, unit, task);
@@ -401,9 +506,10 @@ public class Tasks
    * @param task the task to wrap
    * @param <T> the value type for the task
    * @return the new timeout task
-   * @see #timeoutWithError(long, java.util.concurrent.TimeUnit, Task)
+   * @deprecated  As of 2.0.0, replaced by {@link Task#withTimeout(long, TimeUnit) Task.withTimeout}.
+   * @see Task#withTimeout(long, TimeUnit) Task.withTimeout
    */
-  public static <T> Task<T> timeoutWithError(final String name,
+  @Deprecated public static <T> Task<T> timeoutWithError(final String name,
                                              final long time, final TimeUnit unit,
                                              final Task<T> task)
   {

@@ -33,9 +33,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Use {@link Tasks#timeoutWithError(String, long, java.util.concurrent.TimeUnit, Task)}
  * to create an instances of this class.
  *
+ * @deprecated  As of 2.0.0, replaced by {@link Task#withTimeout(long, TimeUnit) Task.withTimeout}.
+ * @see Task#withTimeout(long, TimeUnit) Task.withTimeout
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-/* package private */ class TimeoutWithErrorTask<T> extends BaseTask<T>
+/* package private */ @Deprecated class TimeoutWithErrorTask<T> extends BaseTask<T>
 {
   private final long _time;
   private final TimeUnit _unit;

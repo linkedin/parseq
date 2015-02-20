@@ -30,10 +30,10 @@ public class FanInExample extends AbstractExample
     final Task<String> fetchGoogle = fetchUrl(httpClient, "http://www.google.com");
 
     final Task<?> fanIn = Task.par(fetchBing, fetchGoogle, fetchYahoo)
-                            .andThen(tuple -> {
-                              System.out.println("Bing   => " + tuple._1());
-                              System.out.println("Yahoo  => " + tuple._2());
-                              System.out.println("Google => " + tuple._3());
+                            .andThen((bing, google, yahoo) -> {
+                              System.out.println("Bing   => " + bing);
+                              System.out.println("Yahoo  => " + yahoo);
+                              System.out.println("Google => " + google);
                             });
     engine.run(fanIn);
 
