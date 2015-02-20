@@ -1,9 +1,5 @@
 /* $Id$ */
-package com.linkedin.parseq.example.simple;
-
-import static com.linkedin.parseq.example.common.ExampleUtil.fetchUrl;
-
-import java.util.concurrent.TimeUnit;
+package com.linkedin.parseq.example.legacy.simple;
 
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.Task;
@@ -11,9 +7,13 @@ import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.example.common.ExampleUtil;
 import com.linkedin.parseq.example.common.MockService;
 
+import java.util.concurrent.TimeUnit;
+
+import static com.linkedin.parseq.Tasks.timeoutWithError;
+import static com.linkedin.parseq.example.common.ExampleUtil.fetchUrl;
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
- * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
 public class TimeoutWithErrorExample extends AbstractExample
 {
@@ -27,8 +27,9 @@ public class TimeoutWithErrorExample extends AbstractExample
   {
     final MockService<String> httpClient = getService();
 
-    final Task<String> fetchWithTimeout = fetchUrl(httpClient, "http://www.google.com")
-        .withTimeout(50, TimeUnit.MILLISECONDS);
+    final Task<String> fetch = fetchUrl(httpClient, "http://www.google.com");
+    final Task<String> fetchWithTimeout =
+        timeoutWithError(50, TimeUnit.MILLISECONDS, fetch);
 
     engine.run(fetchWithTimeout);
 

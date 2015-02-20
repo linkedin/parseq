@@ -14,14 +14,7 @@
  * the License.
  */
 
-package com.linkedin.parseq.example.composite;
-
-import static com.linkedin.parseq.example.common.ExampleUtil.callService;
-import static com.linkedin.parseq.example.common.ExampleUtil.printTracingResults;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
+package com.linkedin.parseq.example.legacy.composite;
 
 import com.linkedin.parseq.BaseTask;
 import com.linkedin.parseq.Context;
@@ -34,9 +27,17 @@ import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import static com.linkedin.parseq.Tasks.action;
+import static com.linkedin.parseq.Tasks.seq;
+import static com.linkedin.parseq.example.common.ExampleUtil.callService;
+import static com.linkedin.parseq.example.common.ExampleUtil.printTracingResults;
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
- * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
 public class TimeBoundSearchExample extends AbstractExample
 {
@@ -127,7 +128,7 @@ public class TimeBoundSearchExample extends AbstractExample
                         _service,
                         new SimpleMockRequest<Integer>(requestLatency, i));
 
-        ctx.run(callSvc.andThen(addResponse(callSvc)).andThen(checkDone()));
+        ctx.run(seq(callSvc, addResponse(callSvc), checkDone()));
       }
 
       return _result;
@@ -135,7 +136,7 @@ public class TimeBoundSearchExample extends AbstractExample
 
     private Task<?> checkDone()
     {
-      return Task.action("checkDone", new Runnable()
+      return action("checkDone", new Runnable()
       {
         @Override
         public void run()
@@ -151,7 +152,7 @@ public class TimeBoundSearchExample extends AbstractExample
 
     private Task<?> addResponse(final Promise<Integer> response)
     {
-      return Task.action("addResponse", new Runnable()
+      return action("addResponse", new Runnable()
       {
         @Override
         public void run()

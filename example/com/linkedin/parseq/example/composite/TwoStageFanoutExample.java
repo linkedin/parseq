@@ -16,25 +16,22 @@
 
 package com.linkedin.parseq.example.composite;
 
-import com.linkedin.parseq.BaseTask;
-import com.linkedin.parseq.Context;
-import com.linkedin.parseq.Engine;
-import com.linkedin.parseq.Task;
-import com.linkedin.parseq.example.common.AbstractExample;
-import com.linkedin.parseq.example.common.MockService;
-import com.linkedin.parseq.promise.Promise;
-
-import java.util.concurrent.Callable;
-
-import static com.linkedin.parseq.Tasks.action;
-import static com.linkedin.parseq.Tasks.callable;
-import static com.linkedin.parseq.Tasks.par;
-import static com.linkedin.parseq.Tasks.seq;
 import static com.linkedin.parseq.example.common.ExampleUtil.fetchUrl;
 import static com.linkedin.parseq.example.common.ExampleUtil.printTracingResults;
+import static com.linkedin.parseq.function.Tuples.tuple;
+
+import java.util.Arrays;
+import java.util.List;
+
+import com.linkedin.parseq.Engine;
+import com.linkedin.parseq.Task;
+import com.linkedin.parseq.collection.ParSeqCollections;
+import com.linkedin.parseq.example.common.AbstractExample;
+import com.linkedin.parseq.function.Tuple2;
 
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
+ * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
 public class TwoStageFanoutExample extends AbstractExample
 {
@@ -46,78 +43,29 @@ public class TwoStageFanoutExample extends AbstractExample
   @Override
   protected void doRunExample(final Engine engine) throws Exception
   {
-    final MockService<String> httpClient = getService();
 
-    final FanoutTask fanout = new FanoutTask(httpClient);
-    final Task<?> printResults = action("printResults", new Runnable()
-    {
-      @Override
-      public void run()
-      {
-        System.out.println(fanout.get());
-      }
-    });
+    //TODO early finish???
 
-    final Task<?> plan = seq(fanout, printResults);
+    List<String> first = Arrays.asList("http://www.bing.com", "http://www.yahoo.com");
+    List<String> second = Arrays.asList("http://www.google.com", "https://duckduckgo.com/");
+
+    Task<String> fanout = stage(first, new StringBuilder())
+                            .flatMap(resultBuilder -> stage(second, resultBuilder))
+                            .map(builder -> builder.toString());
+
+    final Task<?> plan = fanout.andThen(System.out::println);
+
     engine.run(plan);
 
     plan.await();
     printTracingResults(plan);
   }
 
-  private static class FanoutTask extends BaseTask<String>
-  {
-    private final MockService<String> _httpClient;
-    private final StringBuilder _result = new StringBuilder();
-
-    private FanoutTask(final MockService<String> httpClient)
-    {
-      super("TwoStageFanout");
-      _httpClient = httpClient;
-    }
-
-    @Override
-    public Promise<String> run(final Context ctx)
-    {
-      final Task<String> twoStage =
-          seq(par(fetchAndLog("http://www.bing.com"),
-                  fetchAndLog("http://www.yahoo.com")),
-              par(fetchAndLog("http://www.google.com"),
-                  fetchAndLog("https://duckduckgo.com/")),
-              buildResult());
-      ctx.run(twoStage);
-      return twoStage;
-    }
-
-    private Task<String> buildResult()
-    {
-      return callable("buildResult", new Callable<String>()
-      {
-        @Override
-        public String call()
-        {
-          return _result.toString();
-        }
-      });
-    }
-
-    private Task<?> fetchAndLog(final String url)
-    {
-      final Task<String> fetch = fetchUrl(_httpClient, url);
-      final Task<?> logResult = logResult(url, fetch);
-      return seq(fetch, logResult);
-    }
-
-    private Task<?> logResult(final String url, final Promise<String> promise)
-    {
-      return action("logResult[" + url + "]", new Runnable()
-      {
-        @Override
-        public void run()
-        {
-          _result.append(String.format("%10s => %s\n", url, promise.get()));
-        }
-      });
-    }
+  private Task<StringBuilder> stage(final List<String> input, final StringBuilder resultBuilder) {
+    return ParSeqCollections.fromValues(input)
+        .mapTask(url -> (Task<Tuple2<String, String>>)fetchUrl(getService(), url)
+                      .map(s -> tuple(url, s)))
+        .fold(resultBuilder, (z, r) ->
+           z.append(String.format("%10s => %s\n", r._1(), r._2())));
   }
 }

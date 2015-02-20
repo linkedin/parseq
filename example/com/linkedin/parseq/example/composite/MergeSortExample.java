@@ -16,20 +16,14 @@
 
 package com.linkedin.parseq.example.composite;
 
-import com.linkedin.parseq.BaseTask;
-import com.linkedin.parseq.Context;
+import java.util.Arrays;
+import java.util.Random;
+
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.example.common.ExampleUtil;
-import com.linkedin.parseq.promise.Promise;
-import com.linkedin.parseq.promise.Promises;
-
-import java.util.Arrays;
-import java.util.Random;
-import java.util.concurrent.Callable;
-
-import static com.linkedin.parseq.Tasks.callable;
+import com.linkedin.parseq.function.Tuples;
 
 /**
  * The merge sort example demonstrates how branching and recursive plan
@@ -46,139 +40,89 @@ public class MergeSortExample extends AbstractExample
   }
 
   @Override
-  protected void doRunExample(final Engine engine) throws Exception
-  {
+  protected void doRunExample(final Engine engine) throws Exception {
     final int[] toSort = createRandomArray(10, new Random());
 
-    final Task<int[]> mergeSort = new MergeSortPlan(toSort);
+    final Task<int[]> mergeSort = mergeSort(toSort, new Range(0, toSort.length));
     engine.run(mergeSort);
     mergeSort.await();
 
     System.out.println("Before sort: " + Arrays.toString(toSort));
-    System.out.println("After sort:  " + Arrays.toString(mergeSort.get()));
+    System.out.println("After  sort: " + Arrays.toString(mergeSort.get()));
+    Arrays.sort(toSort);
+    System.out.println("Java   sort: " + Arrays.toString(toSort));
 
     ExampleUtil.printTracingResults(mergeSort);
   }
 
-  private static int[] createRandomArray(final int arraySize, final Random random)
-  {
+  private Task<int[]> mergeSort(final int[] toSort, final Range range) {
+    if (range.size() == 0) {
+      return Task.callable("leaf", () -> new int[0]);
+    } else if (range.size() == 1) {
+      return Task.callable("leaf", () -> new int[] { toSort[range.start()] });
+    } else {
+      // Neither base case applied, so recursively split this problem into
+      // smaller problems and then merge the results.
+      return Task.callable("split", () -> Tuples.tuple(range.firstHalf(), range.secondHalf()))
+        .flatMap(ranges ->
+           Task.par(mergeSort(toSort, ranges._1()), mergeSort(toSort, ranges._2()))
+              .map("merge", parts -> merge(ranges._1(), parts._1(), ranges._2(), parts._2())));
+    }
+  }
+
+  public int[] merge(final Range fstRange, final int[] fstHalf, final Range sndRange, final int[] sndHalf) {
+    final int[] fst = fstHalf;
+    final int[] snd = sndHalf;
+    final int[] results = new int[fst.length + snd.length];
+    for (int i = 0, l = 0, r = 0; i < results.length; i++) {
+      if (l == fst.length)
+        results[i] = snd[r++];
+      else if (r == snd.length)
+        results[i] = fst[l++];
+      else
+        results[i] = fst[l] < snd[r] ? fst[l++] : snd[r++];
+    }
+    return results;
+  }
+
+  private int[] createRandomArray(final int arraySize, final Random random) {
     final int[] nums = new int[arraySize];
-    for (int i = 0; i < arraySize; i++)
-    {
+    for (int i = 0; i < arraySize; i++) {
       nums[i] = random.nextInt();
     }
     return nums;
   }
 
-  private static class MergeSortPlan extends BaseTask<int[]>
-  {
-    private final int[] _toSort;
-    private final Range _range;
-
-    public MergeSortPlan(final int[] toSort)
-    {
-      this(toSort, new Range(0, toSort.length));
-    }
-
-    private MergeSortPlan(final int[] toSort, final Range range)
-    {
-      super("MergeSort " + range);
-      _toSort = toSort;
-      _range = range;
-    }
-
-    @Override
-    public Promise<int[]> run(final Context ctx)
-    {
-      if (_range.size() == 0)
-      {
-        return Promises.value(new int[0]);
-      }
-      else if (_range.size() == 1)
-      {
-        return Promises.value(new int[] {_toSort[_range.start()]});
-      }
-      else
-      {
-        // Neither base case applied, so recursively split this problem into
-        // smaller problems and then merge the results.
-        final Range fstRange = _range.firstHalf();
-        final Range sndRange = _range.secondHalf();
-        final Task<int[]> fst = new MergeSortPlan(_toSort, fstRange);
-        final Task<int[]> snd = new MergeSortPlan(_toSort, sndRange);
-        final Task<int[]> merge = mergePlan(fstRange, fst, sndRange, snd);
-        ctx.after(fst, snd).run(merge);
-        ctx.run(fst, snd);
-        return merge;
-      }
-    }
-
-    private Task<int[]> mergePlan(final Range fstRange,
-                                  final Promise<int[]> fstPromise,
-                                  final Range sndRange,
-                                  final Promise<int[]> sndPromise)
-    {
-      return callable("Merge " + fstRange + " " + sndRange, new Callable<int[]>()
-      {
-        @Override
-        public int[] call() throws Exception
-        {
-          final int[] fst = fstPromise.get();
-          final int[] snd = sndPromise.get();
-          final int[] results = new int[fst.length + snd.length];
-          for (int i = 0, l = 0, r = 0; i < results.length; i++)
-          {
-            if (l == fst.length)
-              results[i] = snd[r++];
-            else if (r == snd.length)
-              results[i] = fst[l++];
-            else
-              results[i] = fst[l] < snd[r] ? fst[l++] : snd[r++];
-          }
-          return results;
-        }
-      });
-    }
-  }
-
-  private static class Range
-  {
+  private static class Range {
     private final int _start;
     private final int _end;
 
-    public Range(int start, int end)
-    {
+    public Range(int start, int end) {
       _start = start;
       _end = end;
     }
 
-    public int start()
-    {
+    public int start() {
       return _start;
     }
 
-    public Range firstHalf()
-    {
+    public Range firstHalf() {
       return new Range(_start, midpoint());
     }
 
-    public Range secondHalf()
-    {
+    public Range secondHalf() {
       return new Range(midpoint(), _end);
     }
 
-    public int size()
-    {
+    public int size() {
       return _end - _start;
     }
 
-    public String toString()
-    {
-      return  "[" + _start + "," + _end + ")";
+    public String toString() {
+      return "[" + _start + "," + _end + ")";
     }
 
-    private int midpoint()
-    {
+    private int midpoint() {
       return (_end - _start) / 2 + _start;
     }
   }

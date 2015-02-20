@@ -14,7 +14,18 @@
  * the License.
  */
 
-package com.linkedin.parseq.example.composite.classifier;
+package com.linkedin.parseq.example.legacy.composite.classifier;
+
+import com.linkedin.parseq.BaseTask;
+import com.linkedin.parseq.Context;
+import com.linkedin.parseq.Task;
+import com.linkedin.parseq.example.legacy.composite.classifier.client.Client;
+import com.linkedin.parseq.example.legacy.composite.classifier.client.Request;
+import com.linkedin.parseq.example.legacy.composite.classifier.client.impl.GetNetworkRequest;
+import com.linkedin.parseq.example.legacy.composite.classifier.client.impl.TruthMapRequest;
+import com.linkedin.parseq.promise.Promise;
+import com.linkedin.parseq.promise.Promises;
+import com.linkedin.parseq.promise.SettablePromise;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,16 +34,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import com.linkedin.parseq.BaseTask;
-import com.linkedin.parseq.Context;
-import com.linkedin.parseq.Task;
-import com.linkedin.parseq.example.composite.classifier.client.Client;
-import com.linkedin.parseq.example.composite.classifier.client.Request;
-import com.linkedin.parseq.example.composite.classifier.client.impl.GetNetworkRequest;
-import com.linkedin.parseq.example.composite.classifier.client.impl.TruthMapRequest;
-import com.linkedin.parseq.promise.Promise;
-import com.linkedin.parseq.promise.Promises;
-import com.linkedin.parseq.promise.SettablePromise;
+import static com.linkedin.parseq.Tasks.action;
+import static com.linkedin.parseq.Tasks.par;
+import static com.linkedin.parseq.Tasks.seq;
 
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
@@ -96,14 +100,14 @@ public class ClassifierPlanFactory
       ctx.createTimer(1, TimeUnit.SECONDS, defaultClassifier);
 
       // ORDERING
-      final Task<?> ordering = selfClassifier
-            .andThen(Task.par(network.andThen(directlyConnectedClassifier),
-                         invitedToGroupClassifier,
-                         messagedClassifier))
-            .andThen(Task.par(inNetworkClassifier,
-                         sharesGroupClassifier))
-            .andThen(defaultClassifier);
-
+      final Task<?> ordering =
+          seq(selfClassifier,
+              par(seq(network, directlyConnectedClassifier),
+                  invitedToGroupClassifier,
+                  messagedClassifier),
+              par(inNetworkClassifier,
+                  sharesGroupClassifier),
+              defaultClassifier);
       ctx.run(ordering);
 
       return _result;
@@ -111,7 +115,7 @@ public class ClassifierPlanFactory
 
     private Task<?> classifyTask(final Classifier classifier)
     {
-      return Task.action(classifier.getClass().getSimpleName(), new Runnable()
+      return action(classifier.getClass().getSimpleName(), new Runnable()
       {
         @Override
         public void run()
@@ -130,14 +134,14 @@ public class ClassifierPlanFactory
 
       final Task<?> classifyResult = truthMapClassifyTask(name, classification, svcCall);
 
-      return svcCall.andThen(classifyResult);
+      return seq(svcCall, classifyResult);
     }
 
     private Task<?> truthMapClassifyTask(final String name,
                                          final Classification classification,
                                          final Promise<Map<Long, Boolean>> result)
     {
-      return Task.action(name + "Classifier", new Runnable()
+      return action(name + "Classifier", new Runnable()
       {
         @Override
         public void run()
@@ -161,7 +165,7 @@ public class ClassifierPlanFactory
 
     private Task<?> connectedClassifyTask(final Task<Network> network)
     {
-      return Task.action("ConnectedClassifier", new Runnable()
+      return action("ConnectedClassifier", new Runnable()
       {
         @Override
         public void run()
@@ -173,7 +177,7 @@ public class ClassifierPlanFactory
 
     private Task<?> networkClassifyTask(final Task<Network> network)
     {
-      return Task.action("NetworkClassifier", new Runnable()
+      return action("NetworkClassifier", new Runnable()
       {
         @Override
         public void run()

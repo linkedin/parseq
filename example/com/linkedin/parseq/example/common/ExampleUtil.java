@@ -16,15 +16,16 @@
 
 package com.linkedin.parseq.example.common;
 
+import java.io.IOException;
+import java.util.Map;
+import java.util.Random;
+
 import com.linkedin.parseq.BaseTask;
 import com.linkedin.parseq.Context;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.trace.Trace;
 import com.linkedin.parseq.trace.codec.json.JsonTraceCodec;
-
-import java.io.IOException;
-import java.util.Random;
 
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
@@ -51,6 +52,16 @@ public class ExampleUtil
     };
   }
 
+  public static <T> Task<T> fetch(String name, final MockService<T> service, final int id, final Map<Integer, T> map) {
+    final long mean = DEFAULT_LATENCY_MEAN;
+    final long stddev = DEFAULT_LATENCY_STDDEV;
+    final long latency = Math.max(LATENCY_MIN, (int)(RANDOM.nextGaussian() * stddev + mean));
+    final MockRequest<T> request = (map.containsKey(id)) ?
+        new SimpleMockRequest<T>(latency, map.get(id)) :
+        new ErrorMockRequest<T>(latency, new Exception("404"));
+    return callService("fetch" + name + "[id=" + id + "]", service, request);
+  }
+
   public static Task<String> fetchUrl(final MockService<String> httpClient,
                                       final String url)
   {
@@ -58,6 +69,11 @@ public class ExampleUtil
     final long stddev = DEFAULT_LATENCY_STDDEV;
     final long latency = Math.max(LATENCY_MIN, (int)(RANDOM.nextGaussian() * stddev + mean));
     return callService("fetch[url=" + url + "]", httpClient, new SimpleMockRequest<String>(latency, "HTTP response for " + url));
+  }
+
+  public static Task<String> fetchUrl(final MockService<String> httpClient, final String url, final long latency) {
+    return callService("fetch[url=" + url + "]", httpClient, new SimpleMockRequest<String>(latency,
+        "HTTP response for " + url));
   }
 
   public static Task<String> fetch404Url(final MockService<String> httpClient,

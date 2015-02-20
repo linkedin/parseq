@@ -1,17 +1,17 @@
 /* $Id$ */
-package com.linkedin.parseq.example.simple;
-
-import static com.linkedin.parseq.example.common.ExampleUtil.fetchUrl;
-import static com.linkedin.parseq.example.common.ExampleUtil.printTracingResults;
+package com.linkedin.parseq.example.legacy.simple;
 
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.example.common.MockService;
 
+import static com.linkedin.parseq.Tasks.*;
+import static com.linkedin.parseq.example.common.ExampleUtil.fetchUrl;
+import static com.linkedin.parseq.example.common.ExampleUtil.printTracingResults;
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
- * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
 public class FanInExample extends AbstractExample
 {
@@ -29,12 +29,19 @@ public class FanInExample extends AbstractExample
     final Task<String> fetchYahoo = fetchUrl(httpClient, "http://www.yahoo.com");
     final Task<String> fetchGoogle = fetchUrl(httpClient, "http://www.google.com");
 
-    final Task<?> fanIn = Task.par(fetchBing, fetchGoogle, fetchYahoo)
-                            .andThen(tuple -> {
-                              System.out.println("Bing   => " + tuple._1());
-                              System.out.println("Yahoo  => " + tuple._2());
-                              System.out.println("Google => " + tuple._3());
-                            });
+    final Task<?> printResults = action("printResults", new Runnable()
+    {
+      @Override
+      public void run()
+      {
+        System.out.println("Bing   => " + fetchBing.get());
+        System.out.println("Yahoo  => " + fetchYahoo.get());
+        System.out.println("Google => " + fetchGoogle.get());
+      }
+    });
+
+    final Task<?> parFetch = par(fetchBing, fetchGoogle, fetchYahoo);
+    final Task<?> fanIn = seq(parFetch, printResults);
     engine.run(fanIn);
 
     fanIn.await();

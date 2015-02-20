@@ -14,20 +14,20 @@
  * the License.
  */
 
-package com.linkedin.parseq.example.composite.classifier;
+package com.linkedin.parseq.example.legacy.composite.classifier;
+
+import com.linkedin.parseq.Engine;
+import com.linkedin.parseq.EngineBuilder;
+import com.linkedin.parseq.Task;
+import com.linkedin.parseq.example.common.ExampleUtil;
+import com.linkedin.parseq.example.legacy.composite.classifier.client.Client;
+import com.linkedin.parseq.example.legacy.composite.classifier.client.impl.ClientImpl;
 
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-
-import com.linkedin.parseq.Engine;
-import com.linkedin.parseq.EngineBuilder;
-import com.linkedin.parseq.Task;
-import com.linkedin.parseq.example.common.ExampleUtil;
-import com.linkedin.parseq.example.composite.classifier.client.Client;
-import com.linkedin.parseq.example.composite.classifier.client.impl.ClientImpl;
 
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
