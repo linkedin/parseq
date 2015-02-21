@@ -136,16 +136,61 @@ public interface Task<T> extends Promise<T>, Cancellable
 
   /**
    * Creates a new Task by applying a function to the successful result of this Task.
-   * If this Task is completed with an exception then the new Task will also contain that exception.
+   * Returned Task will complete with value calculated by a function. Example:
+   * <pre>
+   * {@code
+   * Task<String> hello = Task.callable(() -> "Hello World");
    *
+   * // length Task will complete with value 11
+   * Task<Integer> length = hello.map(s -> s.length());
+   * }</pre>
+   *
+   * If this Task is completed with an exception then the new Task will also contain
+   * that exception. Example:
+   * <pre>
+   * {@code
+   *  Task<String> failing = Task.callable("hello", () -> {
+   *    return "Hello World".substring(100);
+   *  });
+   *
+   *  // length Task will fail with java.lang.StringIndexOutOfBoundsException
+   *  Task<Integer> length = failing.map("length", s -> s.length());
+   * }</pre>
+   * @param <R> return type of function <code>func</code>
    * @param desc description of a mapping function, it will show up in a trace
-   * @param f function to be applied to successful result of this Task.
+   * @param func function to be applied to successful result of this Task.
    * @return a new Task which will apply given function on result of successful completion of this task
    */
-  default <R> Task<R> map(final String desc, final Function<T, R> f) {
-    return apply(desc, new PromiseTransformer<T, R>(f));
+  default <R> Task<R> map(final String desc, final Function<T, R> func) {
+    return apply(desc, new PromiseTransformer<T, R>(func));
   }
 
+  /**
+   * Creates a new Task by applying a function to the successful result of this Task.
+   * Returned Task will complete with value calculated by a function. Example:
+   * <pre>
+   * {@code
+   * Task<String> hello = Task.callable(() -> "Hello World");
+   *
+   * // length Task will complete with value 11
+   * Task<Integer> length = hello.map(s -> s.length());
+   * }</pre>
+   *
+   * If this Task is completed with an exception then the new Task will also contain
+   * that exception. Example:
+   * <pre>
+   * {@code
+   *  Task<String> failing = Task.callable("hello", () -> {
+   *    return "Hello World".substring(100);
+   *  });
+   *
+   *  // length Task will fail with java.lang.StringIndexOutOfBoundsException
+   *  Task<Integer> length = failing.map("length", s -> s.length());
+   * }</pre>
+   * @param <R> return type of function <code>func</code>
+   * @param func function to be applied to successful result of this Task.
+   * @return a new Task which will apply given function on result of successful completion of this task
+   */
   default <R> Task<R> map(final Function<T, R> f) {
     return map("map", f);
   }
@@ -163,11 +208,20 @@ public interface Task<T> extends Promise<T>, Cancellable
     return mapOrFlatMap(desc, t -> TaskOrValue.task(f.apply(t)));
   }
 
+  /**
+   * Creates a new Task by applying a function to the successful result of this Task and
+   * returns the result of a function as the new Task.
+   * If this Task is completed with an exception then the new Task will also contain that exception.
+   *
+   * @param f function to be applied to successful result of this Task.
+   * @return a new Task which will apply given function on result of successful completion of this task
+   */
   default <R> Task<R> flatMap(final Function<T, Task<R>> f) {
     return flatMap("flatMap", f);
   }
 
   default <R> Task<R> mapOrFlatMap(final String name, final Function<T, TaskOrValue<R>> f) {
+    //TODO replace with fuse
     final Task<T> that = this;
     return new SystemHiddenTask<R>(name) {
       @Override
@@ -495,8 +549,17 @@ public interface Task<T> extends Promise<T>, Cancellable
     return new ActionTask(name, runnable);
   }
 
+  public static Task<Void> action(final Runnable runnable)
+  {
+    return action("action", runnable);
+  }
+
   public static <T> Task<T> callable(final String name, final Callable<? extends T> callable) {
     return new CallableTask<T>(name, callable);
+  }
+
+  public static <T> Task<T> callable(final Callable<? extends T> callable) {
+    return callable("callable", callable);
   }
 
   public static <T> Task<T> async(final String name, final Callable<Promise<? extends T>> callable) {
