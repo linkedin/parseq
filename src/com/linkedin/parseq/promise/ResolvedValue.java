@@ -2,7 +2,12 @@ package com.linkedin.parseq.promise;
 
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ResolvedValue<T> implements Promise<T> {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(ResolvedValue.class);
 
   private final T _value;
 
@@ -36,7 +41,11 @@ public class ResolvedValue<T> implements Promise<T> {
 
   @Override
   public void addListener(PromiseListener<T> listener) {
-    listener.onResolved(this);
+    try {
+      listener.onResolved(this);
+    } catch (Throwable e) {
+      LOGGER.warn("An exception was thrown by listener: " + listener.getClass(), e);
+    }
   }
 
   @Override
