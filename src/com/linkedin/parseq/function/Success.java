@@ -26,8 +26,8 @@ public class Success<T> implements Try<T>{
   }
 
   @Override
-  public Result result() {
-    return Result.success;
+  public ResultType resultType() {
+    return ResultType.success;
   }
 
   public static <R> Try<R> of(R value) {

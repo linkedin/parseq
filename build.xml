@@ -7,15 +7,19 @@
 	<property name="src.fmpp.dir" location="${basedir}/fmpp/templates" />
 	<property name="src.fmpp.data" location="${basedir}/fmpp/data" />
     <property name="test.dir" value="${basedir}/test" />
+    <property name="src.test.dir" value="${basedir}/src-test" />
     <property name="tools.dir" value="${basedir}/tools" />
     <property name="build.dir" value="${basedir}/build" />
     <property name="example.build.dir" value="${build.dir}/example" />
     <property name="src.build.dir" value="${build.dir}/src" />
     <property name="lib.build.dir" value="${build.dir}/lib" />
     <property name="test.build.dir" value="${build.dir}/test" />
+    <property name="src.test.build.dir" value="${build.dir}/src-test" />
     <property name="test.result.dir" value="${test.build.dir}/reports"/>
     <property name="doc.build.dir" value="${build.dir}/doc"/>
+    <property name="doc.test.build.dir" value="${build.dir}/doc-test"/>
     <property name="dist.dir" value="${basedir}/dist" />
+    <property name="dist.test.dir" value="${basedir}/dist-test" />
 
     <!-- IVY configuration -->
     <property name="ivy.jar.version" value="2.2.0" />
@@ -40,6 +44,7 @@
 
     <path id="test.classpath">
         <path refid="build.classpath"/>
+        <pathelement location="${src.test.build.dir}"/>
         <pathelement location="${test.build.dir}"/>
         <fileset dir="${lib.build.dir}/test" includes="*.jar"/>
     </path>
@@ -84,9 +89,11 @@
         <mkdir dir="${src.build.dir}" />
         <mkdir dir="${lib.build.dir}" />
         <mkdir dir="${test.build.dir}" />
+        <mkdir dir="${src.test.build.dir}" />
         <mkdir dir="${test.result.dir}"/>
         <mkdir dir="${doc.build.dir}" />
         <mkdir dir="${dist.dir}" />
+        <mkdir dir="${dist.test.dir}" />
 
         <ivy:resolve file="ivy.xml" conf="*"/>
         <ivy:retrieve pattern="${ivy.lib.dir}/[conf]/[artifact].[ext]"/>
@@ -113,12 +120,28 @@
         </javac>
     </target>
 
+    <target name="build-src-test" depends="build-src" description="Builds src-test files.">
+        <javac includeantruntime="false" destdir="${src.test.build.dir}" source="${javac.source}" target="${javac.target}" debug="${debug}">
+            <src path="${src.test.dir}"/>
+            <classpath refid="test.classpath"/>
+            <compilerarg value="-Xlint"/>
+        </javac>
+    </target>
+
     <target name="jar-src" depends="build-src" description="Creates a JAR for src classes">
         <make-jar destfile="${dist.dir}/${ant.project.name}-${version}.jar" basedir="${src.build.dir}" />
     </target>
 
+    <target name="jar-src-test" depends="build-src-test" description="Creates a JAR for src-test classes">
+        <make-jar destfile="${dist.dir}/${ant.project.name}-${version}-test.jar" basedir="${src.test.build.dir}" />
+    </target>
+
     <target name="zip-src" depends="prepare" description="Creates a ZIP for the src files">
         <make-jar destfile="${dist.dir}/${ant.project.name}-${version}-sources.jar" basedir="${src.dir}" />
+    </target>
+	
+    <target name="zip-src-test" depends="prepare" description="Creates a ZIP for the src-test files">
+        <make-jar destfile="${dist.dir}/${ant.project.name}-${version}-test-sources.jar" basedir="${src.test.dir}" />
     </target>
 
     <target name="tar-tracevis" depends="prepare, dist-tracevis" description="Creates a tarball of the tracevis tool">
@@ -134,11 +157,22 @@
         </javadoc>
     </target>
 
+    <target name="doc-test" description="Build the javadoc for test artifact." depends="build-src-test">
+        <javadoc destdir="${doc.test.build.dir}">
+            <packageset dir="${src.test.dir}"/>
+            <classpath refid="test.classpath"/>
+        </javadoc>
+    </target>
+
     <target name="zip-doc" depends="doc" description="Creates a ZIP for the javadoc files">
         <make-jar destfile="${dist.dir}/${ant.project.name}-${version}-javadoc.jar" basedir="${doc.build.dir}" />
     </target>
 
-    <target name="build-test" depends="build-src" description="Builds test files.">
+    <target name="zip-doc-test" depends="doc-test" description="Creates a ZIP for the javadoc files of test artifact">
+        <make-jar destfile="${dist.dir}/${ant.project.name}-${version}-test-javadoc.jar" basedir="${doc.test.build.dir}" />
+    </target>
+
+    <target name="build-test" depends="build-src, build-src-test" description="Builds test files.">
         <javac includeantruntime="false" destdir="${test.build.dir}" source="${javac.source}" target="${javac.target}" debug="${debug}">
             <src path="${test.dir}"/>
             <classpath refid="test.classpath"/>
@@ -159,7 +193,7 @@
 
     <target name="build" depends="build-src,build-test" description="Builds everything" />
 
-    <target name="dist" depends="jar-src, zip-src, tar-tracevis, zip-doc"
+    <target name="dist" depends="jar-src, zip-src, tar-tracevis, zip-doc, jar-src-test, zip-src-test, zip-doc-test"
             description="Builds all distributables to ${dist.dir}">
         <ivy:deliver deliverpattern="${dist.dir}/[artifact]-[revision].[ext]" pubrevision="${version}" validate="true"/>
 

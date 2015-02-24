@@ -27,8 +27,8 @@ public class Failure<T> implements Try<T> {
   }
 
   @Override
-  public Result result() {
-    return Result.failure;
+  public ResultType resultType() {
+    return ResultType.failure;
   }
 
   public static <R> Try<R> of(Throwable t) {
