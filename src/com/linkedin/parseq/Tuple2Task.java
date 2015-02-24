@@ -24,14 +24,6 @@ public interface Tuple2Task<T1, T2> extends Task<Tuple2<T1, T2>> {
     return flatMap(desc, tuple -> f.apply(tuple._1(), tuple._2()));
   }
   
-  default <R> Task<R> mapOrFlatMap(final BiFunction<T1, T2, TaskOrValue<R>> f) {
-    return mapOrFlatMap(tuple -> f.apply(tuple._1(), tuple._2()));
-  }
-
-  default <R> Task<R> mapOrFlatMap(final String desc, final BiFunction<T1, T2, TaskOrValue<R>> f) {
-    return mapOrFlatMap(desc, tuple -> f.apply(tuple._1(), tuple._2()));
-  }
-
   default Tuple2Task<T1, T2> andThen(final BiConsumer<T1, T2> consumer) {
     return cast(andThen(tuple -> consumer.accept(tuple._1(), tuple._2())));
   }

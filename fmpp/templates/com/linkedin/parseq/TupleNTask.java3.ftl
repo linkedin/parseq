@@ -28,14 +28,6 @@ public interface Tuple${i}Task<<@typeParameters i/>> extends Task<Tuple${i}<<@ty
     return flatMap(desc, tuple -> f.apply(<@tupleArgs i/>));
   }
   
-  default <R> Task<R> mapOrFlatMap(final Function${i}<<@typeParameters i/>, TaskOrValue<R>> f) {
-    return mapOrFlatMap(tuple -> f.apply(<@tupleArgs i/>));
-  }
-
-  default <R> Task<R> mapOrFlatMap(final String desc, final Function${i}<<@typeParameters i/>, TaskOrValue<R>> f) {
-    return mapOrFlatMap(desc, tuple -> f.apply(<@tupleArgs i/>));
-  }
-
   default Tuple${i}Task<<@typeParameters i/>> andThen(final Consumer${i}<<@typeParameters i/>> consumer) {
     return cast(andThen(tuple -> consumer.accept(<@tupleArgs i/>)));
   }

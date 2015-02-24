@@ -24,14 +24,6 @@ public interface Tuple6Task<T1, T2, T3, T4, T5, T6> extends Task<Tuple6<T1, T2, 
     return flatMap(desc, tuple -> f.apply(tuple._1(), tuple._2(), tuple._3(), tuple._4(), tuple._5(), tuple._6()));
   }
   
-  default <R> Task<R> mapOrFlatMap(final Function6<T1, T2, T3, T4, T5, T6, TaskOrValue<R>> f) {
-    return mapOrFlatMap(tuple -> f.apply(tuple._1(), tuple._2(), tuple._3(), tuple._4(), tuple._5(), tuple._6()));
-  }
-
-  default <R> Task<R> mapOrFlatMap(final String desc, final Function6<T1, T2, T3, T4, T5, T6, TaskOrValue<R>> f) {
-    return mapOrFlatMap(desc, tuple -> f.apply(tuple._1(), tuple._2(), tuple._3(), tuple._4(), tuple._5(), tuple._6()));
-  }
-
   default Tuple6Task<T1, T2, T3, T4, T5, T6> andThen(final Consumer6<T1, T2, T3, T4, T5, T6> consumer) {
     return cast(andThen(tuple -> consumer.accept(tuple._1(), tuple._2(), tuple._3(), tuple._4(), tuple._5(), tuple._6())));
   }

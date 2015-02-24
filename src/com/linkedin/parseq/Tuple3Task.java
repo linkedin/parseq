@@ -24,14 +24,6 @@ public interface Tuple3Task<T1, T2, T3> extends Task<Tuple3<T1, T2, T3>> {
     return flatMap(desc, tuple -> f.apply(tuple._1(), tuple._2(), tuple._3()));
   }
   
-  default <R> Task<R> mapOrFlatMap(final Function3<T1, T2, T3, TaskOrValue<R>> f) {
-    return mapOrFlatMap(tuple -> f.apply(tuple._1(), tuple._2(), tuple._3()));
-  }
-
-  default <R> Task<R> mapOrFlatMap(final String desc, final Function3<T1, T2, T3, TaskOrValue<R>> f) {
-    return mapOrFlatMap(desc, tuple -> f.apply(tuple._1(), tuple._2(), tuple._3()));
-  }
-
   default Tuple3Task<T1, T2, T3> andThen(final Consumer3<T1, T2, T3> consumer) {
     return cast(andThen(tuple -> consumer.accept(tuple._1(), tuple._2(), tuple._3())));
   }

@@ -4,6 +4,10 @@ import java.util.NoSuchElementException;
 import java.util.function.Function;
 
 import com.linkedin.parseq.internal.ArgumentUtil;
+import com.linkedin.parseq.internal.SystemHiddenTask;
+import com.linkedin.parseq.promise.Promise;
+import com.linkedin.parseq.promise.Promises;
+import com.linkedin.parseq.promise.SettablePromise;
 
 
 /**
@@ -71,7 +75,69 @@ public interface TaskOrValue<T> {
 
     @Override
     public <A> TaskOrValue<A> flatMap(Function<T, TaskOrValue<A>> f) {
-      return task(_task.mapOrFlatMap(f));
+      return task(mapOrFlatMap(f));
+    }
+
+    /**
+     * This method behaves as a {@link #map(String, Function) map} or {@link #flatMap(String, Function) flatMap}
+     * depending on result of given function. If given function returns a value then this
+     * method behaves like a <code>map</code>. If the function returns a Task then this method
+     * behaves like a <code>flatMap</code>. Example:
+     * <pre><code>
+     * {@code
+     *  // cache of user names
+     *  Map{@code <Long, String>} userNamesCache = new HashMap{@code <>}();
+     *
+     *  Task{@code <Long>} idTask = Task.value(1223L);
+     *
+     *  Task{@code <String>} userName = idTask.mapOrFlatMap("get user name", id -> {
+     *    if (userNamesCache.containsKey(id)) {
+     *      return TaskOrValue.value(userNamesCache.get(id));
+     *    } else {
+     *      return TaskOrValue.task(fetch(id));
+     *    }
+     *  });
+     * </code></pre>
+     * @param desc description of a mapping function, it will show up in a trace
+     * @param func function to be applied to successful result of this Task which returns
+     * instance of a {@link TaskOrValue}.
+     * @return a new Task which will apply given function on result of successful completion of this task
+     * to get instance of a {@link TaskOrValue} and act as a <code>map</code> or <code>flatMap></code>
+     * depending on it's value
+     * @see #map(String, Function) map
+     * @see #flatMap(String, Function) flatMap
+     * @see {@link TaskOrValue}
+     */
+    private <R> Task<R> mapOrFlatMap(final Function<T, TaskOrValue<R>> func) {
+      return new SystemHiddenTask<R>("flatMap") {
+        @Override
+        protected Promise<R> run(Context context) throws Throwable {
+          final SettablePromise<R> result = Promises.settable();
+          context.after(_task).run(new SystemHiddenTask<R>("flatMap") {
+            @Override
+            protected Promise<R> run(Context context) throws Throwable {
+              try {
+                TaskOrValue<R> taskOrValueR = func.apply(_task.get());
+                if (taskOrValueR.isTask()) {
+                  Task<R> taskR = taskOrValueR.getTask();
+                  Promises.propagateResult(taskR, result);
+                  context.run(taskR);
+                  return taskR;
+                } else {
+                  Promise<R> valueR = Promises.value(taskOrValueR.getValue());
+                  Promises.propagateResult(valueR, result);
+                  return valueR;
+                }
+              } catch (Throwable t) {
+                result.fail(t);
+                return Promises.error(t);
+              }
+            }
+          });
+          context.run(_task);
+          return result;
+        }
+      };
     }
 
   }
