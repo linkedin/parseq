@@ -7,85 +7,113 @@ import com.linkedin.parseq.internal.ArgumentUtil;
 
 
 /**
- * consider folding TaskOrValue into Task i.e.
- * value is a special case of a task which has been resolved.
+ * <code>TaskOrValue</code> represents either {@link Task} or a value.
+ * This interface allows calling {@link #map(Function) map} and
+ * {@link #flatMap(Function) flatMap} regardless of the underlying type.
  *
  * @author jodzga
- *
- * @param <T>
  */
-public class TaskOrValue<T> {
+public interface TaskOrValue<T> {
 
-  private final Task<T> _task;
-  private final T _value;
+  public boolean isTask();
 
-  private TaskOrValue(Task<T> task, T value) {
-    _task = task;
-    _value = value;
-  }
+  public T getValue();
 
-  public boolean isTask() {
-    return _task != null;
-  }
+  public Task<T> getTask();
 
-  public T getValue() {
-    if (isTask()) {
-      throw new NoSuchElementException();
-    } else {
-      return _value;
-    }
-  }
+  public <A> TaskOrValue<A> map(final Function<T, A> func);
 
-  public Task<T> getTask() {
-    if (isTask()) {
-      return _task;
-    } else {
-      throw new NoSuchElementException();
-    }
-  }
+  public <A> TaskOrValue<A> mapTask(final Function<T, Task<A>> f);
+
+  public <A> TaskOrValue<A> flatMap(final Function<T, TaskOrValue<A>> f);
 
   public static <A> TaskOrValue<A> task(Task<A> task) {
     ArgumentUtil.requireNonNull(task);
-    return new TaskOrValue<A>(task, null);
+    return new Tsk<>(task);
   }
 
-  public static <T> TaskOrValue<T> value(T value) {
-    return new TaskOrValue<T>(null, value);
+  public static <A> TaskOrValue<A> value(A value) {
+    return new Val<A>(value);
   }
 
-  public <A> TaskOrValue<A> map(final Function<T, A> f) {
-    if (isTask()) {
-      return task(getTask().map(f));
-    } else {
-      return value(f.apply(getValue()));
+  public static class Tsk<T> implements TaskOrValue<T> {
+
+    private final Task<T> _task;
+
+    public Tsk(Task<T> task) {
+      _task = task;
     }
-  }
 
-  public <A> TaskOrValue<A> mapTask(final Function<T, Task<A>> f) {
-    if (isTask()) {
-      return task(getTask().flatMap(f));
-    } else {
-      return task(f.apply(getValue()));
+    @Override
+    public boolean isTask() {
+      return true;
     }
-  }
 
-  public <A> TaskOrValue<A> flatMap(final Function<T, TaskOrValue<A>> f) {
-    if (isTask()) {
-      return task(getTask().mapOrFlatMap(f));
-    } else {
-      return f.apply(getValue());
+    @Override
+    public T getValue() {
+      throw new NoSuchElementException();
     }
+
+    @Override
+    public Task<T> getTask() {
+      return _task;
+    }
+
+    @Override
+    public <A> TaskOrValue<A> map(Function<T, A> func) {
+      return task(_task.map(func));
+    }
+
+    @Override
+    public <A> TaskOrValue<A> mapTask(Function<T, Task<A>> f) {
+      return task(_task.flatMap(f));
+    }
+
+    @Override
+    public <A> TaskOrValue<A> flatMap(Function<T, TaskOrValue<A>> f) {
+      return task(_task.mapOrFlatMap(f));
+    }
+
   }
 
-//  private static <Z, A> Reducer<Z, A> lower(final Reducer<Task<Z>, TaskOrValue<A>> r) {
-//    return null;
-//  }
-//
-//  private static <Z, A> Reducer<Task<Z>, TaskOrValue<A>> lift(final Reducer<Z, A> r) {
-//    return null;
-//  }
-//
-//  public static <A, B> Transducer<TaskOrValue<A>, TaskOrValue<B>> lift(final Transducer<A, B> transducer) {
-//    return ftovb -> lift(transducer.apply(lower(ftovb)));
-//  }
+  public static class Val<T> implements TaskOrValue<T> {
+
+    private final T _value;
+
+    public Val(T value) {
+      _value = value;
+    }
+
+    @Override
+    public boolean isTask() {
+      return false;
+    }
+
+    @Override
+    public T getValue() {
+      return _value;
+    }
+
+    @Override
+    public Task<T> getTask() {
+      throw new NoSuchElementException();
+    }
+
+    @Override
+    public <A> TaskOrValue<A> map(Function<T, A> func) {
+      return value(func.apply(getValue()));
+    }
+
+    @Override
+    public <A> TaskOrValue<A> mapTask(Function<T, Task<A>> func) {
+      return task(func.apply(getValue()));
+    }
+
+    @Override
+    public <A> TaskOrValue<A> flatMap(Function<T, TaskOrValue<A>> func) {
+      return func.apply(getValue());
+    }
+
+  }
+
 }

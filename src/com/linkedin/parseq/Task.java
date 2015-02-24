@@ -137,25 +137,23 @@ public interface Task<T> extends Promise<T>, Cancellable
   /**
    * Creates a new Task by applying a function to the successful result of this Task.
    * Returned Task will complete with value calculated by a function. Example:
-   * <pre>
-   * {@code
-   * Task<String> hello = Task.callable(() -> "Hello World");
+   * <pre><code>
+   * Task{@code <String>} hello = Task.value("Hello World");
    *
-   * // length Task will complete with value 11
-   * Task<Integer> length = hello.map(s -> s.length());
-   * }</pre>
+   * // this Task will complete with value 11
+   * Task{@code <Integer>} length = hello.map(s -> s.length());
+   * </code></pre>
    *
-   * If this Task is completed with an exception then the new Task will also contain
-   * that exception. Example:
-   * <pre>
-   * {@code
-   *  Task<String> failing = Task.callable("hello", () -> {
+   * If this Task is completed with an exception then the new Task will also complete
+   * with that exception. Example:
+   * <pre><code>
+   *  Task{@code <String>} failing = Task.callable("hello", () -> {
    *    return "Hello World".substring(100);
    *  });
    *
-   *  // length Task will fail with java.lang.StringIndexOutOfBoundsException
-   *  Task<Integer> length = failing.map("length", s -> s.length());
-   * }</pre>
+   *  // this Task will fail with java.lang.StringIndexOutOfBoundsException
+   *  Task{@code <Integer>} length = failing.map("length", s -> s.length());
+   * </code></pre>
    * @param <R> return type of function <code>func</code>
    * @param desc description of a mapping function, it will show up in a trace
    * @param func function to be applied to successful result of this Task.
@@ -168,25 +166,23 @@ public interface Task<T> extends Promise<T>, Cancellable
   /**
    * Creates a new Task by applying a function to the successful result of this Task.
    * Returned Task will complete with value calculated by a function. Example:
-   * <pre>
-   * {@code
-   * Task<String> hello = Task.callable("hello", () -> "Hello World");
+   * <pre><code>
+   * Task{@code <String>} hello = Task.value("Hello World");
    *
-   * // length Task will complete with value 11
-   *  Task<Integer> length = hello.map("length", s -> s.length());
-   * }</pre>
+   * // this Task will complete with value 11
+   * Task{@code <Integer>} length = hello.map(s -> s.length());
+   * </code></pre>
    *
-   * If this Task is completed with an exception then the new Task will also contain
-   * that exception. Example:
-   * <pre>
-   * {@code
-   *  Task<String> failing = Task.callable("hello", () ->
-   *    "Hello World".substring(100));
+   * If this Task is completed with an exception then the new Task will also complete
+   * with that exception. Example:
+   * <pre><code>
+   *  Task{@code <String>} failing = Task.callable("hello", () -> {
+   *    return "Hello World".substring(100);
+   *  });
    *
-   *  // length Task will fail with java.lang.StringIndexOutOfBoundsException
-   *  Task<Integer> length = failing.map("length", s -> s.length());
-   * }</pre>
-   *
+   *  // this Task will fail with java.lang.StringIndexOutOfBoundsException
+   *  Task{@code <Integer>} length = failing.map("length", s -> s.length());
+   * </code></pre>
    * @param <R> return type of function <code>func</code>
    * @param func function to be applied to successful result of this Task.
    * @return a new Task which will apply given function on result of successful completion of this task
@@ -200,57 +196,105 @@ public interface Task<T> extends Promise<T>, Cancellable
    * returns the result of a function as the new Task.
    * Returned Task will complete with value calculated by a Task returned by the function.
    * Example:
-   * <pre>
-   * {@code
-   * Task<String> hello = Task.callable("hello", () -> "Hello World");
+   * <pre><code>
+   *  Task{@code <URI>} url = Task.value("uri", URI.create("http://linkedin.com"));
    *
-   * // length Task will complete with value 11
-   *  Task<Integer> length = hello.map("length", s -> s.length());
-   * }</pre>
+   *  // this Task will complete with contents of a LinkedIn homepage
+   *  // assuming fetch(u) fetches contents given by a URI
+   *  Task{@code <String>} homepage = url.flatMap("fetch", u -> fetch(u));
+   * </code></pre>
    *
    * If this Task is completed with an exception then the new Task will also contain
    * that exception. Example:
-   * <pre>
-   * {@code
-   *  Task<String> failing = Task.callable("hello", () ->
-   *    "Hello World".substring(100));
+   * <pre><code>
+   *  Task{@code <URI>} url = Task.callable("uri", () -> URI.create("not a URI"));
    *
-   *  // length Task will fail with java.lang.StringIndexOutOfBoundsException
-   *  Task<Integer> length = failing.map("length", s -> s.length());
-   * }</pre>
-   *
+   *  // this Task will fail with java.lang.IllegalArgumentException
+   *  Task{@code <String>} homepage = url.flatMap("fetch", u -> fetch(u));
+   * </code></pre>
    * @param <R> return type of function <code>func</code>
    * @param desc description of a mapping function, it will show up in a trace
-   * @param f function to be applied to successful result of this Task.
+   * @param func function to be applied to successful result of this Task which returns new Task
+   * to be executed
    * @return a new Task which will apply given function on result of successful completion of this task
+   * to get instance of a Task which will be executed next
    */
-  default <R> Task<R> flatMap(final String desc, final Function<T, Task<R>> f) {
-    return mapOrFlatMap(desc, t -> TaskOrValue.task(f.apply(t)));
+  default <R> Task<R> flatMap(final String desc, final Function<T, Task<R>> func) {
+    return mapOrFlatMap(desc, t -> TaskOrValue.task(func.apply(t)));
   }
 
   /**
    * Creates a new Task by applying a function to the successful result of this Task and
    * returns the result of a function as the new Task.
-   * If this Task is completed with an exception then the new Task will also contain that exception.
+   * Returned Task will complete with value calculated by a Task returned by the function.
+   * Example:
+   * <pre><code>
+   *  Task{@code <URI>} url = Task.value("uri", URI.create("http://linkedin.com"));
    *
-   * @param f function to be applied to successful result of this Task.
+   *  // this Task will complete with contents of a LinkedIn homepage
+   *  // assuming fetch(u) fetches contents given by a URI
+   *  Task{@code <String>} homepage = url.flatMap("fetch", u -> fetch(u));
+   * </code></pre>
+   *
+   * If this Task is completed with an exception then the new Task will also contain
+   * that exception. Example:
+   * <pre><code>
+   *  Task{@code <URI>} url = Task.callable("uri", () -> URI.create("not a URI"));
+   *
+   *  // this Task will fail with java.lang.IllegalArgumentException
+   *  Task{@code <String>} homepage = url.flatMap("fetch", u -> fetch(u));
+   * </code></pre>
+   * @param <R> return type of function <code>func</code>
+   * @param func function to be applied to successful result of this Task which returns new Task
+   * to be executed
    * @return a new Task which will apply given function on result of successful completion of this task
+   * to get instance of a Task which will be executed next
    */
-  default <R> Task<R> flatMap(final Function<T, Task<R>> f) {
-    return flatMap("flatMap", f);
+  default <R> Task<R> flatMap(final Function<T, Task<R>> func) {
+    return flatMap("flatMap", func);
   }
 
-  default <R> Task<R> mapOrFlatMap(final String name, final Function<T, TaskOrValue<R>> f) {
+  /**
+   * This method behaves as a {@link #map(String, Function) map} or {@link #flatMap(String, Function) flatMap}
+   * depending on result of given function. If given function returns a value then this
+   * method behaves like a <code>map</code>. If the function returns a Task then this method
+   * behaves like a <code>flatMap</code>. Example:
+   * <pre><code>
+   * {@code
+   *  // cache of user names
+   *  Map{@code <Long, String>} userNamesCache = new HashMap{@code <>}();
+   *
+   *  Task{@code <Long>} idTask = Task.value(1223L);
+   *
+   *  Task{@code <String>} userName = idTask.mapOrFlatMap("get user name", id -> {
+   *    if (userNamesCache.containsKey(id)) {
+   *      return TaskOrValue.value(userNamesCache.get(id));
+   *    } else {
+   *      return TaskOrValue.task(fetch(id));
+   *    }
+   *  });
+   * </code></pre>
+   * @param desc description of a mapping function, it will show up in a trace
+   * @param func function to be applied to successful result of this Task which returns
+   * instance of a {@link TaskOrValue}.
+   * @return a new Task which will apply given function on result of successful completion of this task
+   * to get instance of a {@link TaskOrValue} and act as a <code>map</code> or <code>flatMap></code>
+   * depending on it's value
+   * @see #map(String, Function) map
+   * @see #flatMap(String, Function) flatMap
+   * @see {@link TaskOrValue}
+   */
+  default <R> Task<R> mapOrFlatMap(final String desc, final Function<T, TaskOrValue<R>> func) {
     final Task<T> that = this;
-    return new SystemHiddenTask<R>(name) {
+    return new SystemHiddenTask<R>(desc) {
       @Override
       protected Promise<R> run(Context context) throws Throwable {
         final SettablePromise<R> result = Promises.settable();
-        context.after(that).run(new SystemHiddenTask<R>(name) {
+        context.after(that).run(new SystemHiddenTask<R>(desc) {
           @Override
           protected Promise<R> run(Context context) throws Throwable {
             try {
-              TaskOrValue<R> taskOrValueR = f.apply(that.get());
+              TaskOrValue<R> taskOrValueR = func.apply(that.get());
               if (taskOrValueR.isTask()) {
                 Task<R> taskR = taskOrValueR.getTask();
                 Promises.propagateResult(taskR, result);
@@ -273,28 +317,82 @@ public interface Task<T> extends Promise<T>, Cancellable
     };
   }
 
-  default <R> Task<R> mapOrFlatMap(final Function<T, TaskOrValue<R>> f) {
-    return mapOrFlatMap("mapOrFlatMap", f);
+  /**
+   * This method behaves as a {@link #map(String, Function) map} or {@link #flatMap(String, Function) flatMap}
+   * depending on result of given function. If given function returns a value then this
+   * method behaves like a <code>map</code>. If the function returns a Task then this method
+   * behaves like a <code>flatMap</code>. Example:
+   * <pre><code>
+   * {@code
+   *  // cache of user names
+   *  Map{@code <Long, String>} userNamesCache = new HashMap{@code <>}();
+   *
+   *  Task{@code <Long>} idTask = Task.value(1223L);
+   *
+   *  Task{@code <String>} userName = idTask.mapOrFlatMap("get user name", id -> {
+   *    if (userNamesCache.containsKey(id)) {
+   *      return TaskOrValue.value(userNamesCache.get(id));
+   *    } else {
+   *      return TaskOrValue.task(fetch(id));
+   *    }
+   *  });
+   * </code></pre>
+   * @param desc description of a mapping function, it will show up in a trace
+   * @param func function to be applied to successful result of this Task which returns
+   * instance of a {@link TaskOrValue}.
+   * @return a new Task which will apply given function on result of successful completion of this task
+   * to get instance of a {@link TaskOrValue} and act as a <code>map</code> or <code>flatMap></code>
+   * depending on it's value
+   * @see #map(String, Function) map
+   * @see #flatMap(String, Function) flatMap
+   * @see {@link TaskOrValue}
+   */
+  default <R> Task<R> mapOrFlatMap(final Function<T, TaskOrValue<R>> func) {
+    return mapOrFlatMap("mapOrFlatMap", func);
   }
 
-  default Task<T> withSideEffect(final Function<T, Task<?>> f) {
-    return withSideEffect("withSideEffect", f);
-  }
-
-  default Task<T> withSideEffect(final String desc, final Function<T, Task<?>> f) {
+  /**
+   * Creates a new task that will run another task as a side effect once the primary task
+   * completes successfully. The properties of side effect task are:
+   * <ul>
+   * <li>The side effect task will not be run if the primary task fails or
+   * is canceled.</li>
+   * <li>The side effect does not affect returned task. It means that
+   * failure of side effect task is not propagated to returned task.</li>
+   * <li>The returned task is marked done once this task completes, even if
+   * the side effect has not been run yet.</li>
+   * </ul>
+   * The side effect task is useful in situations where operation (side effect) should continue to run
+   * in the background but it's execution is not required for the main computation. An example might
+   * be updating cache once data has been retrieved from the main source:
+   * <pre><code>
+   *  Task{@code <Long>} id = Task.value(1223L);
+   *
+   *  // this Task will be completed as soon as user name is fetched
+   *  // by fetch() method and will not fail even if updateMemcache() fails
+   *  Task{@code <String>} userName = id.flatMap("fetch", u -> fetch(u))
+   *      .withSideEffect("update memcache", u -> updateMemcache(u));
+   * </code></pre>
+   * @param desc description of a function, it will show up in a trace
+   * @param func function to be applied on result of successful completion of this task
+   * to get side effect task
+   * @return a new Task that will run side effect task specified by given function upon succesful
+   * completion of this task
+   */
+  default Task<T> withSideEffect(final String desc, final Function<T, Task<?>> func) {
     final Task<T> that = this;
     return new SystemHiddenTask<T>(desc) {
       @Override
       protected Promise<T> run(Context context) throws Throwable {
-        context.after(that).runSideEffect(f.apply(that.get()));
+        context.after(that).runSideEffect(func.apply(that.get()));
         context.run(that);
         return that;
       }
     };
   }
 
-  default Task<T> withSideEffect(final Task<?> sideEffect) {
-    return withSideEffect("withSideEffect", sideEffect);
+  default Task<T> withSideEffect(final Function<T, Task<?>> f) {
+    return withSideEffect("withSideEffect", f);
   }
 
   default Task<T> withSideEffect(final String desc, final Task<?> sideEffect) {
@@ -307,6 +405,10 @@ public interface Task<T> extends Promise<T>, Cancellable
         return that;
       }
     };
+  }
+
+  default Task<T> withSideEffect(final Task<?> sideEffect) {
+    return withSideEffect("withSideEffect", sideEffect);
   }
 
   /**
@@ -579,6 +681,14 @@ public interface Task<T> extends Promise<T>, Cancellable
 
   public static <T> Task<T> value(final T value) {
     return callable("value", () -> value);
+  }
+
+  public static <T> Task<T> failure(final String name, final Throwable failure) {
+    return async(name, () -> Promises.error(failure));
+  }
+
+  public static <T> Task<T> failure(final Throwable failure) {
+    return failure("failure", failure);
   }
 
   public static <T> Task<T> callable(final String name, final Callable<? extends T> callable) {
