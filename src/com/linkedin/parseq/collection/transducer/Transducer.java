@@ -48,7 +48,7 @@ public interface Transducer<T, R> extends Function<Reducer<Object, R>, Reducer<O
   }
 
   default Transducer<T, R> take(final int n) {
-    ArgumentUtil.requirePositive(n);
+    ArgumentUtil.requirePositive(n, "number of elements to take");
     final Counter counter = new Counter(0);
     return fr -> apply((z, r) ->
       fr.apply(z, r).map(s -> {
@@ -61,7 +61,7 @@ public interface Transducer<T, R> extends Function<Reducer<Object, R>, Reducer<O
   }
 
   default Transducer<T, R> drop(final int n) {
-    ArgumentUtil.requirePositive(n);
+    ArgumentUtil.requirePositive(n, "number of elements to drop");
       final Counter counter = new Counter(0);
       return fr -> apply((z, r) ->
       fr.apply(z, r).map(s -> {

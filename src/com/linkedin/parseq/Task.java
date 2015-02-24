@@ -670,7 +670,14 @@ public interface Task<T> extends Promise<T>, Cancellable
    */
   public static Task<Void> action(final String name, final Runnable runnable)
   {
-    return new ActionTask(name, runnable);
+    return async(name, () -> {
+      try {
+        runnable.run();
+        return Promises.VOID;
+      } catch (Throwable t) {
+        return Promises.error(t);
+      }
+    });
   }
 
   public static Task<Void> action(final Runnable runnable)

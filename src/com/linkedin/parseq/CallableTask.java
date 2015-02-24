@@ -29,7 +29,9 @@ import java.util.concurrent.Callable;
  * Use {@link Tasks#callable(String, java.util.concurrent.Callable)} to create
  * instances of this class.
  *
+ * @deprecated  As of 2.0.0, replaced by {@link Task#callable(String, Callable) Task.callable}.
  * @author Chris Pettitt (cpettitt@linkedin.com)
+ * @see Task#callable(String, Callable) Task.callable
  */
 public class CallableTask<T> extends BaseTask<T>
 {
@@ -43,7 +45,7 @@ public class CallableTask<T> extends BaseTask<T>
   public CallableTask(final String name, final ThrowableCallable<? extends T> callable)
   {
     super(name);
-    ArgumentUtil.requireNonNull(callable);
+    ArgumentUtil.requireNotNull(callable, "callable");
     _callable = callable;
   }
 

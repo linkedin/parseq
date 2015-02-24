@@ -64,7 +64,7 @@ public class AsyncCallableTask<R> extends BaseTask<R>
   public AsyncCallableTask(final String name, final Callable<R> syncJob)
   {
     super(name);
-    ArgumentUtil.requireNonNull(syncJob);
+    ArgumentUtil.requireNotNull(syncJob, "job");
     _syncJob = syncJob;
   }
 

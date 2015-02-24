@@ -18,9 +18,16 @@ package com.linkedin.parseq;
 
 import java.util.List;
 
+import com.linkedin.parseq.collection.ParSeqCollections;
+
 /**
  * A ParTask will execute the list of tasks in parallel and contains the result of the complete set.
+ *
+ * @deprecated  As of 2.0.0, replaced by {@link Task#par(Task, Task) Task.par} or
+ * {@link ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks}.
  * @author Chi Chan (ckchan@linkedin.com)
+ * @see Task#par(Task, Task) Task.par
+ * @see ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks
  */
 public interface ParTask<T> extends Task<List<T>>
 {

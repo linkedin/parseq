@@ -24,8 +24,10 @@ import com.linkedin.parseq.promise.Promises;
  * A {@link Task} that runs a {@link Runnable} and returns no value. Use
  * {@link Tasks#action(String, Runnable)} to create instances of this class.
  *
+ * @deprecated  As of 2.0.0, replaced by {@link Task#action(String, Runnable) Task.action}.
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
+ * @see Task#action(String, Runnable) Task.action
  */
 public class ActionTask extends BaseTask<Void>
 {
@@ -40,7 +42,7 @@ public class ActionTask extends BaseTask<Void>
   public ActionTask(final String name, final Runnable runnable)
   {
     super(name);
-    ArgumentUtil.requireNonNull(runnable);
+    ArgumentUtil.requireNotNull(runnable, "action");
     _runnable = runnable;
   }
 

@@ -44,6 +44,7 @@ import com.linkedin.parseq.collection.ParSeqCollections;
    * @param name a name that describes the action
    * @param runnable the action that will be executed when the task is run
    * @return the new task
+   * @see Task#action(String, Runnable) Task.action
    */
   @Deprecated public static Task<Void> action(final String name, final Runnable runnable)
   {
@@ -61,6 +62,7 @@ import com.linkedin.parseq.collection.ParSeqCollections;
    * @param callable the callable to execute when this task is run
    * @param <T> the type of the return value for this task
    * @return the new task
+   * @see Task#callable(String, Callable) Task.callable
    */
   @Deprecated public static <T> Task<T> callable(final String name,
                                      final Callable<? extends T> callable)
@@ -79,6 +81,7 @@ import com.linkedin.parseq.collection.ParSeqCollections;
    * @param callable the callable to execute when this task is run
    * @param <T> the type of the return value for this task
    * @return the new task
+   * @see Task#callable(String, Callable) Task.callable
    */
   @Deprecated public static <T> Task<T> callable(final String name,
                                      final ThrowableCallable<? extends T> callable)

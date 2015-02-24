@@ -31,8 +31,15 @@ import java.util.List;
  * Use {@link Tasks#seq(Iterable)} or {@link Tasks#seq(java.lang.Iterable)} to create
  * instances of this class.
  *
+ * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, java.util.function.Function) Task.map},
+ * {@link Task#flatMap(String, java.util.function.Function) Task.flatMap},
+ * {@link Task#andThen(String, Task) Task.andThen} and other methods in {@link Task}.
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Chi Chan (ckchan@linkedin.com)
+ * @see Task#map(String, java.util.function.Function) Task.map
+ * @see Task#flatMap(String, java.util.function.Function) Task.flatMap
+ * @see Task#andThen(String, Task) Task.andThen
+ * @see Task
  */
 /* package private */ class SeqTask<T> extends SystemHiddenTask<T>
 {

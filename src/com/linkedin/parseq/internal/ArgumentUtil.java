@@ -27,7 +27,7 @@ public class ArgumentUtil
   {
     if (obj == null)
     {
-      throw new NullPointerException(name + " is null");
+      throw new NullPointerException(name + " must not be null");
     }
   }
 
@@ -40,15 +40,9 @@ public class ArgumentUtil
     }
   }
 
-  public static void requirePositive(final int n) {
+  public static void requirePositive(final int n, final String name) {
     if (n <= 0) {
-      throw new IllegalArgumentException("Argument must be a positive integer numebr, but is: " + n);
-    }
-  }
-
-  public static void requireNonNull(Object o) {
-    if (o == null) {
-      throw new IllegalArgumentException("Argument must not be null");
+      throw new IllegalArgumentException(name + " must be a positive integer numebr, but is: " + n);
     }
   }
 }

@@ -28,7 +28,7 @@ public interface TaskOrValue<T> {
   public <A> TaskOrValue<A> flatMap(final Function<T, TaskOrValue<A>> f);
 
   public static <A> TaskOrValue<A> task(Task<A> task) {
-    ArgumentUtil.requireNonNull(task);
+    ArgumentUtil.requireNotNull(task, "task");
     return new Tsk<>(task);
   }
 
