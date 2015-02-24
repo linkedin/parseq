@@ -29,16 +29,15 @@ import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.function.Failure;
 import com.linkedin.parseq.function.Success;
 import com.linkedin.parseq.function.Try;
-import com.linkedin.parseq.internal.SystemHiddenTask;
 import com.linkedin.parseq.internal.TaskLogger;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromisePropagator;
 import com.linkedin.parseq.promise.PromiseTransformer;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
-import com.linkedin.parseq.promise.TransformingPromiseListener;
 import com.linkedin.parseq.trace.Related;
 import com.linkedin.parseq.trace.ShallowTrace;
+import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.Trace;
 
 /**
@@ -224,28 +223,23 @@ public interface Task<T> extends Promise<T>, Cancellable
    */
   default <R> Task<R> flatMap(final String desc, final Function<T, Task<R>> func) {
     final Task<T> that = this;
-    return new SystemHiddenTask<R>(desc) {
-      @Override
-      protected Promise<R> run(Context context) throws Throwable {
-        final SettablePromise<R> result = Promises.settable();
-        context.after(that).run(new SystemHiddenTask<R>(desc) {
-          @Override
-          protected Promise<R> run(Context context) throws Throwable {
-            try {
-              Task<R> taskR = func.apply(that.get());
-              Promises.propagateResult(taskR, result);
-              context.run(taskR);
-              return taskR;
-            } catch (Throwable t) {
-              result.fail(t);
-              return Promises.error(t);
-            }
-          }
-        });
-        context.run(that);
-        return result;
-      }
-    };
+    return async(desc, context -> {
+      final SettablePromise<R> result = Promises.settable();
+      final Task<R> taskR = async(desc, ctx -> {
+        try {
+          Task<R> t = func.apply(that.get());
+          Promises.propagateResult(t, result);
+          ctx.run(t);
+          return t;
+        } catch (Throwable t) {
+          result.fail(t);
+          return Promises.error(t);
+        }
+      }, true);
+      context.after(that).run(taskR);
+      context.run(that);
+      return result;
+     }, true);
   }
 
   /**
@@ -309,14 +303,11 @@ public interface Task<T> extends Promise<T>, Cancellable
    */
   default Task<T> withSideEffect(final String desc, final Function<T, Task<?>> func) {
     final Task<T> that = this;
-    return new SystemHiddenTask<T>(desc) {
-      @Override
-      protected Promise<T> run(Context context) throws Throwable {
-        context.after(that).runSideEffect(func.apply(that.get()));
-        context.run(that);
-        return that;
-      }
-    };
+    return async(desc, context -> {
+      context.after(that).runSideEffect(func.apply(that.get()));
+      context.run(that);
+      return that;
+    }, true);
   }
 
   default Task<T> withSideEffect(final Function<T, Task<?>> f) {
@@ -324,15 +315,7 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   default Task<T> withSideEffect(final String desc, final Task<?> sideEffect) {
-    final Task<T> that = this;
-    return new SystemHiddenTask<T>(desc) {
-      @Override
-      protected Promise<T> run(Context context) throws Throwable {
-        context.after(that).runSideEffect(sideEffect);
-        context.run(that);
-        return that;
-      }
-    };
+    return withSideEffect(desc, t -> sideEffect);
   }
 
   default Task<T> withSideEffect(final Task<?> sideEffect) {
@@ -361,16 +344,13 @@ public interface Task<T> extends Promise<T>, Cancellable
 
   default <R> Task<R> andThen(final String desc, final Task<R> task) {
     final Task<T> that = this;
-    return new SystemHiddenTask<R>(desc) {
-      @Override
-      protected Promise<R> run(Context context) throws Throwable {
-        final SettablePromise<R> result = Promises.settable();
-        context.after(that).run(task);
-        Promises.propagateResult(task, result);
-        context.run(that);
-        return result;
-      }
-    };
+    return async(desc, context -> {
+      final SettablePromise<R> result = Promises.settable();
+      context.after(that).run(task);
+      Promises.propagateResult(task, result);
+      context.run(that);
+      return result;
+    }, true);
   }
 
   default <R> Task<R> andThen(final Task<R> task) {
@@ -424,31 +404,26 @@ public interface Task<T> extends Promise<T>, Cancellable
    */
   default Task<T> recoverWith(final String desc, final Function<Throwable, Task<T>> f) {
     final Task<T> that = this;
-    return new SystemHiddenTask<T>(desc) {
-      @Override
-      protected Promise<T> run(Context context) throws Throwable {
-        final SettablePromise<T> result = Promises.settable();
-        context.after(that).run(new SystemHiddenTask<T>(desc) {
-          @Override
-          protected Promise<T> run(Context context) throws Throwable {
-            if (that.isFailed()) {
-              try {
-                Task<T> recovery = f.apply(that.getError());
-                Promises.propagateResult(recovery, result);
-                context.run(recovery);
-              } catch (Throwable t) {
-                result.fail(t);
-              }
-            } else {
-              result.done(that.get());
-            }
-            return result;
+    return async(desc, context -> {
+      final SettablePromise<T> result = Promises.settable();
+      final Task<T> recovery = async(desc, ctx -> {
+        if (that.isFailed()) {
+          try {
+            Task<T> r = f.apply(that.getError());
+            Promises.propagateResult(r, result);
+            ctx.run(r);
+          } catch (Throwable t) {
+            result.fail(t);
           }
-        });
-        context.run(that);
+        } else {
+          result.done(that.get());
+        }
         return result;
-      }
-    };
+      }, true);
+      context.after(that).run(recovery);
+      context.run(that);
+      return result;
+    }, true);
   }
 
   default Task<T> recoverWith(final Function<Throwable, Task<T>> f) {
@@ -469,34 +444,16 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @return a new Task which can recover from Throwable thrown by this Task or cancellation
    */
   default Task<T> fallBackTo(final String desc, final Function<Throwable, Task<T>> f) {
-    //TODO
-
-    return new SystemHiddenTask<T>(desc) {
-      @Override
-      protected Promise<T> run(final Context context) throws Throwable {
-        final SettablePromise<T> result = Promises.settable();
-        context.run(apply(desc, (src, dst) -> {
-          if (src.isFailed()) {
-            try {
-              Task<T> recovery = f.apply(src.getError());  //TODO get rid of TransformingPromiseListener
-              recovery.addListener(new TransformingPromiseListener<T, T>(result, (s, d) -> {
-                if (s.isFailed()) {
-                  d.fail(src.getError());  //this is the main difference from recoverWith: return original error
-                } else {
-                  d.done(s.get());
-                }
-              }));
-              context.run(recovery);
-            } catch (Throwable t) {
-              dst.fail(t);
-            }
-          } else {
-            dst.done(src.get());
-          }
-        }));
-        return result;
-      }
-    };
+    return recoverWith(desc, originalFailure -> {
+      Task<T> fallBack = f.apply(originalFailure).apply("restoreFailure", (src, dst) -> {
+        if (src.isFailed()) {
+          dst.fail(originalFailure);
+        } else {
+          dst.done(src.get());
+        }
+      });
+      return fallBack;
+    });
   }
 
   default Task<T> fallBackTo(final Function<Throwable, Task<T>> f) {
@@ -602,7 +559,7 @@ public interface Task<T> extends Promise<T>, Cancellable
       } catch (Throwable t) {
         return Promises.error(t);
       }
-    });
+    }, false);
   }
 
   public static Task<Void> action(final Runnable runnable)
@@ -619,7 +576,7 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   public static <T> Task<T> failure(final String name, final Throwable failure) {
-    return async(name, () -> Promises.error(failure));
+    return async(name, () -> Promises.error(failure), false);
   }
 
   public static <T> Task<T> failure(final Throwable failure) {
@@ -627,38 +584,45 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   public static <T> Task<T> callable(final String name, final Callable<? extends T> callable) {
-    return async(name, () -> Promises.value(callable.call()));
+    return async(name, () -> Promises.value(callable.call()), false);
   }
 
   public static <T> Task<T> callable(final Callable<? extends T> callable) {
     return callable("callable", callable);
   }
 
-  public static <T> Task<T> async(final String name, final Callable<Promise<? extends T>> callable) {
+  public static <T> Task<T> async(final String name, final Callable<Promise<? extends T>> callable,
+      final boolean systemHidden) {
     return async(name, context -> {
       try {
         return callable.call();
       } catch (Exception e) {
         return Promises.error(e);
       }
-    });
+    }, systemHidden);
   }
 
-  public static <T> Task<T> async(final String name, final Function<Context, Promise<? extends T>> func) {
+  public static <T> Task<T> async(final String name, final Function<Context, Promise<? extends T>> func,
+      final boolean systemHidden) {
     return new BaseTask<T>(name) {
       @Override
       protected Promise<? extends T> run(Context context) throws Throwable {
         return func.apply(context);
       }
+
+      @Override
+      public ShallowTrace getShallowTrace() {
+        return new ShallowTraceBuilder(super.getShallowTrace()).setSystemHidden(systemHidden).build();
+      }
     };
   }
 
-  public static <T> Task<T> async(final Function<Context, Promise<? extends T>> func) {
-    return async("async", func);
+  public static <T> Task<T> async(final Function<Context, Promise<? extends T>> func, final boolean systemHidden) {
+    return async("async", func, systemHidden);
   }
 
-  public static <T> Task<T> async(final Callable<Promise<? extends T>> callable) {
-    return async("async", callable);
+  public static <T> Task<T> async(final Callable<Promise<? extends T>> callable, final boolean systemHidden) {
+    return async("async", callable, systemHidden);
   }
 
   public static <T> Task<T> blocking(final String name, final Callable<? extends T> callable, final Executor executor) {
@@ -672,7 +636,7 @@ public interface Task<T> extends Promise<T>, Cancellable
         }
       });
       return promise;
-    });
+    }, false);
   }
 
   public static <T> Task<T> blocking(final Callable<? extends T> callable, final Executor executor) {
