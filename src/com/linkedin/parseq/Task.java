@@ -702,7 +702,7 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   public static <T> Task<T> callable(final String name, final Callable<? extends T> callable) {
-    return new CallableTask<T>(name, callable);
+    return async(name, () -> Promises.value(callable.call()));
   }
 
   public static <T> Task<T> callable(final Callable<? extends T> callable) {
