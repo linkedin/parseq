@@ -19,6 +19,7 @@ package com.linkedin.parseq;
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -41,6 +42,8 @@ import com.linkedin.parseq.trace.ShallowTrace;
 import com.linkedin.parseq.trace.Trace;
 
 /**
+ * TODO add check for arguments whcih may not be null
+ *
  * A task represents a deferred execution that also contains its resulting
  * value. In addition, tasks include some tracing information that can be
  * used with various trace printers.
@@ -700,12 +703,48 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   public static <T> Task<T> async(final String name, final Callable<Promise<? extends T>> callable) {
+    return async(name, context -> {
+      try {
+        return callable.call();
+      } catch (Exception e) {
+        return Promises.error(e);
+      }
+    });
+  }
+
+  public static <T> Task<T> async(final String name, final Function<Context, Promise<? extends T>> func) {
     return new BaseTask<T>(name) {
       @Override
       protected Promise<? extends T> run(Context context) throws Throwable {
-        return callable.call();
+        return func.apply(context);
       }
     };
+  }
+
+  public static <T> Task<T> async(final Function<Context, Promise<? extends T>> func) {
+    return async("async", func);
+  }
+
+  public static <T> Task<T> async(final Callable<Promise<? extends T>> callable) {
+    return async("async", callable);
+  }
+
+  public static <T> Task<T> blocking(final String name, final Callable<? extends T> callable, final Executor executor) {
+    return async(name, context -> {
+      final SettablePromise<T> promise = Promises.settable();
+      executor.execute(() -> {
+        try {
+          promise.done(callable.call());
+        } catch (Throwable t) {
+          promise.fail(t);
+        }
+      });
+      return promise;
+    });
+  }
+
+  public static <T> Task<T> blocking(final Callable<? extends T> callable, final Executor executor) {
+    return blocking("blocking", callable, executor);
   }
 
   public static <T1, T2> Tuple2Task<T1, T2> par(final Task<T1> task1,

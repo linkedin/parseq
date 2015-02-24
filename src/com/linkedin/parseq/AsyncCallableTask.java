@@ -24,8 +24,6 @@ import com.linkedin.parseq.promise.SettablePromise;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 
-//TODO refactor this to use less hacky way of integrating external executor services
-
 /**
  * This class provides a wrapper to allow synchronous tasks to be treated as
  * asynchronous tasks. This can be used for tasks that are blocking and are not
@@ -38,11 +36,12 @@ import java.util.concurrent.Executor;
  * To use this class with an engine, register an executor with engine using
  * {@link #register(EngineBuilder, java.util.concurrent.Executor)}
  *
+ * @deprecated  As of 2.0.0, replaced by {@link Task#blocking(String, Callable, Executor) Task.blocking}.
  * @author Walter Fender (wfender@linkedin.com)
  */
 public class AsyncCallableTask<R> extends BaseTask<R>
 {
-  private static final String CALLABLE_SERVICE_EXECUTOR = "_CallableServiceExecutor_";
+  static final String CALLABLE_SERVICE_EXECUTOR = "_CallableServiceExecutor_";
 
   private final Callable<R> _syncJob;
 
@@ -51,11 +50,17 @@ public class AsyncCallableTask<R> extends BaseTask<R>
     builder.setEngineProperty(CALLABLE_SERVICE_EXECUTOR, executor);
   }
 
+  /**
+   * @deprecated  As of 2.0.0, replaced by {@link Task#blocking(String, Callable, Executor) Task.blocking}.
+   */
   public AsyncCallableTask(final Callable<R> syncJob)
   {
     this(null, syncJob);
   }
 
+  /**
+   * @deprecated  As of 2.0.0, replaced by {@link Task#blocking(String, Callable, Executor) Task.blocking}.
+   */
   public AsyncCallableTask(final String name, final Callable<R> syncJob)
   {
     super(name);

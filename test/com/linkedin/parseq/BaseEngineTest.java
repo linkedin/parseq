@@ -83,8 +83,12 @@ public class BaseEngineTest
 
   /**
    * Runs task, verifies that task finishes within 5 sec and logs trace from the task execution.
+   *
+   * @param desc description of a test
+   * @param task task to run
+   * @return value task was completed with
    */
-  protected void runWait5sAndLogTrace(final String test, Task<?> task)
+  protected void runWait5sAndLogTrace(final String desc, Task<?> task)
   {
     try
     {
@@ -95,7 +99,7 @@ public class BaseEngineTest
     }
     finally
     {
-      logTracingResults(test, task);
+      logTracingResults(desc, task);
     }
   }
 
