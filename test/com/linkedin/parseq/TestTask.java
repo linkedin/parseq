@@ -172,13 +172,12 @@ public class TestTask extends BaseEngineTest
   @Test
   public void testWithTimeout()
   {
-    ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-    Task<Integer> success = getTask().andThen(getDelayTask(0, scheduler, 30))
+    Task<Integer> success = getTask().andThen(getDelayValue(0, 30))
         .withTimeout(100, TimeUnit.MILLISECONDS);
     runAndWait("TestTask.testWithTimeoutSuccess", success);
     Assert.assertEquals((int)success.get(), 0);
 
-    Task<Integer> failure = getTask().andThen(getDelayTask(0, scheduler, 110)).withTimeout(100, TimeUnit.MILLISECONDS);
+    Task<Integer> failure = getTask().andThen(getDelayValue(0, 110)).withTimeout(100, TimeUnit.MILLISECONDS);
     try
     {
       runAndWait("TestTask.testWithTimeoutFailure", failure);
@@ -188,57 +187,60 @@ public class TestTask extends BaseEngineTest
     {
       Assert.assertSame(ex.getCause(), Exceptions.TIMEOUT_EXCEPTION);
     }
-    scheduler.shutdown();
   }
 
-  @Test(enabled = false)
+  @Test
   public void testWithSideEffectViaTask() throws Exception
   {
-    ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-
     // side effect task
     Task<String> taskFastMain = getTask();
-    Task<String> taskSlowSideEffect = getDelayTask("slooow", scheduler, 5100);
+    Task<String> taskSlowSideEffect = getDelayValue("slooow", 5100);
     Task<String> taskPartial = taskFastMain.withSideEffect(taskSlowSideEffect);
 
     Task<String> taskFastMain2 = getTask();
-    Task<String> taskSlowSideEffect2 = getDelayTask("slow", scheduler, 50);
+    Task<String> taskSlowSideEffect2 = getDelayValue("slow", 50);
     Task<String> taskFull = taskFastMain2.withSideEffect(taskSlowSideEffect2);
 
-    Task<String> taskCancelMain = getDelayTask("canceled", scheduler, 6000);
+    Task<String> taskCancelMain = getDelayValue("canceled", 6000);
     Task<String> taskFastSideEffect = getTask();
     Task<String> taskCancel = taskCancelMain.withSideEffect(taskFastSideEffect);
 
-    testWithSideEffect("viaTask", taskFastMain, taskSlowSideEffect, taskPartial,
-        taskFastMain2, taskSlowSideEffect2, taskFull, taskCancelMain, taskFastSideEffect, taskCancel);
+    Task<String> taskFailureMain = getFailureTask();
+    Task<String> taskFastSideEffect2 =getTask();
+    Task<String> taskFailure = taskFailureMain.withSideEffect(taskFastSideEffect2);
 
-    scheduler.shutdown();
+    testWithSideEffect("viaTask", taskFastMain, taskSlowSideEffect, taskPartial,
+        taskFastMain2, taskSlowSideEffect2, taskFull, taskCancelMain, taskFastSideEffect, taskCancel,
+        taskFailureMain, taskFastSideEffect2, taskFailure);
 
   }
 
-  @Test(enabled = false)
+  @Test
   public void testWithSideEffectViaFunction() throws Exception
   {
-    ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-
     // side effect function
     Task<String> functionFastMain = getTask();
-    Task<String> functionSlowSideEffect = getDelayTask("slooow", scheduler, 5100);
+    Task<String> functionSlowSideEffect = getDelayValue("slooow", 5100);
     Task<String> functionPartial = functionFastMain.withSideEffect(s -> functionSlowSideEffect);
 
     Task<String> functionFastMain2 = getTask();
-    Task<String> functionSlowSideEffect2 = getDelayTask("slow", scheduler, 50);
+    Task<String> functionSlowSideEffect2 = getDelayValue("slow", 50);
     Task<String> functionFull = functionFastMain2.withSideEffect(s -> functionSlowSideEffect2);
 
-    Task<String> functionCancelMain = getDelayTask("canceled", scheduler, 6000);
+    Task<String> functionCancelMain = getDelayValue("canceled", 6000);
     Task<String> functionFastSideEffect = getTask();
     Task<String> functionCancel = functionCancelMain.withSideEffect(s -> functionFastSideEffect);
 
+    Task<String> functionFailureMain = getFailureTask();
+    Task<String> functionFastSideEffect2 =getTask();
+    Task<String> functionFailure = functionFailureMain.withSideEffect(s -> functionFastSideEffect2);
+
+
+
     testWithSideEffect("viaFunction", functionFastMain, functionSlowSideEffect, functionPartial,
         functionFastMain2, functionSlowSideEffect2, functionFull,
-        functionCancelMain, functionFastSideEffect, functionCancel);
-
-    scheduler.shutdown();
+        functionCancelMain, functionFastSideEffect, functionCancel,
+        functionFailureMain, functionFastSideEffect2, functionFailure);
 
   }
 
@@ -251,7 +253,10 @@ public class TestTask extends BaseEngineTest
                                   Task<String> full,
                                   Task<String> cancelMain,
                                   Task<String> fastSideEffect,
-                                  Task<String> cancel) throws Exception
+                                  Task<String> cancel,
+                                  Task<String> failureMain,
+                                  Task<String> fastSideEffect2,
+                                  Task<String> failure) throws Exception
   {
     // ensure the whole task can finish before individual side effect task finishes
     runAndWait("TestTask.testWithSideEffectPartial" + "_" + tag, partial);
@@ -259,44 +264,44 @@ public class TestTask extends BaseEngineTest
     Assert.assertTrue(partial.isDone());
     Assert.assertFalse(slowSideEffect.isDone());
 
-    // ensure the side effect ask will be run
+    // ensure the side effect task will be run
     runAndWait("TestTask.testWithSideEffectFullCompletion" + "_" + tag, full);
     slowSideEffect2.await();
     Assert.assertTrue(full.isDone());
     Assert.assertTrue(fastMain2.isDone());
     Assert.assertTrue(slowSideEffect2.isDone());
 
-    // test cancel main
-    getEngine().run(cancel);
+    // test cancel, side effect task should not be run
+    // add 10 ms delay so that we can reliably cancel it before it's run by the engine
+    getEngine().run(getDelayValue(0, 10).andThen(cancel));
     Assert.assertTrue(cancelMain.cancel(new Exception("canceled")));
     cancel.await();
     fastSideEffect.await(10, TimeUnit.MILLISECONDS);
     Assert.assertTrue(cancel.isDone());
     Assert.assertFalse(fastSideEffect.isDone());
 
+    // test failure, side effect task should not be run
+    try
+    {
+      runAndWait("TestTask.testWithSideEffectFailure" + "_" + tag, failure);
+      Assert.fail("should have failed");
+    }
+    catch (Exception ex)
+    {
+      Assert.assertTrue(failure.isFailed());
+      fastSideEffect2.await(10, TimeUnit.MILLISECONDS);
+      Assert.assertFalse(fastSideEffect2.isDone());
+    }
+
   }
 
   private static Task<String> getTask()
   {
-    return Task.callable("success", () -> "hello world!");
+    return Task.value("success", "hello world!");
   }
 
   private static Task<String> getFailureTask()
   {
-    return Task.callable("failure", () -> { throw new RuntimeException("task failed!");});
-  }
-
-  private static <T> Task<T> getDelayTask(T value, ScheduledExecutorService scheduler, long delay)
-  {
-    return new BaseTask<T>()
-    {
-      @Override
-      protected Promise<? extends T> run(Context context) throws Throwable
-      {
-        final SettablePromise<T> promise = Promises.settable();
-        scheduler.schedule(() -> promise.done(value), delay, TimeUnit.MILLISECONDS);
-        return promise;
-      }
-    };
+    return Task.failure("failure", new RuntimeException("task failed!"));
   }
 }

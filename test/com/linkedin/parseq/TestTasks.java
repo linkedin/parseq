@@ -182,7 +182,8 @@ public class TestTasks extends BaseEngineTest
     };
 
     Task<String> withSideEffect = withSideEffect(settableTask, fastTask);
-    getEngine().run(withSideEffect);
+    // add 10 ms delay so that we can cancel settableTask reliably
+    getEngine().run(getDelayValue(0, 10).andThen(withSideEffect));
     assertTrue(settableTask.cancel(new Exception("task cancelled")));
     withSideEffect.await();
     fastTask.await(10, TimeUnit.MILLISECONDS);

@@ -18,6 +18,9 @@ package com.linkedin.parseq;
 
 import static org.testng.AssertJUnit.assertTrue;
 
+import com.linkedin.parseq.promise.Promise;
+import com.linkedin.parseq.promise.Promises;
+import com.linkedin.parseq.promise.SettablePromise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterMethod;
@@ -148,5 +151,33 @@ public class BaseEngineTest
   protected void resetLoggers()
   {
     _loggerFactory.reset();
+  }
+
+  protected <T> Task<T> getDelayValue(T value, long delay)
+  {
+    return new BaseTask<T>()
+    {
+      @Override
+      protected Promise<? extends T> run(Context context) throws Throwable
+      {
+        final SettablePromise<T> promise = Promises.settable();
+        _scheduler.schedule(() -> promise.done(value), delay, TimeUnit.MILLISECONDS);
+        return promise;
+      }
+    };
+  }
+
+  protected <T> Task<T> getDelayFailure(T value, Throwable error, long delay)
+  {
+    return new BaseTask<T>()
+    {
+      @Override
+      protected Promise<? extends T> run(Context context) throws Throwable
+      {
+        final SettablePromise<T> promise = Promises.settable();
+        _scheduler.schedule(() -> promise.fail(error), delay, TimeUnit.MILLISECONDS);
+        return promise;
+      }
+    };
   }
 }
