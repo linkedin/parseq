@@ -166,31 +166,11 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   /**
-   * Creates a new Task by applying a function to the successful result of this Task.
-   * Returned Task will complete with value calculated by a function. Example:
-   * <pre><code>
-   * Task{@code <String>} hello = Task.value("Hello World");
-   *
-   * // this Task will complete with value 11
-   * Task{@code <Integer>} length = hello.map(s -> s.length());
-   * </code></pre>
-   *
-   * If this Task is completed with an exception then the new Task will also complete
-   * with that exception. Example:
-   * <pre><code>
-   *  Task{@code <String>} failing = Task.callable("hello", () -> {
-   *    return "Hello World".substring(100);
-   *  });
-   *
-   *  // this Task will fail with java.lang.StringIndexOutOfBoundsException
-   *  Task{@code <Integer>} length = failing.map("length", s -> s.length());
-   * </code></pre>
-   * @param <R> return type of function <code>func</code>
-   * @param func function to be applied to successful result of this Task.
-   * @return a new Task which will apply given function on result of successful completion of this task
+   * Equivalent to {@code map("map", func)}.
+   * @see #map(String, Function)
    */
-  default <R> Task<R> map(final Function<T, R> f) {
-    return map("map", f);
+  default <R> Task<R> map(final Function<T, R> func) {
+    return map("map", func);
   }
 
   /**
@@ -244,31 +224,8 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   /**
-   * Creates a new Task by applying a function to the successful result of this Task and
-   * returns the result of a function as the new Task.
-   * Returned Task will complete with value calculated by a Task returned by the function.
-   * Example:
-   * <pre><code>
-   *  Task{@code <URI>} url = Task.value("uri", URI.create("http://linkedin.com"));
-   *
-   *  // this Task will complete with contents of a LinkedIn homepage
-   *  // assuming fetch(u) fetches contents given by a URI
-   *  Task{@code <String>} homepage = url.flatMap("fetch", u -> fetch(u));
-   * </code></pre>
-   *
-   * If this Task is completed with an exception then the new Task will also contain
-   * that exception. Example:
-   * <pre><code>
-   *  Task{@code <URI>} url = Task.callable("uri", () -> URI.create("not a URI"));
-   *
-   *  // this Task will fail with java.lang.IllegalArgumentException
-   *  Task{@code <String>} homepage = url.flatMap("fetch", u -> fetch(u));
-   * </code></pre>
-   * @param <R> return type of function <code>func</code>
-   * @param func function to be applied to successful result of this Task which returns new Task
-   * to be executed
-   * @return a new Task which will apply given function on result of successful completion of this task
-   * to get instance of a Task which will be executed next
+   * Equivalent to {@code flatMap("flatMap", func)}.
+   * @see #flatMap(String, Function)
    */
   default <R> Task<R> flatMap(final Function<T, Task<R>> func) {
     return flatMap("flatMap", func);
@@ -312,16 +269,28 @@ public interface Task<T> extends Promise<T>, Cancellable
     }, true);
   }
 
-  default Task<T> withSideEffect(final Function<T, Task<?>> f) {
-    return withSideEffect("withSideEffect", f);
+  /**
+   * Equivalent to {@code withSideEffect("withSideEffect", func)}.
+   * @see #withSideEffect(String, Function)
+   */
+  default Task<T> withSideEffect(final Function<T, Task<?>> func) {
+    return withSideEffect("withSideEffect", func);
   }
 
+  /**
+   * Equivalent to {@code withSideEffect(desc, t -> sideEffect)}.
+   * @see #withSideEffect(String, Function)
+   */
   default Task<T> withSideEffect(final String desc, final Task<?> sideEffect) {
     return withSideEffect(desc, t -> sideEffect);
   }
 
+  /**
+   * Equivalent to {@code withSideEffect("withSideEffect", t -> sideEffect)}.
+   * @see #withSideEffect(String, Function)
+   */
   default Task<T> withSideEffect(final Task<?> sideEffect) {
-    return withSideEffect("withSideEffect", sideEffect);
+    return withSideEffect("withSideEffect", t -> sideEffect);
   }
 
   /**
@@ -367,16 +336,16 @@ public interface Task<T> extends Promise<T>, Cancellable
    * If this task completes successfully, then recovery function is not invoked.
    *
    * @param desc description of a recovery function, it will show up in a trace
-   * @param f recovery function which can complete Task with a value depending on
+   * @param func recovery function which can complete Task with a value depending on
    *        Throwable thrown by this Task
    * @return a new Task which can recover from Throwable thrown by this Task
    */
-  default Task<T> recover(final String desc, final Function<Throwable, T> f) {
-    ArgumentUtil.requireNotNull(f, "function");
+  default Task<T> recover(final String desc, final Function<Throwable, T> func) {
+    ArgumentUtil.requireNotNull(func, "function");
     return apply(desc,  (src, dst) -> {
       if (src.isFailed()) {
         try {
-          dst.done(f.apply(src.getError()));
+          dst.done(func.apply(src.getError()));
         } catch (Throwable t) {
           dst.fail(t);
         }
@@ -386,8 +355,8 @@ public interface Task<T> extends Promise<T>, Cancellable
     });
   }
 
-  default Task<T> recover(final Function<Throwable, T> f) {
-    return recover("recover", f);
+  default Task<T> recover(final Function<Throwable, T> func) {
+    return recover("recover", func);
   }
 
   default Task<Try<T>> withTry() {
@@ -403,19 +372,19 @@ public interface Task<T> extends Promise<T>, Cancellable
    * then result of this task will fail with a Throwable from recovery function.
    *
    * @param desc description of a recovery function, it will show up in a trace
-   * @param f recovery function which can return Task which will become a new result of
+   * @param func recovery function which can return Task which will become a new result of
    * this Task
    * @return a new Task which can recover from Throwable thrown by this Task or cancellation
    */
-  default Task<T> recoverWith(final String desc, final Function<Throwable, Task<T>> f) {
-    ArgumentUtil.requireNotNull(f, "function");
+  default Task<T> recoverWith(final String desc, final Function<Throwable, Task<T>> func) {
+    ArgumentUtil.requireNotNull(func, "function");
     final Task<T> that = this;
     return async(desc, context -> {
       final SettablePromise<T> result = Promises.settable();
       final Task<T> recovery = async(desc, ctx -> {
         if (that.isFailed()) {
           try {
-            Task<T> r = f.apply(that.getError());
+            Task<T> r = func.apply(that.getError());
             Promises.propagateResult(r, result);
             ctx.run(r);
           } catch (Throwable t) {
@@ -432,8 +401,8 @@ public interface Task<T> extends Promise<T>, Cancellable
     }, true);
   }
 
-  default Task<T> recoverWith(final Function<Throwable, Task<T>> f) {
-    return recoverWith("recoverWith", f);
+  default Task<T> recoverWith(final Function<Throwable, Task<T>> func) {
+    return recoverWith("recoverWith", func);
   }
   /**
    * Creates a new Task that will handle any Throwable that this Task might throw
@@ -445,14 +414,14 @@ public interface Task<T> extends Promise<T>, Cancellable
    * the fall-back function's Task.
    *
    * @param desc description of a recovery function, it will show up in a trace
-   * @param f recovery function which can return Task which will become a new result of
+   * @param func recovery function which can return Task which will become a new result of
    * this Task
    * @return a new Task which can recover from Throwable thrown by this Task or cancellation
    */
-  default Task<T> fallBackTo(final String desc, final Function<Throwable, Task<T>> f) {
-    ArgumentUtil.requireNotNull(f, "function");
+  default Task<T> fallBackTo(final String desc, final Function<Throwable, Task<T>> func) {
+    ArgumentUtil.requireNotNull(func, "function");
     return recoverWith(desc, originalFailure -> {
-      Task<T> fallBack = f.apply(originalFailure).apply("restoreFailure", (src, dst) -> {
+      Task<T> fallBack = func.apply(originalFailure).apply("restoreFailure", (src, dst) -> {
         if (src.isFailed()) {
           dst.fail(originalFailure);
         } else {
@@ -463,8 +432,8 @@ public interface Task<T> extends Promise<T>, Cancellable
     });
   }
 
-  default Task<T> fallBackTo(final Function<Throwable, Task<T>> f) {
-    return fallBackTo("fallBackTo", f);
+  default Task<T> fallBackTo(final Function<Throwable, Task<T>> func) {
+    return fallBackTo("fallBackTo", func);
   }
 
   static class TimeoutContextRunWrapper<T> implements ContextRunWrapper<T> {
@@ -505,8 +474,6 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   /**
-   * TODO document
-   *
    * @param time the time to wait before timing out
    * @param unit the units for the time
    * @param <T> the value type for the task
@@ -552,15 +519,12 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @param runnable the action that will be executed when the task is run
    * @return the new task
    */
-  public static Task<Void> action(final String name, final Runnable runnable)
+  public static Task<Void> action(final String name, final Runnable action)
   {
+    ArgumentUtil.requireNotNull(action, "action");
     return async(name, () -> {
-      try {
-        runnable.run();
-        return Promises.VOID;
-      } catch (Throwable t) {
-        return Promises.error(t);
-      }
+      action.run();
+      return Promises.VOID;
     }, false);
   }
 
@@ -606,6 +570,7 @@ public interface Task<T> extends Promise<T>, Cancellable
 
   public static <T> Task<T> async(final String name, final Function<Context, Promise<? extends T>> func,
       final boolean systemHidden) {
+    ArgumentUtil.requireNotNull(func, "function");
     return new BaseTask<T>(name) {
       @Override
       protected Promise<? extends T> run(Context context) throws Throwable {
@@ -628,6 +593,7 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   public static <T> Task<T> blocking(final String name, final Callable<? extends T> callable, final Executor executor) {
+    ArgumentUtil.requireNotNull(callable, "callable");
     return async(name, context -> {
       final SettablePromise<T> promise = Promises.settable();
       executor.execute(() -> {
