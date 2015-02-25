@@ -82,18 +82,32 @@ public class BaseEngineTest
   }
 
   /**
-   * Runs task, verifies that task finishes within 5 sec and logs trace from the task execution.
+   * Equivalent to {@code runAndWait(desc, task, 5, TimeUnit.SECONDS)}.
+   * @see #runAndWait(String, Task, long, TimeUnit)
+   */
+  protected <T> T runAndWait(final String desc, Task<T> task)
+  {
+    return runAndWait(desc, task, 5, TimeUnit.SECONDS);
+  }
+
+  /**
+   * Runs task, verifies that task finishes within specified amount of time,
+   * logs trace from the task execution and return value which task completed with.
+   * If task completes with an exception, it is re-thrown by this method.
    *
    * @param desc description of a test
    * @param task task to run
-   * @return value task was completed with
+   * @param time amount of time to wait for task completion
+   * @param timeUnit unit of time
+   * @return value task was completed with or exception is being thrown if task failed
    */
-  protected void runWait5sAndLogTrace(final String desc, Task<?> task)
+  protected <T> T runAndWait(final String desc, Task<T> task, long time, TimeUnit timeUnit)
   {
     try
     {
       _engine.run(task);
-      assertTrue(task.await(5, TimeUnit.SECONDS));
+      assertTrue(task.await(time, timeUnit));
+      return task.get();
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }

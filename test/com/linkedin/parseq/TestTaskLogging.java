@@ -39,7 +39,7 @@ public class TestTaskLogging extends BaseEngineTest
   public void testSingleTaskWithDefaultLogging() throws InterruptedException
   {
     final Task<?> task = TestUtil.noop();
-    runWait5sAndLogTrace("TestTaskLogging.testSingleTaskWithDefaultLogging", task);
+    runAndWait("TestTaskLogging.testSingleTaskWithDefaultLogging", task);
 
     assertEquals(0, getLogEntries(ALL_LOGGER).size());
     assertEquals(0, getLogEntries(ROOT_LOGGER).size());
@@ -52,7 +52,7 @@ public class TestTaskLogging extends BaseEngineTest
     final String taskValue = "value";
 
     final String[] loggers = new String[] {
-        ALL_LOGGER, ROOT_LOGGER, planClassLogger(TestUtil.value("dummy", "dummy"))
+        ALL_LOGGER, ROOT_LOGGER, planClassLogger(Task.value("dummy", "dummy"))
     };
     final int[] levels = new int[] { ListLogger.LEVEL_DEBUG, ListLogger.LEVEL_TRACE };
 
@@ -62,9 +62,9 @@ public class TestTaskLogging extends BaseEngineTest
       {
         resetLoggers();
 
-        final Task<?> task = TestUtil.value("t1", taskValue);
+        final Task<?> task = Task.value("t1", taskValue);
         setLogLevel(logger, level);
-        runWait5sAndLogTrace("TestTaskLogging.testSingleTaskCombinations", task);
+        runAndWait("TestTaskLogging.testSingleTaskCombinations", task);
 
         for (String checkLogger : loggers)
         {
@@ -88,7 +88,7 @@ public class TestTaskLogging extends BaseEngineTest
     final Exception exception = new Exception(errorMsg);
 
     final String[] loggers = new String[] {
-        ALL_LOGGER, ROOT_LOGGER, planClassLogger(TestUtil.errorTask("dummy", exception))
+        ALL_LOGGER, ROOT_LOGGER, planClassLogger(Task.failure("dummy", exception))
     };
     final int[] levels = new int[] { ListLogger.LEVEL_DEBUG, ListLogger.LEVEL_TRACE };
 
@@ -98,9 +98,15 @@ public class TestTaskLogging extends BaseEngineTest
       {
         resetLoggers();
 
-        final Task<?> task = TestUtil.errorTask("t1", exception);
+        final Task<?> task = Task.failure("t1", exception);
         setLogLevel(logger, level);
-        runWait5sAndLogTrace("TestTaskLogging.testSingleTaskWithErrorCombinations", task);
+
+        try {
+          runAndWait("TestTaskLogging.testSingleTaskWithErrorCombinations", task);
+          fail("task should finish with Error");
+        } catch (Throwable t) {
+          assertEquals(exception, task.getError());
+        }
 
         for (String checkLogger : loggers)
         {
@@ -120,12 +126,12 @@ public class TestTaskLogging extends BaseEngineTest
   @Test
   public void testCompositeTaskWithAllLoggerTrace() throws InterruptedException
   {
-    final Task<?> child1 = TestUtil.value("t1", "value");
+    final Task<?> child1 = Task.value("t1", "value");
     final Task<?> child2 = TestUtil.noop();
     final Task<?> parent = Tasks.seq(child1, child2);
 
     setLogLevel(ALL_LOGGER, ListLogger.LEVEL_TRACE);
-    runWait5sAndLogTrace("TestTaskLogging.testCompositeTaskWithAllLoggerTrace", parent);
+    runAndWait("TestTaskLogging.testCompositeTaskWithAllLoggerTrace", parent);
 
     assertTaskLogged(parent, "null", ALL_LOGGER, ListLogger.LEVEL_TRACE);
     assertTaskLogged(child1, "value", ALL_LOGGER, ListLogger.LEVEL_TRACE);
@@ -135,12 +141,12 @@ public class TestTaskLogging extends BaseEngineTest
   @Test
   public void testCompositeTaskWithRootLoggerTrace() throws InterruptedException
   {
-    final Task<?> child1 = TestUtil.value("t1", "value");
+    final Task<?> child1 = Task.value("t1", "value");
     final Task<?> child2 = TestUtil.noop();
     final Task<?> parent = Tasks.seq(child1, child2);
 
     setLogLevel(ROOT_LOGGER, ListLogger.LEVEL_TRACE);
-    runWait5sAndLogTrace("TestTaskLogging.testCompositeTaskWithRootLoggerTrace", parent);
+    runAndWait("TestTaskLogging.testCompositeTaskWithRootLoggerTrace", parent);
 
     assertTaskLogged(parent, "null", ROOT_LOGGER, ListLogger.LEVEL_TRACE);
 
@@ -151,14 +157,14 @@ public class TestTaskLogging extends BaseEngineTest
   @Test
   public void testCompositeTaskWithPlanClassLoggerTrace() throws InterruptedException
   {
-    final Task<?> child1 = TestUtil.value("t1", "value");
+    final Task<?> child1 = Task.value("t1", "value");
     final Task<?> child2 = TestUtil.noop();
     final Task<?> parent = Tasks.seq(child1, child2);
 
     final String planClassLogger = planClassLogger(parent);
 
     setLogLevel(planClassLogger, ListLogger.LEVEL_TRACE);
-    runWait5sAndLogTrace("TestTaskLogging.testCompositeTaskWithPlanClassLoggerTrace", parent);
+    runAndWait("TestTaskLogging.testCompositeTaskWithPlanClassLoggerTrace", parent);
 
     assertTaskLogged(parent, "null", planClassLogger, ListLogger.LEVEL_TRACE);
     assertTaskLogged(child1, "value", planClassLogger, ListLogger.LEVEL_TRACE);

@@ -81,7 +81,7 @@ public class TestEngine
   {
     _engine.shutdown();
 
-    final Task<String> task = TestUtil.value("task executed");
+    final Task<String> task = Task.value("task executed");
     _engine.run(task);
 
     // Task should be cancelled immediately
@@ -138,7 +138,7 @@ public class TestEngine
         return Promises.value(predValue);
       }
     };
-    final Task<String> sucTask = TestUtil.value(sucValue);
+    final Task<String> sucTask = Task.value(sucValue);
     final Task<String> seq = Tasks.seq(predTask, sucTask);
 
     _engine.run(seq);

@@ -133,7 +133,7 @@ public class TestContext extends BaseEngineTest
       }
     };
 
-    runWait5sAndLogTrace("TestContext.testCreateTimer", task);
+    runAndWait("TestContext.testCreateTimer", task);
     assertEquals(value, task.get());
   }
 
@@ -161,7 +161,7 @@ public class TestContext extends BaseEngineTest
       }
     };
 
-    runWait5sAndLogTrace("TestContext.testRun", task);
+    runAndWait("TestContext.testRun", task);
     assertEquals(value, task.get());
   }
 
@@ -203,7 +203,7 @@ public class TestContext extends BaseEngineTest
       }
     };
 
-    runWait5sAndLogTrace("TestContext.testAfter", task);
+    runAndWait("TestContext.testAfter", task);
     assertEquals(successorValue, successorTask.get());
     assertEquals(predecessorValue, predecessorValueRef.get());
   }
@@ -242,7 +242,7 @@ public class TestContext extends BaseEngineTest
       }
     };
 
-    runWait5sAndLogTrace("TestContext.testPrioritizedTasks", task);
+    runAndWait("TestContext.testPrioritizedTasks", task);
 
     final Queue<Integer> ints = task.get();
     assertEquals((Integer)2, ints.poll());

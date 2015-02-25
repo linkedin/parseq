@@ -17,7 +17,7 @@
 package com.linkedin.parseq;
 
 import static com.linkedin.parseq.Tasks.withSideEffect;
-import static com.linkedin.parseq.TestUtil.value;
+import static com.linkedin.parseq.Task.value;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
@@ -52,7 +52,7 @@ public class TestTasks extends BaseEngineTest
   {
     final Exception error = new Exception();
 
-    final Task<?> task = new BaseTask<Object>()
+    final Task<Object> task = new BaseTask<Object>()
     {
       @Override
       protected Promise<Object> run(final Context context) throws Exception
@@ -61,10 +61,14 @@ public class TestTasks extends BaseEngineTest
       }
     };
 
-    runWait5sAndLogTrace("TestTasks.testTaskThatThrows", task);
+    try {
+      runAndWait("TestTasks.testTaskThatThrows", task);
+      fail("task should finish with Exception");
+    } catch (Throwable t) {
+      assertEquals(error, task.getError());
+    }
 
     assertTrue(task.isFailed());
-    assertEquals(error, task.getError());
   }
 
   @Test
@@ -92,7 +96,7 @@ public class TestTasks extends BaseEngineTest
       }
     });
 
-    runWait5sAndLogTrace("TestTasks.testAwait", task);
+    runAndWait("TestTasks.testAwait", task);
     assertEquals(Boolean.TRUE, resultRef.get());
   }
 
@@ -120,7 +124,7 @@ public class TestTasks extends BaseEngineTest
     };
 
     Task<String> withSideEffect = withSideEffect(fastTask, settableTask);
-    runWait5sAndLogTrace("TestTasks.testSideEffectPartialCompletion", withSideEffect);
+    runAndWait("TestTasks.testSideEffectPartialCompletion", withSideEffect);
     assertTrue(withSideEffect.isDone());
     assertTrue(fastTask.isDone());
     assertFalse(settableTask.isDone());
@@ -149,7 +153,7 @@ public class TestTasks extends BaseEngineTest
     };
 
     Task<String> withSideEffect = withSideEffect(taskOne, taskTwo);
-    runWait5sAndLogTrace("TestTasks.testSideEffectFullCompletion", withSideEffect);
+    runAndWait("TestTasks.testSideEffectFullCompletion", withSideEffect);
     taskTwo.await();
     assertTrue(withSideEffect.isDone());
     assertTrue(taskTwo.isDone());
@@ -202,10 +206,14 @@ public class TestTasks extends BaseEngineTest
 
     final Task<String> timeoutTask = Tasks.timeoutWithError(200, TimeUnit.MILLISECONDS, task);
 
-    runWait5sAndLogTrace("TestTasks.testTimeoutTaskWithTimeout", timeoutTask);
+    try {
+      runAndWait("TestTasks.testTimeoutTaskWithTimeout", timeoutTask);
+      fail("task should finish with Error");
+    } catch (Throwable t) {
+      assertTrue(timeoutTask.getError() instanceof TimeoutException);
+    }
 
     assertTrue(timeoutTask.isFailed());
-    assertTrue(timeoutTask.getError() instanceof TimeoutException);
 
     assertTrue(task.await(5, TimeUnit.SECONDS));
 
@@ -230,7 +238,7 @@ public class TestTasks extends BaseEngineTest
 
     final Task<String> timeoutTask = Tasks.timeoutWithError(200, TimeUnit.MILLISECONDS, task);
 
-    runWait5sAndLogTrace("TestTasks.testTimeoutTaskWithoutTimeout", timeoutTask);
+    runAndWait("TestTasks.testTimeoutTaskWithoutTimeout", timeoutTask);
 
     assertEquals(value, task.get());
 
@@ -297,7 +305,7 @@ public class TestTasks extends BaseEngineTest
     // final task runs all the tasks in parallel
     final Task<?> timeoutTask = Tasks.par(tasks);
 
-    runWait5sAndLogTrace("TestTasks.testManyTimeoutTaskWithoutTimeoutOnAQueue", timeoutTask);
+    runAndWait("TestTasks.testManyTimeoutTaskWithoutTimeoutOnAQueue", timeoutTask);
 
     scheduler.shutdown();
 

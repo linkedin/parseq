@@ -263,7 +263,12 @@ public interface Task<T> extends Promise<T>, Cancellable
     ArgumentUtil.requireNotNull(func, "function");
     final Task<T> that = this;
     return async(desc, context -> {
-      context.after(that).runSideEffect(func.apply(that.get()));
+      final Task<?> sideEffectWrapper = async(desc, ctx -> {
+        Task<?> sideEffect = func.apply(that.get());
+        ctx.run(sideEffect);
+        return sideEffect;
+      }, true);
+      context.after(that).runSideEffect(sideEffectWrapper);
       context.run(that);
       return that;
     }, true);
@@ -282,7 +287,13 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @see #withSideEffect(String, Function)
    */
   default Task<T> withSideEffect(final String desc, final Task<?> sideEffect) {
-    return withSideEffect(desc, t -> sideEffect);
+    ArgumentUtil.requireNotNull(sideEffect, "sideEffect");
+    final Task<T> that = this;
+    return async(desc, context -> {
+      context.after(that).runSideEffect(sideEffect);
+      context.run(that);
+      return that;
+    }, true);
   }
 
   /**
@@ -290,7 +301,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @see #withSideEffect(String, Function)
    */
   default Task<T> withSideEffect(final Task<?> sideEffect) {
-    return withSideEffect("withSideEffect", t -> sideEffect);
+    return withSideEffect("withSideEffect", sideEffect);
   }
 
   /**

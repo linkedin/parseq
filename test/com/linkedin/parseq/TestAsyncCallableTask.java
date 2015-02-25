@@ -12,9 +12,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static com.linkedin.parseq.Tasks.par;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author wfender
@@ -49,7 +47,7 @@ public class TestAsyncCallableTask extends BaseEngineTest
     }
 
     final ParTask<Void> par = par(tasks);
-    runWait5sAndLogTrace("TestAsyncCallableTask.testConcurrentTasks", par);
+    runAndWait("TestAsyncCallableTask.testConcurrentTasks", par);
 
     assertEquals(2, par.getSuccessful().size());
     assertEquals(2, par.getTasks().size());
@@ -77,11 +75,15 @@ public class TestAsyncCallableTask extends BaseEngineTest
       }
     });
 
-    runWait5sAndLogTrace("TestAsyncCallableTask.testThrowingCallable", task);
+    try {
+      runAndWait("TestAsyncCallableTask.testThrowingCallable", task);
+      fail("task should finish with Error");
+    } catch (Throwable t) {
+      assertEquals(error, task.getError());
+    }
 
     assertTrue(task.isDone());
     assertTrue(task.isFailed());
-    assertEquals(error, task.getError());
   }
 
   @Test

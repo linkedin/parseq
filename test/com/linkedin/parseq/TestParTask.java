@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.linkedin.parseq.Tasks.action;
 import static com.linkedin.parseq.Tasks.par;
-import static com.linkedin.parseq.TestUtil.value;
+import static com.linkedin.parseq.Task.value;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
@@ -46,7 +46,7 @@ public class TestParTask extends BaseEngineTest
     final Task<String> task = value("value", valueStr);
     final Task<List<String>> par = par(Collections.singleton(task));
 
-    runWait5sAndLogTrace("TestParTask.testIterableParWithSingletonList", par);
+    runAndWait("TestParTask.testIterableParWithSingletonList", par);
 
     assertEquals(1, par.get().size());
     assertEquals(valueStr, par.get().get(0));
@@ -77,7 +77,7 @@ public class TestParTask extends BaseEngineTest
 
     final ParTask<?> par = par(Arrays.asList(tasks));
 
-    runWait5sAndLogTrace("TestParTask.testIterableSeqWithMultipleElements", par);
+    runAndWait("TestParTask.testIterableSeqWithMultipleElements", par);
 
     assertEquals(500, par.getSuccessful().size());
     assertEquals(500, par.getTasks().size());
@@ -228,7 +228,7 @@ public class TestParTask extends BaseEngineTest
     final Task<Double> dblTask = value("dblTask", dblVal);
     final ParTask<? extends Number> par = par(intTask, dblTask);
 
-    runWait5sAndLogTrace("TestParTask.testParWithGeneralType", par);
+    runAndWait("TestParTask.testParWithGeneralType", par);
 
     assertEquals(2, par.get().size());
     assertEquals(intVal, par.get().get(0));
@@ -249,7 +249,7 @@ public class TestParTask extends BaseEngineTest
 
     final ParTask<? extends Number> par = par(numTasks);
 
-    runWait5sAndLogTrace("TestParTask.testTypedParWithGeneralType", par);
+    runAndWait("TestParTask.testTypedParWithGeneralType", par);
 
     assertEquals(2, par.get().size());
     assertEquals(intVal, par.get().get(0));
@@ -497,7 +497,7 @@ public class TestParTask extends BaseEngineTest
   {
     final Task<List<Integer>> par = par(value(1),
         value(2));
-    runWait5sAndLogTrace("TestParTask.testPar2", par);
+    runAndWait("TestParTask.testPar2", par);
     assertEquals(Arrays.asList(1, 2), par.get());
   }
 
@@ -507,7 +507,7 @@ public class TestParTask extends BaseEngineTest
     final Task<List<Integer>> par = par(value(1),
         value(2),
         value(3));
-    runWait5sAndLogTrace("TestParTask.testPar3", par);
+    runAndWait("TestParTask.testPar3", par);
     assertEquals(Arrays.asList(1, 2, 3), par.get());
   }
 
@@ -518,7 +518,7 @@ public class TestParTask extends BaseEngineTest
         value(2),
         value(3),
         value(4));
-    runWait5sAndLogTrace("TestParTask.testPar4", par);
+    runAndWait("TestParTask.testPar4", par);
     assertEquals(Arrays.asList(1, 2, 3, 4), par.get());
   }
 
@@ -530,7 +530,7 @@ public class TestParTask extends BaseEngineTest
         value(3),
         value(4),
         value(5));
-    runWait5sAndLogTrace("TestParTask.testPar5", par);
+    runAndWait("TestParTask.testPar5", par);
     assertEquals(Arrays.asList(1, 2, 3, 4, 5), par.get());
   }
 
@@ -543,7 +543,7 @@ public class TestParTask extends BaseEngineTest
         value(4),
         value(5),
         value(6));
-    runWait5sAndLogTrace("TestParTask.testPar6", par);
+    runAndWait("TestParTask.testPar6", par);
     assertEquals(Arrays.asList(1, 2, 3, 4, 5, 6), par.get());
   }
 
@@ -557,7 +557,7 @@ public class TestParTask extends BaseEngineTest
         value(5),
         value(6),
         value(7));
-    runWait5sAndLogTrace("TestParTask.testPar7", par);
+    runAndWait("TestParTask.testPar7", par);
     assertEquals(Arrays.asList(1, 2, 3, 4, 5, 6, 7), par.get());
   }
 
@@ -572,7 +572,7 @@ public class TestParTask extends BaseEngineTest
         value(6),
         value(7),
         value(8));
-    runWait5sAndLogTrace("TestParTask.testPar8", par);
+    runAndWait("TestParTask.testPar8", par);
     assertEquals(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8), par.get());
   }
 
@@ -588,7 +588,7 @@ public class TestParTask extends BaseEngineTest
         value(7),
         value(8),
         value(9));
-    runWait5sAndLogTrace("TestParTask.testPar9", par);
+    runAndWait("TestParTask.testPar9", par);
     assertEquals(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9), par.get());
   }
 
@@ -605,7 +605,7 @@ public class TestParTask extends BaseEngineTest
         value(8),
         value(9),
         value(10));
-    runWait5sAndLogTrace("TestParTask.testPar10", par);
+    runAndWait("TestParTask.testPar10", par);
     assertEquals(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), par.get());
   }
 
