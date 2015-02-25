@@ -37,6 +37,7 @@ import java.util.concurrent.TimeUnit;
  * A base class that builds an Engine with default configuration.
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
+ * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
 public class BaseEngineTest
 {

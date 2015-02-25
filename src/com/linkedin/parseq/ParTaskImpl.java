@@ -16,6 +16,7 @@
 
 package com.linkedin.parseq;
 
+import com.linkedin.parseq.collection.ParSeqCollections;
 import com.linkedin.parseq.internal.InternalUtil;
 import com.linkedin.parseq.internal.SystemHiddenTask;
 import com.linkedin.parseq.promise.Promise;
@@ -23,8 +24,6 @@ import com.linkedin.parseq.promise.PromiseListener;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 import com.linkedin.parseq.trace.ResultType;
-import com.linkedin.parseq.trace.ShallowTrace;
-import com.linkedin.parseq.trace.ShallowTraceBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,8 +35,12 @@ import java.util.List;
  * Use {@link Tasks#par(Task[])} or {@link Tasks#par(Iterable)} to create an
  * instance of this class.
  *
+ * @deprecated  As of 2.0.0, replaced by {@link Task#par(Task, Task) Task.par} or
+ * {@link ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks}.
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Chi Chan (ckchan@linkedin.com)
+ * @see Task#par(Task, Task) Task.par
+ * @see ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks
  */
 /* package private */ class ParTaskImpl<T> extends SystemHiddenTask<List<T>> implements ParTask<T>
 {

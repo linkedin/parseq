@@ -33,7 +33,7 @@ import java.util.concurrent.Callable;
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @see Task#callable(String, Callable) Task.callable
  */
-public class CallableTask<T> extends BaseTask<T>
+@Deprecated public class CallableTask<T> extends BaseTask<T>
 {
   private final ThrowableCallable<? extends T> _callable;
 

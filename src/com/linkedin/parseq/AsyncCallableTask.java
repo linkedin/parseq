@@ -39,7 +39,7 @@ import java.util.concurrent.Executor;
  * @deprecated  As of 2.0.0, replaced by {@link Task#blocking(String, Callable, Executor) Task.blocking}.
  * @author Walter Fender (wfender@linkedin.com)
  */
-public class AsyncCallableTask<R> extends BaseTask<R>
+@Deprecated public class AsyncCallableTask<R> extends BaseTask<R>
 {
   static final String CALLABLE_SERVICE_EXECUTOR = "_CallableServiceExecutor_";
 
@@ -53,7 +53,7 @@ public class AsyncCallableTask<R> extends BaseTask<R>
   /**
    * @deprecated  As of 2.0.0, replaced by {@link Task#blocking(String, Callable, Executor) Task.blocking}.
    */
-  public AsyncCallableTask(final Callable<R> syncJob)
+  @Deprecated public AsyncCallableTask(final Callable<R> syncJob)
   {
     this(null, syncJob);
   }
@@ -61,7 +61,7 @@ public class AsyncCallableTask<R> extends BaseTask<R>
   /**
    * @deprecated  As of 2.0.0, replaced by {@link Task#blocking(String, Callable, Executor) Task.blocking}.
    */
-  public AsyncCallableTask(final String name, final Callable<R> syncJob)
+  @Deprecated public AsyncCallableTask(final String name, final Callable<R> syncJob)
   {
     super(name);
     ArgumentUtil.requireNotNull(syncJob, "job");

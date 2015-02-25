@@ -29,7 +29,7 @@ import com.linkedin.parseq.promise.Promises;
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  * @see Task#action(String, Runnable) Task.action
  */
-public class ActionTask extends BaseTask<Void>
+@Deprecated public class ActionTask extends BaseTask<Void>
 {
   private final Runnable _runnable;
 
