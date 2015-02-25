@@ -137,7 +137,7 @@ public interface Task<T> extends Promise<T>, Cancellable
 
   /**
    * Creates a new task by applying a function to the successful result of this task.
-   * Returned task will complete with value calculated by a function. Example:
+   * Returned task will complete with value calculated by a function.
    * <pre><code>
    * Task{@code <String>} hello = Task.value("Hello World");
    *
@@ -146,7 +146,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * </code></pre>
    *
    * If this task is completed with an exception then the new task will also complete
-   * with that exception. Example:
+   * with that exception.
    * <pre><code>
    *  Task{@code <String>} failing = Task.callable("hello", () -> {
    *    return "Hello World".substring(100);
@@ -177,7 +177,6 @@ public interface Task<T> extends Promise<T>, Cancellable
    * Creates a new task by applying a function to the successful result of this task and
    * returns the result of a function as the new task.
    * Returned task will complete with value calculated by a task returned by the function.
-   * Example:
    * <pre><code>
    *  Task{@code <URI>} url = Task.value("uri", URI.create("http://linkedin.com"));
    *
@@ -187,7 +186,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * </code></pre>
    *
    * If this task is completed with an exception then the new task will also contain
-   * that exception. Example:
+   * that exception.
    * <pre><code>
    *  Task{@code <URI>} url = Task.callable("uri", () -> URI.create("not a URI"));
    *
@@ -244,7 +243,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * </ul>
    * The side effect task is useful in situations where operation (side effect) should continue to run
    * in the background but it's execution is not required for the main computation. An example might
-   * be updating cache once data has been retrieved from the main source:
+   * be updating cache once data has been retrieved from the main source.
    * <pre><code>
    *  Task{@code <Long>} id = Task.value(1223L);
    *
@@ -308,7 +307,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * Creates a new task which applies a consumer to the result of this task
    * and completes with a result of this task. It is used
    * in situations where consumer needs to be called after successful
-   * completion of this task. Example:
+   * completion of this task.
    * <pre><code>
    *  Task{@code <String>} hello = Task.value("Hello World");
    *
@@ -317,7 +316,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * </code></pre>
    *
    * If this task fails then consumer will not be called and failure
-   * will be propagated to task returned by this method. Example:
+   * will be propagated to task returned by this method.
    * <pre><code>
    *  Task{@code <String>} failing = Task.callable("hello", () {@code ->} {
    *    return "Hello World".substring(100);
@@ -334,7 +333,7 @@ public interface Task<T> extends Promise<T>, Cancellable
   default Task<T> andThen(final String desc, final Consumer<T> consumer) {
     ArgumentUtil.requireNotNull(consumer, "consumer");
     return apply(desc,
-        new PromiseTransformer<T,T>(t -> {
+        new PromiseTransformer<T, T>(t -> {
           consumer.accept(t);
           return t;
         }));
@@ -356,7 +355,6 @@ public interface Task<T> extends Promise<T>, Cancellable
    * If this task fails then task passed in as a parameter will
    * not be scheduled for execution and failure
    * will be propagated to task returned by this method.
-   * Example:
    * <pre><code>
    *  // task which processes payment
    *  Task{@code <PaymentStatus>} processPayment = processPayment(...);
@@ -395,19 +393,32 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   /**
-   * Creates a new task that will handle any Throwable that this task might throw
-   * or task cancellation.
-   * If this task completes successfully, then recovery function is not invoked.
+   * Creates a new task that will handle failure of this task.
+   * Early completion due to cancellation is not considered to be a failure.
+   * If this task completes successfully, then recovery function is not called.
+   * <pre><code>
+   *
+   * // this method return task which asynchronously retrieves Person by id
+   * Task{@code<Person>} fetchPerson(Long id) {
+   * (...)
+   * }
+   *
+   * // this task will fetch Person object and transform it into {@code"<first name> <last name>"}
+   * // if fetching Person failed then form {@code"Member <id>"} will be return
+   * Task{@code <String>} userName = fetchPerson(id)
+   *      .map(p {@code ->} p.getFirstName() + " " + p.getLastName())
+   *      .recover(e {@code ->} "Member " + id);
+   * </code></pre>
    *
    * @param desc description of a recovery function, it will show up in a trace
    * @param func recovery function which can complete task with a value depending on
-   *        Throwable thrown by this task
-   * @return a new task which can recover from Throwable thrown by this task
+   *        failure of this task
+   * @return a new task which can recover from failure of this task
    */
   default Task<T> recover(final String desc, final Function<Throwable, T> func) {
     ArgumentUtil.requireNotNull(func, "function");
     return apply(desc,  (src, dst) -> {
-      if (src.isFailed()) {
+      if (src.isFailed() && !(src.getError() instanceof EarlyFinishException)) {
         try {
           dst.done(func.apply(src.getError()));
         } catch (Throwable t) {
@@ -419,19 +430,56 @@ public interface Task<T> extends Promise<T>, Cancellable
     });
   }
 
+  /**
+   * Equivalent to {@code recover("recover", func)}.
+   * @see #recover(String, Function)
+   */
   default Task<T> recover(final Function<Throwable, T> func) {
     return recover("recover", func);
   }
 
+  /**
+   * This method transforms {@code Task<T>} into {@code Task<Try<T>>}.
+   * It allows explicit handling of failures by returning potential exceptions as a result of
+   * task execution. Task returned by this method will always complete succesfully.
+   * If this task completes successfully then return task will be
+   * completed with result value wrapped with {@link Success}.
+   * <pre><code>
+   *  Task{@code <String>} hello = Task.value("Hello World");
+   *
+   *  // this task will complete with Success("Hello World")
+   *  Task{@code <Try<String>>} helloTry = hello.withTry();
+   * </code></pre>
+   *
+   * If this task is completed with an exception then the returned task will be
+   * completed with an exception wrapped with {@link Failure}.
+   * <pre><code>
+   *  Task{@code <String>} failing = Task.callable("hello", () -> {
+   *      return "Hello World".substring(100);
+   *  });
+   *
+   *  // this task will complete successfully with Failure(java.lang.StringIndexOutOfBoundsException)
+   *  Task{@code <Try<String>>} failingTry = failing.withTry();
+   * </code></pre>
+   * Note that all failures are automatically propagated and usually it is enough to use
+   * {@link #recover(String, Function) recover}, {@link #recoverWith(String, Function) recoverWith}
+   * or {@link #fallBackTo(String, Function) fallBackTo}.
+   * <p>
+   * @return
+   * @see Try
+   * @see #recover(String, Function) recover
+   * @see #recoverWith(String, Function) recoverWith
+   * @see #fallBackTo(String, Function) fallBackTo
+   */
   default Task<Try<T>> withTry() {
     return map("map to Try", t -> Success.of(t))
              .recover("recover to Try", t -> Failure.of(t));
   }
 
   /**
-   * Creates a new task that will handle any Throwable that this task might throw
-   * or task cancellation. If this task completes successfully,
-   * then recovery function is not invoked. Task returned by recovery function
+   * Creates a new task that will handle any Throwable that this task might throw.
+   * If this task completes successfully, then recovery function is not invoked.
+   * Task returned by recovery function
    * will become a new result of this task. This means that if recovery function fails,
    * then result of this task will fail with a Throwable from recovery function.
    *
@@ -446,7 +494,7 @@ public interface Task<T> extends Promise<T>, Cancellable
     return async(desc, context -> {
       final SettablePromise<T> result = Promises.settable();
       final Task<T> recovery = async(desc, ctx -> {
-        if (that.isFailed()) {
+        if (that.isFailed() && !(that.getError() instanceof EarlyFinishException)) {
           try {
             Task<T> r = func.apply(that.getError());
             Promises.propagateResult(r, result);
