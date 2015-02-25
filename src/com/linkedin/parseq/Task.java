@@ -136,29 +136,29 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   /**
-   * Creates a new Task by applying a function to the successful result of this Task.
-   * Returned Task will complete with value calculated by a function. Example:
+   * Creates a new task by applying a function to the successful result of this task.
+   * Returned task will complete with value calculated by a function. Example:
    * <pre><code>
    * Task{@code <String>} hello = Task.value("Hello World");
    *
-   * // this Task will complete with value 11
+   * // this task will complete with value 11
    * Task{@code <Integer>} length = hello.map(s -> s.length());
    * </code></pre>
    *
-   * If this Task is completed with an exception then the new Task will also complete
+   * If this task is completed with an exception then the new task will also complete
    * with that exception. Example:
    * <pre><code>
    *  Task{@code <String>} failing = Task.callable("hello", () -> {
    *    return "Hello World".substring(100);
    *  });
    *
-   *  // this Task will fail with java.lang.StringIndexOutOfBoundsException
+   *  // this task will fail with java.lang.StringIndexOutOfBoundsException
    *  Task{@code <Integer>} length = failing.map("length", s -> s.length());
    * </code></pre>
    * @param <R> return type of function <code>func</code>
    * @param desc description of a mapping function, it will show up in a trace
-   * @param func function to be applied to successful result of this Task.
-   * @return a new Task which will apply given function on result of successful completion of this task
+   * @param func function to be applied to successful result of this task.
+   * @return a new task which will apply given function on result of successful completion of this task
    */
   default <R> Task<R> map(final String desc, final Function<T, R> func) {
     ArgumentUtil.requireNotNull(func, "function");
@@ -174,32 +174,32 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   /**
-   * Creates a new Task by applying a function to the successful result of this Task and
-   * returns the result of a function as the new Task.
-   * Returned Task will complete with value calculated by a Task returned by the function.
+   * Creates a new task by applying a function to the successful result of this task and
+   * returns the result of a function as the new task.
+   * Returned task will complete with value calculated by a task returned by the function.
    * Example:
    * <pre><code>
    *  Task{@code <URI>} url = Task.value("uri", URI.create("http://linkedin.com"));
    *
-   *  // this Task will complete with contents of a LinkedIn homepage
+   *  // this task will complete with contents of a LinkedIn homepage
    *  // assuming fetch(u) fetches contents given by a URI
    *  Task{@code <String>} homepage = url.flatMap("fetch", u -> fetch(u));
    * </code></pre>
    *
-   * If this Task is completed with an exception then the new Task will also contain
+   * If this task is completed with an exception then the new task will also contain
    * that exception. Example:
    * <pre><code>
    *  Task{@code <URI>} url = Task.callable("uri", () -> URI.create("not a URI"));
    *
-   *  // this Task will fail with java.lang.IllegalArgumentException
+   *  // this task will fail with java.lang.IllegalArgumentException
    *  Task{@code <String>} homepage = url.flatMap("fetch", u -> fetch(u));
    * </code></pre>
    * @param <R> return type of function <code>func</code>
    * @param desc description of a mapping function, it will show up in a trace
-   * @param func function to be applied to successful result of this Task which returns new Task
+   * @param func function to be applied to successful result of this task which returns new task
    * to be executed
-   * @return a new Task which will apply given function on result of successful completion of this task
-   * to get instance of a Task which will be executed next
+   * @return a new task which will apply given function on result of successful completion of this task
+   * to get instance of a task which will be executed next
    */
   default <R> Task<R> flatMap(final String desc, final Function<T, Task<R>> func) {
     ArgumentUtil.requireNotNull(func, "function");
@@ -248,7 +248,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * <pre><code>
    *  Task{@code <Long>} id = Task.value(1223L);
    *
-   *  // this Task will be completed as soon as user name is fetched
+   *  // this task will be completed as soon as user name is fetched
    *  // by fetch() method and will not fail even if updateMemcache() fails
    *  Task{@code <String>} userName = id.flatMap("fetch", u -> fetch(u))
    *      .withSideEffect("update memcache", u -> updateMemcache(u));
@@ -256,7 +256,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @param desc description of a function, it will show up in a trace
    * @param func function to be applied on result of successful completion of this task
    * to get side effect task
-   * @return a new Task that will run side effect task specified by given function upon succesful
+   * @return a new task that will run side effect task specified by given function upon succesful
    * completion of this task
    */
   default Task<T> withSideEffect(final String desc, final Function<T, Task<?>> func) {
@@ -305,12 +305,31 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   /**
-   * Applies the function to the result of this Task, and returns
-   * a new Task with the result of this Task to allow fluent chaining.
+   * Creates a new task which applies a consumer to the result of this task
+   * and completes with a result of this task. It is used
+   * in situations where consumer needs to be called after successful
+   * completion of this task. Example:
+   * <pre><code>
+   *  Task{@code <String>} hello = Task.value("Hello World");
    *
-   * @param desc description of a side-effecting function, it will show up in a trace
-   * @param consumer side-effecting function
-   * @return a new Task with the result of this Task
+   *  // this task will print "Hello World"
+   *  Task{@code <String>} sayHello = hello.andThen(System.out::println);
+   * </code></pre>
+   *
+   * If this task fails then consumer will not be called and failure
+   * will be propagated to task returned by this method. Example:
+   * <pre><code>
+   *  Task{@code <String>} failing = Task.callable("hello", () {@code ->} {
+   *    return "Hello World".substring(100);
+   *  });
+   *
+   *  // this task will fail with java.lang.StringIndexOutOfBoundsException
+   *  Task{@code <String>} sayHello = failing.andThen(System.out::println);
+   * </code></pre>
+   *
+   * @param desc description of a consumer, it will show up in a trace
+   * @param consumer consumer of a value returned by this task
+   * @return a new task which will complete with result of this task
    */
   default Task<T> andThen(final String desc, final Consumer<T> consumer) {
     ArgumentUtil.requireNotNull(consumer, "consumer");
@@ -321,10 +340,40 @@ public interface Task<T> extends Promise<T>, Cancellable
         }));
   }
 
+  /**
+   * Equivalent to {@code andThen("andThen", consumer)}.
+   * @see #andThen(String, Consumer)
+   */
   default Task<T> andThen(final Consumer<T> consumer) {
     return andThen("andThen", consumer);
   }
 
+  /**
+   * Creates a new task which runs given task after successful
+   * completion of this task and completes with a result of
+   * that task. Task passed in as a parameter will run only
+   * if this task completes successfully.
+   * If this task fails then task passed in as a parameter will
+   * not be scheduled for execution and failure
+   * will be propagated to task returned by this method.
+   * Example:
+   * <pre><code>
+   *  // task which processes payment
+   *  Task{@code <PaymentStatus>} processPayment = processPayment(...);
+   *
+   *  // task which ships product
+   *  Task{@code <ShipmentInfo>} shipProduct = shipProduct(...);
+   *
+   *  // this task will ship product only if payment was
+   *  // successfully processed
+   *  Task{@code <ShipmentInfo>} shipAfterPayment =
+   *      processPayment.andThen("shipProductAterPayment", shipProduct);
+   * </code></pre>
+   *
+   * @param desc description of a task, it will show up in a trace
+   * @param task task which will be executed after successful completion of this task
+   * @return a new task which will run given task after successful completion of this task
+   */
   default <R> Task<R> andThen(final String desc, final Task<R> task) {
     ArgumentUtil.requireNotNull(task, "task");
     final Task<T> that = this;
@@ -337,19 +386,23 @@ public interface Task<T> extends Promise<T>, Cancellable
     }, true);
   }
 
+  /**
+   * Equivalent to {@code andThen("andThen", task)}.
+   * @see #andThen(String, Task)
+   */
   default <R> Task<R> andThen(final Task<R> task) {
     return andThen("andThen", task);
   }
 
   /**
-   * Creates a new Task that will handle any Throwable that this Task might throw
-   * or Task cancellation.
+   * Creates a new task that will handle any Throwable that this task might throw
+   * or task cancellation.
    * If this task completes successfully, then recovery function is not invoked.
    *
    * @param desc description of a recovery function, it will show up in a trace
-   * @param func recovery function which can complete Task with a value depending on
-   *        Throwable thrown by this Task
-   * @return a new Task which can recover from Throwable thrown by this Task
+   * @param func recovery function which can complete task with a value depending on
+   *        Throwable thrown by this task
+   * @return a new task which can recover from Throwable thrown by this task
    */
   default Task<T> recover(final String desc, final Function<Throwable, T> func) {
     ArgumentUtil.requireNotNull(func, "function");
@@ -376,16 +429,16 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   /**
-   * Creates a new Task that will handle any Throwable that this Task might throw
-   * or Task cancellation. If this task completes successfully,
+   * Creates a new task that will handle any Throwable that this task might throw
+   * or task cancellation. If this task completes successfully,
    * then recovery function is not invoked. Task returned by recovery function
-   * will become a new result of this Task. This means that if recovery function fails,
+   * will become a new result of this task. This means that if recovery function fails,
    * then result of this task will fail with a Throwable from recovery function.
    *
    * @param desc description of a recovery function, it will show up in a trace
-   * @param func recovery function which can return Task which will become a new result of
-   * this Task
-   * @return a new Task which can recover from Throwable thrown by this Task or cancellation
+   * @param func recovery function which can return task which will become a new result of
+   * this task
+   * @return a new task which can recover from Throwable thrown by this task or cancellation
    */
   default Task<T> recoverWith(final String desc, final Function<Throwable, Task<T>> func) {
     ArgumentUtil.requireNotNull(func, "function");
@@ -416,18 +469,18 @@ public interface Task<T> extends Promise<T>, Cancellable
     return recoverWith("recoverWith", func);
   }
   /**
-   * Creates a new Task that will handle any Throwable that this Task might throw
-   * or Task cancellation. If this task completes successfully,
-   * then fall-back function is not invoked. If Task returned by fall-back function
+   * Creates a new task that will handle any Throwable that this task might throw
+   * or task cancellation. If this task completes successfully,
+   * then fall-back function is not invoked. If task returned by fall-back function
    * completes successfully with a value, then that value becomes a result of this
-   * Task. If Task returned by fall-back function fails with a Throwable or is cancelled,
-   * then this Task will fail with the original Throwable, not the one coming from
-   * the fall-back function's Task.
+   * task. If task returned by fall-back function fails with a Throwable or is cancelled,
+   * then this task will fail with the original Throwable, not the one coming from
+   * the fall-back function's task.
    *
    * @param desc description of a recovery function, it will show up in a trace
-   * @param func recovery function which can return Task which will become a new result of
-   * this Task
-   * @return a new Task which can recover from Throwable thrown by this Task or cancellation
+   * @param func recovery function which can return task which will become a new result of
+   * this task
+   * @return a new task which can recover from Throwable thrown by this task or cancellation
    */
   default Task<T> fallBackTo(final String desc, final Function<Throwable, Task<T>> func) {
     ArgumentUtil.requireNotNull(func, "function");
@@ -488,7 +541,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @param time the time to wait before timing out
    * @param unit the units for the time
    * @param <T> the value type for the task
-   * @return the new Task with a timeout
+   * @return the new task with a timeout
    */
   default Task<T> withTimeout(final long time, final TimeUnit unit)
   {
