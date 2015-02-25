@@ -272,10 +272,11 @@ public class AsyncCollection<T, R> extends Transducible<T, R> implements ParSeqC
   @Override
   public ParSeqCollection<R> within(long time, TimeUnit unit) {
     //TODO within on publisher task is not enough - need to wrap future folding task
-    CancellableSubscription subscription = new CancellableSubscription();
-    final PushablePublisher<TaskOrValue<R>> publisher = new PushablePublisher<TaskOrValue<R>>(subscription);
-    Task<?> task = publisherTask(publisher, subscription).within(time, unit);
-    return new AsyncCollection<>(publisher, Transducer.identity(), Optional.of(task));
+//    CancellableSubscription subscription = new CancellableSubscription();
+//    final PushablePublisher<TaskOrValue<R>> publisher = new PushablePublisher<TaskOrValue<R>>(subscription);
+//    Task<?> task = publisherTask(publisher, subscription).within(time, unit);
+//    return new AsyncCollection<>(publisher, Transducer.identity(), Optional.of(task));
+    throw new java.lang.UnsupportedOperationException("not implemented yet");
   }
 
   @Override

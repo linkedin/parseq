@@ -125,20 +125,11 @@ public class FusionTask<S, T>  extends SystemHiddenTask<T> {
   @Override
   protected Promise<? extends T> run(Context context) throws Throwable {
     final SettablePromise<T> result = Promises.settable();
-    context.after(_task).run(new SystemHiddenTask<T>(FusionTask.this.getName()) {
-      @Override
-      protected Promise<? extends T> run(Context context) throws Throwable {
-        return propagate(_task, result);
-      }
-    });
+    final Task<? extends T> propagationTask =
+        Task.async(FusionTask.this.getName(), () -> propagate(_task, result), true);
+    context.after(_task).run(propagationTask);
     context.run(_task);
     return result;
-  }
-
-  @Override
-  public Task<T> within(final long time, final TimeUnit unit) {
-    _task.within(time, unit);
-    return this;
   }
 
   @Override

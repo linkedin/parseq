@@ -29,6 +29,7 @@ import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.function.Failure;
 import com.linkedin.parseq.function.Success;
 import com.linkedin.parseq.function.Try;
+import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.internal.TaskLogger;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromisePropagator;
@@ -41,8 +42,6 @@ import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.Trace;
 
 /**
- * TODO add check for arguments whcih may not be null
- *
  * A task represents a deferred execution that also contains its resulting
  * value. In addition, tasks include some tracing information that can be
  * used with various trace printers.
@@ -162,6 +161,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @return a new Task which will apply given function on result of successful completion of this task
    */
   default <R> Task<R> map(final String desc, final Function<T, R> func) {
+    ArgumentUtil.requireNotNull(func, "function");
     return apply(desc, new PromiseTransformer<T, R>(func));
   }
 
@@ -222,6 +222,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * to get instance of a Task which will be executed next
    */
   default <R> Task<R> flatMap(final String desc, final Function<T, Task<R>> func) {
+    ArgumentUtil.requireNotNull(func, "function");
     final Task<T> that = this;
     return async(desc, context -> {
       final SettablePromise<R> result = Promises.settable();
@@ -302,6 +303,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * completion of this task
    */
   default Task<T> withSideEffect(final String desc, final Function<T, Task<?>> func) {
+    ArgumentUtil.requireNotNull(func, "function");
     final Task<T> that = this;
     return async(desc, context -> {
       context.after(that).runSideEffect(func.apply(that.get()));
@@ -331,6 +333,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @return a new Task with the result of this Task
    */
   default Task<T> andThen(final String desc, final Consumer<T> consumer) {
+    ArgumentUtil.requireNotNull(consumer, "consumer");
     return apply(desc,
         new PromiseTransformer<T,T>(t -> {
           consumer.accept(t);
@@ -343,6 +346,7 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   default <R> Task<R> andThen(final String desc, final Task<R> task) {
+    ArgumentUtil.requireNotNull(task, "task");
     final Task<T> that = this;
     return async(desc, context -> {
       final SettablePromise<R> result = Promises.settable();
@@ -368,6 +372,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @return a new Task which can recover from Throwable thrown by this Task
    */
   default Task<T> recover(final String desc, final Function<Throwable, T> f) {
+    ArgumentUtil.requireNotNull(f, "function");
     return apply(desc,  (src, dst) -> {
       if (src.isFailed()) {
         try {
@@ -403,6 +408,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @return a new Task which can recover from Throwable thrown by this Task or cancellation
    */
   default Task<T> recoverWith(final String desc, final Function<Throwable, Task<T>> f) {
+    ArgumentUtil.requireNotNull(f, "function");
     final Task<T> that = this;
     return async(desc, context -> {
       final SettablePromise<T> result = Promises.settable();
@@ -444,6 +450,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @return a new Task which can recover from Throwable thrown by this Task or cancellation
    */
   default Task<T> fallBackTo(final String desc, final Function<Throwable, Task<T>> f) {
+    ArgumentUtil.requireNotNull(f, "function");
     return recoverWith(desc, originalFailure -> {
       Task<T> fallBack = f.apply(originalFailure).apply("restoreFailure", (src, dst) -> {
         if (src.isFailed()) {
@@ -508,11 +515,6 @@ public interface Task<T> extends Promise<T>, Cancellable
   default Task<T> withTimeout(final long time, final TimeUnit unit)
   {
     wrapContextRun(new TimeoutContextRunWrapper<T>(time, unit, Exceptions.TIMEOUT_EXCEPTION));
-    return this;
-  }
-
-  default Task<T> within(final long time, final TimeUnit unit) {
-    wrapContextRun(new TimeoutContextRunWrapper<T>(time, unit, Exceptions.noSuchElement()));
     return this;
   }
 

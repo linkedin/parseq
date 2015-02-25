@@ -55,8 +55,8 @@ public class FixedTimeBoundSearchExample extends AbstractExample
           .mapTask(requestLatency -> callService("subSearch[" + idx.get() + "]",
                                       service,
                                       new SimpleMockRequest<Integer>(requestLatency, idx.getAndIncrement())))
-          .toList()
-          .within(200, TimeUnit.MILLISECONDS);
+          .within(200, TimeUnit.MILLISECONDS)
+          .toList();
 
     System.out.printf("This com.linkedin.asm.example will issue %d parallel requests\n", REQUEST_LATENCIES.size());
     System.out.println();

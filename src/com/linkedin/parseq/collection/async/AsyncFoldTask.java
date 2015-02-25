@@ -226,12 +226,6 @@ public class AsyncFoldTask<Z, T> extends BaseTask<Z> implements Ref<Z> {
     }
   }
 
-  @Override
-  public Task<Z> within(long time, TimeUnit unit) {
-    wrapContextRun(new WithinContextRunWrapper(time, unit));
-    return this;
-  }
-
   void scheduleTask(Task<?> task, Context context, Task<?> rootTask) {
     context.runSubTask(task, rootTask);
   }
