@@ -26,17 +26,12 @@ import static org.testng.AssertJUnit.fail;
 public class TestParTask extends BaseEngineTest
 {
   @Test
-  public void testIterableParWithEmptyList()
+  public void testIterableParWithEmptyList() throws InterruptedException
   {
-    try
-    {
-      par(Collections.<Task<?>>emptyList());
-      fail("Should have thrown IllegalArgumentException");
-    }
-    catch (IllegalArgumentException e)
-    {
-      // Expected case
-    }
+    final Task<List<Integer>> par = par(Collections.<Task<Integer>>emptyList());
+    getEngine().run(par);
+    assertTrue(par.await(5, TimeUnit.SECONDS));
+    assertEquals(Collections.<Task<Integer>>emptyList(), par.get());
   }
 
   @Test
