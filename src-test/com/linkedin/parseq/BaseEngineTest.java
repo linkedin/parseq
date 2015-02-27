@@ -153,31 +153,29 @@ public class BaseEngineTest
     _loggerFactory.reset();
   }
 
-  protected <T> Task<T> getDelayValue(T value, long delay)
+  /**
+   * Returns task which completes with given value after specified period
+   * of time.
+   */
+  protected <T> Task<T> delayedValue(T value, long time, TimeUnit timeUnit)
   {
-    return new BaseTask<T>()
-    {
-      @Override
-      protected Promise<? extends T> run(Context context) throws Throwable
-      {
-        final SettablePromise<T> promise = Promises.settable();
-        _scheduler.schedule(() -> promise.done(value), delay, TimeUnit.MILLISECONDS);
-        return promise;
-      }
-    };
+    return Task.async("delayedValue", () -> {
+      final SettablePromise<T> promise = Promises.settable();
+      _scheduler.schedule(() -> promise.done(value), time, timeUnit);
+      return promise;
+    }, false);
   }
 
-  protected <T> Task<T> getDelayFailure(T value, Throwable error, long delay)
+  /**
+   * Returns task which fails with given error after specified period
+   * of time.
+   */
+  protected <T> Task<T> delayedFailure(T value, Throwable error, long time, TimeUnit timeUnit)
   {
-    return new BaseTask<T>()
-    {
-      @Override
-      protected Promise<? extends T> run(Context context) throws Throwable
-      {
-        final SettablePromise<T> promise = Promises.settable();
-        _scheduler.schedule(() -> promise.fail(error), delay, TimeUnit.MILLISECONDS);
-        return promise;
-      }
-    };
+    return Task.async("delayedFailure", () -> {
+      final SettablePromise<T> promise = Promises.settable();
+      _scheduler.schedule(() -> promise.fail(error), time, timeUnit);
+      return promise;
+    }, false);
   }
 }

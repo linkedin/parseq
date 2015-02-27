@@ -1,14 +1,9 @@
 package com.linkedin.parseq;
 
 import com.linkedin.parseq.function.Try;
-import com.linkedin.parseq.promise.Promise;
-import com.linkedin.parseq.promise.Promises;
-import com.linkedin.parseq.promise.SettablePromise;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -172,12 +167,13 @@ public class TestTask extends BaseEngineTest
   @Test
   public void testWithTimeout()
   {
-    Task<Integer> success = getTask().andThen(getDelayValue(0, 30))
+    Task<Integer> success = getTask().andThen(delayedValue(0, 30, TimeUnit.MILLISECONDS))
         .withTimeout(100, TimeUnit.MILLISECONDS);
     runAndWait("TestTask.testWithTimeoutSuccess", success);
     Assert.assertEquals((int)success.get(), 0);
 
-    Task<Integer> failure = getTask().andThen(getDelayValue(0, 110)).withTimeout(100, TimeUnit.MILLISECONDS);
+    Task<Integer> failure = getTask().andThen(delayedValue(0, 110, TimeUnit.MILLISECONDS))
+        .withTimeout(100, TimeUnit.MILLISECONDS);
     try
     {
       runAndWait("TestTask.testWithTimeoutFailure", failure);
@@ -194,14 +190,14 @@ public class TestTask extends BaseEngineTest
   {
     // side effect task
     Task<String> taskFastMain = getTask();
-    Task<String> taskSlowSideEffect = getDelayValue("slooow", 5100);
+    Task<String> taskSlowSideEffect = delayedValue("slooow", 5100, TimeUnit.MILLISECONDS);
     Task<String> taskPartial = taskFastMain.withSideEffect(taskSlowSideEffect);
 
     Task<String> taskFastMain2 = getTask();
-    Task<String> taskSlowSideEffect2 = getDelayValue("slow", 50);
+    Task<String> taskSlowSideEffect2 = delayedValue("slow", 50, TimeUnit.MILLISECONDS);
     Task<String> taskFull = taskFastMain2.withSideEffect(taskSlowSideEffect2);
 
-    Task<String> taskCancelMain = getDelayValue("canceled", 6000);
+    Task<String> taskCancelMain = delayedValue("canceled", 6000, TimeUnit.MILLISECONDS);
     Task<String> taskFastSideEffect = getTask();
     Task<String> taskCancel = taskCancelMain.withSideEffect(taskFastSideEffect);
 
@@ -220,14 +216,14 @@ public class TestTask extends BaseEngineTest
   {
     // side effect function
     Task<String> functionFastMain = getTask();
-    Task<String> functionSlowSideEffect = getDelayValue("slooow", 5100);
+    Task<String> functionSlowSideEffect = delayedValue("slooow", 5100, TimeUnit.MILLISECONDS);
     Task<String> functionPartial = functionFastMain.withSideEffect(s -> functionSlowSideEffect);
 
     Task<String> functionFastMain2 = getTask();
-    Task<String> functionSlowSideEffect2 = getDelayValue("slow", 50);
+    Task<String> functionSlowSideEffect2 = delayedValue("slow", 50, TimeUnit.MILLISECONDS);
     Task<String> functionFull = functionFastMain2.withSideEffect(s -> functionSlowSideEffect2);
 
-    Task<String> functionCancelMain = getDelayValue("canceled", 6000);
+    Task<String> functionCancelMain = delayedValue("canceled", 6000, TimeUnit.MILLISECONDS);
     Task<String> functionFastSideEffect = getTask();
     Task<String> functionCancel = functionCancelMain.withSideEffect(s -> functionFastSideEffect);
 
@@ -273,7 +269,7 @@ public class TestTask extends BaseEngineTest
 
     // test cancel, side effect task should not be run
     // add 10 ms delay so that we can reliably cancel it before it's run by the engine
-    getEngine().run(getDelayValue(0, 10).andThen(cancel));
+    getEngine().run(delayedValue(0, 10, TimeUnit.MILLISECONDS).andThen(cancel));
     Assert.assertTrue(cancelMain.cancel(new Exception("canceled")));
     cancel.await();
     fastSideEffect.await(10, TimeUnit.MILLISECONDS);
