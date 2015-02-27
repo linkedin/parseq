@@ -7,7 +7,7 @@ import java.util.List;
 
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.Task;
-import com.linkedin.parseq.collection.ParSeqCollections;
+import com.linkedin.parseq.collection.ParSeqCollection;
 import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.example.common.ExampleUtil;
 
@@ -27,7 +27,7 @@ public class MaxCollectionExample extends AbstractExample
     List<String> urls = Arrays.asList("http://www.linkedin.com", "http://www.google.com", "http://www.twitter.com");
 
 
-    Task<String> task = ParSeqCollections.fromValues(urls)
+    Task<String> task = ParSeqCollection.fromValues(urls)
       .max(Comparator.naturalOrder())
       .andThen(System.out::println);
 

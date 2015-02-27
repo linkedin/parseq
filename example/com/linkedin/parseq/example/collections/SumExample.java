@@ -7,7 +7,7 @@ import java.util.List;
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.Tasks;
-import com.linkedin.parseq.collection.ParSeqCollections;
+import com.linkedin.parseq.collection.ParSeqCollection;
 import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.example.common.ExampleUtil;
 
@@ -31,7 +31,7 @@ public class SumExample extends AbstractExample
   @Override
   protected void doRunExample(final Engine engine) throws Exception
   {
-    Task<?> task = ParSeqCollections.fromValues(numbers)
+    Task<?> task = ParSeqCollection.fromValues(numbers)
         .mapTask(SumExample::toTask)
         .reduce((a, b) -> a + b)
         .map(sum -> "result: " + sum)

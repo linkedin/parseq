@@ -7,7 +7,7 @@ import java.util.List;
 
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.Task;
-import com.linkedin.parseq.collection.ParSeqCollections;
+import com.linkedin.parseq.collection.ParSeqCollection;
 import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.example.common.ExampleUtil;
 
@@ -27,7 +27,7 @@ public class SortedCollectionExample extends AbstractExample
     List<Integer> numbers = Arrays.asList(10, 20, 5, 8, 21, 14);
 
 
-    Task<?> task = ParSeqCollections.fromValues(numbers)
+    Task<?> task = ParSeqCollection.fromValues(numbers)
       .sorted(Comparator.naturalOrder())
       .toList()
       .andThen(System.out::println);

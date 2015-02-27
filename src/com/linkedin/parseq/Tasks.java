@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
-import com.linkedin.parseq.collection.ParSeqCollections;
+import com.linkedin.parseq.collection.ParSeqCollection;
 
 /**
  * This class provides a set of factory methods for create common
@@ -312,9 +312,9 @@ import com.linkedin.parseq.collection.ParSeqCollections;
    * or {@link com.linkedin.parseq.ParTask#getSuccessful()} to get results in
    * this case.
    * @deprecated  As of 2.0.0, replaced by {@link Task#par(Task, Task) Task.par} or
-   * {@link ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks}.
+   * {@link ParSeqCollection#fromTasks(Task...) ParSeqCollection.fromTasks}.
    * @see Task#par(Task, Task) Task.par
-   * @see ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks
+   * @see ParSeqCollection#fromTasks(Task...) ParSeqCollection.fromTasks
    */
   @Deprecated public static <T> ParTask<T> par(Task<? extends T> task1,
                                    Task<? extends T> task2)
@@ -324,9 +324,9 @@ import com.linkedin.parseq.collection.ParSeqCollections;
 
   /**
    * @deprecated  As of 2.0.0, replaced by {@link Task#par(Task, Task) Task.par} or
-   * {@link ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks}.
+   * {@link ParSeqCollection#fromTasks(Task...) ParSeqCollection.fromTasks}.
    * @see Task#par(Task, Task) Task.par
-   * @see ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks
+   * @see ParSeqCollection#fromTasks(Task...) ParSeqCollection.fromTasks
    */
   @Deprecated public static <T> ParTask<T> par(Task<? extends T> task1,
                                    Task<? extends T> task2,
@@ -337,9 +337,9 @@ import com.linkedin.parseq.collection.ParSeqCollections;
 
   /**
    * @deprecated  As of 2.0.0, replaced by {@link Task#par(Task, Task) Task.par} or
-   * {@link ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks}.
+   * {@link ParSeqCollection#fromTasks(Task...) ParSeqCollection.fromTasks}.
    * @see Task#par(Task, Task) Task.par
-   * @see ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks
+   * @see ParSeqCollection#fromTasks(Task...) ParSeqCollection.fromTasks
    */
   @Deprecated public static <T> ParTask<T> par(Task<? extends T> task1,
                                    Task<? extends T> task2,
@@ -351,9 +351,9 @@ import com.linkedin.parseq.collection.ParSeqCollections;
 
   /**
    * @deprecated  As of 2.0.0, replaced by {@link Task#par(Task, Task) Task.par} or
-   * {@link ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks}.
+   * {@link ParSeqCollection#fromTasks(Task...) ParSeqCollection.fromTasks}.
    * @see Task#par(Task, Task) Task.par
-   * @see ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks
+   * @see ParSeqCollection#fromTasks(Task...) ParSeqCollection.fromTasks
    */
   @Deprecated public static <T> ParTask<T> par(Task<? extends T> task1,
                                    Task<? extends T> task2,
@@ -366,9 +366,9 @@ import com.linkedin.parseq.collection.ParSeqCollections;
 
   /**
    * @deprecated  As of 2.0.0, replaced by {@link Task#par(Task, Task) Task.par} or
-   * {@link ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks}.
+   * {@link ParSeqCollection#fromTasks(Task...) ParSeqCollection.fromTasks}.
    * @see Task#par(Task, Task) Task.par
-   * @see ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks
+   * @see ParSeqCollection#fromTasks(Task...) ParSeqCollection.fromTasks
    */
   @Deprecated public static <T> ParTask<T> par(Task<? extends T> task1,
                                    Task<? extends T> task2,
@@ -382,9 +382,9 @@ import com.linkedin.parseq.collection.ParSeqCollections;
 
   /**
    * @deprecated  As of 2.0.0, replaced by {@link Task#par(Task, Task) Task.par} or
-   * {@link ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks}.
+   * {@link ParSeqCollection#fromTasks(Task...) ParSeqCollection.fromTasks}.
    * @see Task#par(Task, Task) Task.par
-   * @see ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks
+   * @see ParSeqCollection#fromTasks(Task...) ParSeqCollection.fromTasks
    */
   @Deprecated public static <T> ParTask<T> par(Task<? extends T> task1,
                                    Task<? extends T> task2,
@@ -399,9 +399,9 @@ import com.linkedin.parseq.collection.ParSeqCollections;
 
   /**
    * @deprecated  As of 2.0.0, replaced by {@link Task#par(Task, Task) Task.par} or
-   * {@link ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks}.
+   * {@link ParSeqCollection#fromTasks(Task...) ParSeqCollection.fromTasks}.
    * @see Task#par(Task, Task) Task.par
-   * @see ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks
+   * @see ParSeqCollection#fromTasks(Task...) ParSeqCollection.fromTasks
    */
   @Deprecated public static <T> ParTask<T> par(Task<? extends T> task1,
                                    Task<? extends T> task2,
@@ -417,9 +417,9 @@ import com.linkedin.parseq.collection.ParSeqCollections;
 
   /**
    * @deprecated  As of 2.0.0, replaced by {@link Task#par(Task, Task) Task.par} or
-   * {@link ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks}.
+   * {@link ParSeqCollection#fromTasks(Task...) ParSeqCollection.fromTasks}.
    * @see Task#par(Task, Task) Task.par
-   * @see ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks
+   * @see ParSeqCollection#fromTasks(Task...) ParSeqCollection.fromTasks
    */
   @Deprecated public static <T> ParTask<T> par(Task<? extends T> task1,
                                    Task<? extends T> task2,
@@ -436,9 +436,9 @@ import com.linkedin.parseq.collection.ParSeqCollections;
 
   /**
    * @deprecated  As of 2.0.0, replaced by {@link Task#par(Task, Task) Task.par} or
-   * {@link ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks}.
+   * {@link ParSeqCollection#fromTasks(Task...) ParSeqCollection.fromTasks}.
    * @see Task#par(Task, Task) Task.par
-   * @see ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks
+   * @see ParSeqCollection#fromTasks(Task...) ParSeqCollection.fromTasks
    */
   @Deprecated public static <T> ParTask<T> par(Task<? extends T> task1,
                                    Task<? extends T> task2,
@@ -469,9 +469,9 @@ import com.linkedin.parseq.collection.ParSeqCollections;
    * @param tasks the tasks to run in parallel
    * @return The results of the tasks
    * @deprecated  As of 2.0.0, replaced by {@link Task#par(Task, Task) Task.par} or
-   * {@link ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks}.
+   * {@link ParSeqCollection#fromTasks(Task...) ParSeqCollection.fromTasks}.
    * @see Task#par(Task, Task) Task.par
-   * @see ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks
+   * @see ParSeqCollection#fromTasks(Task...) ParSeqCollection.fromTasks
    */
   @Deprecated public static <T> ParTask<T> par(final Iterable<? extends Task<? extends T>> tasks)
   {

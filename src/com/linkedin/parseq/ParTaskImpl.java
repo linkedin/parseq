@@ -16,7 +16,7 @@
 
 package com.linkedin.parseq;
 
-import com.linkedin.parseq.collection.ParSeqCollections;
+import com.linkedin.parseq.collection.ParSeqCollection;
 import com.linkedin.parseq.internal.InternalUtil;
 import com.linkedin.parseq.internal.SystemHiddenTask;
 import com.linkedin.parseq.promise.Promise;
@@ -36,11 +36,11 @@ import java.util.List;
  * instance of this class.
  *
  * @deprecated  As of 2.0.0, replaced by {@link Task#par(Task, Task) Task.par} or
- * {@link ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks}.
+ * {@link ParSeqCollection#fromTasks(Task...) ParSeqCollection.fromTasks}.
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Chi Chan (ckchan@linkedin.com)
  * @see Task#par(Task, Task) Task.par
- * @see ParSeqCollections#fromTasks(Task...) ParSeqCollections.fromTasks
+ * @see ParSeqCollection#fromTasks(Task...) ParSeqCollection.fromTasks
  */
 /* package private */ class ParTaskImpl<T> extends SystemHiddenTask<List<T>> implements ParTask<T>
 {

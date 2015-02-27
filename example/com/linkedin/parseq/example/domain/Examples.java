@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.Task;
-import com.linkedin.parseq.collection.ParSeqCollections;
+import com.linkedin.parseq.collection.ParSeqCollection;
 import com.linkedin.parseq.example.common.AbstractDomainExample;
 import com.linkedin.parseq.example.common.ExampleUtil;
 import com.linkedin.parseq.function.Tuples;
@@ -91,7 +91,7 @@ public class Examples extends AbstractDomainExample
   }
 
   Task<String> createSummaries(List<Integer> ids) {
-     return ParSeqCollections.fromValues(ids)
+     return ParSeqCollection.fromValues(ids)
        .mapTask(id -> createExtendedSummary(id))
        .within(200, TimeUnit.MILLISECONDS)
        .reduce((a, b) -> a + "\n" + b);
@@ -101,9 +101,9 @@ public class Examples extends AbstractDomainExample
 
   //Find a message which contains given word
   Task<String> findMessageWithWord(String word) {
-    return ParSeqCollections.fromValues(DB.personIds)
+    return ParSeqCollection.fromValues(DB.personIds)
         .mapTask(id -> fetchMailbox(id))
-        .flatMap(list -> ParSeqCollections.fromValues(list))
+        .flatMap(list -> ParSeqCollection.fromValues(list))
         .mapTask(msgId -> fetchMessage(msgId))
         .map(msg -> msg.getContents())
         .find(s -> s.contains(word));
@@ -113,7 +113,7 @@ public class Examples extends AbstractDomainExample
 
   //given list of their ids, get list of N People working at LinkedIn who have at least 2 connections and 1 message
   Task<List<Person>> getNPeopleWorkingAtLinkedIn(List<Integer> ids, int N) {
-    return ParSeqCollections.fromValues(ids)
+    return ParSeqCollection.fromValues(ids)
       .mapTask(id -> fetchPerson(id))
       .filter(person -> person.getConnections().size() > 2)
       .mapTask(person ->

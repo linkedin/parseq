@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.Task;
-import com.linkedin.parseq.collection.ParSeqCollections;
+import com.linkedin.parseq.collection.ParSeqCollection;
 import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.example.common.ExampleUtil;
 import com.linkedin.parseq.example.common.MockService;
@@ -34,9 +34,9 @@ public class ParFilterExample extends AbstractExample
     List<Task<String>> fetchSizes = fetchList(httpClient, urls);
 
     Task<String> find =
-        ParSeqCollections.fromTasks(fetchSizes)
+        ParSeqCollection.fromTasks(fetchSizes)
           .filter(s -> !s.contains("google"))
-          .flatMap(z -> ParSeqCollections.fromTasks(fetchList(httpClient, urls))
+          .flatMap(z -> ParSeqCollection.fromTasks(fetchList(httpClient, urls))
                 .filter(s -> s.contains("twitter")))
           .find(s -> s.contains("twitter"));
 

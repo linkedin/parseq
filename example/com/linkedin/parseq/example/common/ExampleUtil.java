@@ -82,7 +82,7 @@ public class ExampleUtil
     final long mean = DEFAULT_LATENCY_MEAN;
     final long stddev = DEFAULT_LATENCY_STDDEV;
     final long latency = Math.max(LATENCY_MIN, (int)(RANDOM.nextGaussian() * stddev + mean));
-    return callService("fetch[url=" + url + "]", httpClient, new ErrorMockRequest<String>(latency, new Exception("404")));
+    return callService("fetch[url=" + url + "]", httpClient, new ErrorMockRequest<String>(latency, new Exception(url + ": 404")));
   }
 
   public static void printTracingResults(final Task<?> task)

@@ -25,7 +25,7 @@ import java.util.List;
 
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.Task;
-import com.linkedin.parseq.collection.ParSeqCollections;
+import com.linkedin.parseq.collection.ParSeqCollection;
 import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.function.Tuple2;
 
@@ -62,7 +62,7 @@ public class TwoStageFanoutExample extends AbstractExample
   }
 
   private Task<StringBuilder> stage(final List<String> input, final StringBuilder resultBuilder) {
-    return ParSeqCollections.fromValues(input)
+    return ParSeqCollection.fromValues(input)
         .mapTask(url -> (Task<Tuple2<String, String>>)fetchUrl(getService(), url)
                       .map(s -> tuple(url, s)))
         .fold(resultBuilder, (z, r) ->

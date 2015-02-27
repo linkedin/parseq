@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.Task;
-import com.linkedin.parseq.collection.ParSeqCollections;
+import com.linkedin.parseq.collection.ParSeqCollection;
 import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.example.common.MockService;
 import com.linkedin.parseq.example.common.SimpleMockRequest;
@@ -51,7 +51,7 @@ public class FixedTimeBoundSearchExample extends AbstractExample
 
     AtomicInteger idx = new AtomicInteger();
     Task<List<Integer>> example =
-        ParSeqCollections.fromValues(REQUEST_LATENCIES)
+        ParSeqCollection.fromValues(REQUEST_LATENCIES)
           .mapTask(requestLatency -> callService("subSearch[" + idx.get() + "]",
                                       service,
                                       new SimpleMockRequest<Integer>(requestLatency, idx.getAndIncrement())))
