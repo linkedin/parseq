@@ -130,40 +130,6 @@ public class TestTask extends BaseEngineTest
     Assert.assertEquals((int)recovered.get(), -1);
   }
 
-  // TODO: fallback fail with java.lang.IllegalStateException:
-  // Detected a cycle that includes: [com.linkedin.parseq.FusionTask@5b4f424e, com.linkedin.parseq.Task$6@5603bb00]
-  // understand and fix
-  @Test
-  public void testFallBackTo()
-  {
-    Task<Integer> success = getTask().map("strlen", String::length)
-        .fallBackTo("fallBackTo", e -> Task.callable("recover failure", () -> {
-          throw new RuntimeException("recover failed!");
-        }));
-    runAndWait("TestTask.testFallBackToSuccess", success);
-    Assert.assertEquals((int) success.get(), 12);
-
-    Task<Integer> failure = getFailureTask().map("strlen", String::length)
-        .fallBackTo("fallBackTo", e -> Task.callable("recover failure", () -> {
-          throw new RuntimeException("recover failed!");
-        }));
-    try
-    {
-      runAndWait("TestTask.testFallBAckToFailure", failure);
-      Assert.fail("should have failed!");
-    }
-    catch (Exception ex)
-    {
-      // fail with original throwable
-      Assert.assertEquals(ex.getCause().getMessage(), "task failed!");
-    }
-
-    Task<Integer> recovered = getFailureTask().map("strlen", String::length)
-        .fallBackTo("fallBackTo", e -> Task.callable("recover success", () -> -1));
-    runAndWait("TestTask.testFallBAckToFailure", recovered);
-    Assert.assertEquals((int)recovered.get(), -1);
-  }
-
   @Test
   public void testWithTimeout()
   {
@@ -183,32 +149,6 @@ public class TestTask extends BaseEngineTest
     {
       Assert.assertSame(ex.getCause(), Exceptions.TIMEOUT_EXCEPTION);
     }
-  }
-
-  @Test
-  public void testWithSideEffectViaTask() throws Exception
-  {
-    // side effect task
-    Task<String> taskFastMain = getTask();
-    Task<String> taskSlowSideEffect = delayedValue("slooow", 5100, TimeUnit.MILLISECONDS);
-    Task<String> taskPartial = taskFastMain.withSideEffect(taskSlowSideEffect);
-
-    Task<String> taskFastMain2 = getTask();
-    Task<String> taskSlowSideEffect2 = delayedValue("slow", 50, TimeUnit.MILLISECONDS);
-    Task<String> taskFull = taskFastMain2.withSideEffect(taskSlowSideEffect2);
-
-    Task<String> taskCancelMain = delayedValue("canceled", 6000, TimeUnit.MILLISECONDS);
-    Task<String> taskFastSideEffect = getTask();
-    Task<String> taskCancel = taskCancelMain.withSideEffect(taskFastSideEffect);
-
-    Task<String> taskFailureMain = getFailureTask();
-    Task<String> taskFastSideEffect2 =getTask();
-    Task<String> taskFailure = taskFailureMain.withSideEffect(taskFastSideEffect2);
-
-    testWithSideEffect("viaTask", taskFastMain, taskSlowSideEffect, taskPartial,
-        taskFastMain2, taskSlowSideEffect2, taskFull, taskCancelMain, taskFastSideEffect, taskCancel,
-        taskFailureMain, taskFastSideEffect2, taskFailure);
-
   }
 
   @Test

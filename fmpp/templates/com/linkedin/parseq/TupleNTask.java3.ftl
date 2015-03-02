@@ -56,16 +56,6 @@ public interface Tuple${i}Task<<@typeParameters i/>> extends Task<Tuple${i}<<@ty
     return cast(recoverWith(desc, f));
   }
   
-  @Override
-  default Tuple${i}Task<<@typeParameters i/>> fallBackTo(final String desc, final Function<Throwable, Task<Tuple${i}<<@typeParameters i/>>>> f) {
-    return cast(fallBackTo(desc, f));
-  }
-  
-  @Override
-  default Tuple${i}Task<<@typeParameters i/>> fallBackTo(final Function<Throwable, Task<Tuple${i}<<@typeParameters i/>>>> f) {
-    return cast(fallBackTo(f));
-  }
-  
   public static <<@typeParameters i/>> Tuple${i}Task<<@typeParameters i/>> cast(final Task<Tuple${i}<<@typeParameters i/>>> task) {
     return new Tuple${i}TaskDelegate<>(task);
   }

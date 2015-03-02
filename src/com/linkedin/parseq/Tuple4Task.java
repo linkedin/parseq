@@ -52,16 +52,6 @@ public interface Tuple4Task<T1, T2, T3, T4> extends Task<Tuple4<T1, T2, T3, T4>>
     return cast(recoverWith(desc, f));
   }
   
-  @Override
-  default Tuple4Task<T1, T2, T3, T4> fallBackTo(final String desc, final Function<Throwable, Task<Tuple4<T1, T2, T3, T4>>> f) {
-    return cast(fallBackTo(desc, f));
-  }
-  
-  @Override
-  default Tuple4Task<T1, T2, T3, T4> fallBackTo(final Function<Throwable, Task<Tuple4<T1, T2, T3, T4>>> f) {
-    return cast(fallBackTo(f));
-  }
-  
   public static <T1, T2, T3, T4> Tuple4Task<T1, T2, T3, T4> cast(final Task<Tuple4<T1, T2, T3, T4>> task) {
     return new Tuple4TaskDelegate<>(task);
   }

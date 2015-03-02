@@ -282,28 +282,6 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   /**
-   * Equivalent to {@code withSideEffect(desc, t -> sideEffect)}.
-   * @see #withSideEffect(String, Function)
-   */
-  default Task<T> withSideEffect(final String desc, final Task<?> sideEffect) {
-    ArgumentUtil.requireNotNull(sideEffect, "sideEffect");
-    final Task<T> that = this;
-    return async(desc, context -> {
-      context.after(that).runSideEffect(sideEffect);
-      context.run(that);
-      return that;
-    }, true);
-  }
-
-  /**
-   * Equivalent to {@code withSideEffect("withSideEffect", t -> sideEffect)}.
-   * @see #withSideEffect(String, Function)
-   */
-  default Task<T> withSideEffect(final Task<?> sideEffect) {
-    return withSideEffect("withSideEffect", sideEffect);
-  }
-
-  /**
    * Creates a new task which applies a consumer to the result of this task
    * and completes with a result of this task. It is used
    * in situations where consumer needs to be called after successful
@@ -439,6 +417,35 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   /**
+   *
+   * @param desc
+   * @param consumer
+   * @return
+   */
+  default Task<T> onError(final String desc, final Consumer<Throwable> consumer) {
+    ArgumentUtil.requireNotNull(consumer, "function");
+    return apply(desc,  (src, dst) -> {
+      if (src.isFailed() && !(src.getError() instanceof EarlyFinishException)) {
+        try {
+          consumer.accept(src.getError());
+        } finally {
+          dst.fail(src.getError());
+        }
+      } else {
+        dst.done(src.get());
+      }
+    });
+  }
+
+  /**
+   * Equivalent to {@code onError("onError", consumer)}.
+   * @see #onError(String, Consumer)
+   */
+  default Task<T> onError(final Consumer<Throwable> consumer) {
+    return onError("onError", consumer);
+  }
+
+  /**
    * This method transforms {@code Task<T>} into {@code Task<Try<T>>}.
    * It allows explicit handling of failures by returning potential exceptions as a result of
    * task execution. Task returned by this method will always complete succesfully.
@@ -477,16 +484,39 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   /**
-   * Creates a new task that will handle any Throwable that this task might throw.
-   * If this task completes successfully, then recovery function is not invoked.
-   * Task returned by recovery function
-   * will become a new result of this task. This means that if recovery function fails,
-   * then result of this task will fail with a Throwable from recovery function.
+   * Creates a new task that will handle failure of this task.
+   * Early completion due to cancellation is not considered to be a failure.
+   * If this task completes successfully, then recovery function is not called.
+   * <pre><code>
+   *
+   * // this method return task which asynchronously retrieves Person by id from cache
+   * Task{@code<Person>} fetchFromCache(Long id) {
+   * (...)
+   * }
+   *
+   * // this method return task which asynchronously retrieves Person by id from DB
+   * Task{@code<Person>} fetchFromDB(Long id) {
+   * (...)
+   * }
+   *
+   * // this task will fetch Person object and transform it into {@code"<first name> <last name>"}
+   * // it will first try to fetch from cache and when it fails for any reason it will
+   * // attempt to fetch from DB
+   * Task{@code <String>} userName = fetchFromCache(id)
+   *      .recoverWith(e {@code ->} fetchFromDB(id))
+   *      .map(p {@code ->} p.getFirstName() + " " + p.getLastName());
+   * </code></pre>
+   *
+   * If recovery task fails then returned task is completed with that failure. This is the only
+   * difference between this method and {@link #fallBackTo(String, Function) fallBackTo}.
+   * {@code fallBackTo} method returns task which will fail with failure form the main task in
+   * case of recovery function's failure.
+   * <p>
    *
    * @param desc description of a recovery function, it will show up in a trace
-   * @param func recovery function which can return task which will become a new result of
-   * this task
-   * @return a new task which can recover from Throwable thrown by this task or cancellation
+   * @param func recovery function provides task which will be used to recover from
+   * failure of this task
+   * @return a new task which can recover from failure of this task
    */
   default Task<T> recoverWith(final String desc, final Function<Throwable, Task<T>> func) {
     ArgumentUtil.requireNotNull(func, "function");
@@ -513,39 +543,12 @@ public interface Task<T> extends Promise<T>, Cancellable
     }, true);
   }
 
+  /**
+   * Equivalent to {@code recoverWith("recoverWith", func)}.
+   * @see #recoverWith(String, Function)
+   */
   default Task<T> recoverWith(final Function<Throwable, Task<T>> func) {
     return recoverWith("recoverWith", func);
-  }
-  /**
-   * Creates a new task that will handle any Throwable that this task might throw
-   * or task cancellation. If this task completes successfully,
-   * then fall-back function is not invoked. If task returned by fall-back function
-   * completes successfully with a value, then that value becomes a result of this
-   * task. If task returned by fall-back function fails with a Throwable or is cancelled,
-   * then this task will fail with the original Throwable, not the one coming from
-   * the fall-back function's task.
-   *
-   * @param desc description of a recovery function, it will show up in a trace
-   * @param func recovery function which can return task which will become a new result of
-   * this task
-   * @return a new task which can recover from Throwable thrown by this task or cancellation
-   */
-  default Task<T> fallBackTo(final String desc, final Function<Throwable, Task<T>> func) {
-    ArgumentUtil.requireNotNull(func, "function");
-    return recoverWith(desc, originalFailure -> {
-      Task<T> fallBack = func.apply(originalFailure).apply("restoreFailure", (src, dst) -> {
-        if (src.isFailed()) {
-          dst.fail(originalFailure);
-        } else {
-          dst.done(src.get());
-        }
-      });
-      return fallBack;
-    });
-  }
-
-  default Task<T> fallBackTo(final Function<Throwable, Task<T>> func) {
-    return fallBackTo("fallBackTo", func);
   }
 
   static class TimeoutContextRunWrapper<T> implements ContextRunWrapper<T> {

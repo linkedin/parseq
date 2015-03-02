@@ -295,12 +295,12 @@ import com.linkedin.parseq.collection.ParSeqCollection;
    * @param sideEffect the side effect of the primary task.
    * @param <T> the result value of the parent task, and the resulting task.
    * @return a new task that will be done once parent completes, but has the given side effect.
-   * @deprecated  As of 2.0.0, replaced by {@link Task#withSideEffect(String, Task) Task.withSideEffect}
-   * @see Task#withSideEffect(String, Task) Task.withSideEffect
+   * @deprecated  As of 2.0.0, replaced by {@link Task#withSideEffect(String, java.util.function.Function) Task.withSideEffect}
+   * @see Task#withSideEffect(String, java.util.function.Function) Task.withSideEffect
    */
   @Deprecated public static <T> Task<T> withSideEffect(final Task<T> parent, final Task<?> sideEffect)
   {
-    return parent.withSideEffect(sideEffect);
+    return parent.withSideEffect(t -> sideEffect);
   }
 
   /**
