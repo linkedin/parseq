@@ -657,7 +657,9 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   public static <T> Task<T> failure(final String name, final Throwable failure) {
-    return async(name, () -> Promises.error(failure), false);
+    return FusionTask.create(name, Promises.value(null), (src, dst) -> {
+      dst.fail(failure);
+    });
   }
 
   public static <T> Task<T> failure(final Throwable failure) {
@@ -665,7 +667,13 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   public static <T> Task<T> callable(final String name, final Callable<? extends T> callable) {
-    return async(name, () -> Promises.value(callable.call()), false);
+    return FusionTask.create(name, Promises.value(null), (src, dst) -> {
+      try {
+        dst.done(callable.call());
+      } catch (Throwable t) {
+        dst.fail(t);
+      }
+    });
   }
 
   public static <T> Task<T> callable(final Callable<? extends T> callable) {

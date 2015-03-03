@@ -1,6 +1,5 @@
 package com.linkedin.parseq;
 
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -27,11 +26,13 @@ public class FusionTask<S, T>  extends SystemHiddenTask<T> {
 
   private final PromisePropagator<S, T> _propagator;
   private final Task<S> _task;
+  private final Promise<S> _source;
 
-  private FusionTask(final String name, final Task<S> task, final PromisePropagator<S, T> propagator) {
+  private FusionTask(final String name, final Task<S> task, final Promise<S> source, final PromisePropagator<S, T> propagator) {
     super(name);
     _propagator = propagator;
     _task = task;
+    _source = source;
   }
 
   private PromisePropagator<S, T> fulfilling(final PromisePropagator<S, T> propagator) {
@@ -70,8 +71,12 @@ public class FusionTask<S, T>  extends SystemHiddenTask<T> {
     if (task instanceof FusionTask) {
       return ((FusionTask<?, S>)task).apply(name, propagator);
     } else {
-      return new FusionTask<S, T>(name, task, propagator);
+      return new FusionTask<S, T>(name, task, task, propagator);
     }
+  }
+
+  public static <S, T> FusionTask<?, T> create(final String name, final Promise<S> source, final PromisePropagator<S, T> propagator) {
+    return new FusionTask<S, T>(name, null, source, propagator);
   }
 
   @Override
@@ -112,30 +117,27 @@ public class FusionTask<S, T>  extends SystemHiddenTask<T> {
 
   //TODO implement other functions
 
-  protected SettablePromise<T> propagate(Promise<S> promise, SettablePromise<T> result) {
+  protected SettablePromise<T> propagate(SettablePromise<T> result) {
     try {
-      _propagator.accept(_task, result);
-      return result;
+      _propagator.accept(_source, result);
     } catch (Throwable t) {
       result.fail(t);
-      return result;
     }
+    return result;
   }
 
   @Override
   protected Promise<? extends T> run(Context context) throws Throwable {
     final SettablePromise<T> result = Promises.settable();
-    final Task<? extends T> propagationTask =
-        Task.async(FusionTask.this.getName(), () -> propagate(_task, result), true);
-    context.after(_task).run(propagationTask);
-    context.run(_task);
+    if (_task == null) {
+      propagate(result);
+    } else {
+      final Task<? extends T> propagationTask =
+          Task.async(FusionTask.this.getName(), () -> propagate(result), false);
+      context.after(_task).run(propagationTask);
+      context.run(_task);
+    }
     return result;
-  }
-
-  @Override
-  public Task<T> withTimeout(long time, TimeUnit unit) {
-    _task.withTimeout(time, unit);
-    return this;
   }
 
 }
