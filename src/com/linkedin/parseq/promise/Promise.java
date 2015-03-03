@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
+ * TODO changes to promise: add getTry() with default implementation, add default impl getordefault
  * A Promise, like a {@link java.util.concurrent.Future}, represents the result
  * of an asynchronous computation. However, Promises are designed to work in
  * an entirely asynchronous work flow. Except where specifically
@@ -139,41 +140,4 @@ public interface Promise<P>
       }
     });
   }
-
-  /**
-   * When this Promise is successfully done through a value,
-   * call the provided Consumer of that value.
-   *
-   * @param consumer the Consumer to be called when this Promise is successfully done.
-   */
-  default void onSuccess(final Consumer<P> consumer)
-  {
-    addListener(new PromiseListener<P>() {
-      @Override
-      public void onResolved(final Promise<P> promise) {
-        if (!promise.isFailed()) {
-          consumer.accept(promise.get());
-        }
-      }
-    });
-  }
-
-  /**
-   * When this Promise is done through a Throwable,
-   * call the provided Consumer of that Throwable.
-   *
-   * @param consumer the Consumer to be called when this Promise is successfully done.
-   */
-  default void onFailure(final Consumer<Throwable> consumer)
-  {
-    addListener(new PromiseListener<P>() {
-      @Override
-      public void onResolved(final Promise<P> promise) {
-        if (promise.isFailed()) {
-          consumer.accept(promise.getError());
-        }
-      }
-    });
-  }
-
 }

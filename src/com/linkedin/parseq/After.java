@@ -16,6 +16,7 @@
 
 package com.linkedin.parseq;
 
+import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -36,14 +37,13 @@ public interface After
   void run(Task<?> task);
 
   /**
-   * TODO is this used?
    * When all promises and tasks have been resolved then task provided by
    * given Supplier is run. Supplier will be called with After semantics e.g.
    * when all Promises are resolved.
    *
    * @param task the task to run
    */
-  void run(Supplier<Task<?>> taskSupplier);
+  void run(Supplier<Optional<Task<?>>> taskSupplier);
 
   /**
    * When all promises and tasks have been resolved successfully, the given

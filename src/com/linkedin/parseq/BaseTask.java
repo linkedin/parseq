@@ -17,6 +17,7 @@
 package com.linkedin.parseq;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -471,10 +472,12 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     }
 
     @Override
-    public void run(Supplier<Task<?>> taskSupplier) {
+    public void run(Supplier<Optional<Task<?>>> taskSupplier) {
       _after.run(() -> {
-        Task<?> task = taskSupplier.get();
-        _relationshipBuilder.addRelationship(Relationship.POTENTIAL_PARENT_OF, task);
+        Optional<Task<?>> task = taskSupplier.get();
+        if (task.isPresent()) {
+          _relationshipBuilder.addRelationship(Relationship.POTENTIAL_PARENT_OF, task.get());
+        }
         return task;
       });
     }

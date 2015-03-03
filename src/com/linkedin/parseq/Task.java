@@ -17,6 +17,7 @@
 package com.linkedin.parseq;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
@@ -24,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
 
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.function.Failure;
@@ -202,24 +204,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    */
   default <R> Task<R> flatMap(final String desc, final Function<T, Task<R>> func) {
     ArgumentUtil.requireNotNull(func, "function");
-    final Task<T> that = this;
-    return async(desc, context -> {
-      final SettablePromise<R> result = Promises.settable();
-      final Task<R> taskR = async(desc, ctx -> {
-        try {
-          Task<R> t = func.apply(that.get());
-          Promises.propagateResult(t, result);
-          ctx.run(t);
-          return t;
-        } catch (Throwable t) {
-          result.fail(t);
-          return Promises.error(t);
-        }
-      }, true);
-      context.after(that).run(taskR);
-      context.run(that);
-      return result;
-     }, true);
+    return flatten(desc, map(func));
   }
 
   /**
@@ -422,7 +407,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @param consumer
    * @return
    */
-  default Task<T> onError(final String desc, final Consumer<Throwable> consumer) {
+  default Task<T> onFailure(final String desc, final Consumer<Throwable> consumer) {
     ArgumentUtil.requireNotNull(consumer, "function");
     return apply(desc,  (src, dst) -> {
       if (src.isFailed() && !(src.getError() instanceof EarlyFinishException)) {
@@ -439,10 +424,10 @@ public interface Task<T> extends Promise<T>, Cancellable
 
   /**
    * Equivalent to {@code onError("onError", consumer)}.
-   * @see #onError(String, Consumer)
+   * @see #onFailure(String, Consumer)
    */
-  default Task<T> onError(final Consumer<Throwable> consumer) {
-    return onError("onError", consumer);
+  default Task<T> onFailure(final Consumer<Throwable> consumer) {
+    return onFailure("onError", consumer);
   }
 
   /**
@@ -479,8 +464,13 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @see #fallBackTo(String, Function) fallBackTo
    */
   default Task<Try<T>> withTry() {
-    return map("map to Try", t -> Success.of(t))
-             .recover("recover to Try", t -> Failure.of(t));
+    return apply("withTry",  (src, dst) -> {
+      if (src.isFailed()) {
+        dst.done(Failure.of(src.getError()));
+      } else {
+        dst.done(Success.of(src.get()));
+      }
+    });
   }
 
   /**
@@ -622,6 +612,24 @@ public interface Task<T> extends Promise<T>, Cancellable
         }
       };
     }
+  }
+
+  public static <R> Task<R> flatten(final String desc, final Task<Task<R>> task) {
+    return async(desc, context -> {
+      final SettablePromise<R> result = Promises.settable();
+      context.after(task).run(() -> {
+        try {
+          Task<R> t = task.get();
+          Promises.propagateResult(t, result);
+          return Optional.of(t);
+        } catch (Throwable t) {
+          result.fail(t);
+          return Optional.empty();
+        }
+      });
+      context.run(task);
+      return result;
+     }, true);
   }
 
   //------------------- static factory methods -------------------

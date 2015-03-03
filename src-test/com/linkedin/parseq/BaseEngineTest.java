@@ -18,19 +18,23 @@ package com.linkedin.parseq;
 
 import static org.testng.AssertJUnit.assertTrue;
 
-import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
+import com.linkedin.parseq.trace.Related;
 import com.linkedin.parseq.trace.Trace;
 import com.linkedin.parseq.trace.codec.json.JsonTraceCodec;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -121,6 +125,14 @@ public class BaseEngineTest
     }
   }
 
+  /**
+   * Runs task.
+   * @param task task to run
+   */
+  protected void run(Task<?> task) {
+    _engine.run(task);
+  }
+
   protected void logTracingResults(final String test, final Task<?> task)
   {
     final Trace trace = task.getTrace();
@@ -155,7 +167,7 @@ public class BaseEngineTest
 
   /**
    * Returns task which completes with given value after specified period
-   * of time.
+   * of time. Timer starts counting the moment this method is invoked.
    */
   protected <T> Task<T> delayedValue(T value, long time, TimeUnit timeUnit)
   {
@@ -168,7 +180,7 @@ public class BaseEngineTest
 
   /**
    * Returns task which fails with given error after specified period
-   * of time.
+   * of time. Timer starts counting the moment this method is invoked.
    */
   protected <T> Task<T> delayedFailure(T value, Throwable error, long time, TimeUnit timeUnit)
   {
@@ -178,4 +190,20 @@ public class BaseEngineTest
       return promise;
     }, false);
   }
+
+  private void addTasks(Trace trace, Set<Trace> set) {
+    if (!set.contains(trace)) {
+      set.add(trace);
+      for (Related<Trace> r : trace.getRelated()) {
+        addTasks(r.getRelated(), set);
+      }
+    }
+  }
+
+  protected int countTasks(Trace trace) {
+    Set<Trace> set = Collections.newSetFromMap(new IdentityHashMap<>());
+    addTasks(trace, set);
+    return set.size();
+  }
+
 }
