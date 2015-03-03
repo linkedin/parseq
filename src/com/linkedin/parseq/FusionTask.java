@@ -20,14 +20,11 @@ import com.linkedin.parseq.promise.Settable;
 import com.linkedin.parseq.promise.SettablePromise;
 
 /**
- * TODO define how cancellation is supposed to work
- *
  * @author jodzga
  *
  * @param <S>
  * @param <T>
  */
-//TODO zmienic w jaki sposob task jest hidded - nie przez inheritance
 public class FusionTask<S, T>  extends BaseTask<T> {
 
   private static final String FUSION_TRACE_SYMBOL = " => ";
