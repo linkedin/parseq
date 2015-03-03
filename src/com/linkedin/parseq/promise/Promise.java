@@ -20,7 +20,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
- * TODO changes to promise: add getTry() with default implementation, add default impl getordefault
  * A Promise, like a {@link java.util.concurrent.Future}, represents the result
  * of an asynchronous computation. However, Promises are designed to work in
  * an entirely asynchronous work flow. Except where specifically
@@ -104,6 +103,8 @@ public interface Promise<P>
    * Adds a listener to this promise that will be notified when the promise is
    * resolved. If the promise has already been resolved then the listener is
    * notified immediately.
+   * <p>
+   * Listener will be called on a thread which completed this promise.
    *
    * @param listener the listener to add to this promise
    */
@@ -128,6 +129,8 @@ public interface Promise<P>
   /**
    * When this Promise is done, either through a Throwable or a value,
    * call the provided Consumer of this Promise.
+   * <p>
+   * Consumer will be called on a thread which completed this promise.
    *
    * @param consumer the Consumer to be called when this Promise is done.
    */

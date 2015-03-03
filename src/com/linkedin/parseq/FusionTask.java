@@ -4,12 +4,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-
-
-
-
-import com.linkedin.parseq.function.Failure;
-import com.linkedin.parseq.function.Success;
 import com.linkedin.parseq.function.Try;
 import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.promise.Promise;
@@ -20,6 +14,8 @@ import com.linkedin.parseq.promise.Settable;
 import com.linkedin.parseq.promise.SettablePromise;
 
 /**
+ *
+ *
  * @author jodzga
  *
  * @param <S>
@@ -91,33 +87,17 @@ public class FusionTask<S, T>  extends BaseTask<T> {
 
   @Override
   public <R> Task<R> map(final String desc, final Function<T,R> f) {
-    return fuse(getName() + FUSION_TRACE_SYMBOL + desc, _task, fulfilling(_propagator).map(f));
+    return super.map(getName() + FUSION_TRACE_SYMBOL + desc, f);
   }
 
   @Override
   public Task<T> andThen(final String desc, final Consumer<T> consumer) {
-    return fuse(getName() + FUSION_TRACE_SYMBOL + desc, _task,
-        fulfilling(_propagator).andThen(consumer));
+    return super.andThen(getName() + FUSION_TRACE_SYMBOL + desc, consumer);
   }
 
   @Override
   public Task<T> recover(final String desc, final Function<Throwable, T> f) {
-    return fuse(getName() + FUSION_TRACE_SYMBOL + desc, _task, (src, dst) -> {
-      fulfilling(_propagator).accept(src, new Settable<T>() {
-        @Override
-        public void done(T value) throws PromiseResolvedException {
-          dst.done(value);
-        }
-        @Override
-        public void fail(Throwable error) throws PromiseResolvedException {
-          try {
-            dst.done(f.apply(error));
-          } catch (Throwable t) {
-            dst.fail(t);
-          }
-        }
-      });
-    });
+    return super.recover(getName() + FUSION_TRACE_SYMBOL + desc, f);
   }
 
   @Override
@@ -148,40 +128,12 @@ public class FusionTask<S, T>  extends BaseTask<T> {
 
   @Override
   public Task<T> onFailure(final String desc, final Consumer<Throwable> consumer) {
-    return fuse(getName() + FUSION_TRACE_SYMBOL + desc, _task, (src, dst) -> {
-      fulfilling(_propagator).accept(src, new Settable<T>() {
-        @Override
-        public void done(T value) throws PromiseResolvedException {
-          dst.done(value);
-        }
-        @Override
-        public void fail(Throwable error) throws PromiseResolvedException {
-          try {
-            if (!(error instanceof EarlyFinishException)) {
-              consumer.accept(error);
-            }
-          } finally {
-            dst.fail(error);
-          }
-        }
-      });
-    });
+    return super.onFailure(getName() + FUSION_TRACE_SYMBOL + desc, consumer);
   }
 
   @Override
-  public Task<Try<T>> withTry() {
-    return fuse(getName() + FUSION_TRACE_SYMBOL + "withTry", _task, (src, dst) -> {
-      fulfilling(_propagator).accept(src, new Settable<T>() {
-        @Override
-        public void done(T value) throws PromiseResolvedException {
-          dst.done(Success.of(value));
-        }
-        @Override
-        public void fail(Throwable error) throws PromiseResolvedException {
-          dst.done(Failure.of(error));
-        }
-      });
-    });
+  public Task<Try<T>> withTry(final String desc) {
+    return super.withTry(getName() + FUSION_TRACE_SYMBOL + desc);
   }
 
   protected SettablePromise<T> propagate(SettablePromise<T> result) {

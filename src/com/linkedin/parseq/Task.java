@@ -440,7 +440,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    *  Task{@code <String>} hello = Task.value("Hello World");
    *
    *  // this task will complete with Success("Hello World")
-   *  Task{@code <Try<String>>} helloTry = hello.withTry();
+   *  Task{@code <Try<String>>} helloTry = hello.withTry("try");
    * </code></pre>
    *
    * If this task is completed with an exception then the returned task will be
@@ -451,7 +451,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    *  });
    *
    *  // this task will complete successfully with Failure(java.lang.StringIndexOutOfBoundsException)
-   *  Task{@code <Try<String>>} failingTry = failing.withTry();
+   *  Task{@code <Try<String>>} failingTry = failing.withTry("try");
    * </code></pre>
    * Note that all failures are automatically propagated and usually it is enough to use
    * {@link #recover(String, Function) recover}, {@link #recoverWith(String, Function) recoverWith}
@@ -463,14 +463,22 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @see #recoverWith(String, Function) recoverWith
    * @see #fallBackTo(String, Function) fallBackTo
    */
-  default Task<Try<T>> withTry() {
-    return apply("withTry",  (src, dst) -> {
+  default Task<Try<T>> withTry(final String desc) {
+    return apply(desc,  (src, dst) -> {
       if (src.isFailed()) {
         dst.done(Failure.of(src.getError()));
       } else {
         dst.done(Success.of(src.get()));
       }
     });
+  }
+
+  /**
+   * Equivalent to {@code withTry("withTry")}.
+   * @see #withTry(String)
+   */
+  default Task<Try<T>> withTry() {
+    return withTry("withTry");
   }
 
   /**
