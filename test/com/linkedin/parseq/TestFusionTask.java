@@ -64,11 +64,6 @@ public class TestFusionTask extends AbstractTaskTest {
   }
 
   @Test
-  public void testWithSideEffectPartial() {
-    testWithSideEffectPartial(4);
-  }
-
-  @Test
   public void testWithSideEffectFullCompletion() throws Exception {
     testWithSideEffectFullCompletion(4);
   }

@@ -23,7 +23,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
   public void testMap(int expectedNumberOfTasks) {
     Task<Integer> task = getSuccessTask().map("strlen", String::length);
 
-    runAndWait("TestFusionTask.testMap", task);
+    runAndWait("AbstractTaskTest.testMap", task);
     assertTrue(task.isDone());
     assertEquals((int) task.get(), TASK_VALUE.length());
 
@@ -34,17 +34,16 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
     Task<String> task =
         getSuccessTask().flatMap("transform", str -> Task.callable("strlenstr", () -> String.valueOf(str.length())));
 
-    runAndWait("TestFusionTask.testFlatMap", task);
+    runAndWait("AbstractTaskTest.testFlatMap", task);
     assertEquals(task.get(), String.valueOf(TASK_VALUE.length()));
 
     assertEquals(countTasks(task.getTrace()), expectedNumberOfTasks);
   }
 
   public void testAndThenConsumer(int expectedNumberOfTasks) {
-    // Consumer
     final AtomicReference<String> variable = new AtomicReference<String>();
     Task<String> task = getSuccessTask().andThen("consume", variable::set);
-    runAndWait("TestFusionTask.testAndThenConsumer", task);
+    runAndWait("AbstractTaskTest.testAndThenConsumer", task);
     assertEquals(task.get(), TASK_VALUE);
     assertEquals(variable.get(), TASK_VALUE);
 
@@ -52,9 +51,8 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
   }
 
   public void testAndThenTask(int expectedNumberOfTasks) {
-    // Task
     Task<Integer> task = getSuccessTask().andThen("seq", Task.callable("life", () -> 42));
-    runAndWait("TestFusionTask.testAndThenTask", task);
+    runAndWait("AbstractTaskTest.testAndThenTask", task);
     assertEquals((int) task.get(), 42);
 
     assertEquals(countTasks(task.getTrace()), expectedNumberOfTasks);
@@ -62,13 +60,13 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
 
   public void testRecover(int expectedNumberOfTasks) {
     Task<Integer> success = getSuccessTask().map("strlen", String::length).recover("recover", e -> -1);
-    runAndWait("TestFusionTask.testRecoverSuccess", success);
+    runAndWait("AbstractTaskTest.testRecoverSuccess", success);
     assertEquals((int) success.get(), TASK_VALUE.length());
     assertEquals(countTasks(success.getTrace()), expectedNumberOfTasks);
 
 
     Task<Integer> failure = getFailureTask().map("strlen", String::length).recover("recover", e -> -1);
-    runAndWait("TestFusionTask.testRecoverFailure", failure);
+    runAndWait("AbstractTaskTest.testRecoverFailure", failure);
     assertEquals((int) failure.get(), -1);
     assertEquals(countTasks(failure.getTrace()), expectedNumberOfTasks);
   }
@@ -76,7 +74,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
   public void testNoRecover(int expectedNumberOfTasks) {
     Task<Integer> task = getFailureTask().map("strlen", String::length);
     try {
-      runAndWait("TestFusionTask.testNoRecover", task);
+      runAndWait("AbstractTaskTest.testNoRecover", task);
       fail("should have failed");
     } catch (Exception ex) {
       assertEquals(ex.getCause().getMessage(), TASK_ERROR_MESSAGE);
@@ -86,13 +84,13 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
 
   public void testTry(int expectedNumberOfTasks) {
     Task<Try<Integer>> success = getSuccessTask().map("strlen", String::length).withTry();
-    runAndWait("TestFusionTask.testTrySuccess", success);
+    runAndWait("AbstractTaskTest.testTrySuccess", success);
     assertFalse(success.get().isFailed());
     assertEquals((int) success.get().get(), TASK_VALUE.length());
     assertEquals(countTasks(success.getTrace()), expectedNumberOfTasks);
 
     Task<Try<Integer>> failure = getFailureTask().map("strlen", String::length).withTry();
-    runAndWait("TestFusionTask.testTryFailure", failure);
+    runAndWait("AbstractTaskTest.testTryFailure", failure);
     assertTrue(failure.get().isFailed());
     assertEquals(failure.get().getError().getMessage(), TASK_ERROR_MESSAGE);
     assertEquals(countTasks(failure.getTrace()), expectedNumberOfTasks);
@@ -104,7 +102,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
             e -> Task.callable("recover failure", () -> {
               throw new RuntimeException("recover failed!");
             }));
-    runAndWait("TestFusionTask.testRecoverWithSuccess", success);
+    runAndWait("AbstractTaskTest.testRecoverWithSuccess", success);
     assertEquals(success.get(), TASK_VALUE);
     assertEquals(countTasks(success.getTrace()), expectedNumberOfTasks);
   }
@@ -116,7 +114,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
               throw new RuntimeException("recover failed!");
             }));
     try {
-      runAndWait("TestFusionTask.testRecoverWithFailure", failure);
+      runAndWait("AbstractTaskTest.testRecoverWithFailure", failure);
       fail("should have failed");
     } catch (Exception ex) {
       // fail with throwable from recovery function
@@ -129,7 +127,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
     Task<String> recovered =
         getFailureTask().recoverWith("recoverWith",
             e -> Task.callable("recover success", () -> "recovered"));
-    runAndWait("TestFusionTask.testRecoverWithRecoverd", recovered);
+    runAndWait("AbstractTaskTest.testRecoverWithRecoverd", recovered);
     assertEquals(recovered.get(), "recovered");
     assertEquals(countTasks(recovered.getTrace()), expectedNumberOfTasks);
   }
@@ -137,14 +135,14 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
   public void testWithTimeout(int expectedNumberOfTasks) {
     Task<Integer> success =
         getSuccessTask().andThen(delayedValue(0, 30, TimeUnit.MILLISECONDS)).withTimeout(100, TimeUnit.MILLISECONDS);
-    runAndWait("TestFusionTask.testWithTimeoutSuccess", success);
+    runAndWait("AbstractTaskTest.testWithTimeoutSuccess", success);
     assertEquals((int) success.get(), 0);
     assertEquals(countTasks(success.getTrace()), expectedNumberOfTasks);
 
     Task<Integer> failure =
         getSuccessTask().andThen(delayedValue(0, 110, TimeUnit.MILLISECONDS)).withTimeout(100, TimeUnit.MILLISECONDS);
     try {
-      runAndWait("TestFusionTask.testWithTimeoutFailure", failure);
+      runAndWait("AbstractTaskTest.testWithTimeoutFailure", failure);
       fail("should have failed!");
     } catch (Exception ex) {
       assertSame(ex.getCause(), Exceptions.TIMEOUT_EXCEPTION);
@@ -152,17 +150,17 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
     assertEquals(countTasks(failure.getTrace()), expectedNumberOfTasks);
   }
 
-  public void testWithSideEffectPartial(int expectedNumberOfTasks) {
+  @Test
+  public void testWithSideEffectPartial() {
     Task<String> fastMain = getSuccessTask();
     Task<String> slowSideEffect = delayedValue("slooow", 5100, TimeUnit.MILLISECONDS);
     Task<String> partial = fastMain.withSideEffect(s -> slowSideEffect);
 
     // ensure the whole task can finish before individual side effect task finishes
-    runAndWait("TestFusionTask.testWithSideEffectPartial", partial);
+    runAndWait("AbstractTaskTest.testWithSideEffectPartial", partial);
     assertTrue(fastMain.isDone());
     assertTrue(partial.isDone());
     assertFalse(slowSideEffect.isDone());
-    assertEquals(countTasks(partial.getTrace()), expectedNumberOfTasks);
   }
 
   public void testWithSideEffectFullCompletion(int expectedNumberOfTasks) throws Exception {
@@ -172,7 +170,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
 
 
     // ensure the side effect task will be run
-    runAndWait("TestFusionTask.testWithSideEffectFullCompletion", full);
+    runAndWait("AbstractTaskTest.testWithSideEffectFullCompletion", full);
     slowSideEffect.await();
     assertTrue(full.isDone());
     assertTrue(fastMain.isDone());
@@ -194,7 +192,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
     fastSideEffect.await(10, TimeUnit.MILLISECONDS);
     assertTrue(cancel.isDone());
     assertFalse(fastSideEffect.isDone());
-    logTracingResults("TestFusionTask.testWithSideEffectCalcel", cancel);
+    logTracingResults("AbstractTaskTest.testWithSideEffectCalcel", cancel);
   }
 
   public void testWithSideEffectFailure(int expectedNumberOfTasks) throws Exception {
@@ -204,7 +202,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
 
     // test failure, side effect task should not be run
     try {
-      runAndWait("TestFusionTask.testWithSideEffectFailure", failure);
+      runAndWait("AbstractTaskTest.testWithSideEffectFailure", failure);
       fail("should have failed");
     } catch (Exception ex) {
       assertTrue(failure.isFailed());
@@ -217,13 +215,13 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
   public void testOnFailure(int expectedNumberOfTasks) {
     final AtomicReference<Throwable> variable = new AtomicReference<Throwable>();
     Task<String> success = getSuccessTask().onFailure("on failure", variable::set);
-    runAndWait("TestFusionTask.testOnFailureSuccess", success);
+    runAndWait("AbstractTaskTest.testOnFailureSuccess", success);
     assertNull(variable.get());
     assertEquals(countTasks(success.getTrace()), expectedNumberOfTasks);
 
     Task<String> failure = getFailureTask().onFailure("on failure", variable::set);
     try {
-      runAndWait("TestFusionTask.testRecoverFailure", failure);
+      runAndWait("AbstractTaskTest.testRecoverFailure", failure);
       fail("should have failed");
     } catch (Exception ex) {
       assertTrue(failure.isFailed());

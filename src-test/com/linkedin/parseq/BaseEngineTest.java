@@ -89,6 +89,10 @@ public class BaseEngineTest
     return _engine;
   }
 
+  protected ScheduledExecutorService getScheduler() {
+    return _scheduler;
+  }
+
   /**
    * Equivalent to {@code runAndWait(desc, task, 5, TimeUnit.SECONDS)}.
    * @see #runAndWait(String, Task, long, TimeUnit)
