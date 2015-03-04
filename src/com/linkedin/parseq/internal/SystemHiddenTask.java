@@ -10,8 +10,8 @@ import com.linkedin.parseq.trace.ShallowTraceBuilder;
  * <p>
  * Instead of extending this class consider using
  *
- * {@link com.linkedin.parseq.Task#async(String, java.util.function.Function, boolean) Task.async}.
- * @see com.linkedin.parseq.Task#async(String, java.util.function.Function, boolean) Task.async
+ * {@link com.linkedin.parseq.Task#async(String, com.linkedin.parseq.function.Function1, boolean) Task.async}.
+ * @see com.linkedin.parseq.Task#async(String, com.linkedin.parseq.function.Function1, boolean) Task.async
  */
 public abstract class SystemHiddenTask<T> extends BaseTask<T>
 {

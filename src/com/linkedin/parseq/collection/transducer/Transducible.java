@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
+
+import com.linkedin.parseq.function.Consumer1;
+import com.linkedin.parseq.function.Function1;
+import com.linkedin.parseq.function.Function2;
+
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -47,12 +50,12 @@ public abstract class Transducible<T, R> {
    * Collection transformations:
    */
 
-  protected <A, V extends Transducible<T, A>> V map(final Function<R, A> f,
+  protected <A, V extends Transducible<T, A>> V map(final Function1<R, A> f,
       final Function<Transducer<T, A>, V> collectionBuilder) {
     return collectionBuilder.apply(_transducer.map(r -> r.map(f)));
   }
 
-  protected <V extends Transducible<T, R>> V forEach(final Consumer<R> consumer,
+  protected <V extends Transducible<T, R>> V forEach(final Consumer1<R> consumer,
       final Function<Transducer<T, R>, V> collectionBuilder) {
     return map(e -> {
       consumer.accept(e);
@@ -89,7 +92,7 @@ public abstract class Transducible<T, R> {
    * Foldings:
    */
 
-  protected <Z, V> V fold(final Z zero, final BiFunction<Z, R, Z> op, final Foldable<Z, T, V> foldable) {
+  protected <Z, V> V fold(final Z zero, final Function2<Z, R, Z> op, final Foldable<Z, T, V> foldable) {
     return foldable.fold("fold", zero, transduce((z, e) -> e.map(eValue -> Step.cont(op.apply(z.refGet(), eValue)))));
   }
 
@@ -108,7 +111,7 @@ public abstract class Transducible<T, R> {
     })));
   }
 
-  protected <V> V reduce(final BiFunction<R, R, R> op, final Foldable<Optional<R>, T, V> foldable) {
+  protected <V> V reduce(final Function2<R, R, R> op, final Foldable<Optional<R>, T, V> foldable) {
     return foldable.fold("reduce", Optional.empty(), transduce((z, e) -> e.map(eValue -> {
       if (z.refGet().isPresent()) {
         return Step.cont(Optional.of(op.apply(z.refGet().get(), eValue)));

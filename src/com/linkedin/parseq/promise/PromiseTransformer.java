@@ -1,18 +1,14 @@
 package com.linkedin.parseq.promise;
 
-import java.util.function.Function;
+import com.linkedin.parseq.function.Function1;
 
 public class PromiseTransformer<S, T> implements PromisePropagator<S, T> {
 
-  private final Function<? super S, ? extends T> _transform;
+  private final Function1<? super S, ? extends T> _transform;
 
-  public PromiseTransformer(Function<? super S, ? extends T> transform) {
+  public PromiseTransformer(Function1<? super S, ? extends T> transform) {
     _transform = transform;
   }
-
-  /**
-   * TODO test that this optimization works when mapped multiple times
-   */
 
   @SuppressWarnings({ "unchecked", "rawtypes" })
   @Override
@@ -42,7 +38,7 @@ public class PromiseTransformer<S, T> implements PromisePropagator<S, T> {
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
-  private static final PromiseTransformer IDENTITY = new PromiseTransformer(Function.identity());
+  private static final PromiseTransformer IDENTITY = new PromiseTransformer(Function1.identity());
 
   @SuppressWarnings("unchecked")
   public static <R> PromiseTransformer<R, R> identity() {

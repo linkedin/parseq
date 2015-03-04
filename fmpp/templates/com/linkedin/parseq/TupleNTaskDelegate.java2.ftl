@@ -1,6 +1,6 @@
 <#include "../../../macros/macros.ftl">
 <@pp.dropOutputFile />
-<#list 3..max as i>
+<#list 2..max as i>
 <@pp.changeOutputFile name="Tuple" + i + "TaskDelegate.java" />
 package com.linkedin.parseq;
 

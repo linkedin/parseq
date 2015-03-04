@@ -1,10 +1,10 @@
 <#include "../../../macros/macros.ftl">
 <@pp.dropOutputFile />
-<#list 3..max as i>
+<#list 2..max as i>
 <@pp.changeOutputFile name="Tuple" + i + "Task.java" />
 package com.linkedin.parseq;
 
-import java.util.function.Function;
+import com.linkedin.parseq.function.Function1;
 
 import com.linkedin.parseq.function.Consumer${i};
 import com.linkedin.parseq.function.Function${i};
@@ -40,7 +40,7 @@ public interface Tuple${i}Task<<@typeParameters i/>> extends Task<Tuple${i}<<@ty
    * {@inheritDoc}
    */
   @Override
-  default Tuple${i}Task<<@typeParameters i/>> recover(final Function<Throwable, Tuple${i}<<@typeParameters i/>>> f) {
+  default Tuple${i}Task<<@typeParameters i/>> recover(final Function1<Throwable, Tuple${i}<<@typeParameters i/>>> f) {
     return cast(recover(f));
   }
   
@@ -48,7 +48,7 @@ public interface Tuple${i}Task<<@typeParameters i/>> extends Task<Tuple${i}<<@ty
    * {@inheritDoc}
    */
   @Override
-  default Tuple${i}Task<<@typeParameters i/>> recover(final String desc, final Function<Throwable, Tuple${i}<<@typeParameters i/>>> f) {
+  default Tuple${i}Task<<@typeParameters i/>> recover(final String desc, final Function1<Throwable, Tuple${i}<<@typeParameters i/>>> f) {
     return cast(recover(desc, f));
   }
 
@@ -56,7 +56,7 @@ public interface Tuple${i}Task<<@typeParameters i/>> extends Task<Tuple${i}<<@ty
    * {@inheritDoc}
    */
   @Override
-  default Tuple${i}Task<<@typeParameters i/>> recoverWith(final Function<Throwable, Task<Tuple${i}<<@typeParameters i/>>>> f) {
+  default Tuple${i}Task<<@typeParameters i/>> recoverWith(final Function1<Throwable, Task<Tuple${i}<<@typeParameters i/>>>> f) {
     return cast(recoverWith(f));
   }
   
@@ -64,7 +64,7 @@ public interface Tuple${i}Task<<@typeParameters i/>> extends Task<Tuple${i}<<@ty
    * {@inheritDoc}
    */
   @Override
-  default Tuple${i}Task<<@typeParameters i/>> recoverWith(final String desc, final Function<Throwable, Task<Tuple${i}<<@typeParameters i/>>>> f) {
+  default Tuple${i}Task<<@typeParameters i/>> recoverWith(final String desc, final Function1<Throwable, Task<Tuple${i}<<@typeParameters i/>>>> f) {
     return cast(recoverWith(desc, f));
   }
   

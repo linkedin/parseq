@@ -1,6 +1,6 @@
 package com.linkedin.parseq;
 
-import java.util.function.Function;
+import com.linkedin.parseq.function.Function1;
 
 import com.linkedin.parseq.function.Consumer9;
 import com.linkedin.parseq.function.Function9;
@@ -36,7 +36,7 @@ public interface Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> extends Task<Tup
    * {@inheritDoc}
    */
   @Override
-  default Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> recover(final Function<Throwable, Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9>> f) {
+  default Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> recover(final Function1<Throwable, Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9>> f) {
     return cast(recover(f));
   }
   
@@ -44,7 +44,7 @@ public interface Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> extends Task<Tup
    * {@inheritDoc}
    */
   @Override
-  default Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> recover(final String desc, final Function<Throwable, Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9>> f) {
+  default Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> recover(final String desc, final Function1<Throwable, Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9>> f) {
     return cast(recover(desc, f));
   }
 
@@ -52,7 +52,7 @@ public interface Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> extends Task<Tup
    * {@inheritDoc}
    */
   @Override
-  default Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> recoverWith(final Function<Throwable, Task<Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9>>> f) {
+  default Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> recoverWith(final Function1<Throwable, Task<Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9>>> f) {
     return cast(recoverWith(f));
   }
   
@@ -60,7 +60,7 @@ public interface Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> extends Task<Tup
    * {@inheritDoc}
    */
   @Override
-  default Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> recoverWith(final String desc, final Function<Throwable, Task<Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9>>> f) {
+  default Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> recoverWith(final String desc, final Function1<Throwable, Task<Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9>>> f) {
     return cast(recoverWith(desc, f));
   }
   

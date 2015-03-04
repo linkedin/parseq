@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.function.Function;
 
-
 public interface Publisher<T> {
 
   void subscribe(Subscriber<? super T> subscriber);

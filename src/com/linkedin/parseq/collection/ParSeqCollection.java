@@ -4,9 +4,11 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
+
+import com.linkedin.parseq.function.Consumer1;
+import com.linkedin.parseq.function.Function1;
+import com.linkedin.parseq.function.Function2;
+
 import java.util.function.Predicate;
 
 import com.linkedin.parseq.collection.async.AsyncCollection;
@@ -25,9 +27,9 @@ public interface ParSeqCollection<T> {
 
   //transformations
 
-  public <A> ParSeqCollection<A> map(final Function<T, A> f);
+  public <A> ParSeqCollection<A> map(final Function1<T, A> f);
 
-  public ParSeqCollection<T> forEach(final Consumer<T> consumer);
+  public ParSeqCollection<T> forEach(final Consumer1<T> consumer);
 
   public ParSeqCollection<T> filter(final Predicate<T> predicate);
 
@@ -45,15 +47,15 @@ public interface ParSeqCollection<T> {
 
   public ParSeqCollection<T> within(final long time, final TimeUnit unit);
 
-  public <A> ParSeqCollection<A> mapTask(final Function<T, Task<A>> f);
+  public <A> ParSeqCollection<A> mapTask(final Function1<T, Task<A>> f);
 
-  public <A> ParSeqCollection<A> flatMap(final Function<T, ParSeqCollection<A>> f);
+  public <A> ParSeqCollection<A> flatMap(final Function1<T, ParSeqCollection<A>> f);
 
-  public <K> ParSeqCollection<GroupedParSeqCollection<K, T>> groupBy(final Function<T, K> classifier);
+  public <K> ParSeqCollection<GroupedParSeqCollection<K, T>> groupBy(final Function1<T, K> classifier);
 
   //operations
 
-  public <Z> Task<Z> fold(final Z zero, final BiFunction<Z, T, Z> op);
+  public <Z> Task<Z> fold(final Z zero, final Function2<Z, T, Z> op);
 
   public Task<T> first();
 
@@ -65,7 +67,7 @@ public interface ParSeqCollection<T> {
 
   public Task<List<T>> toList();
 
-  public Task<T> reduce(final BiFunction<T, T, T> op);
+  public Task<T> reduce(final Function2<T, T, T> op);
 
   public Task<T> find(final Predicate<T> predicate);
 

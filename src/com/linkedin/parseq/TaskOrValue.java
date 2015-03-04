@@ -1,8 +1,8 @@
 package com.linkedin.parseq;
 
 import java.util.NoSuchElementException;
-import java.util.function.Function;
 
+import com.linkedin.parseq.function.Function1;
 import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.internal.SystemHiddenTask;
 import com.linkedin.parseq.promise.Promise;
@@ -28,11 +28,11 @@ public interface TaskOrValue<T> {
 
   public Task<T> getTask();
 
-  public <A> TaskOrValue<A> map(final Function<T, A> func);
+  public <A> TaskOrValue<A> map(final Function1<T, A> func);
 
-  public <A> TaskOrValue<A> mapTask(final Function<T, Task<A>> f);
+  public <A> TaskOrValue<A> mapTask(final Function1<T, Task<A>> f);
 
-  public <A> TaskOrValue<A> flatMap(final Function<T, TaskOrValue<A>> f);
+  public <A> TaskOrValue<A> flatMap(final Function1<T, TaskOrValue<A>> f);
 
   public static <A> TaskOrValue<A> task(Task<A> task) {
     ArgumentUtil.requireNotNull(task, "task");
@@ -67,17 +67,17 @@ public interface TaskOrValue<T> {
     }
 
     @Override
-    public <A> TaskOrValue<A> map(Function<T, A> func) {
+    public <A> TaskOrValue<A> map(Function1<T, A> func) {
       return task(_task.map(func));
     }
 
     @Override
-    public <A> TaskOrValue<A> mapTask(Function<T, Task<A>> f) {
+    public <A> TaskOrValue<A> mapTask(Function1<T, Task<A>> f) {
       return task(_task.flatMap(f));
     }
 
     @Override
-    public <A> TaskOrValue<A> flatMap(Function<T, TaskOrValue<A>> f) {
+    public <A> TaskOrValue<A> flatMap(Function1<T, TaskOrValue<A>> f) {
       return task(mapOrFlatMap(f));
     }
 
@@ -111,7 +111,7 @@ public interface TaskOrValue<T> {
      * @see #flatMap(String, Function) flatMap
      * @see {@link TaskOrValue}
      */
-    private <R> Task<R> mapOrFlatMap(final Function<T, TaskOrValue<R>> func) {
+    private <R> Task<R> mapOrFlatMap(final Function1<T, TaskOrValue<R>> func) {
       return new SystemHiddenTask<R>("flatMap") {
         @Override
         protected Promise<R> run(Context context) throws Throwable {
@@ -169,18 +169,30 @@ public interface TaskOrValue<T> {
     }
 
     @Override
-    public <A> TaskOrValue<A> map(Function<T, A> func) {
-      return value(func.apply(getValue()));
+    public <A> TaskOrValue<A> map(Function1<T, A> func){
+      try {
+        return value(func.apply(getValue()));
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
     }
 
     @Override
-    public <A> TaskOrValue<A> mapTask(Function<T, Task<A>> func) {
-      return task(func.apply(getValue()));
+    public <A> TaskOrValue<A> mapTask(Function1<T, Task<A>> func) {
+      try {
+        return task(func.apply(getValue()));
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
     }
 
     @Override
-    public <A> TaskOrValue<A> flatMap(Function<T, TaskOrValue<A>> func) {
-      return func.apply(getValue());
+    public <A> TaskOrValue<A> flatMap(Function1<T, TaskOrValue<A>> func) {
+      try {
+        return func.apply(getValue());
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
     }
 
   }

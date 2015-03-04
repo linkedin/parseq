@@ -1,9 +1,9 @@
 package com.linkedin.parseq;
 
 import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
+import com.linkedin.parseq.function.Consumer1;
+import com.linkedin.parseq.function.Function1;
 import com.linkedin.parseq.function.Try;
 import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.promise.Promise;
@@ -86,22 +86,22 @@ public class FusionTask<S, T>  extends BaseTask<T> {
   };
 
   @Override
-  public <R> Task<R> map(final String desc, final Function<T,R> f) {
+  public <R> Task<R> map(final String desc, final Function1<T,R> f) {
     return super.map(getName() + FUSION_TRACE_SYMBOL + desc, f);
   }
 
   @Override
-  public Task<T> andThen(final String desc, final Consumer<T> consumer) {
+  public Task<T> andThen(final String desc, final Consumer1<T> consumer) {
     return super.andThen(getName() + FUSION_TRACE_SYMBOL + desc, consumer);
   }
 
   @Override
-  public Task<T> recover(final String desc, final Function<Throwable, T> f) {
+  public Task<T> recover(final String desc, final Function1<Throwable, T> f) {
     return super.recover(getName() + FUSION_TRACE_SYMBOL + desc, f);
   }
 
   @Override
-  public Task<T> recoverWith(final String desc, final Function<Throwable, Task<T>> func) {
+  public Task<T> recoverWith(final String desc, final Function1<Throwable, Task<T>> func) {
     ArgumentUtil.requireNotNull(func, "function");
     final Task<T> that = this;
     return Task.async(desc, context -> {
@@ -127,7 +127,7 @@ public class FusionTask<S, T>  extends BaseTask<T> {
   }
 
   @Override
-  public Task<T> onFailure(final String desc, final Consumer<Throwable> consumer) {
+  public Task<T> onFailure(final String desc, final Consumer1<Throwable> consumer) {
     return super.onFailure(getName() + FUSION_TRACE_SYMBOL + desc, consumer);
   }
 

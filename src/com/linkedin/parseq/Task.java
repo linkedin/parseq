@@ -17,15 +17,14 @@
 package com.linkedin.parseq;
 
 import java.util.Collection;
-import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
+import com.linkedin.parseq.function.Consumer1;
+import com.linkedin.parseq.function.Function1;
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.function.Failure;
 import com.linkedin.parseq.function.Success;
@@ -161,7 +160,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @param func function to be applied to successful result of this task.
    * @return a new task which will apply given function on result of successful completion of this task
    */
-  default <R> Task<R> map(final String desc, final Function<T, R> func) {
+  default <R> Task<R> map(final String desc, final Function1<T, R> func) {
     ArgumentUtil.requireNotNull(func, "function");
     return apply(desc, new PromiseTransformer<T, R>(func));
   }
@@ -170,7 +169,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * Equivalent to {@code map("map", func)}.
    * @see #map(String, Function)
    */
-  default <R> Task<R> map(final Function<T, R> func) {
+  default <R> Task<R> map(final Function1<T, R> func) {
     return map("map", func);
   }
 
@@ -201,7 +200,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @return a new task which will apply given function on result of successful completion of this task
    * to get instance of a task which will be executed next
    */
-  default <R> Task<R> flatMap(final String desc, final Function<T, Task<R>> func) {
+  default <R> Task<R> flatMap(final String desc, final Function1<T, Task<R>> func) {
     ArgumentUtil.requireNotNull(func, "function");
     return flatten(desc, map(func));
   }
@@ -210,7 +209,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * Equivalent to {@code flatMap("flatMap", func)}.
    * @see #flatMap(String, Function)
    */
-  default <R> Task<R> flatMap(final Function<T, Task<R>> func) {
+  default <R> Task<R> flatMap(final Function1<T, Task<R>> func) {
     return flatMap("flatMap", func);
   }
 
@@ -242,7 +241,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @return a new task that will run side effect task specified by given function upon succesful
    * completion of this task
    */
-  default Task<T> withSideEffect(final String desc, final Function<T, Task<?>> func) {
+  default Task<T> withSideEffect(final String desc, final Function1<T, Task<?>> func) {
     ArgumentUtil.requireNotNull(func, "function");
     final Task<T> that = this;
     return async(desc, context -> {
@@ -261,7 +260,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * Equivalent to {@code withSideEffect("withSideEffect", func)}.
    * @see #withSideEffect(String, Function)
    */
-  default Task<T> withSideEffect(final Function<T, Task<?>> func) {
+  default Task<T> withSideEffect(final Function1<T, Task<?>> func) {
     return withSideEffect("withSideEffect", func);
   }
 
@@ -292,7 +291,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @param consumer consumer of a value returned by this task
    * @return a new task which will complete with result of this task
    */
-  default Task<T> andThen(final String desc, final Consumer<T> consumer) {
+  default Task<T> andThen(final String desc, final Consumer1<T> consumer) {
     ArgumentUtil.requireNotNull(consumer, "consumer");
     return apply(desc,
         new PromiseTransformer<T, T>(t -> {
@@ -303,9 +302,9 @@ public interface Task<T> extends Promise<T>, Cancellable
 
   /**
    * Equivalent to {@code andThen("andThen", consumer)}.
-   * @see #andThen(String, Consumer)
+   * @see #andThen(String, Consumer1)
    */
-  default Task<T> andThen(final Consumer<T> consumer) {
+  default Task<T> andThen(final Consumer1<T> consumer) {
     return andThen("andThen", consumer);
   }
 
@@ -377,7 +376,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    *        failure of this task
    * @return a new task which can recover from failure of this task
    */
-  default Task<T> recover(final String desc, final Function<Throwable, T> func) {
+  default Task<T> recover(final String desc, final Function1<Throwable, T> func) {
     ArgumentUtil.requireNotNull(func, "function");
     return apply(desc,  (src, dst) -> {
       if (src.isFailed() && !(src.getError() instanceof EarlyFinishException)) {
@@ -396,7 +395,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * Equivalent to {@code recover("recover", func)}.
    * @see #recover(String, Function)
    */
-  default Task<T> recover(final Function<Throwable, T> func) {
+  default Task<T> recover(final Function1<Throwable, T> func) {
     return recover("recover", func);
   }
 
@@ -411,6 +410,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    *  });
    *
    *  // this task will print out java.lang.StringIndexOutOfBoundsException
+   *  // and complete with it
    *  Task{@code <String>} sayHello = failing.onFailure(System.out::println);
    * </code></pre>
    *
@@ -422,16 +422,20 @@ public interface Task<T> extends Promise<T>, Cancellable
    *  Task{@code <String>} sayHello = hello.onFailure(System.out::println);
    * </code></pre>
    *
+   * Note that exceptions thrown by a consumer will be ignored.
+   * <p/>
    * @param desc description of a consumer, it will show up in a trace
    * @param consumer consumer of an exception this task failed with
    * @return a new task which will complete with result of this task
    */
-  default Task<T> onFailure(final String desc, final Consumer<Throwable> consumer) {
+  default Task<T> onFailure(final String desc, final Consumer1<Throwable> consumer) {
     ArgumentUtil.requireNotNull(consumer, "function");
     return apply(desc,  (src, dst) -> {
       if (src.isFailed() && !(src.getError() instanceof EarlyFinishException)) {
         try {
           consumer.accept(src.getError());
+        } catch (Exception e) {
+          //exceptions thrown by consumer are ignored
         } finally {
           dst.fail(src.getError());
         }
@@ -443,9 +447,9 @@ public interface Task<T> extends Promise<T>, Cancellable
 
   /**
    * Equivalent to {@code onError("onError", consumer)}.
-   * @see #onFailure(String, Consumer)
+   * @see #onFailure(String, Consumer1)
    */
-  default Task<T> onFailure(final Consumer<Throwable> consumer) {
+  default Task<T> onFailure(final Consumer1<Throwable> consumer) {
     return onFailure("onError", consumer);
   }
 
@@ -535,7 +539,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * failure of this task
    * @return a new task which can recover from failure of this task
    */
-  default Task<T> recoverWith(final String desc, final Function<Throwable, Task<T>> func) {
+  default Task<T> recoverWith(final String desc, final Function1<Throwable, Task<T>> func) {
     ArgumentUtil.requireNotNull(func, "function");
     final Task<T> that = this;
     return async(desc, context -> {
@@ -564,7 +568,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * Equivalent to {@code recoverWith("recoverWith", func)}.
    * @see #recoverWith(String, Function)
    */
-  default Task<T> recoverWith(final Function<Throwable, Task<T>> func) {
+  default Task<T> recoverWith(final Function1<Throwable, Task<T>> func) {
     return recoverWith("recoverWith", func);
   }
 
@@ -724,7 +728,7 @@ public interface Task<T> extends Promise<T>, Cancellable
     }, systemHidden);
   }
 
-  public static <T> Task<T> async(final String name, final Function<Context, Promise<? extends T>> func,
+  public static <T> Task<T> async(final String name, final Function1<Context, Promise<? extends T>> func,
       final boolean systemHidden) {
     ArgumentUtil.requireNotNull(func, "function");
     return new BaseTask<T>(name) {
@@ -740,7 +744,7 @@ public interface Task<T> extends Promise<T>, Cancellable
     };
   }
 
-  public static <T> Task<T> async(final Function<Context, Promise<? extends T>> func, final boolean systemHidden) {
+  public static <T> Task<T> async(final Function1<Context, Promise<? extends T>> func, final boolean systemHidden) {
     return async("async", func, systemHidden);
   }
 

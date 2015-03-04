@@ -26,7 +26,7 @@ public class Tuple3<T1, T2, T3> implements Tuple {
     return _3;
   }
 
-  public <C> C map(final Function3<T1, T2, T3, C> f) {
+  public <C> C map(final Function3<T1, T2, T3, C> f) throws Exception {
     return f.apply(_1, _2, _3);
   }
 

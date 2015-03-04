@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 LinkedIn, Inc
+ * Copyright 2015 LinkedIn, Inc
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -21,6 +21,7 @@ import static com.linkedin.parseq.function.Tuples.tuple;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.linkedin.parseq.function.Function2;
 import com.linkedin.parseq.function.Tuple2;
 import com.linkedin.parseq.internal.InternalUtil;
 import com.linkedin.parseq.internal.SystemHiddenTask;
@@ -65,4 +66,10 @@ public class Par2Task<T1, T2> extends SystemHiddenTask<Tuple2<T1, T2>> implement
 
     return result;
   }
+
+  public <R> Task<R> map(final Function2<T1, T2, R> f) {
+    return map(tuple -> f.apply(tuple._1(), tuple._2()));
+  }
+
+
 }

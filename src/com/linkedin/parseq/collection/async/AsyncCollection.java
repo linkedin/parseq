@@ -6,9 +6,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
+
+import com.linkedin.parseq.function.Consumer1;
+import com.linkedin.parseq.function.Function1;
+import com.linkedin.parseq.function.Function2;
+
 import java.util.function.Predicate;
 
 import com.linkedin.parseq.collection.GroupedParSeqCollection;
@@ -46,12 +48,12 @@ public class AsyncCollection<T, R> extends Transducible<T, R> implements ParSeqC
   }
 
   @Override
-  public <A> ParSeqCollection<A> map(final Function<R, A> f) {
+  public <A> ParSeqCollection<A> map(final Function1<R, A> f) {
     return map(f, this::create);
   }
 
   @Override
-  public ParSeqCollection<R> forEach(final Consumer<R> consumer) {
+  public ParSeqCollection<R> forEach(final Consumer1<R> consumer) {
     return forEach(consumer, this::create);
   }
 
@@ -85,7 +87,7 @@ public class AsyncCollection<T, R> extends Transducible<T, R> implements ParSeqC
    */
 
   @Override
-  public <Z> Task<Z> fold(final Z zero, final BiFunction<Z, R, Z> op) {
+  public <Z> Task<Z> fold(final Z zero, final Function2<Z, R, Z> op) {
     return fold(zero, op, foldable());
   }
 
@@ -105,7 +107,7 @@ public class AsyncCollection<T, R> extends Transducible<T, R> implements ParSeqC
   }
 
   @Override
-  public Task<R> reduce(final BiFunction<R, R, R> op) {
+  public Task<R> reduce(final Function2<R, R, R> op) {
     return checkEmptyAsync(reduce(op, foldable()));
   }
 
@@ -122,12 +124,12 @@ public class AsyncCollection<T, R> extends Transducible<T, R> implements ParSeqC
   }
 
   @Override
-  public <A> ParSeqCollection<A> mapTask(final Function<R, Task<A>> f) {
+  public <A> ParSeqCollection<A> mapTask(final Function1<R, Task<A>> f) {
     return create(_transducer.map(r -> r.mapTask(f)));
   }
 
   @Override
-  public <A> ParSeqCollection<A> flatMap(Function<R, ParSeqCollection<A>> f) {
+  public <A> ParSeqCollection<A> flatMap(Function1<R, ParSeqCollection<A>> f) {
 
     CancellableSubscription subscription = new CancellableSubscription();
     final PushablePublisher<Publisher<TaskOrValue<A>>> publisher = new PushablePublisher<Publisher<TaskOrValue<A>>>(subscription);
@@ -170,7 +172,7 @@ public class AsyncCollection<T, R> extends Transducible<T, R> implements ParSeqC
   }
 
   @Override
-  public <K> ParSeqCollection<GroupedParSeqCollection<K, R>> groupBy(Function<R, K> classifier) {
+  public <K> ParSeqCollection<GroupedParSeqCollection<K, R>> groupBy(Function1<R, K> classifier) {
 //  final Publisher<R> that = this;
 //  return new Publisher<GroupedStreamCollection<A, R, R>>() {
 //    private int groupCount = 0;

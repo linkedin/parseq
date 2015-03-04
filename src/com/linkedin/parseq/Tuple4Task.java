@@ -1,6 +1,6 @@
 package com.linkedin.parseq;
 
-import java.util.function.Function;
+import com.linkedin.parseq.function.Function1;
 
 import com.linkedin.parseq.function.Consumer4;
 import com.linkedin.parseq.function.Function4;
@@ -36,7 +36,7 @@ public interface Tuple4Task<T1, T2, T3, T4> extends Task<Tuple4<T1, T2, T3, T4>>
    * {@inheritDoc}
    */
   @Override
-  default Tuple4Task<T1, T2, T3, T4> recover(final Function<Throwable, Tuple4<T1, T2, T3, T4>> f) {
+  default Tuple4Task<T1, T2, T3, T4> recover(final Function1<Throwable, Tuple4<T1, T2, T3, T4>> f) {
     return cast(recover(f));
   }
   
@@ -44,7 +44,7 @@ public interface Tuple4Task<T1, T2, T3, T4> extends Task<Tuple4<T1, T2, T3, T4>>
    * {@inheritDoc}
    */
   @Override
-  default Tuple4Task<T1, T2, T3, T4> recover(final String desc, final Function<Throwable, Tuple4<T1, T2, T3, T4>> f) {
+  default Tuple4Task<T1, T2, T3, T4> recover(final String desc, final Function1<Throwable, Tuple4<T1, T2, T3, T4>> f) {
     return cast(recover(desc, f));
   }
 
@@ -52,7 +52,7 @@ public interface Tuple4Task<T1, T2, T3, T4> extends Task<Tuple4<T1, T2, T3, T4>>
    * {@inheritDoc}
    */
   @Override
-  default Tuple4Task<T1, T2, T3, T4> recoverWith(final Function<Throwable, Task<Tuple4<T1, T2, T3, T4>>> f) {
+  default Tuple4Task<T1, T2, T3, T4> recoverWith(final Function1<Throwable, Task<Tuple4<T1, T2, T3, T4>>> f) {
     return cast(recoverWith(f));
   }
   
@@ -60,7 +60,7 @@ public interface Tuple4Task<T1, T2, T3, T4> extends Task<Tuple4<T1, T2, T3, T4>>
    * {@inheritDoc}
    */
   @Override
-  default Tuple4Task<T1, T2, T3, T4> recoverWith(final String desc, final Function<Throwable, Task<Tuple4<T1, T2, T3, T4>>> f) {
+  default Tuple4Task<T1, T2, T3, T4> recoverWith(final String desc, final Function1<Throwable, Task<Tuple4<T1, T2, T3, T4>>> f) {
     return cast(recoverWith(desc, f));
   }
   

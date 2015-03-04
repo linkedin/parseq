@@ -3,27 +3,25 @@ package com.linkedin.parseq.function;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.function.BiFunction;
 
 public class Tuple2<T1, T2> implements Tuple {
 
   private final T1 _1;
   private final T2 _2;
 
-  public Tuple2(T1 param1, T2 param2) {
-    _1 = param1;
-    _2 = param2;
+  public Tuple2(final T1 t1, final T2 t2) {
+    _1 = t1;
+    _2 = t2;
   }
 
   public T1 _1() {
     return _1;
   }
-
   public T2 _2() {
     return _2;
   }
 
-  public <C> C map(final BiFunction<T1, T2, C> f) {
+  public <C> C map(final Function2<T1, T2, C> f) throws Exception {
     return f.apply(_1, _2);
   }
 
@@ -75,8 +73,8 @@ public class Tuple2<T1, T2> implements Tuple {
   @Override
   public String toString() {
       return "("
-              + Objects.toString(_1) + ", "
-              + Objects.toString(_2)
+              + Objects.toString(_1)
+       + ", " + Objects.toString(_2)
               + ")";
   }
 

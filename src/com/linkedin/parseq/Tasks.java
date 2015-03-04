@@ -94,11 +94,11 @@ import com.linkedin.parseq.collection.ParSeqCollection;
    * task1 will be finished before task2 starts). The value of the seq task will
    * be the result of the last task in the sequence.
    *
-   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, java.util.function.Function) Task.map},
-   * {@link Task#flatMap(String, java.util.function.Function) Task.flatMap},
+   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, com.linkedin.parseq.function.Function1) Task.map},
+   * {@link Task#flatMap(String, com.linkedin.parseq.function.Function1) Task.flatMap},
    * {@link Task#andThen(String, Task) Task.andThen} and other methods in {@link Task}.
-   * @see Task#map(String, java.util.function.Function) Task.map
-   * @see Task#flatMap(String, java.util.function.Function) Task.flatMap
+   * @see Task#map(String, com.linkedin.parseq.function.Function1) Task.map
+   * @see Task#flatMap(String, com.linkedin.parseq.function.Function1) Task.flatMap
    * @see Task#andThen(String, Task) Task.andThen
    * @see Task
    */
@@ -109,11 +109,11 @@ import com.linkedin.parseq.collection.ParSeqCollection;
   }
 
   /**
-   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, java.util.function.Function) Task.map},
-   * {@link Task#flatMap(String, java.util.function.Function) Task.flatMap},
+   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, com.linkedin.parseq.function.Function1) Task.map},
+   * {@link Task#flatMap(String, com.linkedin.parseq.function.Function1) Task.flatMap},
    * {@link Task#andThen(String, Task) Task.andThen} and other methods in {@link Task}.
-   * @see Task#map(String, java.util.function.Function) Task.map
-   * @see Task#flatMap(String, java.util.function.Function) Task.flatMap
+   * @see Task#map(String, com.linkedin.parseq.function.Function1) Task.map
+   * @see Task#flatMap(String, com.linkedin.parseq.function.Function1) Task.flatMap
    * @see Task#andThen(String, Task) Task.andThen
    * @see Task
    */
@@ -125,11 +125,11 @@ import com.linkedin.parseq.collection.ParSeqCollection;
   }
 
   /**
-   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, java.util.function.Function) Task.map},
-   * {@link Task#flatMap(String, java.util.function.Function) Task.flatMap},
+   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, com.linkedin.parseq.function.Function1) Task.map},
+   * {@link Task#flatMap(String, com.linkedin.parseq.function.Function1) Task.flatMap},
    * {@link Task#andThen(String, Task) Task.andThen} and other methods in {@link Task}.
-   * @see Task#map(String, java.util.function.Function) Task.map
-   * @see Task#flatMap(String, java.util.function.Function) Task.flatMap
+   * @see Task#map(String, com.linkedin.parseq.function.Function1) Task.map
+   * @see Task#flatMap(String, com.linkedin.parseq.function.Function1) Task.flatMap
    * @see Task#andThen(String, Task) Task.andThen
    * @see Task
    */
@@ -142,11 +142,11 @@ import com.linkedin.parseq.collection.ParSeqCollection;
   }
 
   /**
-   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, java.util.function.Function) Task.map},
-   * {@link Task#flatMap(String, java.util.function.Function) Task.flatMap},
+   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, com.linkedin.parseq.function.Function1) Task.map},
+   * {@link Task#flatMap(String, com.linkedin.parseq.function.Function1) Task.flatMap},
    * {@link Task#andThen(String, Task) Task.andThen} and other methods in {@link Task}.
-   * @see Task#map(String, java.util.function.Function) Task.map
-   * @see Task#flatMap(String, java.util.function.Function) Task.flatMap
+   * @see Task#map(String, com.linkedin.parseq.function.Function1) Task.map
+   * @see Task#flatMap(String, com.linkedin.parseq.function.Function1) Task.flatMap
    * @see Task#andThen(String, Task) Task.andThen
    * @see Task
    */
@@ -160,11 +160,11 @@ import com.linkedin.parseq.collection.ParSeqCollection;
   }
 
   /**
-   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, java.util.function.Function) Task.map},
-   * {@link Task#flatMap(String, java.util.function.Function) Task.flatMap},
+   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, com.linkedin.parseq.function.Function1) Task.map},
+   * {@link Task#flatMap(String, com.linkedin.parseq.function.Function1) Task.flatMap},
    * {@link Task#andThen(String, Task) Task.andThen} and other methods in {@link Task}.
-   * @see Task#map(String, java.util.function.Function) Task.map
-   * @see Task#flatMap(String, java.util.function.Function) Task.flatMap
+   * @see Task#map(String, com.linkedin.parseq.function.Function1) Task.map
+   * @see Task#flatMap(String, com.linkedin.parseq.function.Function1) Task.flatMap
    * @see Task#andThen(String, Task) Task.andThen
    * @see Task
    */
@@ -179,11 +179,11 @@ import com.linkedin.parseq.collection.ParSeqCollection;
   }
 
   /**
-   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, java.util.function.Function) Task.map},
-   * {@link Task#flatMap(String, java.util.function.Function) Task.flatMap},
+   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, com.linkedin.parseq.function.Function1) Task.map},
+   * {@link Task#flatMap(String, com.linkedin.parseq.function.Function1) Task.flatMap},
    * {@link Task#andThen(String, Task) Task.andThen} and other methods in {@link Task}.
-   * @see Task#map(String, java.util.function.Function) Task.map
-   * @see Task#flatMap(String, java.util.function.Function) Task.flatMap
+   * @see Task#map(String, com.linkedin.parseq.function.Function1) Task.map
+   * @see Task#flatMap(String, com.linkedin.parseq.function.Function1) Task.flatMap
    * @see Task#andThen(String, Task) Task.andThen
    * @see Task
    */
@@ -199,11 +199,11 @@ import com.linkedin.parseq.collection.ParSeqCollection;
   }
 
   /**
-   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, java.util.function.Function) Task.map},
-   * {@link Task#flatMap(String, java.util.function.Function) Task.flatMap},
+   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, com.linkedin.parseq.function.Function1) Task.map},
+   * {@link Task#flatMap(String, com.linkedin.parseq.function.Function1) Task.flatMap},
    * {@link Task#andThen(String, Task) Task.andThen} and other methods in {@link Task}.
-   * @see Task#map(String, java.util.function.Function) Task.map
-   * @see Task#flatMap(String, java.util.function.Function) Task.flatMap
+   * @see Task#map(String, com.linkedin.parseq.function.Function1) Task.map
+   * @see Task#flatMap(String, com.linkedin.parseq.function.Function1) Task.flatMap
    * @see Task#andThen(String, Task) Task.andThen
    * @see Task
    */
@@ -220,11 +220,11 @@ import com.linkedin.parseq.collection.ParSeqCollection;
   }
 
   /**
-   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, java.util.function.Function) Task.map},
-   * {@link Task#flatMap(String, java.util.function.Function) Task.flatMap},
+   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, com.linkedin.parseq.function.Function1) Task.map},
+   * {@link Task#flatMap(String, com.linkedin.parseq.function.Function1) Task.flatMap},
    * {@link Task#andThen(String, Task) Task.andThen} and other methods in {@link Task}.
-   * @see Task#map(String, java.util.function.Function) Task.map
-   * @see Task#flatMap(String, java.util.function.Function) Task.flatMap
+   * @see Task#map(String, com.linkedin.parseq.function.Function1) Task.map
+   * @see Task#flatMap(String, com.linkedin.parseq.function.Function1) Task.flatMap
    * @see Task#andThen(String, Task) Task.andThen
    * @see Task
    */
@@ -242,11 +242,11 @@ import com.linkedin.parseq.collection.ParSeqCollection;
   }
 
   /**
-   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, java.util.function.Function) Task.map},
-   * {@link Task#flatMap(String, java.util.function.Function) Task.flatMap},
+   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, com.linkedin.parseq.function.Function1) Task.map},
+   * {@link Task#flatMap(String, com.linkedin.parseq.function.Function1) Task.flatMap},
    * {@link Task#andThen(String, Task) Task.andThen} and other methods in {@link Task}.
-   * @see Task#map(String, java.util.function.Function) Task.map
-   * @see Task#flatMap(String, java.util.function.Function) Task.flatMap
+   * @see Task#map(String, com.linkedin.parseq.function.Function1) Task.map
+   * @see Task#flatMap(String, com.linkedin.parseq.function.Function1) Task.flatMap
    * @see Task#andThen(String, Task) Task.andThen
    * @see Task
    */
@@ -272,11 +272,11 @@ import com.linkedin.parseq.collection.ParSeqCollection;
    * @param tasks the tasks to run sequentially
    * @param <T> the result value for the sequence of tasks
    * @return a new task that will run the given tasks sequentially
-   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, java.util.function.Function) Task.map},
-   * {@link Task#flatMap(String, java.util.function.Function) Task.flatMap},
+   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, com.linkedin.parseq.function.Function1) Task.map},
+   * {@link Task#flatMap(String, com.linkedin.parseq.function.Function1) Task.flatMap},
    * {@link Task#andThen(String, Task) Task.andThen} and other methods in {@link Task}.
-   * @see Task#map(String, java.util.function.Function) Task.map
-   * @see Task#flatMap(String, java.util.function.Function) Task.flatMap
+   * @see Task#map(String, com.linkedin.parseq.function.Function1) Task.map
+   * @see Task#flatMap(String, com.linkedin.parseq.function.Function1) Task.flatMap
    * @see Task#andThen(String, Task) Task.andThen
    * @see Task
    */
@@ -295,8 +295,8 @@ import com.linkedin.parseq.collection.ParSeqCollection;
    * @param sideEffect the side effect of the primary task.
    * @param <T> the result value of the parent task, and the resulting task.
    * @return a new task that will be done once parent completes, but has the given side effect.
-   * @deprecated  As of 2.0.0, replaced by {@link Task#withSideEffect(String, java.util.function.Function) Task.withSideEffect}
-   * @see Task#withSideEffect(String, java.util.function.Function) Task.withSideEffect
+   * @deprecated  As of 2.0.0, replaced by {@link Task#withSideEffect(String, com.linkedin.parseq.function.Function1) Task.withSideEffect}
+   * @see Task#withSideEffect(String, com.linkedin.parseq.function.Function1) Task.withSideEffect
    */
   @Deprecated public static <T> Task<T> withSideEffect(final Task<T> parent, final Task<?> sideEffect)
   {

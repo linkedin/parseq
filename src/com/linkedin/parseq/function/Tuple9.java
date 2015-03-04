@@ -56,7 +56,7 @@ public class Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9> implements Tuple {
     return _9;
   }
 
-  public <C> C map(final Function9<T1, T2, T3, T4, T5, T6, T7, T8, T9, C> f) {
+  public <C> C map(final Function9<T1, T2, T3, T4, T5, T6, T7, T8, T9, C> f) throws Exception {
     return f.apply(_1, _2, _3, _4, _5, _6, _7, _8, _9);
   }
 

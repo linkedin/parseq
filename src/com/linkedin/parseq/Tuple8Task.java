@@ -1,6 +1,6 @@
 package com.linkedin.parseq;
 
-import java.util.function.Function;
+import com.linkedin.parseq.function.Function1;
 
 import com.linkedin.parseq.function.Consumer8;
 import com.linkedin.parseq.function.Function8;
@@ -36,7 +36,7 @@ public interface Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> extends Task<Tuple8<
    * {@inheritDoc}
    */
   @Override
-  default Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> recover(final Function<Throwable, Tuple8<T1, T2, T3, T4, T5, T6, T7, T8>> f) {
+  default Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> recover(final Function1<Throwable, Tuple8<T1, T2, T3, T4, T5, T6, T7, T8>> f) {
     return cast(recover(f));
   }
   
@@ -44,7 +44,7 @@ public interface Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> extends Task<Tuple8<
    * {@inheritDoc}
    */
   @Override
-  default Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> recover(final String desc, final Function<Throwable, Tuple8<T1, T2, T3, T4, T5, T6, T7, T8>> f) {
+  default Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> recover(final String desc, final Function1<Throwable, Tuple8<T1, T2, T3, T4, T5, T6, T7, T8>> f) {
     return cast(recover(desc, f));
   }
 
@@ -52,7 +52,7 @@ public interface Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> extends Task<Tuple8<
    * {@inheritDoc}
    */
   @Override
-  default Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> recoverWith(final Function<Throwable, Task<Tuple8<T1, T2, T3, T4, T5, T6, T7, T8>>> f) {
+  default Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> recoverWith(final Function1<Throwable, Task<Tuple8<T1, T2, T3, T4, T5, T6, T7, T8>>> f) {
     return cast(recoverWith(f));
   }
   
@@ -60,7 +60,7 @@ public interface Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> extends Task<Tuple8<
    * {@inheritDoc}
    */
   @Override
-  default Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> recoverWith(final String desc, final Function<Throwable, Task<Tuple8<T1, T2, T3, T4, T5, T6, T7, T8>>> f) {
+  default Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> recoverWith(final String desc, final Function1<Throwable, Task<Tuple8<T1, T2, T3, T4, T5, T6, T7, T8>>> f) {
     return cast(recoverWith(desc, f));
   }
   

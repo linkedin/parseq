@@ -1,6 +1,6 @@
 <#include "../../../../macros/macros.ftl">
 <@pp.dropOutputFile />
-<#list 3..max as i>
+<#list 2..max as i>
 <@pp.changeOutputFile name="Tuple" + i + ".java" />
 package com.linkedin.parseq.function;
 
@@ -26,7 +26,7 @@ public class Tuple${i}<<@typeParameters i/>> implements Tuple {
   }
 </@repeat>
 
-  public <C> C map(final Function${i}<<@typeParameters i/>, C> f) {
+  public <C> C map(final Function${i}<<@typeParameters i/>, C> f) throws Exception {
     return f.apply(<@csv 1..i; j>_${j}</@csv>);
   }
 
