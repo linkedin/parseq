@@ -131,6 +131,21 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
   }
 
   @Test
+  public void testPar4() {
+    final AtomicInteger sum = new AtomicInteger();
+    Task<?> task = Task.par(Task.value(1),
+                            Task.value(2),
+                            Task.value(3),
+                            Task.value(4))
+        .andThen(t -> t.forEach(i -> sum.addAndGet((int)i)));
+
+    runAndWait("TestTaskFactoryMethods.testPar4", task);
+    assertEquals(sum.get(), 1 + 2 + 3 + 4);
+
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 4);
+  }
+
+  @Test
   public void testPar5() {
     final AtomicInteger sum = new AtomicInteger();
     Task<?> task = Task.par(Task.value(1),

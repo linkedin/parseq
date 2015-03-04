@@ -62,11 +62,6 @@ public class TestTask extends AbstractTaskTest {
   }
 
   @Test
-  public void testWithTimeout() {
-    testWithTimeout(3);
-  }
-
-  @Test
   public void testWithSideEffectFullCompletion() throws Exception {
     testWithSideEffectFullCompletion(4);
   }
