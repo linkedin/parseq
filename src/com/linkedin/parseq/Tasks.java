@@ -57,7 +57,7 @@ import com.linkedin.parseq.collection.ParSeqCollection;
    * computation that does not require asynchrony. It is not appropriate for
    * long running or blocking tasks.
    *
-   * @deprecated  As of 2.0.0, replaced by {@link Task#callable(String, Callable) Task.callable}
+   * @deprecated  As of 2.0.0, replaced by {@link Task#callable(String, ThrowableCallable) Task.callable}
    * @param name a name that describes the action
    * @param callable the callable to execute when this task is run
    * @param <T> the type of the return value for this task
@@ -67,7 +67,7 @@ import com.linkedin.parseq.collection.ParSeqCollection;
   @Deprecated public static <T> Task<T> callable(final String name,
                                      final Callable<? extends T> callable)
   {
-    return Task.callable(name, callable);
+    return Task.callable(name, () -> callable.call());
   }
 
   /**
@@ -76,7 +76,7 @@ import com.linkedin.parseq.collection.ParSeqCollection;
    * computation that does not require asynchrony. It is not appropriate for
    * long running or blocking tasks.
    *
-   * @deprecated  As of 2.0.0, replaced by {@link Task#callable(String, Callable) Task.callable}
+   * @deprecated  As of 2.0.0, replaced by {@link Task#callable(String, ThrowableCallable) Task.callable}
    * @param name a name that describes the action
    * @param callable the callable to execute when this task is run
    * @param <T> the type of the return value for this task

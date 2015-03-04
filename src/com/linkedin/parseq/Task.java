@@ -19,7 +19,6 @@ package com.linkedin.parseq;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
@@ -528,10 +527,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    *      .map(p {@code ->} p.getFirstName() + " " + p.getLastName());
    * </code></pre>
    *
-   * If recovery task fails then returned task is completed with that failure. This is the only
-   * difference between this method and {@link #fallBackTo(String, Function) fallBackTo}.
-   * {@code fallBackTo} method returns task which will fail with failure form the main task in
-   * case of recovery function's failure.
+   * If recovery task fails then returned task is completed with that failure.
    * <p/>
    *
    * @param desc description of a recovery function, it will show up in a trace
@@ -622,7 +618,8 @@ public interface Task<T> extends Promise<T>, Cancellable
   /**
    * Creates a new task that have a value of type {@code Void}. Because the
    * returned task returns no value, it is typically used to produce side effects.
-   * It is not appropriate for long running or blocking tasks.
+   * It is not appropriate for long running or blocking actions. If action is
+   * long running or blocking use {@link #blocking(String, ThrowableCallable, Executor) blocking} method.
    *
    * <pre><code>
    * // this task will print "Hello" on standard output
@@ -678,16 +675,17 @@ public interface Task<T> extends Promise<T>, Cancellable
 
   /**
    * Creates a new task that's value will be set to the value returned
-   * from the supplied {@code Callable}. This task is useful when doing basic
+   * from the supplied callable. This task is useful when doing basic
    * computation that does not require asynchrony. It is not appropriate for
-   * long running or blocking tasks.
+   * long running or blocking callables. If callable is long running or blocking
+   * use {@link #blocking(String, ThrowableCallable, Executor) blocking} method.
    *
    * <pre><code>
    * // this task will complete with {@code String} representing current time
    * Task{@code <String>} task = Task.callable("current time", () -> new Date().toString());
    * </code></pre>
    *
-   * Returned task will fail if {@code Callable} passed in as a parameter throws
+   * Returned task will fail if callable passed in as a parameter throws
    * an exception.
    * <pre><code>
    * // this task will fail with java.lang.ArithmeticException
@@ -695,11 +693,11 @@ public interface Task<T> extends Promise<T>, Cancellable
    * </code></pre>
    * <p/>
    * @param name a name that describes the task, it will show up in a trace
-   * @param callable the {@code Callable} to execute when this task is run
+   * @param callable the callable to execute when this task is run
    * @param <T> the type of the return value for this task
-   * @return the new task that will invoke the {@code Callable} and complete with it's result
+   * @return the new task that will invoke the callable and complete with it's result
    */
-  public static <T> Task<T> callable(final String name, final Callable<? extends T> callable) {
+  public static <T> Task<T> callable(final String name, final ThrowableCallable<? extends T> callable) {
     return FusionTask.create(name, Promises.value(null), (src, dst) -> {
       try {
         dst.done(callable.call());
@@ -711,21 +709,90 @@ public interface Task<T> extends Promise<T>, Cancellable
 
   /**
    * Equivalent to {@code callable("callable", callable)}.
-   * @see #callable(String, Callable)
+   * @see #callable(String, ThrowableCallable)
    */
-  public static <T> Task<T> callable(final Callable<? extends T> callable) {
+  public static <T> Task<T> callable(final ThrowableCallable<? extends T> callable) {
     return callable("callable", callable);
   }
 
-  public static <T> Task<T> async(final String name, final Callable<Promise<? extends T>> callable,
+  /**
+   * Creates a new task from a callable that returns a {@link Promise}.
+   * This method is mainly used to integrate ParSeq with 3rd party
+   * asynchronous libraries. It should not be used in order to compose
+   * or manipulate existing tasks. The following example shows how to integrate
+   * <a href="https://github.com/AsyncHttpClient">AsyncHttpClient</a> with ParSeq.
+   *
+   * <pre><code>
+   *  // Creates a task that asynchronouslyexecutes given HTTP request
+   *  // and will complete with HTTP response. It uses asyncHttpRequest()
+   *  // method as a lambda of shape: ThrowableCallable{@code <Promise<Response>>}.
+   *  Task{@code <Response>} httpTask(final Request request) {
+   *    return Task.async(() -> asyncHttpRequest(request), false);
+   *  }
+   *
+   *  // This method uses HTTP_CLIENT to make asynchronous
+   *  // request and returns a Promise that will be resolved once
+   *  // the HTTP request is completed.
+   *  Promise{@code <Response>} asyncHttpRequest(final Request request) {
+   *
+   *    // Create a settable promise. We'll use this to signal completion of this
+   *    // task once the response is received from the HTTP client.
+   *    final SettablePromise{@code <Response>} promise = Promises.settable();
+   *
+   *    // Send the request and register a callback with the client that will
+   *    // set the response on our promise.
+   *    HTTP_CLIENT.prepareRequest(request).execute(new AsyncCompletionHandler{@code <Response>}() {
+   *
+   *      {@code @Override}
+   *      public Response onCompleted(final Response response) throws Exception {
+   *        // At this point the HTTP client has given us the HTTP response
+   *        // asynchronously. We set the response value on our promise to indicate
+   *        // that the task is complete.
+   *        promise.done(response);
+   *        return response;
+   *      }
+   *
+   *      {@code @Override}
+   *      public void onThrowable(final Throwable t) {
+   *        // If there was an error then we should set it on the promise.
+   *        promise.fail(t);
+   *      }
+   *    });
+   *
+   *    // Return the promise. It may or may not be
+   *    // resolved by the time we return this promise.
+   *    return promise;
+   *  }
+   * </code></pre>
+   *
+   * This method is not appropriate for long running or blocking callables.
+   * If callable is long running or blocking use
+   * {@link #blocking(String, ThrowableCallable, Executor) blocking} method.
+   * <p/>
+   *
+   * @param name
+   * @param callable
+   * @param systemHidden
+   * @return
+   * @see Promise
+   */
+  public static <T> Task<T> async(final String name, final ThrowableCallable<Promise<? extends T>> callable,
       final boolean systemHidden) {
     return async(name, context -> {
       try {
         return callable.call();
-      } catch (Exception e) {
+      } catch (Throwable e) {
         return Promises.error(e);
       }
     }, systemHidden);
+  }
+
+  /**
+   * Equivalent to {@code async("async", callable, systemHidden);}.
+   * @see #async(String, ThrowableCallable, boolean)
+   */
+  public static <T> Task<T> async(final ThrowableCallable<Promise<? extends T>> callable, final boolean systemHidden) {
+    return async("async", callable, systemHidden);
   }
 
   public static <T> Task<T> async(final String name, final Function1<Context, Promise<? extends T>> func,
@@ -748,11 +815,7 @@ public interface Task<T> extends Promise<T>, Cancellable
     return async("async", func, systemHidden);
   }
 
-  public static <T> Task<T> async(final Callable<Promise<? extends T>> callable, final boolean systemHidden) {
-    return async("async", callable, systemHidden);
-  }
-
-  public static <T> Task<T> blocking(final String name, final Callable<? extends T> callable, final Executor executor) {
+  public static <T> Task<T> blocking(final String name, final ThrowableCallable<? extends T> callable, final Executor executor) {
     ArgumentUtil.requireNotNull(callable, "callable");
     return async(name, context -> {
       final SettablePromise<T> promise = Promises.settable();
@@ -767,7 +830,7 @@ public interface Task<T> extends Promise<T>, Cancellable
     }, false);
   }
 
-  public static <T> Task<T> blocking(final Callable<? extends T> callable, final Executor executor) {
+  public static <T> Task<T> blocking(final ThrowableCallable<? extends T> callable, final Executor executor) {
     return blocking("blocking", callable, executor);
   }
 
