@@ -17,12 +17,12 @@
 package com.linkedin.parseq;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -568,43 +568,6 @@ public interface Task<T> extends Promise<T>, Cancellable
     return recoverWith("recoverWith", func);
   }
 
-  static class TimeoutContextRunWrapper<T> implements ContextRunWrapper<T> {
-
-    protected final SettablePromise<T> _result = Promises.settable();
-    protected final AtomicBoolean _committed = new AtomicBoolean();
-    private final long _time;
-    private final TimeUnit _unit;
-    private final Exception _exception;
-
-    public TimeoutContextRunWrapper(long time, TimeUnit unit, final Exception exception) {
-      _time = time;
-      _unit = unit;
-      _exception = exception;
-    }
-
-    @Override
-    public void before(Context context) {
-      final Task<?> timeoutTask = action("timeoutTimer", () -> {
-        if (_committed.compareAndSet(false, true)) {
-          _result.fail(_exception);
-        }
-      });
-      //timeout tasks should run as early as possible
-      timeoutTask.setPriority(Priority.MAX_PRIORITY);
-      context.createTimer(_time, _unit, timeoutTask);
-    }
-
-    @Override
-    public Promise<T> after(Context context, Promise<T> promise) {
-      promise.addListener(p -> {
-        if (_committed.compareAndSet(false, true)) {
-          Promises.propagateResult(promise, _result);
-        }
-      });
-      return _result;
-    }
-  }
-
   /**
    * @param time the time to wait before timing out
    * @param unit the units for the time
@@ -617,30 +580,12 @@ public interface Task<T> extends Promise<T>, Cancellable
     return this;
   }
 
-  public static interface ContextRunWrapper<T> {
-
-    void before(Context context);
-
-    Promise<T> after(Context context, Promise<T> promise);
-
-    default ContextRunWrapper<T> compose(final ContextRunWrapper<T> wrapper) {
-      ContextRunWrapper<T> that = this;
-      return new ContextRunWrapper<T>() {
-
-        @Override
-        public void before(Context context) {
-          wrapper.before(context);
-          that.before(context);
-        }
-
-        @Override
-        public Promise<T> after(Context context, Promise<T> promise) {
-          return wrapper.after(context, that.after(context, promise));
-        }
-      };
-    }
-  }
-
+  /**
+   * Converts {@code Task<Task<R>>} into {@code Task<R>}.
+   * @param desc description that will show up in a trace
+   * @param task task to be flattened
+   * @return flattened task
+   */
   public static <R> Task<R> flatten(final String desc, final Task<Task<R>> task) {
     return async(desc, context -> {
       final SettablePromise<R> result = Promises.settable();
@@ -659,16 +604,37 @@ public interface Task<T> extends Promise<T>, Cancellable
      }, true);
   }
 
+  /**
+   * Equivalent to {@code flatten("flatten", task)}.
+   * @see #flatMap(String, Function)
+   */
+
+  public static <R> Task<R> flatten(final Task<Task<R>> task) {
+    return flatten("flatten", task);
+  }
+
   //------------------- static factory methods -------------------
 
   /**
-   * Creates a new {@link Task} that have a value of type Void. Because the
-   * returned task returns no value, it is typically used to produce side-effects.
+   * Creates a new task that have a value of type {@code Void}. Because the
+   * returned task returns no value, it is typically used to produce side effects.
    * It is not appropriate for long running or blocking tasks.
    *
+   * <pre><code>
+   * // this task will print "Hello" on standard output
+   * Task{@code <Void>} task = Task.action("greeting", () -> System.out.println("Hello"));
+   * </code></pre>
+   *
+   * Returned task will fail if {@code Runnable} passed in as a parameter throws
+   * an exception.
+   * <pre><code>
+   * // this task will fail with java.lang.ArithmeticException
+   * Task{@code <Void>} task = Task.action("division", () -> System.out.println(2 / 0));
+   * </code></pre>
+   * <p/>
    * @param name a name that describes the action
-   * @param runnable the action that will be executed when the task is run
-   * @return the new task
+   * @param action the action that will be executed when the task is run
+   * @return the new task that will execute the action
    */
   public static Task<Void> action(final String name, final Runnable action)
   {
@@ -708,14 +674,26 @@ public interface Task<T> extends Promise<T>, Cancellable
 
   /**
    * Creates a new task that's value will be set to the value returned
-   * from the supplied callable. This task is useful when doing basic
+   * from the supplied {@code Callable}. This task is useful when doing basic
    * computation that does not require asynchrony. It is not appropriate for
    * long running or blocking tasks.
    *
-   * @param name a name that describes the callable
-   * @param callable the callable to execute when this task is run
+   * <pre><code>
+   * // this task will complete with {@code String} representing current time
+   * Task{@code <String>} task = Task.callable("current time", () -> new Date().toString());
+   * </code></pre>
+   *
+   * Returned task will fail if {@code Callable} passed in as a parameter throws
+   * an exception.
+   * <pre><code>
+   * // this task will fail with java.lang.ArithmeticException
+   * Task{@code <Integer>} task = Task.callable("division", () -> 2 / 0);
+   * </code></pre>
+   * <p/>
+   * @param name a name that describes the task, it will show up in a trace
+   * @param callable the {@code Callable} to execute when this task is run
    * @param <T> the type of the return value for this task
-   * @return the new task
+   * @return the new task that will invoke the {@code Callable} and complete with it's result
    */
   public static <T> Task<T> callable(final String name, final Callable<? extends T> callable) {
     return FusionTask.create(name, Promises.value(null), (src, dst) -> {

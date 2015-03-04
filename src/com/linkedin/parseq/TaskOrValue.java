@@ -11,10 +11,13 @@ import com.linkedin.parseq.promise.SettablePromise;
 
 
 /**
- * <code>TaskOrValue</code> represents either {@link Task} or a value.
+ * {@code TaskOrValue} represents either {@link Task} or a value.
  * This interface allows calling {@link #map(Function) map} and
  * {@link #flatMap(Function) flatMap} regardless of the underlying type.
  *
+ * <p/>
+ * This interface is experimental and may be modified or removed in future
+ * versions.
  * @author jodzga
  */
 public interface TaskOrValue<T> {

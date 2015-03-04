@@ -13,6 +13,7 @@ import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 import com.linkedin.parseq.BaseTask;
 import com.linkedin.parseq.Context;
+import com.linkedin.parseq.ContextRunWrapper;
 import com.linkedin.parseq.FusionTask;
 import com.linkedin.parseq.Priority;
 import com.linkedin.parseq.Task;
