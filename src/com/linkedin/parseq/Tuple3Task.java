@@ -32,21 +32,33 @@ public interface Tuple3Task<T1, T2, T3> extends Task<Tuple3<T1, T2, T3>> {
     return cast(andThen(desc, tuple -> consumer.accept(tuple._1(), tuple._2(), tuple._3())));
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   default Tuple3Task<T1, T2, T3> recover(final Function<Throwable, Tuple3<T1, T2, T3>> f) {
     return cast(recover(f));
   }
   
+  /**
+   * {@inheritDoc}
+   */
   @Override
   default Tuple3Task<T1, T2, T3> recover(final String desc, final Function<Throwable, Tuple3<T1, T2, T3>> f) {
     return cast(recover(desc, f));
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   default Tuple3Task<T1, T2, T3> recoverWith(final Function<Throwable, Task<Tuple3<T1, T2, T3>>> f) {
     return cast(recoverWith(f));
   }
   
+  /**
+   * {@inheritDoc}
+   */
   @Override
   default Tuple3Task<T1, T2, T3> recoverWith(final String desc, final Function<Throwable, Task<Tuple3<T1, T2, T3>>> f) {
     return cast(recoverWith(desc, f));

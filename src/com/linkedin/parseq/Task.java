@@ -26,7 +26,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.function.Failure;
 import com.linkedin.parseq.function.Success;
@@ -45,11 +44,11 @@ import com.linkedin.parseq.trace.Trace;
 
 /**
  * A task represents a deferred execution that also contains its resulting
- * value. In addition, tasks include some tracing information that can be
+ * value. In addition, tasks include tracing information that can be
  * used with various trace printers.
  * <p/>
- * Tasks should generally be run using either an {@link Engine} or a
- * {@link Context}. They should not be run directly.
+ * Tasks should be run using an {@link Engine}. They should not be run directly.
+ * <p/>
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
@@ -402,10 +401,30 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   /**
+   * Creates a new task which applies a consumer to the exception this
+   * task may fail with. It is used in situations where consumer needs
+   * to be called after failure of this task. Result of task returned by
+   * this method will be exactly the same as result of this task.
+   * <pre><code>
+   *  Task{@code <String>} failing = Task.callable("hello", () {@code ->} {
+   *    return "Hello World".substring(100);
+   *  });
    *
-   * @param desc
-   * @param consumer
-   * @return
+   *  // this task will print out java.lang.StringIndexOutOfBoundsException
+   *  Task{@code <String>} sayHello = failing.onFailure(System.out::println);
+   * </code></pre>
+   *
+   * If this task completes successfully then consumer will not be called.
+   * <pre><code>
+   *  Task{@code <String>} hello = Task.value("Hello World");
+   *
+   *  // this task will print "Hello World"
+   *  Task{@code <String>} sayHello = hello.onFailure(System.out::println);
+   * </code></pre>
+   *
+   * @param desc description of a consumer, it will show up in a trace
+   * @param consumer consumer of an exception this task failed with
+   * @return a new task which will complete with result of this task
    */
   default Task<T> onFailure(final String desc, final Consumer<Throwable> consumer) {
     ArgumentUtil.requireNotNull(consumer, "function");
@@ -456,7 +475,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * Note that all failures are automatically propagated and usually it is enough to use
    * {@link #recover(String, Function) recover}, {@link #recoverWith(String, Function) recoverWith}
    * or {@link #fallBackTo(String, Function) fallBackTo}.
-   * <p>
+   * <p/>
    * @return
    * @see Try
    * @see #recover(String, Function) recover
@@ -509,7 +528,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * difference between this method and {@link #fallBackTo(String, Function) fallBackTo}.
    * {@code fallBackTo} method returns task which will fail with failure form the main task in
    * case of recovery function's failure.
-   * <p>
+   * <p/>
    *
    * @param desc description of a recovery function, it will show up in a trace
    * @param func recovery function provides task which will be used to recover from
@@ -645,6 +664,7 @@ public interface Task<T> extends Promise<T>, Cancellable
   /**
    * Creates a new {@link Task} that have a value of type Void. Because the
    * returned task returns no value, it is typically used to produce side-effects.
+   * It is not appropriate for long running or blocking tasks.
    *
    * @param name a name that describes the action
    * @param runnable the action that will be executed when the task is run
@@ -659,6 +679,10 @@ public interface Task<T> extends Promise<T>, Cancellable
     }, false);
   }
 
+  /**
+   * Equivalent to {@code action("action", runnable)}.
+   * @see #action(String, Runnable)
+   */
   public static Task<Void> action(final Runnable runnable)
   {
     return action("action", runnable);
@@ -682,6 +706,17 @@ public interface Task<T> extends Promise<T>, Cancellable
     return failure("failure", failure);
   }
 
+  /**
+   * Creates a new task that's value will be set to the value returned
+   * from the supplied callable. This task is useful when doing basic
+   * computation that does not require asynchrony. It is not appropriate for
+   * long running or blocking tasks.
+   *
+   * @param name a name that describes the callable
+   * @param callable the callable to execute when this task is run
+   * @param <T> the type of the return value for this task
+   * @return the new task
+   */
   public static <T> Task<T> callable(final String name, final Callable<? extends T> callable) {
     return FusionTask.create(name, Promises.value(null), (src, dst) -> {
       try {
@@ -692,6 +727,10 @@ public interface Task<T> extends Promise<T>, Cancellable
     });
   }
 
+  /**
+   * Equivalent to {@code callable("callable", callable)}.
+   * @see #callable(String, Callable)
+   */
   public static <T> Task<T> callable(final Callable<? extends T> callable) {
     return callable("callable", callable);
   }

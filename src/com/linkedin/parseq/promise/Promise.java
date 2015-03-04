@@ -103,7 +103,7 @@ public interface Promise<P>
    * Adds a listener to this promise that will be notified when the promise is
    * resolved. If the promise has already been resolved then the listener is
    * notified immediately.
-   * <p>
+   * <p/>
    * Listener will be called on a thread which completed this promise.
    *
    * @param listener the listener to add to this promise
@@ -129,7 +129,7 @@ public interface Promise<P>
   /**
    * When this Promise is done, either through a Throwable or a value,
    * call the provided Consumer of this Promise.
-   * <p>
+   * <p/>
    * Consumer will be called on a thread which completed this promise.
    *
    * @param consumer the Consumer to be called when this Promise is done.
