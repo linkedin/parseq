@@ -17,6 +17,7 @@
 package com.linkedin.parseq;
 
 import com.linkedin.parseq.internal.ArgumentUtil;
+import com.linkedin.parseq.internal.CachedLoggerFactory;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.LoggerFactory;
 
@@ -139,7 +140,7 @@ public class EngineBuilder
     Engine engine =  new Engine(
         _taskExecutor,
         new IndirectDelayedExecutor(_timerScheduler),
-        _loggerFactory != null ? _loggerFactory : LoggerFactory.getILoggerFactory(),
+        _loggerFactory != null ? _loggerFactory : new CachedLoggerFactory(LoggerFactory.getILoggerFactory()),
         _properties
         );
     return engine;

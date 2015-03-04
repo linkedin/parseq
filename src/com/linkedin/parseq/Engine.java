@@ -133,8 +133,8 @@ public class Engine
     } while (!_stateRef.compareAndSet(currState, newState));
 
     final long planId = NEXT_PLAN_ID.getAndIncrement();
-    //TODO change per-task-class logging to something else
-    // because in log4j2 getting logger instance is expensive
+    //TODO change per-task-class logging to something else because in log4j2 getting logger instance is expensive
+    // ZZ: do we still need this comment?
     final Logger planLogger = _loggerFactory.getLogger(LOGGER_BASE + ":planClass=" + task.getClass().getName());
     final TaskLogger taskLogger = new TaskLogger(task, _allLogger, _rootLogger, planLogger);
     final Executor taskExecutor = new SerialExecutor(_taskExecutor, new CancelPlanRejectionHandler(task));
