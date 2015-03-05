@@ -28,9 +28,11 @@ public class FusionTask<S, T>  extends BaseTask<T> {
   private final PromisePropagator<S, T> _propagator;
   private final Task<S> _task;
   private final Promise<S> _source;
+  private final String _description;
 
   private FusionTask(final String desc, final Task<S> task, final Promise<S> source, final PromisePropagator<S, T> propagator) {
     super(task != null ? task.getName() + FUSION_TRACE_SYMBOL + desc : desc);
+    _description = desc;
     _propagator = propagator;
     _task = task;
     _source = source;
@@ -87,17 +89,17 @@ public class FusionTask<S, T>  extends BaseTask<T> {
 
   @Override
   public <R> Task<R> map(final String desc, final Function1<T,R> f) {
-    return super.map(getName() + FUSION_TRACE_SYMBOL + desc, f);
+    return super.map(_description + FUSION_TRACE_SYMBOL + desc, f);
   }
 
   @Override
   public Task<T> andThen(final String desc, final Consumer1<T> consumer) {
-    return super.andThen(getName() + FUSION_TRACE_SYMBOL + desc, consumer);
+    return super.andThen(_description + FUSION_TRACE_SYMBOL + desc, consumer);
   }
 
   @Override
   public Task<T> recover(final String desc, final Function1<Throwable, T> f) {
-    return super.recover(getName() + FUSION_TRACE_SYMBOL + desc, f);
+    return super.recover(_description + FUSION_TRACE_SYMBOL + desc, f);
   }
 
   @Override
@@ -128,12 +130,12 @@ public class FusionTask<S, T>  extends BaseTask<T> {
 
   @Override
   public Task<T> onFailure(final String desc, final Consumer1<Throwable> consumer) {
-    return super.onFailure(getName() + FUSION_TRACE_SYMBOL + desc, consumer);
+    return super.onFailure(_description + FUSION_TRACE_SYMBOL + desc, consumer);
   }
 
   @Override
   public Task<Try<T>> withTry(final String desc) {
-    return super.withTry(getName() + FUSION_TRACE_SYMBOL + desc);
+    return super.withTry(_description + FUSION_TRACE_SYMBOL + desc);
   }
 
   protected SettablePromise<T> propagate(SettablePromise<T> result) {
