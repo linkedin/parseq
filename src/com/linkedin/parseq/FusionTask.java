@@ -29,8 +29,8 @@ public class FusionTask<S, T>  extends BaseTask<T> {
   private final Task<S> _task;
   private final Promise<S> _source;
 
-  private FusionTask(final String name, final Task<S> task, final Promise<S> source, final PromisePropagator<S, T> propagator) {
-    super(name);
+  private FusionTask(final String desc, final Task<S> task, final Promise<S> source, final PromisePropagator<S, T> propagator) {
+    super(task != null ? task.getName() + FUSION_TRACE_SYMBOL + desc : desc);
     _propagator = propagator;
     _task = task;
     _source = source;

@@ -156,5 +156,11 @@ public class Tuple6TaskDelegate<T1, T2, T3, T4, T5, T6> implements Tuple6Task<T1
   public boolean isFailed() {
     return _task.isFailed();
   }
+  
+  @Override
+  public Task<?> getTraceableTask() {
+    return _task;
+  }
+  
 
 }

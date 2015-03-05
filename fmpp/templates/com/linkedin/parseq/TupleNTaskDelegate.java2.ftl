@@ -160,6 +160,12 @@ public class Tuple${i}TaskDelegate<<@typeParameters i/>> implements Tuple${i}Tas
   public boolean isFailed() {
     return _task.isFailed();
   }
+  
+  @Override
+  public Task<?> getTraceableTask() {
+    return _task;
+  }
+  
 
 }
 </#list>

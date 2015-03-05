@@ -18,10 +18,6 @@ package com.linkedin.parseq;
 
 import static com.linkedin.parseq.function.Tuples.tuple;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.linkedin.parseq.function.Function8;
 import com.linkedin.parseq.function.Tuple8;
 import com.linkedin.parseq.internal.InternalUtil;
 import com.linkedin.parseq.internal.SystemHiddenTask;
@@ -44,16 +40,9 @@ public class Par8Task<T1, T2, T3, T4, T5, T6, T7, T8> extends SystemHiddenTask<T
   {
     final SettablePromise<Tuple8<T1, T2, T3, T4, T5, T6, T7, T8>> result = Promises.settable();
 
-    InternalUtil.after(p -> {
-      final List<Throwable> errors = new ArrayList<Throwable>();
-      _tasks.forEach(o -> {
-        Task<?> t = (Task<?>)o;
-        if (t.isFailed()) {
-          errors.add(t.getError());
-        }
-      });
-      if (!errors.isEmpty()) {
-        result.fail(errors.size() == 1 ? errors.get(0) : new MultiException("Multiple errors in parallel task.", errors));
+    InternalUtil.fastFailAfter(p -> {
+      if (p.isFailed()) {
+        result.fail(p.getError());
       } else {
         result.done(tuple(_tasks._1().get(),
                           _tasks._2().get(),
@@ -78,10 +67,5 @@ public class Par8Task<T1, T2, T3, T4, T5, T6, T7, T8> extends SystemHiddenTask<T
 
     return result;
   }
-
-  public <R> Task<R> map(final Function8<T1, T2, T3, T4, T5, T6, T7, T8, R> f) {
-    return map(tuple -> f.apply(tuple._1(), tuple._2(), tuple._3(), tuple._4(), tuple._5(), tuple._6(), tuple._7(), tuple._8()));
-  }
-
 
 }

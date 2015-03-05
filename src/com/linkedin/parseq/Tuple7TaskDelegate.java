@@ -156,5 +156,11 @@ public class Tuple7TaskDelegate<T1, T2, T3, T4, T5, T6, T7> implements Tuple7Tas
   public boolean isFailed() {
     return _task.isFailed();
   }
+  
+  @Override
+  public Task<?> getTraceableTask() {
+    return _task;
+  }
+  
 
 }

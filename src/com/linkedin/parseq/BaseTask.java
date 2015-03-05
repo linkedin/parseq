@@ -154,9 +154,11 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
       {
         if (parent != null)
         {
-          _relationshipBuilder.addRelationship(Relationship.CHILD_OF, parent);
+          _relationshipBuilder.addRelationship(Relationship.CHILD_OF, parent.getTraceableTask());
         }
-        _relationshipBuilder.addRelationship(Relationship.SUCCESSOR_OF, predecessors);
+        for (Task<?> predecessor: predecessors) {
+          _relationshipBuilder.addRelationship(Relationship.SUCCESSOR_OF, predecessor.getTraceableTask());
+        }
 
         taskLogger.logTaskStart(this);
         try
@@ -200,9 +202,11 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
       //TODO this is only possible when task was cancelled - move this to cancel method?
       if (parent != null)
       {
-        _relationshipBuilder.addRelationship(Relationship.POTENTIAL_CHILD_OF, parent);
+        _relationshipBuilder.addRelationship(Relationship.POTENTIAL_CHILD_OF, parent.getTraceableTask());
       }
-      _relationshipBuilder.addRelationship(Relationship.POSSIBLE_SUCCESSOR_OF, predecessors);
+      for (Task<?> predecessor: predecessors) {
+        _relationshipBuilder.addRelationship(Relationship.POSSIBLE_SUCCESSOR_OF, predecessor.getTraceableTask());
+      }
     }
   }
 
@@ -417,7 +421,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
                                    final Task<?> task)
     {
       final Cancellable cancellable = _context.createTimer(time, unit, task);
-      _relationshipBuilder.addRelationship(Relationship.POTENTIAL_PARENT_OF, task);
+      _relationshipBuilder.addRelationship(Relationship.POTENTIAL_PARENT_OF, task.getTraceableTask());
       return cancellable;
     }
 
@@ -427,7 +431,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
       _context.run(tasks);
       for(Task<?> task : tasks)
       {
-        _relationshipBuilder.addRelationship(Relationship.POTENTIAL_PARENT_OF, task);
+        _relationshipBuilder.addRelationship(Relationship.POTENTIAL_PARENT_OF, task.getTraceableTask());
       }
     }
 
@@ -446,7 +450,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     @Override
     public void runSubTask(Task<?> task, Task<?> rootTask) {
       _context.runSubTask(task, rootTask);
-      _relationshipBuilder.addRelationship(Relationship.POTENTIAL_PARENT_OF, task);
+      _relationshipBuilder.addRelationship(Relationship.POTENTIAL_PARENT_OF, task.getTraceableTask());
     }
 
     @Override
@@ -468,7 +472,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     public void run(final Task<?> task)
     {
       _after.run(task);
-      _relationshipBuilder.addRelationship(Relationship.POTENTIAL_PARENT_OF, task);
+      _relationshipBuilder.addRelationship(Relationship.POTENTIAL_PARENT_OF, task.getTraceableTask());
     }
 
     @Override
@@ -476,7 +480,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
       _after.run(() -> {
         Optional<Task<?>> task = taskSupplier.get();
         if (task.isPresent()) {
-          _relationshipBuilder.addRelationship(Relationship.POTENTIAL_PARENT_OF, task.get());
+          _relationshipBuilder.addRelationship(Relationship.POTENTIAL_PARENT_OF, task.get().getTraceableTask());
         }
         return task;
       });
@@ -486,7 +490,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     public void runSideEffect(final Task<?> task)
     {
       _after.runSideEffect(task);
-      _relationshipBuilder.addRelationship(Relationship.POTENTIAL_PARENT_OF, task);
+      _relationshipBuilder.addRelationship(Relationship.POTENTIAL_PARENT_OF, task.getTraceableTask());
     }
   }
 

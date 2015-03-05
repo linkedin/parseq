@@ -156,5 +156,11 @@ public class Tuple3TaskDelegate<T1, T2, T3> implements Tuple3Task<T1, T2, T3> {
   public boolean isFailed() {
     return _task.isFailed();
   }
+  
+  @Override
+  public Task<?> getTraceableTask() {
+    return _task;
+  }
+  
 
 }

@@ -22,10 +22,6 @@ package com.linkedin.parseq;
 
 import static com.linkedin.parseq.function.Tuples.tuple;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.linkedin.parseq.function.Function${i};
 import com.linkedin.parseq.function.Tuple${i};
 import com.linkedin.parseq.internal.InternalUtil;
 import com.linkedin.parseq.internal.SystemHiddenTask;
@@ -48,16 +44,9 @@ public class Par${i}Task<<@typeParameters i/>> extends SystemHiddenTask<Tuple${i
   {
     final SettablePromise<Tuple${i}<<@typeParameters i/>>> result = Promises.settable();
 
-    InternalUtil.after(p -> {
-      final List<Throwable> errors = new ArrayList<Throwable>();
-      _tasks.forEach(o -> {
-        Task<?> t = (Task<?>)o;
-        if (t.isFailed()) {
-          errors.add(t.getError());
-        }
-      });
-      if (!errors.isEmpty()) {
-        result.fail(errors.size() == 1 ? errors.get(0) : new MultiException("Multiple errors in parallel task.", errors));
+    InternalUtil.fastFailAfter(p -> {
+      if (p.isFailed()) {
+        result.fail(p.getError());
       } else {
         result.done(tuple(_tasks._1().get(),
 <@csvNL 2..i; j>                          _tasks._${j}().get()</@csvNL>));
@@ -69,11 +58,6 @@ public class Par${i}Task<<@typeParameters i/>> extends SystemHiddenTask<Tuple${i
 
     return result;
   }
-
-  public <R> Task<R> map(final Function${i}<<@typeParameters i/>, R> f) {
-    return map(tuple -> f.apply(<@tupleArgs i/>));
-  }
-
 
 }
 </#list>

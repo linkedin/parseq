@@ -48,14 +48,6 @@ public class RelationshipBuilder<K>
     _relationships.add(new Related<K>(relationship, to));
   }
 
-  public void addRelationship(Relationship relationship, Iterable<K> toIterable)
-  {
-    for(K to : toIterable)
-    {
-      addRelationship(relationship, to);
-    }
-  }
-
   public void removeRelationship(Relationship relationship, K to)
   {
     ArgumentUtil.requireNotNull(relationship, "relationship");

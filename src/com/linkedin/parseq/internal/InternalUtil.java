@@ -17,6 +17,7 @@
 package com.linkedin.parseq.internal;
 
 import com.linkedin.parseq.promise.CountDownPromiseListener;
+import com.linkedin.parseq.promise.FastFailCountDownPromiseListener;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
 import com.linkedin.parseq.promise.Promises;
@@ -31,7 +32,7 @@ public class InternalUtil
   private InternalUtil() {}
 
   /**
-   * Invokes the {@code listener} once all givne {@code promises} have been resolved.
+   * Invokes the {@code listener} once all given {@code promises} have been resolved.
    *
    * @param listener the listener to invoke when the promises have finished.
    * @param promises the set of promises that must be resolved
@@ -42,6 +43,28 @@ public class InternalUtil
   {
     final SettablePromise<Object> afterPromise = Promises.settable();
     final PromiseListener<Object> countDownListener = new CountDownPromiseListener<Object>(promises.length, afterPromise, null);
+
+    for (Promise<?> promise : promises)
+    {
+      unwildcardPromise(promise).addListener(countDownListener);
+    }
+
+    afterPromise.addListener(unwildcardListener(listener));
+  }
+
+  /**
+   * Invokes the {@code listener} once all given {@code promises} have been resolved
+   * or any of promises has been resolved with failure.
+   *
+   * @param listener the listener to invoke when the promises have finished.
+   * @param promises the set of promises that must be resolved
+   *
+   * @see com.linkedin.parseq.promise.PromiseListener
+   */
+  public static void fastFailAfter(final PromiseListener<?> listener, final Promise<?>... promises)
+  {
+    final SettablePromise<Object> afterPromise = Promises.settable();
+    final PromiseListener<Object> countDownListener = new FastFailCountDownPromiseListener<Object>(promises.length, afterPromise, null);
 
     for (Promise<?> promise : promises)
     {

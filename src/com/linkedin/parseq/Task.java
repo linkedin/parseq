@@ -130,6 +130,10 @@ public interface Task<T> extends Promise<T>, Cancellable
 
   //------------------- default methods -------------------
 
+  default Task<?> getTraceableTask() {
+    return this;
+  }
+
   default <R> Task<R> apply(final String desc, final PromisePropagator<T, R> propagator) {
     return FusionTask.fuse(desc, this, propagator);
   }
@@ -770,10 +774,14 @@ public interface Task<T> extends Promise<T>, Cancellable
    * {@link #blocking(String, ThrowableCallable, Executor) blocking} method.
    * <p/>
    *
-   * @param name
-   * @param callable
-   * @param systemHidden
-   * @return
+   * @param <T> the type of the return value for this task
+   * @param name a name that describes the task, it will show up in a trace
+   * @param callable a callable to execute when this task is run, it must return
+   * a {@code Promise<T>}
+   * @param systemHidden flag that specifies whether trace of this task will have
+   * a system-hidden flag set
+   * @return a new task that will invoke the callable and complete with result
+   * returned by a {@code Promise} returned by it
    * @see Promise
    */
   public static <T> Task<T> async(final String name, final ThrowableCallable<Promise<? extends T>> callable,
@@ -788,17 +796,37 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   /**
-   * Equivalent to {@code async("async", callable, systemHidden);}.
+   * Equivalent to {@code async("async", callable, systemHidden)}.
    * @see #async(String, ThrowableCallable, boolean)
    */
   public static <T> Task<T> async(final ThrowableCallable<Promise<? extends T>> callable, final boolean systemHidden) {
     return async("async", callable, systemHidden);
   }
 
+  /**
+   * Creates a new task from a callable that returns a {@link Promise}.
+   * This method is mainly used to build functionality that has not been provided
+   * by ParSeq API. It gives access to {@link Context} which allows scheduling
+   * tasks in current plan. This method almost never should be necessary. If you
+   * feel the need to use this method, please contact ParSeq team to help us
+   * improve our API.
+   *
+   * @param <T> the type of the return value for this task
+   * @param name a name that describes the task, it will show up in a trace
+   * @param func a function to execute when this task is run, it must return
+   * a {@code Promise<T>}
+   * @param systemHidden flag that specifies whether trace of this task will have
+   * a system-hidden flag set
+   * @return a new task that will invoke the function and complete with result
+   * returned by a {@code Promise} returned by it
+   * @see Context
+   * @see Promise
+   */
   public static <T> Task<T> async(final String name, final Function1<Context, Promise<? extends T>> func,
       final boolean systemHidden) {
     ArgumentUtil.requireNotNull(func, "function");
     return new BaseTask<T>(name) {
+
       @Override
       protected Promise<? extends T> run(Context context) throws Throwable {
         return func.apply(context);
@@ -811,13 +839,33 @@ public interface Task<T> extends Promise<T>, Cancellable
     };
   }
 
+  /**
+   * Equivalent to {@code async("async", func, systemHidden)}.
+   * @see #async(String, Function1, boolean)
+   */
   public static <T> Task<T> async(final Function1<Context, Promise<? extends T>> func, final boolean systemHidden) {
     return async("async", func, systemHidden);
   }
 
+  /**
+   * This method provides a way to create an asynchronous task from
+   * a blocking or long running callables like JDBC requests.
+   * Unlike with tasks created with all other methods a callable passed
+   * as a parameter is not executed on ParSeq's thread but instead it is
+   * executed on specified {@link Executor}. It means that callable
+   * does not get any special memory consistency guarantees and should not
+   * attempt to use shared state.
+   *
+   * @param <T> the type of the return value for this task
+   * @param name a name that describes the task, it will show up in a trace
+   * @param callable a callable that will provide result
+   * @param executor {@code Executor} that will be used to run the callable
+   * @return a new task that will submit the callable to given executor and complete
+   * with result returned by that callable
+   */
   public static <T> Task<T> blocking(final String name, final ThrowableCallable<? extends T> callable, final Executor executor) {
     ArgumentUtil.requireNotNull(callable, "callable");
-    return async(name, context -> {
+    return async(name, () -> {
       final SettablePromise<T> promise = Promises.settable();
       executor.execute(() -> {
         try {
@@ -830,21 +878,82 @@ public interface Task<T> extends Promise<T>, Cancellable
     }, false);
   }
 
+  /**
+   * Equivalent to {@code blocking("blocking", callable, executor)}.
+   * @see #blocking(String, ThrowableCallable, Executor)
+   */
   public static <T> Task<T> blocking(final ThrowableCallable<? extends T> callable, final Executor executor) {
     return blocking("blocking", callable, executor);
   }
 
+  /**
+   * Creates a new task that will run given tasks in parallel. Returned task
+   * will be resolved with results of all tasks as soon as all of them has
+   * been completed successfully.
+   *
+   * <pre><code>
+   *  // this task will asynchronously fetch user and company in parallel
+   *  // and create signature in a form {@code "<first name> <last name> working for <company>"}
+   *  Task{@code <String>} signature =
+   *      Task.par(fetchUser(userId), fetchCompany(companyId))
+   *        .map((user, company) {@code ->}
+   *          user.getFirstName() + user.getLastName() + " working for " + company.getName());
+   * </code></pre>
+   *
+   * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
+   * In this case returned task will be resolved with error from the first of failing tasks.
+   * <p/>
+   * @return task that will run given tasks in parallel
+   */
   public static <T1, T2> Tuple2Task<T1, T2> par(final Task<T1> task1,
                                                 final Task<T2> task2) {
     return new Par2Task<T1, T2>("par2", task1, task2);
   }
 
+  /**
+   * Creates a new task that will run given tasks in parallel. Returned task
+   * will be resolved with results of all tasks as soon as all of them has
+   * been completed successfully.
+   *
+   * <pre><code>
+   *  // this task will asynchronously fetch user and company in parallel
+   *  // and create signature in a form {@code "<first name> <last name> working for <company>"}
+   *  Task{@code <String>} signature =
+   *      Task.par(fetchUser(userId), fetchCompany(companyId))
+   *        .map((user, company) {@code ->}
+   *          user.getFirstName() + user.getLastName() + " working for " + company.getName());
+   * </code></pre>
+   *
+   * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
+   * In this case returned task will be resolved with error from the first of failing tasks.
+   * <p/>
+   * @return task that will run given tasks in parallel
+   */
   public static <T1, T2, T3> Tuple3Task<T1, T2, T3> par(final Task<T1> task1,
                                                         final Task<T2> task2,
                                                         final Task<T3> task3) {
     return new Par3Task<T1, T2, T3>("par3", task1, task2, task3);
   }
 
+  /**
+   * Creates a new task that will run given tasks in parallel. Returned task
+   * will be resolved with results of all tasks as soon as all of them has
+   * been completed successfully.
+   *
+   * <pre><code>
+   *  // this task will asynchronously fetch user and company in parallel
+   *  // and create signature in a form {@code "<first name> <last name> working for <company>"}
+   *  Task{@code <String>} signature =
+   *      Task.par(fetchUser(userId), fetchCompany(companyId))
+   *        .map((user, company) {@code ->}
+   *          user.getFirstName() + user.getLastName() + " working for " + company.getName());
+   * </code></pre>
+   *
+   * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
+   * In this case returned task will be resolved with error from the first of failing tasks.
+   * <p/>
+   * @return task that will run given tasks in parallel
+   */
   public static <T1, T2, T3, T4> Tuple4Task<T1, T2, T3, T4> par(final Task<T1> task1,
                                                                 final Task<T2> task2,
                                                                 final Task<T3> task3,
@@ -852,6 +961,25 @@ public interface Task<T> extends Promise<T>, Cancellable
     return new Par4Task<T1, T2, T3, T4>("par4", task1, task2, task3, task4);
   }
 
+  /**
+   * Creates a new task that will run given tasks in parallel. Returned task
+   * will be resolved with results of all tasks as soon as all of them has
+   * been completed successfully.
+   *
+   * <pre><code>
+   *  // this task will asynchronously fetch user and company in parallel
+   *  // and create signature in a form {@code "<first name> <last name> working for <company>"}
+   *  Task{@code <String>} signature =
+   *      Task.par(fetchUser(userId), fetchCompany(companyId))
+   *        .map((user, company) {@code ->}
+   *          user.getFirstName() + user.getLastName() + " working for " + company.getName());
+   * </code></pre>
+   *
+   * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
+   * In this case returned task will be resolved with error from the first of failing tasks.
+   * <p/>
+   * @return task that will run given tasks in parallel
+   */
   public static <T1, T2, T3, T4, T5> Tuple5Task<T1, T2, T3, T4, T5> par(final Task<T1> task1,
                                                                         final Task<T2> task2,
                                                                         final Task<T3> task3,
@@ -860,6 +988,25 @@ public interface Task<T> extends Promise<T>, Cancellable
     return new Par5Task<T1, T2, T3, T4, T5>("par5", task1, task2, task3, task4, task5);
   }
 
+  /**
+   * Creates a new task that will run given tasks in parallel. Returned task
+   * will be resolved with results of all tasks as soon as all of them has
+   * been completed successfully.
+   *
+   * <pre><code>
+   *  // this task will asynchronously fetch user and company in parallel
+   *  // and create signature in a form {@code "<first name> <last name> working for <company>"}
+   *  Task{@code <String>} signature =
+   *      Task.par(fetchUser(userId), fetchCompany(companyId))
+   *        .map((user, company) {@code ->}
+   *          user.getFirstName() + user.getLastName() + " working for " + company.getName());
+   * </code></pre>
+   *
+   * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
+   * In this case returned task will be resolved with error from the first of failing tasks.
+   * <p/>
+   * @return task that will run given tasks in parallel
+   */
   public static <T1, T2, T3, T4, T5, T6> Tuple6Task<T1, T2, T3, T4, T5, T6> par(final Task<T1> task1,
                                                                                 final Task<T2> task2,
                                                                                 final Task<T3> task3,
@@ -869,6 +1016,25 @@ public interface Task<T> extends Promise<T>, Cancellable
     return new Par6Task<T1, T2, T3, T4, T5, T6>("par6", task1, task2, task3, task4, task5, task6);
   }
 
+  /**
+   * Creates a new task that will run given tasks in parallel. Returned task
+   * will be resolved with results of all tasks as soon as all of them has
+   * been completed successfully.
+   *
+   * <pre><code>
+   *  // this task will asynchronously fetch user and company in parallel
+   *  // and create signature in a form {@code "<first name> <last name> working for <company>"}
+   *  Task{@code <String>} signature =
+   *      Task.par(fetchUser(userId), fetchCompany(companyId))
+   *        .map((user, company) {@code ->}
+   *          user.getFirstName() + user.getLastName() + " working for " + company.getName());
+   * </code></pre>
+   *
+   * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
+   * In this case returned task will be resolved with error from the first of failing tasks.
+   * <p/>
+   * @return task that will run given tasks in parallel
+   */
   public static <T1, T2, T3, T4, T5, T6, T7> Tuple7Task<T1, T2, T3, T4, T5, T6, T7> par(final Task<T1> task1,
                                                                                         final Task<T2> task2,
                                                                                         final Task<T3> task3,
@@ -879,6 +1045,25 @@ public interface Task<T> extends Promise<T>, Cancellable
     return new Par7Task<T1, T2, T3, T4, T5, T6, T7>("par7", task1, task2, task3, task4, task5, task6, task7);
   }
 
+  /**
+   * Creates a new task that will run given tasks in parallel. Returned task
+   * will be resolved with results of all tasks as soon as all of them has
+   * been completed successfully.
+   *
+   * <pre><code>
+   *  // this task will asynchronously fetch user and company in parallel
+   *  // and create signature in a form {@code "<first name> <last name> working for <company>"}
+   *  Task{@code <String>} signature =
+   *      Task.par(fetchUser(userId), fetchCompany(companyId))
+   *        .map((user, company) {@code ->}
+   *          user.getFirstName() + user.getLastName() + " working for " + company.getName());
+   * </code></pre>
+   *
+   * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
+   * In this case returned task will be resolved with error from the first of failing tasks.
+   * <p/>
+   * @return task that will run given tasks in parallel
+   */
   public static <T1, T2, T3, T4, T5, T6, T7, T8> Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> par(final Task<T1> task1,
                                                                                                 final Task<T2> task2,
                                                                                                 final Task<T3> task3,
@@ -890,6 +1075,25 @@ public interface Task<T> extends Promise<T>, Cancellable
     return new Par8Task<T1, T2, T3, T4, T5, T6, T7, T8>("par8", task1, task2, task3, task4, task5, task6, task7, task8);
   }
 
+  /**
+   * Creates a new task that will run given tasks in parallel. Returned task
+   * will be resolved with results of all tasks as soon as all of them has
+   * been completed successfully.
+   *
+   * <pre><code>
+   *  // this task will asynchronously fetch user and company in parallel
+   *  // and create signature in a form {@code "<first name> <last name> working for <company>"}
+   *  Task{@code <String>} signature =
+   *      Task.par(fetchUser(userId), fetchCompany(companyId))
+   *        .map((user, company) {@code ->}
+   *          user.getFirstName() + user.getLastName() + " working for " + company.getName());
+   * </code></pre>
+   *
+   * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
+   * In this case returned task will be resolved with error from the first of failing tasks.
+   * <p/>
+   * @return task that will run given tasks in parallel
+   */
   public static <T1, T2, T3, T4, T5, T6, T7, T8, T9> Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> par(final Task<T1> task1,
                                                                                                         final Task<T2> task2,
                                                                                                         final Task<T3> task3,
