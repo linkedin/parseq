@@ -163,7 +163,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @param func function to be applied to successful result of this task.
    * @return a new task which will apply given function on result of successful completion of this task
    */
-  default <R> Task<R> map(final String desc, final Function1<T, R> func) {
+  default <R> Task<R> map(final String desc, final Function1<? super T,? extends R> func) {
     ArgumentUtil.requireNotNull(func, "function");
     return apply(desc, new PromiseTransformer<T, R>(func));
   }
@@ -172,7 +172,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * Equivalent to {@code map("map", func)}.
    * @see #map(String, Function)
    */
-  default <R> Task<R> map(final Function1<T, R> func) {
+  default <R> Task<R> map(final Function1<? super T,? extends R> func) {
     return map("map", func);
   }
 
@@ -203,7 +203,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @return a new task which will apply given function on result of successful completion of this task
    * to get instance of a task which will be executed next
    */
-  default <R> Task<R> flatMap(final String desc, final Function1<T, Task<R>> func) {
+  default <R> Task<R> flatMap(final String desc, final Function1<? super T, Task<R>> func) {
     ArgumentUtil.requireNotNull(func, "function");
     return flatten(desc, map(func));
   }
@@ -212,7 +212,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * Equivalent to {@code flatMap("flatMap", func)}.
    * @see #flatMap(String, Function)
    */
-  default <R> Task<R> flatMap(final Function1<T, Task<R>> func) {
+  default <R> Task<R> flatMap(final Function1<? super T, Task<R>> func) {
     return flatMap("flatMap", func);
   }
 
@@ -244,7 +244,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @return a new task that will run side effect task specified by given function upon succesful
    * completion of this task
    */
-  default Task<T> withSideEffect(final String desc, final Function1<T, Task<?>> func) {
+  default Task<T> withSideEffect(final String desc, final Function1<? super T, Task<?>> func) {
     ArgumentUtil.requireNotNull(func, "function");
     final Task<T> that = this;
     return async(desc, context -> {
@@ -263,7 +263,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * Equivalent to {@code withSideEffect("withSideEffect", func)}.
    * @see #withSideEffect(String, Function)
    */
-  default Task<T> withSideEffect(final Function1<T, Task<?>> func) {
+  default Task<T> withSideEffect(final Function1<? super T, Task<?>> func) {
     return withSideEffect("withSideEffect", func);
   }
 
@@ -294,7 +294,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @param consumer consumer of a value returned by this task
    * @return a new task which will complete with result of this task
    */
-  default Task<T> andThen(final String desc, final Consumer1<T> consumer) {
+  default Task<T> andThen(final String desc, final Consumer1<? super T> consumer) {
     ArgumentUtil.requireNotNull(consumer, "consumer");
     return apply(desc,
         new PromiseTransformer<T, T>(t -> {
@@ -307,7 +307,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * Equivalent to {@code andThen("andThen", consumer)}.
    * @see #andThen(String, Consumer1)
    */
-  default Task<T> andThen(final Consumer1<T> consumer) {
+  default Task<T> andThen(final Consumer1<? super T> consumer) {
     return andThen("andThen", consumer);
   }
 

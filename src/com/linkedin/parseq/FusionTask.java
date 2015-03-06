@@ -88,12 +88,12 @@ public class FusionTask<S, T>  extends BaseTask<T> {
   };
 
   @Override
-  public <R> Task<R> map(final String desc, final Function1<T,R> f) {
+  public <R> Task<R> map(final String desc, final Function1<? super T,? extends R> f) {
     return super.map(_description + FUSION_TRACE_SYMBOL + desc, f);
   }
 
   @Override
-  public Task<T> andThen(final String desc, final Consumer1<T> consumer) {
+  public Task<T> andThen(final String desc, final Consumer1<? super T> consumer) {
     return super.andThen(_description + FUSION_TRACE_SYMBOL + desc, consumer);
   }
 
