@@ -12,6 +12,8 @@ import com.linkedin.parseq.promise.PromiseResolvedException;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.Settable;
 import com.linkedin.parseq.promise.SettablePromise;
+import com.linkedin.parseq.trace.ShallowTrace;
+import com.linkedin.parseq.trace.ShallowTraceBuilder;
 
 /**
  *
@@ -29,13 +31,16 @@ public class FusionTask<S, T>  extends BaseTask<T> {
   private final Task<S> _task;
   private final Promise<S> _source;
   private final String _description;
+  private final boolean _systemHidden;
 
-  private FusionTask(final String desc, final Task<S> task, final Promise<S> source, final PromisePropagator<S, T> propagator) {
+  private FusionTask(final String desc, final Task<S> task, final Promise<S> source,
+      final PromisePropagator<S, T> propagator, final boolean systemHidden) {
     super(task != null ? task.getName() + FUSION_TRACE_SYMBOL + desc : desc);
     _description = desc;
     _propagator = propagator;
     _task = task;
     _source = source;
+    _systemHidden = systemHidden;
   }
 
   private PromisePropagator<S, T> fulfilling(final PromisePropagator<S, T> propagator) {
@@ -74,12 +79,12 @@ public class FusionTask<S, T>  extends BaseTask<T> {
     if (task instanceof FusionTask) {
       return ((FusionTask<?, S>)task).apply(name, propagator);
     } else {
-      return new FusionTask<S, T>(name, task, task, propagator);
+      return new FusionTask<S, T>(name, task, task, propagator, true);
     }
   }
 
   public static <S, T> FusionTask<?, T> create(final String name, final Promise<S> source, final PromisePropagator<S, T> propagator) {
-    return new FusionTask<S, T>(name, null, source, propagator);
+    return new FusionTask<S, T>(name, null, source, propagator, false);
   }
 
   @Override
@@ -154,11 +159,16 @@ public class FusionTask<S, T>  extends BaseTask<T> {
       propagate(result);
     } else {
       final Task<? extends T> propagationTask =
-          Task.async(FusionTask.this.getName(), () -> propagate(result), false);
+          Task.async(_description, () -> propagate(result), false);
       context.after(_task).run(propagationTask);
       context.run(_task);
     }
     return result;
+  }
+
+  @Override
+  public ShallowTrace getShallowTrace() {
+    return new ShallowTraceBuilder(super.getShallowTrace()).setSystemHidden(_systemHidden).build();
   }
 
 }
