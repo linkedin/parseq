@@ -54,8 +54,6 @@ public class Engine
 
   private static enum StateName { RUN, SHUTDOWN, TERMINATED }
 
-  private final AtomicLong NEXT_PLAN_ID = new AtomicLong();
-
   private final Executor _taskExecutor;
   private final DelayedExecutor _timerExecutor;
   private final ILoggerFactory _loggerFactory;
@@ -132,13 +130,13 @@ public class Engine
       newState = new State(StateName.RUN, currState._pendingCount + 1);
     } while (!_stateRef.compareAndSet(currState, newState));
 
-    final long planId = NEXT_PLAN_ID.getAndIncrement();
     //TODO change per-task-class logging to something else because in log4j2 getting logger instance is expensive
     // ZZ: do we still need this comment?
     final Logger planLogger = _loggerFactory.getLogger(LOGGER_BASE + ":planClass=" + task.getClass().getName());
     final TaskLogger taskLogger = new TaskLogger(task, _allLogger, _rootLogger, planLogger);
     final Executor taskExecutor = new SerialExecutor(_taskExecutor, new CancelPlanRejectionHandler(task));
-    new ContextImpl(new PlanContext(planId, this, taskExecutor, _timerExecutor, taskLogger), task).runTask();
+    PlanContext planContext = new PlanContext(this, taskExecutor, _timerExecutor, taskLogger);
+    new ContextImpl(planContext, task).runTask();
 
     InternalUtil.unwildcardTask(task).addListener(_taskDoneListener);
   }

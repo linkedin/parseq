@@ -18,9 +18,9 @@ package com.linkedin.parseq;
 
 import java.util.Collection;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import com.linkedin.parseq.function.Consumer1;
 import com.linkedin.parseq.function.Function1;
@@ -35,7 +35,6 @@ import com.linkedin.parseq.promise.PromisePropagator;
 import com.linkedin.parseq.promise.PromiseTransformer;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
-import com.linkedin.parseq.trace.Related;
 import com.linkedin.parseq.trace.ShallowTrace;
 import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.Trace;
@@ -90,6 +89,17 @@ public interface Task<T> extends Promise<T>, Cancellable
   boolean setPriority(int priority);
 
   /**
+   * Allows adding {@code String} representation of value computed by this task to trace.
+   * When this task is finished successfully, value will be converted to String using given
+   * serializer and it will be included in this task's trace.
+   * <p/>
+   * Failures are automatically included in a trace.
+   * @param serializer serialized used for converting result of this task
+   * to String that will be included in this task's trace.
+   */
+  void traceValue(Function<T, String> serializer);
+
+  /**
    * Attempts to run the task with the given context. This method is
    * reserved for use by {@link Engine} and {@link Context}.
    *
@@ -121,18 +131,18 @@ public interface Task<T> extends Promise<T>, Cancellable
   Trace getTrace();
 
   /**
-   * Returns the set of relationships of this task. The parent relationships are not included.
-   *
-   * @see com.linkedin.parseq.trace.Relationship the available relationships
-   * @return the set of relationships of this task.
+   * Id of a
+   * @return
    */
-  Set<Related<Task<?>>> getRelationships();
+  long getId();
+
+  /**
+   * Returns builder of a ShallowTrace.
+   * @return builder of a ShallowTrace.
+   */
+  ShallowTraceBuilder getShallowTraceBuilder();
 
   //------------------- default methods -------------------
-
-  default Task<?> getTraceableTask() {
-    return this;
-  }
 
   default <R> Task<R> apply(final String desc, final PromisePropagator<T, R> propagator) {
     return FusionTask.fuse(desc, this, propagator);
@@ -205,7 +215,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    */
   default <R> Task<R> flatMap(final String desc, final Function1<? super T, Task<R>> func) {
     ArgumentUtil.requireNotNull(func, "function");
-    return flatten(desc, map(func));
+    return flatten(desc, map("flatMap", func));
   }
 
   /**
@@ -578,6 +588,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @param <T> the value type for the task
    * @return the new task with a timeout
    */
+  //TODO change withTimeout to return new task
   default Task<T> withTimeout(final long time, final TimeUnit unit)
   {
     wrapContextRun(new TimeoutContextRunWrapper<T>(time, unit, Exceptions.TIMEOUT_EXCEPTION));
@@ -711,6 +722,8 @@ public interface Task<T> extends Promise<T>, Cancellable
     });
   }
 
+
+  //TODO refactor to use Callable instead
   /**
    * Equivalent to {@code callable("callable", callable)}.
    * @see #callable(String, ThrowableCallable)
@@ -834,7 +847,8 @@ public interface Task<T> extends Promise<T>, Cancellable
 
       @Override
       public ShallowTrace getShallowTrace() {
-        return new ShallowTraceBuilder(super.getShallowTrace()).setSystemHidden(systemHidden).build();
+        _shallowTraceBuilder.setSystemHidden(systemHidden);
+        return super.getShallowTrace();
       }
     };
   }

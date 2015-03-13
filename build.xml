@@ -19,6 +19,7 @@
     <property name="doc.build.dir" value="${build.dir}/doc"/>
     <property name="doc.test.build.dir" value="${build.dir}/doc-test"/>
     <property name="dist.dir" value="${basedir}/dist" />
+	<property name="dot.location" value="/usr/local/bin/dot" />
     <property name="dist.test.dir" value="${basedir}/dist-test" />
 
     <!-- IVY configuration -->
@@ -48,6 +49,10 @@
         <pathelement location="${test.build.dir}"/>
         <fileset dir="${lib.build.dir}/test" includes="*.jar"/>
     </path>
+
+    <condition property="dot.found">
+        <available file="${dot.location}"/>
+    </condition>
 
     <target name="bootstrap" unless="bootstrap.done">
         <mkdir dir="${lib.build.dir}"/>
@@ -252,6 +257,9 @@
                 <arg value="clean" />
             </args>
         </make>
+        <exec executable="mvn" failonerror="true" dir="${tools.dir}/tracevis-server">
+            <arg value="clean"/>
+        </exec>
     </target>
 
     <target name="test-tracevis" unless="no.test.tracevis" description="Run visualization tests">
@@ -270,6 +278,26 @@
         </make>
     </target>
 
+    <target name="package-tracevis-server" description="Builds the tracevis-server package">
+        <exec executable="mvn" failonerror="true" dir="${tools.dir}/tracevis-server">
+            <arg value="package"/>
+        </exec>
+    </target>
+
+    <target name="verify-dot-exists">
+        <fail message="Did not find dot under ${dot.location}. Make sure graphviz is installed and property dot.location points to dot executable." unless="${dot.found}"/>
+    </target>
+
+    <target name="run-tracevis-server" depends="verify-dot-exists, dist-tracevis, package-tracevis-server" description="Runs the tracevis-server" >
+        <delete dir="${java.io.tmpdir}/tracevis-server" />
+        <mkdir dir="${java.io.tmpdir}/tracevis-server" />
+        <untar src="${tools.dir}/tracevis/dist/parseq-tracevis.tar.gz" dest="${java.io.tmpdir}/tracevis-server" compression="gzip"/>
+        <java fork="true" jar="${tools.dir}/tracevis-server/target/tracevis-server-0.0.1-SNAPSHOT-jar-with-dependencies.jar" failonerror="true" dir="${java.io.tmpdir}/tracevis-server">
+            <arg value="8080" />
+            <arg value="${dot.location}" />
+        </java>
+    </target>
+	
     <macrodef name="sign">
         <attribute name="file"/>
         <sequential>

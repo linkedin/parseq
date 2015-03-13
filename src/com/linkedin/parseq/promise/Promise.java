@@ -17,7 +17,6 @@
 package com.linkedin.parseq.promise;
 
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 /**
  * A Promise, like a {@link java.util.concurrent.Future}, represents the result
@@ -125,22 +124,4 @@ public interface Promise<P>
    * @return {@code true} if the promise has en error.
    */
   boolean isFailed();
-
-  /**
-   * When this Promise is done, either through a Throwable or a value,
-   * call the provided Consumer of this Promise.
-   * <p/>
-   * Consumer will be called on a thread which completed this promise.
-   *
-   * @param consumer the Consumer to be called when this Promise is done.
-   */
-  default void onResolve(final Consumer<Promise<P>> consumer)
-  {
-    addListener(new PromiseListener<P>() {
-      @Override
-      public void onResolved(final Promise<P> promise) {
-        consumer.accept(promise);
-      }
-    });
-  }
 }

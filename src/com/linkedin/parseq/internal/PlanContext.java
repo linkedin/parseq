@@ -1,11 +1,12 @@
 package com.linkedin.parseq.internal;
 
-import com.linkedin.parseq.DelayedExecutor;
-import com.linkedin.parseq.Engine;
-import com.linkedin.parseq.Cancellable;
-
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+
+import com.linkedin.parseq.Cancellable;
+import com.linkedin.parseq.DelayedExecutor;
+import com.linkedin.parseq.Engine;
+import com.linkedin.parseq.trace.TraceBuilder;
 
 public class PlanContext
 {
@@ -31,13 +32,15 @@ public class PlanContext
 
   private final TaskLogger _taskLogger;
 
-  public PlanContext(final long id,
-                     final Engine engine,
+  private final TraceBuilder _relationshipsBuilder;
+
+  public PlanContext(final Engine engine,
                      final Executor taskExecutor,
                      final DelayedExecutor timerScheduler,
                      final TaskLogger taskLogger)
   {
-    _id = id;
+    _id = IdGenerator.getNextId();
+    _relationshipsBuilder = new TraceBuilder();
     _engine = engine;
     _taskExecutor = taskExecutor;
     _timerScheduler = timerScheduler;
@@ -68,4 +71,9 @@ public class PlanContext
   {
     return _taskLogger;
   }
+
+  public TraceBuilder getRelationshipsBuilder() {
+    return _relationshipsBuilder;
+  }
+
 }

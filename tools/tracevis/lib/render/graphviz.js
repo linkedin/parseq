@@ -15,18 +15,33 @@
  */
 
 var dot = require('graphlib-dot'),
-    dotify = require('../trace/dotify');
+    dotify = require('../trace/dotify'),
+    sha1 = require('sha1');
 
 module.exports = render;
 
 function render(root, graph) {
   root.classed('graphvizview', true);
 
-  var textarea = root.append('textarea')
-    .style('width', '100%')
-    .style('height', '600px');
-
-  graph = dotify(graph);
-
-  textarea.text(dot.write(graph));
+  var graph = dotify(graph);
+  var dotFormat = dot.write(graph);
+  var hash = sha1(dotFormat);
+  
+  var xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function() {
+  if (xhr.readyState == 4) {
+    if (xhr.status == 200) {
+      root.append('img')
+        .attr('src', 'cache/' + hash + '.svg');
+    } else {
+      var textarea = root.append('textarea')
+        .style('width', '100%')
+        .style('height', '600px');
+      textarea.text(dot.write(graph));
+    }
+  }
+  }
+  xhr.open("POST", "dot?hash=" + hash , true);
+  xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+  xhr.send(dotFormat);
 }

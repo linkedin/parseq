@@ -1,16 +1,16 @@
 package com.linkedin.parseq;
 
 import java.util.Collection;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import com.linkedin.parseq.function.Tuple6;
 import com.linkedin.parseq.internal.TaskLogger;
 import com.linkedin.parseq.promise.PromiseException;
 import com.linkedin.parseq.promise.PromiseListener;
 import com.linkedin.parseq.promise.PromiseUnresolvedException;
-import com.linkedin.parseq.trace.Related;
 import com.linkedin.parseq.trace.ShallowTrace;
+import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.Trace;
 
 public class Tuple6TaskDelegate<T1, T2, T3, T4, T5, T6> implements Tuple6Task<T1, T2, T3, T4, T5, T6> {
@@ -137,14 +137,6 @@ public class Tuple6TaskDelegate<T1, T2, T3, T4, T5, T6> implements Tuple6Task<T1
    * {@inheritDoc}
    */
   @Override
-  public Set<Related<Task<?>>> getRelationships() {
-    return _task.getRelationships();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public boolean isDone() {
     return _task.isDone();
   }
@@ -156,11 +148,23 @@ public class Tuple6TaskDelegate<T1, T2, T3, T4, T5, T6> implements Tuple6Task<T1
   public boolean isFailed() {
     return _task.isFailed();
   }
-  
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public Task<?> getTraceableTask() {
-    return _task;
+  public long getId() {
+    return _task.getId();
   }
-  
+
+  @Override
+  public void traceValue(Function<Tuple6<T1, T2, T3, T4, T5, T6>, String> serializer) {
+    _task.traceValue(serializer);
+  }
+
+  @Override
+  public ShallowTraceBuilder getShallowTraceBuilder() {
+    return _task.getShallowTraceBuilder();
+  }
 
 }

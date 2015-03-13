@@ -12,8 +12,6 @@ import com.linkedin.parseq.promise.PromiseResolvedException;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.Settable;
 import com.linkedin.parseq.promise.SettablePromise;
-import com.linkedin.parseq.trace.ShallowTrace;
-import com.linkedin.parseq.trace.ShallowTraceBuilder;
 
 /**
  *
@@ -31,7 +29,6 @@ public class FusionTask<S, T>  extends BaseTask<T> {
   private final Task<S> _task;
   private final Promise<S> _source;
   private final String _description;
-  private final boolean _systemHidden;
 
   private FusionTask(final String desc, final Task<S> task, final Promise<S> source,
       final PromisePropagator<S, T> propagator, final boolean systemHidden) {
@@ -40,7 +37,7 @@ public class FusionTask<S, T>  extends BaseTask<T> {
     _propagator = propagator;
     _task = task;
     _source = source;
-    _systemHidden = systemHidden;
+    _shallowTraceBuilder.setSystemHidden(systemHidden);
   }
 
   private PromisePropagator<S, T> fulfilling(final PromisePropagator<S, T> propagator) {
@@ -52,6 +49,9 @@ public class FusionTask<S, T>  extends BaseTask<T> {
           try {
             final SettablePromise<T> settable = FusionTask.this.getSettableDelegate();
             if (!settable.isDone()) {
+              FusionTask.this.transitionRun(getState().getTraceBuilder());
+              FusionTask.this.transitionPending();
+              FusionTask.this.transitionDone();
               settable.done(value);
             }
           } finally {
@@ -64,6 +64,9 @@ public class FusionTask<S, T>  extends BaseTask<T> {
           try {
             final SettablePromise<T> settable = FusionTask.this.getSettableDelegate();
             if (!settable.isDone()) {
+              FusionTask.this.transitionRun(getState().getTraceBuilder());
+              FusionTask.this.transitionPending();
+              FusionTask.this.transitionDone();
               settable.fail(error);
             }
           } finally {
@@ -165,10 +168,4 @@ public class FusionTask<S, T>  extends BaseTask<T> {
     }
     return result;
   }
-
-  @Override
-  public ShallowTrace getShallowTrace() {
-    return new ShallowTraceBuilder(super.getShallowTrace()).setSystemHidden(_systemHidden).build();
-  }
-
 }

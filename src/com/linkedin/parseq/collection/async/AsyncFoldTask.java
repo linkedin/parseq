@@ -74,7 +74,7 @@ public class AsyncFoldTask<Z, T> extends BaseTask<Z> implements Ref<Z> {
             _pending++;
             //TODO introduce fusable task type and use it here,
             //this is temporary hack
-            step.getTask().onResolve(p -> {
+            step.getTask().addListener(p -> {
               if (p.isFailed()) {
                 _subscription.cancel();
                 _partialResult = null;

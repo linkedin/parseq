@@ -160,7 +160,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
     } catch (Exception ex) {
       assertSame(ex.getCause(), Exceptions.TIMEOUT_EXCEPTION);
     }
-    assertEquals(countTasks(failure.getTrace()), 3);
+    assertEquals(countTasks(failure.getTrace()), 4);
   }
 
   @Test
@@ -175,7 +175,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
     } catch (Exception ex) {
       assertSame(ex.getCause(), Exceptions.TIMEOUT_EXCEPTION);
     }
-    assertEquals(countTasks(failure.getTrace()), 3);
+    assertEquals(countTasks(failure.getTrace()), 4);
   }
 
   @Test

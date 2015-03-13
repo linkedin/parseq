@@ -16,17 +16,25 @@
 
 package com.linkedin.parseq.trace.codec.json;
 
+import com.linkedin.parseq.trace.Relationship;
 import com.linkedin.parseq.trace.ResultType;
+import com.linkedin.parseq.trace.ShallowTrace;
 import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.Trace;
-import com.linkedin.parseq.trace.TraceRelationshipBuilder;
+import com.linkedin.parseq.trace.TraceRelationship;
+
 import org.codehaus.jackson.JsonNode;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Chi Chan (ckchan@linkedin.com)
+ * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
 class JsonTraceDeserializer
 {
@@ -34,12 +42,10 @@ class JsonTraceDeserializer
 
   public static Trace deserialize(final JsonNode rootNode) throws IOException
   {
-    final TraceRelationshipBuilder<Integer> traceBuilder = new TraceRelationshipBuilder<Integer>();
     try
     {
-      parseTraces(rootNode, traceBuilder);
-      parseRelationships(rootNode, traceBuilder);
-      return traceBuilder.buildRoot();
+      final Map<Long, ShallowTrace> traceMap = parseTraces(rootNode);
+      return new Trace(traceMap, parseRelationships(rootNode, traceMap));
     }
     catch (RuntimeException e)
     {
@@ -47,14 +53,16 @@ class JsonTraceDeserializer
     }
   }
 
-  private static void parseTraces(final JsonNode rootNode, final TraceRelationshipBuilder<Integer> builder) throws IOException
+  private static Map<Long, ShallowTrace> parseTraces(final JsonNode rootNode) throws IOException
   {
+    Map<Long, ShallowTrace> traceMap = new HashMap<>();
     for (JsonNode traceNode : getField(rootNode, JsonTraceCodec.TRACES))
     {
-      final int traceId = getIntField(traceNode, JsonTraceCodec.TRACE_ID);
+      final long traceId = getLongField(traceNode, JsonTraceCodec.TRACE_ID);
+      final ShallowTraceBuilder shallowBuilder = new ShallowTraceBuilder(traceId);
+
       final String name = getTextField(traceNode, JsonTraceCodec.TRACE_NAME);
-      final ResultType resultType = ResultType.valueOf(getTextField(traceNode, JsonTraceCodec.TRACE_RESULT_TYPE));
-      final ShallowTraceBuilder shallowBuilder = new ShallowTraceBuilder(name, resultType);
+      shallowBuilder.setName(name);
 
       if (traceNode.get(JsonTraceCodec.TRACE_HIDDEN) != null)
         shallowBuilder.setHidden(getBooleanField(traceNode, JsonTraceCodec.TRACE_HIDDEN));
@@ -84,25 +92,32 @@ class JsonTraceDeserializer
         }
       }
 
-      builder.addTrace(traceId, shallowBuilder.build());
+      final ResultType resultType = ResultType.valueOf(getTextField(traceNode, JsonTraceCodec.TRACE_RESULT_TYPE));
+      shallowBuilder.setResultType(resultType);
+
+      traceMap.put(traceId, shallowBuilder.build());
     }
+    return traceMap;
   }
 
-  private static void parseRelationships(final JsonNode rootNode,
-                                         final TraceRelationshipBuilder<Integer> builder) throws IOException
+  private static Set<TraceRelationship> parseRelationships(final JsonNode rootNode, final Map<Long, ShallowTrace> traceMap) throws IOException
   {
-    if (builder.isEmpty())
-    {
-      throw new IOException("No traces in the document");
-    }
+    Set<TraceRelationship> relationships = new HashSet<>();
 
     for (JsonNode node : getField(rootNode, JsonTraceCodec.RELATIONSHIPS))
     {
-      final String relationship = getTextField(node, JsonTraceCodec.RELATIONSHIP_RELATIONSHIP);
-      final int from = getIntField(node, JsonTraceCodec.RELATIONSHIP_FROM);
-      final int to = getIntField(node, JsonTraceCodec.RELATIONSHIP_TO);
-      builder.addRelationship(relationship, from, to);
+      final Relationship relationship = Relationship.valueOf(getTextField(node, JsonTraceCodec.RELATIONSHIP_RELATIONSHIP));
+      final long from = getIntField(node, JsonTraceCodec.RELATIONSHIP_FROM);
+      final long to = getIntField(node, JsonTraceCodec.RELATIONSHIP_TO);
+      if (!traceMap.containsKey(from)) {
+        throw new IOException("Missing trace with id: " + from + " referenced by relationship: " + relationship);
+      }
+      if (!traceMap.containsKey(to)) {
+        throw new IOException("Missing trace with id: " + to + " referenced by relationship: " + relationship);
+      }
+      relationships.add(new TraceRelationship(from, to, relationship));
     }
+    return relationships;
   }
 
   private static boolean getBooleanField(final JsonNode node, final String fieldName) throws IOException

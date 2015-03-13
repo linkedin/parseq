@@ -18,27 +18,22 @@ package com.linkedin.parseq;
 
 import static org.testng.AssertJUnit.assertTrue;
 
-import com.linkedin.parseq.promise.Promises;
-import com.linkedin.parseq.promise.SettablePromise;
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
-import com.linkedin.parseq.trace.Related;
+import com.linkedin.parseq.promise.Promises;
+import com.linkedin.parseq.promise.SettablePromise;
 import com.linkedin.parseq.trace.Trace;
 import com.linkedin.parseq.trace.codec.json.JsonTraceCodec;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * A base class that builds an Engine with default configuration.
@@ -150,7 +145,6 @@ public class BaseEngineTest
       LOG.error("Failed to encode JSON");
       e.printStackTrace();
     }
-    System.out.println();
   }
 
 
@@ -195,19 +189,8 @@ public class BaseEngineTest
     }, false);
   }
 
-  private void addTasks(Trace trace, Set<Trace> set) {
-    if (!set.contains(trace)) {
-      set.add(trace);
-      for (Related<Trace> r : trace.getRelated()) {
-        addTasks(r.getRelated(), set);
-      }
-    }
-  }
-
   protected int countTasks(Trace trace) {
-    Set<Trace> set = Collections.newSetFromMap(new IdentityHashMap<>());
-    addTasks(trace, set);
-    return set.size();
+    return trace.getTraceMap().size();
   }
 
 }

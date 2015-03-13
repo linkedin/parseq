@@ -22,6 +22,7 @@ import com.linkedin.parseq.promise.PromiseException;
 import com.linkedin.parseq.promise.PromiseUnresolvedException;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
+import com.linkedin.parseq.trace.TraceBuilder;
 
 import org.testng.annotations.Test;
 
@@ -438,6 +439,11 @@ public class TestTaskStates
 
     @Override
     public After afterTask(Task<Object> rootTask, Promise<?>... promises) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public TraceBuilder getTraceBuilder() {
       throw new UnsupportedOperationException();
     }
   }

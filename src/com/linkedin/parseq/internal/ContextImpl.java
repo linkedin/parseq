@@ -27,6 +27,7 @@ import java.util.function.Supplier;
 
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
+import com.linkedin.parseq.trace.TraceBuilder;
 import com.linkedin.parseq.After;
 import com.linkedin.parseq.Cancellable;
 import com.linkedin.parseq.Context;
@@ -313,5 +314,10 @@ public class ContextImpl implements Context, Cancellable
     {
       throw new IllegalStateException("Context method invoked while not in context's task");
     }
+  }
+
+  @Override
+  public TraceBuilder getTraceBuilder() {
+    return _planContext.getRelationshipsBuilder();
   }
 }

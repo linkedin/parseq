@@ -1,8 +1,6 @@
 package com.linkedin.parseq.internal;
 
 import com.linkedin.parseq.BaseTask;
-import com.linkedin.parseq.trace.ShallowTrace;
-import com.linkedin.parseq.trace.ShallowTraceBuilder;
 
 /**
  * Base class for system hidden tasks. It has exactly the same behavior as {@link BaseTask}
@@ -18,13 +16,6 @@ public abstract class SystemHiddenTask<T> extends BaseTask<T>
   protected SystemHiddenTask(String name)
   {
     super(name);
-  }
-
-  @Override
-  public ShallowTrace getShallowTrace()
-  {
-    return new ShallowTraceBuilder(super.getShallowTrace())
-        .setSystemHidden(true)
-        .build();
+    _shallowTraceBuilder.setSystemHidden(true);
   }
 }

@@ -185,26 +185,24 @@ function addSourceSinkEdges(g, potentialParents, parents, originalG) {
           addInvisEdge(g, closestPred, u);
         }
       }
+    }
+    if (u in potentialParents) {
+      potentialParents[u].forEach(function(potentialParent) {
+        var ppValue = g.node(potentialParent),
+            ppSource = ppValue.source,
+            ppSink = ppValue.sink,
+            ppChildren = originalG.children(potentialParent);
 
-      if (u in potentialParents) {
-        potentialParents[u].forEach(function(potentialParent) {
-          var ppValue = g.node(potentialParent),
-              ppSource = ppValue.source,
-              ppSink = ppValue.sink,
-              ppChildren = originalG.children(potentialParent);
-
-          if (!hasPathToSet(u, ppChildren, paths)) {
-            if (wasFinished(uValue) && wasFinished(ppValue)) {
-              addSolidEdge(g, u, ppSink);
-            } else {
-              addDashedEdge(g, u, ppSink);
-            }
+        if (!hasPathToSet(u, ppChildren, paths)) {
+          if (wasFinished(uValue) && wasFinished(ppValue)) {
+            addSolidEdge(g, u, ppSink);
+          } else {
+            addDashedEdge(g, u, ppSink);            }
           }
-          if (!hasPathFromSet(ppChildren, u, paths)) {
-            addDashedEdge(g, ppSource, u);
-          }
-        });
-      }
+        if (!hasPathFromSet(ppChildren, u, paths)) {
+          addDashedEdge(g, ppSource, u);
+        }
+      });
     }
   });
 

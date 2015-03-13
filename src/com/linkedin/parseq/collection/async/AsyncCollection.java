@@ -140,7 +140,7 @@ public class AsyncCollection<T, R> extends Transducible<T, R> implements ParSeqC
       publisher.next(pushablePublisher);
       return ((AsyncCollection<?, A>)f.apply(r)).publisherTask(pushablePublisher, subscription);
     }).task();
-    publisherTask.onResolve(p -> {
+    publisherTask.addListener(p -> {
       if (p.isFailed()) {
         publisher.error(p.getError());
       } else {
@@ -161,7 +161,7 @@ public class AsyncCollection<T, R> extends Transducible<T, R> implements ParSeqC
         return CONTINUE;
       }
     }));
-    fold.onResolve(p -> {
+    fold.addListener(p -> {
       if (p.isFailed()) {
         pushable.error(p.getError());
       } else {
@@ -253,7 +253,7 @@ public class AsyncCollection<T, R> extends Transducible<T, R> implements ParSeqC
   public static <A> ParSeqCollection<A> fromValues(final Iterable<A> iterable) {
     IterablePublisher<A, A> publisher = new ValuesPublisher<A>(iterable);
     Task<?> task = Task.action("values", publisher::run);
-    task.onResolve(p -> publisher.complete(p));
+    task.addListener(p -> publisher.complete(p));
     return new AsyncCollection<>(publisher, Transducer.identity(),
         Optional.of(task));
   }
@@ -261,7 +261,7 @@ public class AsyncCollection<T, R> extends Transducible<T, R> implements ParSeqC
   public static <A> ParSeqCollection<A> fromTasks(final Iterable<Task<A>> iterable) {
     IterablePublisher<Task<A>, A> publisher = new TasksPublisher<A>(iterable);
     Task<?> task = Task.action("tasks", publisher::run);
-    task.onResolve(p -> publisher.complete(p));
+    task.addListener(p -> publisher.complete(p));
     return new AsyncCollection<>(publisher, Transducer.identity(),
         Optional.of(task));
   }
@@ -292,7 +292,7 @@ public class AsyncCollection<T, R> extends Transducible<T, R> implements ParSeqC
         return Step.done(z);
       }
     })));
-    fold.onResolve(p -> {
+    fold.addListener(p -> {
       if (p.isFailed()) {
         subscriber.onError(p.getError());
       } else {
@@ -331,7 +331,7 @@ public class AsyncCollection<T, R> extends Transducible<T, R> implements ParSeqC
       Collections.sort(l, comparator);
       publisher.run();
     });
-    task.onResolve(p -> publisher.complete(p));
+    task.addListener(p -> publisher.complete(p));
     return new AsyncCollection<>(publisher, Transducer.identity(),
         Optional.of(task));
   }

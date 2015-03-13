@@ -15,6 +15,7 @@
   "dependencies": {
     "d3": "3.3.5",
     "graphlib": "0.7.4",
-    "graphlib-dot": "0.4.9"
+    "graphlib-dot": "0.4.9",
+    "sha1": "1.1.0"
   }
 }

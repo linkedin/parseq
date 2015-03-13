@@ -16,7 +16,9 @@
 
 package com.linkedin.parseq;
 
+import com.linkedin.parseq.internal.PlanContext;
 import com.linkedin.parseq.promise.Promise;
+import com.linkedin.parseq.trace.TraceBuilder;
 
 import java.util.concurrent.TimeUnit;
 
@@ -81,4 +83,6 @@ public interface Context
    * @return The engine related property which has been stored with this key.
    */
   Object getEngineProperty(String key);
+
+  TraceBuilder getTraceBuilder();
 }
