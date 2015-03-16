@@ -68,7 +68,7 @@ public class ShallowTraceBuilder {
   }
 
   public ShallowTraceBuilder setName(final String name) {
-    ArgumentUtil.requireNotEmpty(name, "name");
+    ArgumentUtil.requireNotNull(name, "name");
     _name = name;
     return this;
   }
