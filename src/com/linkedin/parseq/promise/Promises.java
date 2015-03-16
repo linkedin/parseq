@@ -86,4 +86,9 @@ public class Promises
   {
     source.addListener(new TransformingPromiseListener<T, T>(dest, PromiseTransformer.identity()));
   }
+
+  public static <T> void propagateResult(final Promise<T> source,
+      final SettablePromise<T> dest) {
+    propagateResult(source, ((Settable<T>)dest));
+  }
 }
