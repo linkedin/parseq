@@ -146,7 +146,7 @@ public class FusionTask<S, T>  extends BaseTask<T> {
     if (task instanceof FusionTask) {
       return ((FusionTask<?, S>) task).apply(name, propagator);
     } else {
-      return new FusionTask<S, T>(name, task, task, propagator, true, traceContextRef, predecessor);
+      return new FusionTask<S, T>(name, task, task, propagator, false, traceContextRef, predecessor);
     }
   }
 
