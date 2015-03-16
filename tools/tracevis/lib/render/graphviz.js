@@ -31,7 +31,9 @@ function render(root, graph) {
   xhr.onreadystatechange = function() {
   if (xhr.readyState == 4) {
     if (xhr.status == 200) {
+      root.select('#graphviz-img').remove();
       root.append('img')
+        .attr('id', 'graphviz-img')
         .attr('src', 'cache/' + hash + '.svg');
     } else {
       var textarea = root.append('textarea')
