@@ -20,16 +20,15 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 import com.linkedin.parseq.function.Consumer1;
-import com.linkedin.parseq.function.Function1;
-import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.function.Failure;
+import com.linkedin.parseq.function.Function1;
 import com.linkedin.parseq.function.Success;
 import com.linkedin.parseq.function.Try;
 import com.linkedin.parseq.internal.ArgumentUtil;
-import com.linkedin.parseq.internal.TaskLogger;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromisePropagator;
 import com.linkedin.parseq.promise.PromiseTransformer;
@@ -38,6 +37,7 @@ import com.linkedin.parseq.promise.SettablePromise;
 import com.linkedin.parseq.trace.ShallowTrace;
 import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.Trace;
+import com.linkedin.parseq.trace.TraceBuilder;
 
 /**
  * A task represents a deferred execution that also contains its resulting
@@ -108,8 +108,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @param parent the parent of this task
    * @param predecessors that lead to the execution of this task
    */
-  void contextRun(Context context, TaskLogger taskLogger,
-                  Task<?> parent, Collection<Task<?>> predecessors);
+  void contextRun(Context context, Task<?> parent, Collection<Task<?>> predecessors);
 
   void wrapContextRun(ContextRunWrapper<T> wrapper);
 
@@ -136,16 +135,14 @@ public interface Task<T> extends Promise<T>, Cancellable
    */
   long getId();
 
-  /**
-   * Returns builder of a ShallowTrace.
-   * @return builder of a ShallowTrace.
-   */
   ShallowTraceBuilder getShallowTraceBuilder();
+
+  TraceBuilder getTraceBuilder();
 
   //------------------- default methods -------------------
 
   default <R> Task<R> apply(final String desc, final PromisePropagator<T, R> propagator) {
-    return FusionTask.fuse(desc, this, propagator);
+    return FusionTask.fuse(desc, this, propagator, new AtomicReference<>(), Optional.empty());
   }
 
   /**

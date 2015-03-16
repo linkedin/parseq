@@ -3,7 +3,9 @@ package com.linkedin.parseq;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -77,10 +79,17 @@ public class TracevisServer {
             } else {
               LOG.info("building: " + hash);
               PrintWriter writer = response.getWriter();
-              Files.copy(request.getInputStream(), file(hash, "dot").toPath());
               try {
-                int result = runtime.exec(new String[] {DOT, "-T" + TYPE, "-Grankdir=LR", "-Gnewrank=true", file(hash, "dot").getAbsolutePath(),
-                    "-o", file(hash, TYPE).getAbsolutePath()}).waitFor();
+                Files.copy(request.getInputStream(), file(hash, "dot").toPath(), StandardCopyOption.REPLACE_EXISTING);
+              } catch (FileAlreadyExistsException e) {
+                LOG.warn("failed writing dot file: ", file(hash, "dot").toPath());
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+              }
+              try {
+                int result =
+                    runtime.exec(
+                        new String[] { DOT, "-T" + TYPE, "-Grankdir=LR", "-Gnewrank=true", file(hash, "dot")
+                            .getAbsolutePath(), "-o", file(hash, TYPE).getAbsolutePath() }).waitFor();
                 if (result != 0) {
                   response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                   writer.write("graphviz process returned: " + result);

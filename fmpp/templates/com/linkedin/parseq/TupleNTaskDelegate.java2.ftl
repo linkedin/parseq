@@ -9,13 +9,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import com.linkedin.parseq.function.Tuple${i};
-import com.linkedin.parseq.internal.TaskLogger;
 import com.linkedin.parseq.promise.PromiseException;
 import com.linkedin.parseq.promise.PromiseListener;
 import com.linkedin.parseq.promise.PromiseUnresolvedException;
 import com.linkedin.parseq.trace.ShallowTrace;
 import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.Trace;
+import com.linkedin.parseq.trace.TraceBuilder;
 
 public class Tuple${i}TaskDelegate<<@typeParameters i/>> implements Tuple${i}Task<<@typeParameters i/>> {
 
@@ -93,8 +93,8 @@ public class Tuple${i}TaskDelegate<<@typeParameters i/>> implements Tuple${i}Tas
    * {@inheritDoc}
    */
   @Override
-  public void contextRun(Context context, TaskLogger taskLogger, Task<?> parent, Collection<Task<?>> predecessors) {
-    _task.contextRun(context, taskLogger, parent, predecessors);
+  public void contextRun(Context context, Task<?> parent, Collection<Task<?>> predecessors) {
+    _task.contextRun(context, parent, predecessors);
   }
 
   /**
@@ -169,6 +169,11 @@ public class Tuple${i}TaskDelegate<<@typeParameters i/>> implements Tuple${i}Tas
   @Override
   public ShallowTraceBuilder getShallowTraceBuilder() {
     return _task.getShallowTraceBuilder();
+  }
+
+  @Override
+  public TraceBuilder getTraceBuilder() {
+    return _task.getTraceBuilder();
   }
 
 }

@@ -27,15 +27,14 @@ import com.linkedin.parseq.internal.IdGenerator;
 import com.linkedin.parseq.internal.TaskLogger;
 import com.linkedin.parseq.promise.DelegatingPromise;
 import com.linkedin.parseq.promise.Promise;
-import com.linkedin.parseq.promise.PromiseListener;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 import com.linkedin.parseq.trace.Relationship;
-import com.linkedin.parseq.trace.TraceBuilder;
 import com.linkedin.parseq.trace.ResultType;
 import com.linkedin.parseq.trace.ShallowTrace;
 import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.Trace;
+import com.linkedin.parseq.trace.TraceBuilder;
 
 /**
  * TODO break tasks referencing each other through context, replace with ids
@@ -82,7 +81,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
   private final String _name;
   protected final ShallowTraceBuilder _shallowTraceBuilder;
 
-  private Function<T, String> _traceValueProvider;
+  protected volatile Function<T, String> _traceValueProvider;
 
   /**
    * Constructs a base task without a specified name. The name for this task
@@ -147,16 +146,17 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     return true;
   }
 
-  private TraceBuilder getTraceBuilder() {
+  @Override
+  public TraceBuilder getTraceBuilder() {
     return _stateRef.get().getTraceBuilder();
   }
 
   @Override
   public final void contextRun(final Context context,
-                               final TaskLogger taskLogger,
                                final Task<?> parent,
                                final Collection<Task<?>> predecessors)
   {
+    final TaskLogger taskLogger = context.getTaskLogger();
     final TraceBuilder traceBuilder = context.getTraceBuilder();
     if (transitionRun(traceBuilder))
     {
@@ -188,36 +188,32 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
           transitionPending();
         }
 
-        promise.addListener(new PromiseListener<T>()
-        {
-          @Override
-          public void onResolved(Promise<T> resolvedPromise)
+        promise.addListener(resolvedPromise ->
           {
-            if (promise.isFailed())
+            if (resolvedPromise.isFailed())
             {
-              if (promise.getError() instanceof EarlyFinishException) {
+              if (resolvedPromise.getError() instanceof EarlyFinishException) {
                 _shallowTraceBuilder.setResultType(ResultType.EARLY_FINISH);
               } else {
                 _shallowTraceBuilder.setResultType(ResultType.ERROR);
-                _shallowTraceBuilder.setValue(promise.getError().toString());
+                _shallowTraceBuilder.setValue(resolvedPromise.getError().toString());
               }
-              fail(promise.getError() , taskLogger);
+              fail(resolvedPromise.getError() , taskLogger);
             }
             else
             {
+              _shallowTraceBuilder.setResultType(ResultType.SUCCESS);
               final Function<T, String> traceValueProvider = _traceValueProvider;
               if (traceValueProvider != null) {
                 try {
-                _shallowTraceBuilder.setValue(traceValueProvider.apply(promise.get()));
+                _shallowTraceBuilder.setValue(traceValueProvider.apply(resolvedPromise.get()));
                 } catch (Exception e) {
                   _shallowTraceBuilder.setValue(e.toString());
                 }
               }
-              _shallowTraceBuilder.setResultType(ResultType.SUCCESS);
-              done(promise.get(), taskLogger);
+              done(resolvedPromise.get(), taskLogger);
             }
-          }
-        });
+          });
       }
       catch (Throwable t)
       {
@@ -314,7 +310,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     if (transitionDone())
     {
       getSettableDelegate().done(value);
-      taskLog.logTaskEnd(BaseTask.this);
+      taskLog.logTaskEnd(BaseTask.this, _traceValueProvider);
     }
   }
 
@@ -323,7 +319,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     if (transitionDone())
     {
       getSettableDelegate().fail(error);
-      taskLog.logTaskEnd(BaseTask.this);
+      taskLog.logTaskEnd(BaseTask.this, _traceValueProvider);
     }
   }
 
@@ -344,6 +340,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
           traceBuilder);
     }
     while (!_stateRef.compareAndSet(state, newState));
+    traceBuilder.addShallowTrace(_shallowTraceBuilder);
     _shallowTraceBuilder.setStartNanos(startNanos);
 
     return true;
@@ -412,10 +409,6 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
   protected SettablePromise<T> getSettableDelegate()
   {
     return (SettablePromise<T>)super.getDelegate();
-  }
-
-  protected State<T> getState() {
-    return _stateRef.get();
   }
 
   protected static class State<T>
@@ -545,6 +538,21 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
         getTraceBuilder().addRelationship(Relationship.POTENTIAL_PARENT_OF, getShallowTraceBuilder(), task.getShallowTraceBuilder());
       }
     }
+
+    @Override
+    public ShallowTraceBuilder getShallowTraceBuilder() {
+      return _context.getShallowTraceBuilder();
+    }
+
+    @Override
+    public long getPlanId() {
+      return _context.getPlanId();
+    }
+
+    @Override
+    public TaskLogger getTaskLogger() {
+      return _context.getTaskLogger();
+    }
   }
 
   @Override
@@ -566,5 +574,11 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     }
     while (!_stateRef.compareAndSet(state, newState));
   }
+
+  @Override
+  public String toString() {
+    return "Task [id=" + _id + ", name=" + _name + "]";
+  }
+
 
 }

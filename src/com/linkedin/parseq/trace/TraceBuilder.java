@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -38,7 +39,7 @@ public class TraceBuilder {
     _traceBuilders = new ConcurrentHashMap<>();
   }
 
-  private void addShallowTrace(final ShallowTraceBuilder shallowTrace) {
+  public void addShallowTrace(final ShallowTraceBuilder shallowTrace) {
     _traceBuilders.putIfAbsent(shallowTrace.getId(), shallowTrace);
   }
 
@@ -54,8 +55,8 @@ public class TraceBuilder {
     }
   }
 
-  private void addTraceToMap(final Map<Long, ShallowTrace> traceMap, long id) {
-    traceMap.computeIfAbsent(id, key -> _traceBuilders.get(id).build());
+  public boolean containsRelationship(final TraceRelationship relationship) {
+    return _relationships.contains(relationship);
   }
 
   private void findPotentialParents(final Map<Long, Set<Long>> potentialParents, final Set<TraceRelationship> relationships) {
@@ -96,11 +97,12 @@ public class TraceBuilder {
 
     //shallow copy of relationship to avoid modifications
     final Set<TraceRelationship> frozenRelationship = new HashSet<>(_relationships);
+    for (Entry<Long, ShallowTraceBuilder> entry: _traceBuilders.entrySet()) {
+      traceMap.put(entry.getKey(), entry.getValue().build());
+    }
     findPotentialParents(potentialParents, frozenRelationship);
 
     for (TraceRelationship rel: frozenRelationship) {
-      addTraceToMap(traceMap, rel.getFrom());
-      addTraceToMap(traceMap, rel.getTo());
 
       switch(rel.getRelationhsip())
       {
@@ -124,13 +126,10 @@ public class TraceBuilder {
           break;
         case POTENTIAL_PARENT_OF:
           if (!relationships.contains(new TraceRelationship(rel.getFrom(), rel.getTo(), Relationship.PARENT_OF))) {
-            if (!potentialParents.containsKey(rel.getTo()))
-            {
-              System.out.println();
-            }
-            if (potentialParents.containsKey(rel.getTo()) && potentialParents.get(rel.getTo()).size() > 1) {
+            if (potentialParents.get(rel.getTo()).size() > 1) {
               relationships.add(rel);
             } else {
+              relationships.remove(new TraceRelationship(rel.getFrom(), rel.getTo(), Relationship.POTENTIAL_PARENT_OF));
               relationships.add(new TraceRelationship(rel.getFrom(), rel.getTo(), Relationship.PARENT_OF));
             }
           }

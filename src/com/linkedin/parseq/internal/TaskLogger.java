@@ -16,13 +16,14 @@
 
 package com.linkedin.parseq.internal;
 
+import java.util.function.Function;
+
+import com.linkedin.parseq.EarlyFinishException;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.trace.ResultType;
 import com.linkedin.parseq.trace.ShallowTrace;
 
 import org.slf4j.Logger;
-
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * The trace logger will log to the first logger in the following sequence that
@@ -44,16 +45,11 @@ public class TaskLogger
   private static final String END_TASK_DEBUG_FORMAT = "[plan={}]: Ending task '{}'. Elapsed: {}ms, Result type: {}.";
   private static final String END_TASK_TRACE_FORMAT = "[plan={}]: Ending task '{}'. Elapsed: {}ms, Result type: {}. Value: {}.";
 
-  private static final AtomicLong _nextPlanId = new AtomicLong();
-
   /**
-   * The root task for the plan. Used to determine if a given task should be
+   * The id of a root task for the plan. Used to determine if a given task should be
    * logged using the plan logger.
    */
-  private final Task<?> _root;
-
-  /** A locally assigned plan id to disambiguate plan logging. */
-  private final long _planId;
+  private final long _rootId;
 
   /** Logs every trace it finds. */
   private final Logger _allLogger;
@@ -64,14 +60,16 @@ public class TaskLogger
   /** Logs all tasks for this this plan. */
   private final Logger _planLogger;
 
-  public TaskLogger(final Task<?> root, final Logger allLogger,
+  private final long _planId;
+
+  public TaskLogger(final long planId, final long rootId, final Logger allLogger,
                     final Logger rootLogger, final Logger planLogger)
   {
     _allLogger = allLogger;
     _rootLogger = rootLogger;
     _planLogger = planLogger;
-    _root = root;
-    _planId = _nextPlanId.getAndIncrement();
+    _rootId = rootId;
+    _planId = planId;
   }
 
   public void logTaskStart(final Task<?> task)
@@ -80,7 +78,7 @@ public class TaskLogger
     {
       _planLogger.debug(START_TASK_FORMAT, _planId, task.getName());
     }
-    else if (_rootLogger.isDebugEnabled() && _root == task)
+    else if (_rootLogger.isDebugEnabled() && _rootId == task.getId())
     {
       _rootLogger.debug(START_TASK_FORMAT, _planId, task.getName());
     }
@@ -90,14 +88,14 @@ public class TaskLogger
     }
   }
 
-  public void logTaskEnd(final Task<?> task)
+  public <T> void logTaskEnd(final Task<T> task, final Function<T, String> traceValueProvider)
   {
     if (_planLogger.isTraceEnabled())
     {
       _planLogger.trace(END_TASK_TRACE_FORMAT,
           new Object[]{_planId, task.getName(),
               elapsedMillis(task),
-              ResultType.fromTask(task), stringValue(task)});
+              ResultType.fromTask(task), stringValue(task, traceValueProvider)});
     }
     else if (_planLogger.isDebugEnabled())
     {
@@ -105,14 +103,14 @@ public class TaskLogger
                         new Object[] {_planId, task.getName(),
                                       elapsedMillis(task), ResultType.fromTask(task)});
     }
-    else if (_root == task && _rootLogger.isTraceEnabled())
+    else if (_rootId == task.getId() && _rootLogger.isTraceEnabled())
     {
       _rootLogger.trace(END_TASK_TRACE_FORMAT,
           new Object[]{_planId, task.getName(),
               elapsedMillis(task),
-              ResultType.fromTask(task), stringValue(task)});
+              ResultType.fromTask(task), stringValue(task, traceValueProvider)});
     }
-    else if (_root == task && _rootLogger.isDebugEnabled())
+    else if (_rootId == task.getId() && _rootLogger.isDebugEnabled())
     {
       _rootLogger.debug(END_TASK_DEBUG_FORMAT,
                         new Object[] {_planId, task.getName(),
@@ -123,7 +121,7 @@ public class TaskLogger
       _allLogger.trace(END_TASK_TRACE_FORMAT,
                        new Object[] {_planId, task.getName(),
                            elapsedMillis(task),
-                           ResultType.fromTask(task), stringValue(task)});
+                           ResultType.fromTask(task), stringValue(task, traceValueProvider)});
     }
     else if (_allLogger.isDebugEnabled())
     {
@@ -133,24 +131,19 @@ public class TaskLogger
     }
   }
 
-  private String stringValue(final Task<?> task)
-  {
-    if (task.isFailed())
-    {
+  private <T> String stringValue(Task<T> task, Function<T, String> traceValueProvider) {
+    if (task.isFailed() && !(task.getError() instanceof EarlyFinishException)) {
       return task.getError().toString();
-    }
-    else
-    {
-      final Object value = task.get();
-      if (value != null)
-      {
-        return value.toString();
-      }
-      else
-      {
-        return "null";
+    } else {
+      if (traceValueProvider != null) {
+        try {
+          return traceValueProvider.apply(task.get());
+        } catch (Exception e) {
+          return e.toString();
+        }
       }
     }
+    return "null";
   }
 
   private long elapsedMillis(final Task<?> task)

@@ -3,6 +3,7 @@ package com.linkedin.parseq.collection.async;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import com.linkedin.parseq.collection.transducer.Reducer;
@@ -138,7 +139,7 @@ public class AsyncFoldTask<Z, T> extends BaseTask<Z> implements Ref<Z> {
                    */
                 }
               }
-            });
+            }, new AtomicReference<>(), Optional.empty());
       }
 
       /**

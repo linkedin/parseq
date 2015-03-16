@@ -33,7 +33,7 @@ public class TestTask extends AbstractTaskTest {
 
   @Test
   public void testRecover() {
-    testRecover(3);
+    testRecover(4);
   }
 
   @Test
@@ -43,7 +43,7 @@ public class TestTask extends AbstractTaskTest {
 
   @Test
   public void testTry() {
-    testTry(3);
+    testTry(4);
   }
 
   @Test
@@ -68,7 +68,7 @@ public class TestTask extends AbstractTaskTest {
 
   @Test
   public void testWithSideEffectFailure() throws Exception {
-    testWithSideEffectFailure(2);
+    testWithSideEffectFailure(3);
   }
 
   @Test

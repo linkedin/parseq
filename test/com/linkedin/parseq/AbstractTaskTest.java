@@ -135,7 +135,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
         getSuccessTask().andThen(delayedValue(0, 30, TimeUnit.MILLISECONDS)).withTimeout(100, TimeUnit.MILLISECONDS);
     runAndWait("AbstractTaskTest.testWithTimeoutSuccess", success);
     assertEquals((int) success.get(), 0);
-    assertEquals(countTasks(success.getTrace()), 3);
+    assertEquals(countTasks(success.getTrace()), 4);
   }
 
   @Test
@@ -146,7 +146,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
         .withTimeout(5000, TimeUnit.MILLISECONDS);
     runAndWait("AbstractTaskTest.testWithTimeoutSuccess", success);
     assertEquals((int) success.get(), 0);
-    assertEquals(countTasks(success.getTrace()), 3);
+    assertEquals(countTasks(success.getTrace()), 5);
   }
 
   @Test
@@ -175,7 +175,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
     } catch (Exception ex) {
       assertSame(ex.getCause(), Exceptions.TIMEOUT_EXCEPTION);
     }
-    assertEquals(countTasks(failure.getTrace()), 4);
+    assertEquals(countTasks(failure.getTrace()), 5);
   }
 
   @Test

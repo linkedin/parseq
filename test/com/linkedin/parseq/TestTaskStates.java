@@ -16,15 +16,13 @@
 
 package com.linkedin.parseq;
 
-import com.linkedin.parseq.internal.TaskLogger;
-import com.linkedin.parseq.promise.Promise;
-import com.linkedin.parseq.promise.PromiseException;
-import com.linkedin.parseq.promise.PromiseUnresolvedException;
-import com.linkedin.parseq.promise.Promises;
-import com.linkedin.parseq.promise.SettablePromise;
-import com.linkedin.parseq.trace.TraceBuilder;
-
-import org.testng.annotations.Test;
+import static com.linkedin.parseq.Tasks.callable;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.fail;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -32,13 +30,18 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
-import static com.linkedin.parseq.Tasks.callable;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
+
+import com.linkedin.parseq.internal.TaskLogger;
+import com.linkedin.parseq.promise.Promise;
+import com.linkedin.parseq.promise.PromiseException;
+import com.linkedin.parseq.promise.PromiseUnresolvedException;
+import com.linkedin.parseq.promise.Promises;
+import com.linkedin.parseq.promise.SettablePromise;
+import com.linkedin.parseq.trace.ShallowTraceBuilder;
+import com.linkedin.parseq.trace.TraceBuilder;
 
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
@@ -315,7 +318,7 @@ public class TestTaskStates
 
   private void runTask(final Task<?> task)
   {
-    task.contextRun(new NullContext(), new NullTaskLog(), NO_PARENT, NO_PREDECESSORS);
+    task.contextRun(new NullContext(), NO_PARENT, NO_PREDECESSORS);
   }
 
   private void assertInitOrScheduled(final Task<?> task)
@@ -351,7 +354,7 @@ public class TestTaskStates
     assertFalse(task.isDone());
     assertFalse(task.isFailed());
     assertTrue(task.getShallowTrace().getStartNanos() > 0);
-    assertNull(task.getShallowTrace().getEndNanos());
+    assertNotNull(task.getShallowTrace().getEndNanos());
 
     try
     {
@@ -444,7 +447,22 @@ public class TestTaskStates
 
     @Override
     public TraceBuilder getTraceBuilder() {
+      return new TraceBuilder();
+    }
+
+    @Override
+    public ShallowTraceBuilder getShallowTraceBuilder() {
       throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public long getPlanId() {
+      return 0;
+    }
+
+    @Override
+    public TaskLogger getTaskLogger() {
+     return new NullTaskLog();
     }
   }
 
@@ -452,7 +470,7 @@ public class TestTaskStates
   {
     public NullTaskLog()
     {
-      super(null, null, null, null);
+      super(0, 0, null, null, null);
     }
 
     @Override
@@ -461,8 +479,7 @@ public class TestTaskStates
     }
 
     @Override
-    public void logTaskEnd(final Task<?> task)
-    {
+    public <T> void logTaskEnd(Task<T> task, Function<T, String> traceValueProvider) {
     }
   }
 }

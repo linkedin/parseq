@@ -10,17 +10,17 @@ public class TestFusionTask extends AbstractTaskTest {
 
   @Test
   public void testMap() {
-    testMap(1);
+    testMap(2);
   }
 
   @Test
   public void testFlatMap() {
-    testFlatMap(3);
+    testFlatMap(4);
   }
 
   @Test
   public void testAndThenConsumer() {
-    testAndThenConsumer(1);
+    testAndThenConsumer(2);
   }
 
   @Test
@@ -30,17 +30,17 @@ public class TestFusionTask extends AbstractTaskTest {
 
   @Test
   public void testRecover() {
-    testRecover(1);
+    testRecover(3);
   }
 
   @Test
   public void testNoRecover() {
-    testNoRecover(1);
+    testNoRecover(2);
   }
 
   @Test
   public void testTry() {
-    testTry(1);
+    testTry(3);
   }
 
   @Test
@@ -65,12 +65,22 @@ public class TestFusionTask extends AbstractTaskTest {
 
   @Test
   public void testWithSideEffectFailure() throws Exception {
-    testWithSideEffectFailure(2);
+    testWithSideEffectFailure(3);
   }
 
   @Test
   public void testOnFailure() {
-    testOnFailure(1);
+    testOnFailure(2);
+  }
+
+  @Test
+  public void testUsedTwice() {
+    //TODO
+    Task<String> source = getSuccessTask().andThen(System.out::println);
+    Task<?> task = Task.par(source.map("map1", s -> s + "-1"), source.map("map2", s -> s + "-2"));
+
+    runAndWait("TestFusionTask.testUsedTwice", task);
+
   }
 
   @Override

@@ -16,27 +16,25 @@
 
 package com.linkedin.parseq;
 
-import com.linkedin.parseq.internal.ContextImpl;
-import com.linkedin.parseq.internal.InternalUtil;
-import com.linkedin.parseq.internal.RejectedSerialExecutionHandler;
-import com.linkedin.parseq.internal.SerialExecutionException;
-import com.linkedin.parseq.internal.SerialExecutor;
-import com.linkedin.parseq.internal.PlanContext;
-import com.linkedin.parseq.internal.TaskLogger;
-import com.linkedin.parseq.promise.Promise;
-import com.linkedin.parseq.promise.PromiseListener;
-import com.linkedin.parseq.Task;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
+import com.linkedin.parseq.internal.ArgumentUtil;
+import com.linkedin.parseq.internal.ContextImpl;
+import com.linkedin.parseq.internal.InternalUtil;
+import com.linkedin.parseq.internal.PlanContext;
+import com.linkedin.parseq.internal.RejectedSerialExecutionHandler;
+import com.linkedin.parseq.internal.SerialExecutionException;
+import com.linkedin.parseq.internal.SerialExecutor;
+import com.linkedin.parseq.promise.Promise;
+import com.linkedin.parseq.promise.PromiseListener;
 
 /**
  * An object that can run a set {@link Task}s. Use {@link EngineBuilder} to
@@ -46,7 +44,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class Engine
 {
-  private static final String LOGGER_BASE = Engine.class.getName();
+  public static final String LOGGER_BASE = Engine.class.getName();
   private static final Logger LOG = LoggerFactory.getLogger(LOGGER_BASE);
 
   private static final State INIT = new State(StateName.RUN, 0);
@@ -117,6 +115,18 @@ public class Engine
    */
   public void run(final Task<?> task)
   {
+    ArgumentUtil.requireNotNull(task, "task");
+    run(task, task.getClass().getName());
+  }
+
+  /**
+   * Runs the given task with its own context. Use {@code Tasks.seq} and
+   * {@code Tasks.par} to create and run composite tasks.
+   *
+   * @param task the task to run
+   */
+  public void run(final Task<?> task, final String planClass)
+  {
     State currState, newState;
     do
     {
@@ -130,12 +140,9 @@ public class Engine
       newState = new State(StateName.RUN, currState._pendingCount + 1);
     } while (!_stateRef.compareAndSet(currState, newState));
 
-    //TODO change per-task-class logging to something else because in log4j2 getting logger instance is expensive
-    // ZZ: do we still need this comment?
-    final Logger planLogger = _loggerFactory.getLogger(LOGGER_BASE + ":planClass=" + task.getClass().getName());
-    final TaskLogger taskLogger = new TaskLogger(task, _allLogger, _rootLogger, planLogger);
     final Executor taskExecutor = new SerialExecutor(_taskExecutor, new CancelPlanRejectionHandler(task));
-    PlanContext planContext = new PlanContext(this, taskExecutor, _timerExecutor, taskLogger);
+    PlanContext planContext =
+        new PlanContext(this, taskExecutor, _timerExecutor, _loggerFactory, _allLogger, _rootLogger, planClass, task.getId());
     new ContextImpl(planContext, task).runTask();
 
     InternalUtil.unwildcardTask(task).addListener(_taskDoneListener);

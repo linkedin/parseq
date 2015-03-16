@@ -16,8 +16,9 @@
 
 package com.linkedin.parseq;
 
-import com.linkedin.parseq.internal.PlanContext;
+import com.linkedin.parseq.internal.TaskLogger;
 import com.linkedin.parseq.promise.Promise;
+import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.TraceBuilder;
 
 import java.util.concurrent.TimeUnit;
@@ -84,5 +85,11 @@ public interface Context
    */
   Object getEngineProperty(String key);
 
+  ShallowTraceBuilder getShallowTraceBuilder();
+
   TraceBuilder getTraceBuilder();
+
+  long getPlanId();
+
+  TaskLogger getTaskLogger();
 }

@@ -27,6 +27,7 @@ import java.util.function.Supplier;
 
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
+import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.TraceBuilder;
 import com.linkedin.parseq.After;
 import com.linkedin.parseq.Cancellable;
@@ -103,7 +104,7 @@ public class ContextImpl implements Context, Cancellable
         _inTask.set(_task);
         try
         {
-          _task.contextRun(ContextImpl.this, _planContext.getTaskLogger(), _parent, _predecessorTasks);
+          _task.contextRun(ContextImpl.this, _parent, _predecessorTasks);
         }
         finally
         {
@@ -260,7 +261,7 @@ public class ContextImpl implements Context, Cancellable
     //run the task to capture the trace data
     //TODO this is dubious idea: running task to get a trace
     //shouldn't we just add trace?
-    _task.contextRun(this, _planContext.getTaskLogger(), _parent, _predecessorTasks);
+    _task.contextRun(this, _parent, _predecessorTasks);
     return result;
   }
 
@@ -320,4 +321,20 @@ public class ContextImpl implements Context, Cancellable
   public TraceBuilder getTraceBuilder() {
     return _planContext.getRelationshipsBuilder();
   }
+
+  @Override
+  public ShallowTraceBuilder getShallowTraceBuilder() {
+    return _task.getShallowTraceBuilder();
+  }
+
+  @Override
+  public long getPlanId() {
+    return _planContext.getId();
+  }
+
+  @Override
+  public TaskLogger getTaskLogger() {
+    return _planContext.getTaskLogger();
+  }
+
 }

@@ -3,6 +3,9 @@ package com.linkedin.parseq.internal;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.ILoggerFactory;
+import org.slf4j.Logger;
+
 import com.linkedin.parseq.Cancellable;
 import com.linkedin.parseq.DelayedExecutor;
 import com.linkedin.parseq.Engine;
@@ -34,17 +37,15 @@ public class PlanContext
 
   private final TraceBuilder _relationshipsBuilder;
 
-  public PlanContext(final Engine engine,
-                     final Executor taskExecutor,
-                     final DelayedExecutor timerScheduler,
-                     final TaskLogger taskLogger)
-  {
+  public PlanContext(Engine engine, Executor taskExecutor, DelayedExecutor timerExecutor, ILoggerFactory loggerFactory,
+      Logger allLogger, Logger rootLogger, String planClass, long rootId) {
     _id = IdGenerator.getNextId();
     _relationshipsBuilder = new TraceBuilder();
     _engine = engine;
     _taskExecutor = taskExecutor;
-    _timerScheduler = timerScheduler;
-    _taskLogger = taskLogger;
+    _timerScheduler = timerExecutor;
+    final Logger planLogger = loggerFactory.getLogger(Engine.LOGGER_BASE + ":planClass=" + planClass);
+    _taskLogger = new TaskLogger(_id, rootId, allLogger, rootLogger, planLogger);
   }
 
   public long getId()

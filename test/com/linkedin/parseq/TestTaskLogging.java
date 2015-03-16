@@ -31,9 +31,9 @@ import static org.testng.AssertJUnit.fail;
  */
 public class TestTaskLogging extends BaseEngineTest
 {
-  private static final String ALL_LOGGER = Engine.class.getName() + ":all";
-  private static final String ROOT_LOGGER = Engine.class.getName() + ":root";
-  private static final String PLAN_CLASS_LOGGER = Engine.class.getName() + ":planClass=";
+  private static final String ALL_LOGGER = Engine.LOGGER_BASE + ":all";
+  private static final String ROOT_LOGGER = Engine.LOGGER_BASE + ":root";
+  private static final String PLAN_CLASS_LOGGER = Engine.LOGGER_BASE + ":planClass=";
 
   @Test
   public void testSingleTaskWithDefaultLogging() throws InterruptedException
@@ -63,6 +63,7 @@ public class TestTaskLogging extends BaseEngineTest
         resetLoggers();
 
         final Task<?> task = Task.value("t1", taskValue);
+        task.traceValue(Object::toString);
         setLogLevel(logger, level);
         runAndWait("TestTaskLogging.testSingleTaskCombinations", task);
 
@@ -127,6 +128,7 @@ public class TestTaskLogging extends BaseEngineTest
   public void testCompositeTaskWithAllLoggerTrace() throws InterruptedException
   {
     final Task<?> child1 = Task.value("t1", "value");
+    child1.traceValue(Object::toString);
     final Task<?> child2 = TestUtil.noop();
     final Task<?> parent = Tasks.seq(child1, child2);
 
@@ -158,6 +160,7 @@ public class TestTaskLogging extends BaseEngineTest
   public void testCompositeTaskWithPlanClassLoggerTrace() throws InterruptedException
   {
     final Task<?> child1 = Task.value("t1", "value");
+    child1.traceValue(Object::toString);
     final Task<?> child2 = TestUtil.noop();
     final Task<?> parent = Tasks.seq(child1, child2);
 

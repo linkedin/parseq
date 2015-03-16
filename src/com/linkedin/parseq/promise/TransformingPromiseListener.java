@@ -19,10 +19,10 @@ package com.linkedin.parseq.promise;
 
 public class TransformingPromiseListener<S, T> implements PromiseListener<S>
 {
-  private final SettablePromise<T> _dest;
+  private final Settable<T> _dest;
   private final PromisePropagator<S, T> _propagator;
 
- public TransformingPromiseListener(final SettablePromise<T> dest, final PromisePropagator<S, T> propagator)
+ public TransformingPromiseListener(final Settable<T> dest, final PromisePropagator<S, T> propagator)
   {
     _dest = dest;
     _propagator = propagator;

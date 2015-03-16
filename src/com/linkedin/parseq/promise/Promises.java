@@ -82,7 +82,7 @@ public class Promises
    * @param <T> the value type for both promises
    */
   public static <T> void propagateResult(final Promise<T> source,
-                                         final SettablePromise<T> dest)
+                                         final Settable<T> dest)
   {
     source.addListener(new TransformingPromiseListener<T, T>(dest, PromiseTransformer.identity()));
   }
