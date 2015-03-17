@@ -5,21 +5,21 @@ package com.linkedin.parseq.trace;
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
 public class TraceRelationship {
-  private final long _from;
-  private final long _to;
+  private final Long _from;
+  private final Long _to;
   private final Relationship _relationship;
 
-  public TraceRelationship(long from, long to, Relationship relationship) {
+  public TraceRelationship(Long from, Long to, Relationship relationship) {
     _from = from;
     _to = to;
     _relationship = relationship;
   }
 
-  public long getFrom() {
+  public Long getFrom() {
     return _from;
   }
 
-  public long getTo() {
+  public Long getTo() {
     return _to;
   }
 
@@ -31,9 +31,9 @@ public class TraceRelationship {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + (int) (_from ^ (_from >>> 32));
+    result = prime * result + ((_from == null) ? 0 : _from.hashCode());
     result = prime * result + ((_relationship == null) ? 0 : _relationship.hashCode());
-    result = prime * result + (int) (_to ^ (_to >>> 32));
+    result = prime * result + ((_to == null) ? 0 : _to.hashCode());
     return result;
   }
 
@@ -46,11 +46,17 @@ public class TraceRelationship {
     if (getClass() != obj.getClass())
       return false;
     TraceRelationship other = (TraceRelationship) obj;
-    if (_from != other._from)
+    if (_from == null) {
+      if (other._from != null)
+        return false;
+    } else if (!_from.equals(other._from))
       return false;
     if (_relationship != other._relationship)
       return false;
-    if (_to != other._to)
+    if (_to == null) {
+      if (other._to != null)
+        return false;
+    } else if (!_to.equals(other._to))
       return false;
     return true;
   }

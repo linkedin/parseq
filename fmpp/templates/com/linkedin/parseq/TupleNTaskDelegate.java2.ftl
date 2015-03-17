@@ -157,7 +157,7 @@ public class Tuple${i}TaskDelegate<<@typeParameters i/>> implements Tuple${i}Tas
    * {@inheritDoc}
    */
   @Override
-  public long getId() {
+  public Long getId() {
     return _task.getId();
   }
 

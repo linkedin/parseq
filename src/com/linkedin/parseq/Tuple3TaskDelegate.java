@@ -153,7 +153,7 @@ public class Tuple3TaskDelegate<T1, T2, T3> implements Tuple3Task<T1, T2, T3> {
    * {@inheritDoc}
    */
   @Override
-  public long getId() {
+  public Long getId() {
     return _task.getId();
   }
 

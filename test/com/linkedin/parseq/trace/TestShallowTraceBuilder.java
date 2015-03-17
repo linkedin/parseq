@@ -71,7 +71,7 @@ public class TestShallowTraceBuilder
   @Test
   public void testEquals()
   {
-    final ShallowTraceBuilder builder = new ShallowTraceBuilder(100);
+    final ShallowTraceBuilder builder = new ShallowTraceBuilder(100L);
     builder.setName("test");
     builder.setResultType(ResultType.SUCCESS);
     builder.setValue("value");
@@ -79,7 +79,7 @@ public class TestShallowTraceBuilder
     builder.setPendingNanos(234L);
     builder.setEndNanos(345L);
 
-    ShallowTraceBuilder builderCopy = new ShallowTraceBuilder(100);
+    ShallowTraceBuilder builderCopy = new ShallowTraceBuilder(100L);
     builderCopy.setName("test");
     builderCopy.setResultType(ResultType.SUCCESS);
     builderCopy.setValue("value");
@@ -88,7 +88,7 @@ public class TestShallowTraceBuilder
     builderCopy.setEndNanos(345L);
     assertEquals(builder.build(), builderCopy.build());
 
-    builderCopy = new ShallowTraceBuilder(100);
+    builderCopy = new ShallowTraceBuilder(100L);
     builderCopy.setName("no-test");
     builderCopy.setResultType(ResultType.SUCCESS);
     builderCopy.setValue("value");
@@ -97,7 +97,7 @@ public class TestShallowTraceBuilder
     builderCopy.setEndNanos(345L);
     assertFalse(builder.build().equals(builderCopy.build()));
 
-    builderCopy = new ShallowTraceBuilder(100);
+    builderCopy = new ShallowTraceBuilder(100L);
     builderCopy.setName("test");
     builderCopy.setResultType(ResultType.SUCCESS);
     builderCopy.setStartNanos(123L);
@@ -106,7 +106,7 @@ public class TestShallowTraceBuilder
     assertFalse(builder.build().equals(builderCopy.build()));
 
 
-    builderCopy = new ShallowTraceBuilder(100);
+    builderCopy = new ShallowTraceBuilder(100L);
     builderCopy.setName("no-test");
     builderCopy.setResultType(ResultType.SUCCESS);
     builderCopy.setValue("value");

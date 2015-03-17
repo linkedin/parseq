@@ -76,7 +76,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     DONE
   }
 
-  private final long _id = IdGenerator.getNextId();
+  private final Long _id = IdGenerator.getNextId();
   private final AtomicReference<State<T>> _stateRef;
   private final String _name;
   protected final ShallowTraceBuilder _shallowTraceBuilder;
@@ -111,7 +111,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
   }
 
   @Override
-  public long getId() {
+  public Long getId() {
     return _id;
   }
 
@@ -545,7 +545,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     }
 
     @Override
-    public long getPlanId() {
+    public Long getPlanId() {
       return _context.getPlanId();
     }
 
@@ -579,6 +579,5 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
   public String toString() {
     return "Task [id=" + _id + ", name=" + _name + "]";
   }
-
 
 }

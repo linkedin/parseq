@@ -89,7 +89,7 @@ public interface Context
 
   TraceBuilder getTraceBuilder();
 
-  long getPlanId();
+  Long getPlanId();
 
   TaskLogger getTaskLogger();
 }

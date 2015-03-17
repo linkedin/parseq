@@ -14,7 +14,7 @@ import com.linkedin.parseq.trace.TraceBuilder;
 public class PlanContext
 {
   /** Unique identifier for this plan. */
-  private final long _id;
+  private final Long _id;
 
   /** The engine used to execute this plan. */
   private final Engine _engine;
@@ -38,9 +38,9 @@ public class PlanContext
   private final TraceBuilder _relationshipsBuilder;
 
   public PlanContext(Engine engine, Executor taskExecutor, DelayedExecutor timerExecutor, ILoggerFactory loggerFactory,
-      Logger allLogger, Logger rootLogger, String planClass, long rootId) {
+      Logger allLogger, Logger rootLogger, String planClass, Long rootId, int maxRelationshipsPerTrace) {
     _id = IdGenerator.getNextId();
-    _relationshipsBuilder = new TraceBuilder();
+    _relationshipsBuilder = new TraceBuilder(maxRelationshipsPerTrace);
     _engine = engine;
     _taskExecutor = taskExecutor;
     _timerScheduler = timerExecutor;
@@ -48,7 +48,7 @@ public class PlanContext
     _taskLogger = new TaskLogger(_id, rootId, allLogger, rootLogger, planLogger);
   }
 
-  public long getId()
+  public Long getId()
   {
     return _id;
   }

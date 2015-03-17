@@ -16,13 +16,12 @@
 
 package com.linkedin.parseq.trace;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import com.linkedin.parseq.internal.ArgumentUtil;
 
@@ -31,36 +30,68 @@ import com.linkedin.parseq.internal.ArgumentUtil;
  */
 public class TraceBuilder {
 
-  private final Set<TraceRelationship> _relationships;
-  private final Map<Long, ShallowTraceBuilder> _traceBuilders;
+  private final int _maxRelationshipsPerTrace;
 
-  public TraceBuilder() {
-    _relationships = Collections.newSetFromMap(new ConcurrentHashMap<TraceRelationship, Boolean>());
-    _traceBuilders = new ConcurrentHashMap<>();
+  private static class RefCounted<T> {
+    public RefCounted(int refCount, T value) {
+      _refCount = refCount;
+      _value = value;
+    }
+    int _refCount;
+    T _value;
   }
 
-  public void addShallowTrace(final ShallowTraceBuilder shallowTrace) {
-    _traceBuilders.putIfAbsent(shallowTrace.getId(), shallowTrace);
+  private final LinkedHashSet<TraceRelationship> _relationships;
+  private final Map<Long, RefCounted<ShallowTraceBuilder>> _traceBuilders;
+
+  public TraceBuilder(int maxRelationshipsCount) {
+    _relationships = new LinkedHashSet<>();
+    _traceBuilders = new HashMap<>();
+    _maxRelationshipsPerTrace = maxRelationshipsCount;
   }
 
-  public void addRelationship(final Relationship relationship, final ShallowTraceBuilder from, final ShallowTraceBuilder to) {
+  public synchronized void addShallowTrace(final ShallowTraceBuilder shallowTrace) {
+    _traceBuilders.putIfAbsent(shallowTrace.getId(), new RefCounted<>(0, shallowTrace));
+  }
+
+  public synchronized void addRelationship(final Relationship relationship, final ShallowTraceBuilder from, final ShallowTraceBuilder to) {
     ArgumentUtil.requireNotNull(relationship, "relationship");
     ArgumentUtil.requireNotNull(from, "from");
     ArgumentUtil.requireNotNull(to, "to");
+    if (_relationships.size() == _maxRelationshipsPerTrace) {
+      TraceRelationship r = _relationships.iterator().next();
+      _relationships.remove(r);
+      decreaseRefCount(r.getFrom());
+      decreaseRefCount(r.getTo());
+    }
     addShallowTrace(from);
     addShallowTrace(to);
     final TraceRelationship rel = new TraceRelationship(from.getId(), to.getId(), relationship);
     if (!_relationships.add(rel)) {
       throw new IllegalArgumentException("Relationship already exists: " + rel);
     }
+    increaseRefCount(from.getId());
+    increaseRefCount(to.getId());
   }
 
-  public boolean containsRelationship(final TraceRelationship relationship) {
+  private void decreaseRefCount(Long id) {
+    RefCounted<ShallowTraceBuilder> traceBuilderRefCount = _traceBuilders.get(id);
+    traceBuilderRefCount._refCount--;
+    if (traceBuilderRefCount._refCount == 0) {
+      _traceBuilders.remove(id);
+    }
+  }
+
+  private void increaseRefCount(Long id) {
+    _traceBuilders.get(id)._refCount++;
+  }
+
+  public synchronized boolean containsRelationship(final TraceRelationship relationship) {
     return _relationships.contains(relationship);
   }
 
-  private void findPotentialParents(final Map<Long, Set<Long>> potentialParents, final Set<TraceRelationship> relationships) {
-    for (TraceRelationship rel: relationships) {
+  private void findPotentialParents(final Map<Long, Set<Long>> potentialParents) {
+    for (TraceRelationship rel: _relationships) {
       switch(rel.getRelationhsip())
       {
         case SUCCESSOR_OF:
@@ -89,20 +120,19 @@ public class TraceBuilder {
     }
   }
 
-  public Trace build() {
+  public synchronized Trace build() {
+
     final Map<Long, ShallowTrace> traceMap = new HashMap<>();
     final Set<TraceRelationship> relationships = new HashSet<>();
 
     final Map<Long, Set<Long>> potentialParents = new HashMap<>();
 
-    //shallow copy of relationship to avoid modifications
-    final Set<TraceRelationship> frozenRelationship = new HashSet<>(_relationships);
-    for (Entry<Long, ShallowTraceBuilder> entry: _traceBuilders.entrySet()) {
-      traceMap.put(entry.getKey(), entry.getValue().build());
+    for (Entry<Long, RefCounted<ShallowTraceBuilder>> entry: _traceBuilders.entrySet()) {
+      traceMap.put(entry.getKey(), entry.getValue()._value.build());
     }
-    findPotentialParents(potentialParents, frozenRelationship);
+    findPotentialParents(potentialParents);
 
-    for (TraceRelationship rel: frozenRelationship) {
+    for (TraceRelationship rel: _relationships) {
 
       switch(rel.getRelationhsip())
       {

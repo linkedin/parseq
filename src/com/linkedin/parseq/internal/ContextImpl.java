@@ -328,7 +328,7 @@ public class ContextImpl implements Context, Cancellable
   }
 
   @Override
-  public long getPlanId() {
+  public Long getPlanId() {
     return _planContext.getId();
   }
 

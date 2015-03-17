@@ -34,7 +34,7 @@ import com.linkedin.parseq.internal.ArgumentUtil;
  */
 public class ShallowTraceBuilder {
 
-  private final long _id;
+  private final Long _id;
   private volatile String _name;
   private volatile boolean _hidden;
   private volatile String _value;
@@ -45,7 +45,7 @@ public class ShallowTraceBuilder {
   private volatile boolean _systemHidden;
   private Map<String, String> _attributes;
 
-  public ShallowTraceBuilder(long id) {
+  public ShallowTraceBuilder(Long id) {
     _id = id;
   }
 
@@ -111,7 +111,7 @@ public class ShallowTraceBuilder {
     return this;
   }
 
-  public long getId() {
+  public Long getId() {
     return _id;
   }
 

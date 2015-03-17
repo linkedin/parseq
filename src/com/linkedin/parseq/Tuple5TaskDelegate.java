@@ -153,7 +153,7 @@ public class Tuple5TaskDelegate<T1, T2, T3, T4, T5> implements Tuple5Task<T1, T2
    * {@inheritDoc}
    */
   @Override
-  public long getId() {
+  public Long getId() {
     return _task.getId();
   }
 

@@ -47,6 +47,8 @@ public class Engine
   public static final String LOGGER_BASE = Engine.class.getName();
   private static final Logger LOG = LoggerFactory.getLogger(LOGGER_BASE);
 
+  public static final String MAX_RELATIONSHIPS_PER_TRACE = "_MaxRelationshipsPerTrace_";
+
   private static final State INIT = new State(StateName.RUN, 0);
   private static final State TERMINATED = new State(StateName.TERMINATED, 0);
 
@@ -60,6 +62,9 @@ public class Engine
   private final CountDownLatch _terminated = new CountDownLatch(1);
 
   private final Map<String, Object > _properties;
+
+  private static final int DEFUALT_MAX_RELATIONSHIPS_PER_TRACE = 1024;
+  private final int _maxRelationshipsPerTrace;
 
   private final PromiseListener<Object> _taskDoneListener = new PromiseListener<Object>()
   {
@@ -100,6 +105,12 @@ public class Engine
 
     _allLogger = loggerFactory.getLogger(LOGGER_BASE + ":all");
     _rootLogger = loggerFactory.getLogger(LOGGER_BASE + ":root");
+
+    if (_properties.containsKey(MAX_RELATIONSHIPS_PER_TRACE)) {
+      _maxRelationshipsPerTrace = (Integer)getProperty(MAX_RELATIONSHIPS_PER_TRACE);
+    } else {
+      _maxRelationshipsPerTrace = DEFUALT_MAX_RELATIONSHIPS_PER_TRACE;
+    }
   }
 
   public Object getProperty(String key)
@@ -142,7 +153,8 @@ public class Engine
 
     final Executor taskExecutor = new SerialExecutor(_taskExecutor, new CancelPlanRejectionHandler(task));
     PlanContext planContext =
-        new PlanContext(this, taskExecutor, _timerExecutor, _loggerFactory, _allLogger, _rootLogger, planClass, task.getId());
+        new PlanContext(this, taskExecutor, _timerExecutor, _loggerFactory, _allLogger, _rootLogger, planClass,
+            task.getId(), _maxRelationshipsPerTrace);
     new ContextImpl(planContext, task).runTask();
 
     InternalUtil.unwildcardTask(task).addListener(_taskDoneListener);

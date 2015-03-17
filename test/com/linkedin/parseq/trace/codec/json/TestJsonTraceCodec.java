@@ -235,7 +235,7 @@ public class TestJsonTraceCodec
     .setPendingNanos(75L)
     .setEndNanos(100L);
 
-    final TraceBuilder builder = new TraceBuilder();
+    final TraceBuilder builder = new TraceBuilder(1024);
     builder.addRelationship(Relationship.PARENT_OF, parent, child);
     Trace trace = builder.build();
     assertReversible(trace);
@@ -260,7 +260,7 @@ public class TestJsonTraceCodec
     .setPendingNanos(75L)
     .setEndNanos(100L);
 
-    final TraceBuilder builder = new TraceBuilder();
+    final TraceBuilder builder = new TraceBuilder(1024);
     builder.addRelationship(Relationship.SUCCESSOR_OF, successor, predecessor);
     Trace trace = builder.build();
     assertReversible(trace);
@@ -301,7 +301,7 @@ public class TestJsonTraceCodec
     .setPendingNanos(125L)
     .setEndNanos(150L);
 
-    final TraceBuilder builder = new TraceBuilder();
+    final TraceBuilder builder = new TraceBuilder(1024);
     builder.addRelationship(Relationship.SUCCESSOR_OF, left, source);
     builder.addRelationship(Relationship.SUCCESSOR_OF, right, source);
     builder.addRelationship(Relationship.SUCCESSOR_OF, sink, left);

@@ -49,7 +49,7 @@ public class TaskLogger
    * The id of a root task for the plan. Used to determine if a given task should be
    * logged using the plan logger.
    */
-  private final long _rootId;
+  private final Long _rootId;
 
   /** Logs every trace it finds. */
   private final Logger _allLogger;
@@ -60,9 +60,9 @@ public class TaskLogger
   /** Logs all tasks for this this plan. */
   private final Logger _planLogger;
 
-  private final long _planId;
+  private final Long _planId;
 
-  public TaskLogger(final long planId, final long rootId, final Logger allLogger,
+  public TaskLogger(final Long planId, final Long rootId, final Logger allLogger,
                     final Logger rootLogger, final Logger planLogger)
   {
     _allLogger = allLogger;

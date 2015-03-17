@@ -130,10 +130,10 @@ public interface Task<T> extends Promise<T>, Cancellable
   Trace getTrace();
 
   /**
-   * Id of a
-   * @return
+   * Unique identifier of the task.
+   * @return unique identifier of the task.
    */
-  long getId();
+  Long getId();
 
   ShallowTraceBuilder getShallowTraceBuilder();
 

@@ -83,6 +83,6 @@ public interface ShallowTrace {
    * Id of this trace.
    * @return Id of this trace.
    */
-  long getId();
+  Long getId();
 
 }

@@ -32,7 +32,7 @@ import com.linkedin.parseq.internal.ArgumentUtil;
  */
 public class ShallowTraceImp implements ShallowTrace
 {
-  private final long _id;
+  private final Long _id;
   private final String _name;
   private final boolean _hidden;
   private final boolean _systemHidden;
@@ -43,7 +43,7 @@ public class ShallowTraceImp implements ShallowTrace
   private final Long _endNanos;
   private final Map<String, String> _attributes;
 
-  /* package private */ ShallowTraceImp(final long id,
+  /* package private */ ShallowTraceImp(final Long id,
                                      final String name,
                                      final boolean hidden,
                                      final boolean systemHidden,
@@ -188,10 +188,9 @@ public class ShallowTraceImp implements ShallowTrace
    * @see com.linkedin.parseq.trace.ShallowTraceI#getId()
    */
   @Override
-  public long getId() {
+  public Long getId() {
     return _id;
   }
-
 
   @Override
   public int hashCode() {
@@ -200,7 +199,7 @@ public class ShallowTraceImp implements ShallowTrace
     result = prime * result + ((_attributes == null) ? 0 : _attributes.hashCode());
     result = prime * result + ((_endNanos == null) ? 0 : _endNanos.hashCode());
     result = prime * result + (_hidden ? 1231 : 1237);
-    result = prime * result + (int) (_id ^ (_id >>> 32));
+    result = prime * result + ((_id == null) ? 0 : _id.hashCode());
     result = prime * result + ((_name == null) ? 0 : _name.hashCode());
     result = prime * result + ((_pendingNanos == null) ? 0 : _pendingNanos.hashCode());
     result = prime * result + ((_resultType == null) ? 0 : _resultType.hashCode());
@@ -231,7 +230,10 @@ public class ShallowTraceImp implements ShallowTrace
       return false;
     if (_hidden != other._hidden)
       return false;
-    if (_id != other._id)
+    if (_id == null) {
+      if (other._id != null)
+        return false;
+    } else if (!_id.equals(other._id))
       return false;
     if (_name == null) {
       if (other._name != null)

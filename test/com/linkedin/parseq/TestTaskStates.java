@@ -447,7 +447,7 @@ public class TestTaskStates
 
     @Override
     public TraceBuilder getTraceBuilder() {
-      return new TraceBuilder();
+      return new TraceBuilder(1024);
     }
 
     @Override
@@ -456,8 +456,8 @@ public class TestTaskStates
     }
 
     @Override
-    public long getPlanId() {
-      return 0;
+    public Long getPlanId() {
+      return 0L;
     }
 
     @Override
@@ -470,7 +470,7 @@ public class TestTaskStates
   {
     public NullTaskLog()
     {
-      super(0, 0, null, null, null);
+      super(0L, 0L, null, null, null);
     }
 
     @Override

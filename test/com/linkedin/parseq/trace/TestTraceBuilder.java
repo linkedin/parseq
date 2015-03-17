@@ -39,7 +39,7 @@ public class TestTraceBuilder
     final ShallowTraceBuilder trace2 = new ShallowTraceBuilder(IdGenerator.getNextId())
     .setName("task2")
     .setResultType(ResultType.UNFINISHED);
-    final TraceBuilder builder = new TraceBuilder();
+    final TraceBuilder builder = new TraceBuilder(1024);
     builder.addRelationship(Relationship.SUCCESSOR_OF, trace1, trace2);
     Trace trace = builder.build();
     assertEquals(trace1.build(), trace.getTraceMap().get(trace1.getId()));
@@ -57,9 +57,8 @@ public class TestTraceBuilder
     final ShallowTraceBuilder trace2 = new ShallowTraceBuilder(IdGenerator.getNextId())
     .setName("task2")
     .setResultType(ResultType.UNFINISHED);
-    final TraceBuilder builder = new TraceBuilder();
+    final TraceBuilder builder = new TraceBuilder(1024);
     builder.addRelationship(Relationship.SUCCESSOR_OF, trace1, trace2);
-
     try
     {
       builder.addRelationship(Relationship.SUCCESSOR_OF, trace1, trace2);

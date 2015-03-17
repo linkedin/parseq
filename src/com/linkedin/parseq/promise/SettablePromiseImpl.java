@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Chi Chan (ckchan@linkedin.com)
+ * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
 /* package private */ class SettablePromiseImpl<T> implements SettablePromise<T>
 {
@@ -121,12 +122,40 @@ import java.util.concurrent.TimeUnit;
     return isDone() && _error != null;
   }
 
-  private void doFinish(T value, Throwable error) throws PromiseResolvedException
+  private void doFinish(final T value, final Throwable error) throws PromiseResolvedException
   {
-    final List<PromiseListener<T>> listeners;
+    final List<PromiseListener<T>> listsners = finalizeResult(value, error);
+    final Runnable current = () -> notifyListeners(listsners);
+    final Continuations conts = Continuations.get();
+    if (conts._active == null) {
+      //invariants: _scheduled and _inactive are empty
+      conts._active = conts._inactive;
+      conts._scheduled.add(current);
+      try {
+        while (!conts._scheduled.isEmpty()) {
+          final Runnable next = conts._scheduled.poll();
+          next.run();
+          while(!conts._active.isEmpty()) {
+            conts._scheduled.addFirst(conts._active.pollLast());
+          }
+        }
+      } finally {
+        //maintain invariants
+        conts._scheduled.clear();
+        conts._active.clear();
+        conts._inactive = conts._active;
+        conts._active = null;
+      }
+      _awaitLatch.countDown();
+    } else {
+      conts._active.add(current);
+      conts._active.add(_awaitLatch::countDown);
+    }
+  }
 
-    synchronized (_lock)
-    {
+  private List<PromiseListener<T>> finalizeResult(T value, Throwable error) {
+    final List<PromiseListener<T>> listeners;
+    synchronized (_lock) {
       ensureNotDone();
       _value = value;
       _error = error;
@@ -134,13 +163,13 @@ import java.util.concurrent.TimeUnit;
       listeners = new ArrayList<PromiseListener<T>>(_listeners);
       _listeners.clear();
     }
+    return listeners;
+  }
 
-    for (int i = listeners.size() - 1; i >= 0; i--)
-    {
+  private void notifyListeners(final List<PromiseListener<T>> listeners) {
+    for (int i = listeners.size() - 1; i >= 0; i--) {
       notifyListener(listeners.get(i));
     }
-
-    _awaitLatch.countDown();
   }
 
   private void notifyListener(final PromiseListener<T> listener)

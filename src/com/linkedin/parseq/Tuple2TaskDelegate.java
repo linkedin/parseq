@@ -153,7 +153,7 @@ public class Tuple2TaskDelegate<T1, T2> implements Tuple2Task<T1, T2> {
    * {@inheritDoc}
    */
   @Override
-  public long getId() {
+  public Long getId() {
     return _task.getId();
   }
 
