@@ -299,8 +299,8 @@ public class TestTasks extends BaseEngineTest
           }, 5, TimeUnit.MILLISECONDS);
           return result;
         }
-      }.withTimeout(50, TimeUnit.MILLISECONDS);
-      tasks.add(t);
+      };
+      tasks.add(t.withTimeout(50, TimeUnit.MILLISECONDS));
     }
 
     // final task runs all the tasks in parallel

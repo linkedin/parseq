@@ -192,32 +192,17 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
           {
             if (resolvedPromise.isFailed())
             {
-              if (resolvedPromise.getError() instanceof EarlyFinishException) {
-                _shallowTraceBuilder.setResultType(ResultType.EARLY_FINISH);
-              } else {
-                _shallowTraceBuilder.setResultType(ResultType.ERROR);
-                _shallowTraceBuilder.setValue(resolvedPromise.getError().toString());
-              }
-              fail(resolvedPromise.getError() , taskLogger);
+              traceAndFail(resolvedPromise.getError(), taskLogger);
             }
             else
             {
-              _shallowTraceBuilder.setResultType(ResultType.SUCCESS);
-              final Function<T, String> traceValueProvider = _traceValueProvider;
-              if (traceValueProvider != null) {
-                try {
-                _shallowTraceBuilder.setValue(traceValueProvider.apply(resolvedPromise.get()));
-                } catch (Exception e) {
-                  _shallowTraceBuilder.setValue(e.toString());
-                }
-              }
-              done(resolvedPromise.get(), taskLogger);
+              traceAndDone(resolvedPromise.get(), taskLogger);
             }
           });
       }
       catch (Throwable t)
       {
-        fail(t, taskLogger);
+        traceAndFail(t, taskLogger);
       }
     }
     else
@@ -305,21 +290,44 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
    */
   protected abstract Promise<? extends T> run(final Context context) throws Throwable;
 
-  private void done(final T value, final TaskLogger taskLog)
+  private void traceAndDone(final T value, final TaskLogger taskLogger) {
+    _shallowTraceBuilder.setResultType(ResultType.SUCCESS);
+    final Function<T, String> traceValueProvider = _traceValueProvider;
+    if (traceValueProvider != null) {
+      try {
+      _shallowTraceBuilder.setValue(traceValueProvider.apply(value));
+      } catch (Exception e) {
+        _shallowTraceBuilder.setValue(e.toString());
+      }
+    }
+    done(value, taskLogger);
+  }
+
+  private void done(final T value, final TaskLogger taskLogger)
   {
     if (transitionDone())
     {
       getSettableDelegate().done(value);
-      taskLog.logTaskEnd(BaseTask.this, _traceValueProvider);
+      taskLogger.logTaskEnd(BaseTask.this, _traceValueProvider);
     }
   }
 
-  private void fail(final Throwable error, final TaskLogger taskLog)
+  private void traceAndFail(final Throwable error, final TaskLogger taskLogger) {
+    if (error instanceof EarlyFinishException) {
+      _shallowTraceBuilder.setResultType(ResultType.EARLY_FINISH);
+    } else {
+      _shallowTraceBuilder.setResultType(ResultType.ERROR);
+      _shallowTraceBuilder.setValue(error.toString());
+    }
+    fail(error , taskLogger);
+  }
+
+  private void fail(final Throwable error, final TaskLogger taskLogger)
   {
     if (transitionDone())
     {
       getSettableDelegate().fail(error);
-      taskLog.logTaskEnd(BaseTask.this, _traceValueProvider);
+      taskLogger.logTaskEnd(BaseTask.this, _traceValueProvider);
     }
   }
 

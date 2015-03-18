@@ -2,6 +2,12 @@ package com.linkedin.parseq.internal;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * Id generator that avoids inter-thread coordination.
+ *
+ * @author Jaroslaw Odzga (jodzga@linkedin.com)
+ *
+ */
 public class IdGenerator {
 
   private static final long CHUNK_SIZE = 1000;

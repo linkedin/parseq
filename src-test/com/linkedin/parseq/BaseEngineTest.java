@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
+import com.linkedin.parseq.internal.TimeUnitHelper;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 import com.linkedin.parseq.trace.Trace;
@@ -143,7 +144,6 @@ public class BaseEngineTest
     catch (IOException e)
     {
       LOG.error("Failed to encode JSON");
-      e.printStackTrace();
     }
   }
 
@@ -169,7 +169,7 @@ public class BaseEngineTest
    */
   protected <T> Task<T> delayedValue(T value, long time, TimeUnit timeUnit)
   {
-    return Task.async("delayedValue", () -> {
+    return Task.async("delayed " + time + " " + TimeUnitHelper.toString(timeUnit), () -> {
       final SettablePromise<T> promise = Promises.settable();
       _scheduler.schedule(() -> promise.done(value), time, timeUnit);
       return promise;

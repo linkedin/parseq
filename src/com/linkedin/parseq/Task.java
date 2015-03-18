@@ -29,6 +29,7 @@ import com.linkedin.parseq.function.Function1;
 import com.linkedin.parseq.function.Success;
 import com.linkedin.parseq.function.Try;
 import com.linkedin.parseq.internal.ArgumentUtil;
+import com.linkedin.parseq.internal.TimeUnitHelper;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromisePropagator;
 import com.linkedin.parseq.promise.PromiseTransformer;
@@ -585,11 +586,21 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @param <T> the value type for the task
    * @return the new task with a timeout
    */
-  //TODO change withTimeout to return new task
   default Task<T> withTimeout(final long time, final TimeUnit unit)
   {
-    wrapContextRun(new TimeoutContextRunWrapper<T>(time, unit, Exceptions.TIMEOUT_EXCEPTION));
-    return this;
+    final Task<T> that = this;
+    Task<T> withTimeout = async("withTimeout " + time + " " + TimeUnitHelper.toString(unit), ctx -> {
+      final SettablePromise<T> result = Promises.settable();
+      Promises.propagateResult(that, result);
+      //we want to schedule this task as soon as possible
+      //because timeout timer has started ticking
+      that.setPriority(Priority.MAX_PRIORITY);
+      ctx.run(that);
+      return result;
+    }, false);
+    withTimeout.setPriority(getPriority());
+    withTimeout.wrapContextRun(new TimeoutContextRunWrapper<T>(time, unit, Exceptions.TIMEOUT_EXCEPTION));
+    return withTimeout;
   }
 
   /**

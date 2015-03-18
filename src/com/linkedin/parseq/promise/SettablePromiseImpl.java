@@ -16,13 +16,15 @@
 
 package com.linkedin.parseq.promise;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.linkedin.parseq.internal.Continuations;
 
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
@@ -32,6 +34,8 @@ import java.util.concurrent.TimeUnit;
 /* package private */ class SettablePromiseImpl<T> implements SettablePromise<T>
 {
   private static final Logger LOGGER = LoggerFactory.getLogger(SettablePromiseImpl.class);
+
+  private static final Continuations CONTINUATIONS = new Continuations();
 
   private final Object _lock = new Object();
   private final List<PromiseListener<T>> _listeners = new ArrayList<PromiseListener<T>>();
@@ -122,35 +126,9 @@ import java.util.concurrent.TimeUnit;
     return isDone() && _error != null;
   }
 
-  private void doFinish(final T value, final Throwable error) throws PromiseResolvedException
-  {
+  private void doFinish(final T value, final Throwable error) throws PromiseResolvedException {
     final List<PromiseListener<T>> listsners = finalizeResult(value, error);
-    final Runnable current = () -> notifyListeners(listsners);
-    final Continuations conts = Continuations.get();
-    if (conts._active == null) {
-      //invariants: _scheduled and _inactive are empty
-      conts._active = conts._inactive;
-      conts._scheduled.add(current);
-      try {
-        while (!conts._scheduled.isEmpty()) {
-          final Runnable next = conts._scheduled.poll();
-          next.run();
-          while(!conts._active.isEmpty()) {
-            conts._scheduled.addFirst(conts._active.pollLast());
-          }
-        }
-      } finally {
-        //maintain invariants
-        conts._scheduled.clear();
-        conts._active.clear();
-        conts._inactive = conts._active;
-        conts._active = null;
-      }
-      _awaitLatch.countDown();
-    } else {
-      conts._active.add(current);
-      conts._active.add(_awaitLatch::countDown);
-    }
+    CONTINUATIONS.submit(() -> notifyListeners(listsners), _awaitLatch::countDown);
   }
 
   private List<PromiseListener<T>> finalizeResult(T value, Throwable error) {
