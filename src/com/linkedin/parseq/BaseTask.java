@@ -503,11 +503,6 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     }
 
     @Override
-    public After afterTask(Task<Object> rootTask, Promise<?>... promises) {
-      return new WrappedAfter(_context.afterTask(rootTask, promises));
-    }
-
-    @Override
     public TraceBuilder getTraceBuilder() {
       return _context.getTraceBuilder();
     }

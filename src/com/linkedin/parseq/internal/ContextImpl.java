@@ -166,15 +166,6 @@ public class ContextImpl implements Context, Cancellable
     }
   }
 
-  /**
-   * TODO
-   * this is a way in from other threads to schedule task on this context
-   *
-   * Streaming idea: remember last task and once there is next task available call after to sequence
-   * tasks.
-   *
-   * for parallel we might need simply runSubTask(right away)
-   */
   @Override
   public After after(final Promise<?>... promises)
   {
@@ -233,25 +224,6 @@ public class ContextImpl implements Context, Cancellable
         }, promises);
       }
     };
-  }
-
-  @Override
-  public After afterTask(Task<Object> rootTask, Promise<?>... promises) {
-    // check reference equality to make sure model is consistent i.e.
-    // subtasks have same parent
-    if (rootTask != _task)  {
-      throw new RuntimeException("Context method invoked associated with wrong task");
-    }
-    final Task<?> temp = _inTask.get();
-    _inTask.set(_task);
-    try
-    {
-      return after(promises);
-    }
-    finally
-    {
-      _inTask.set(temp);
-    }
   }
 
   @Override

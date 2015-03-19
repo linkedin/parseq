@@ -22,7 +22,6 @@ import com.linkedin.parseq.trace.TraceRelationship;
 /**
  * TODO optimize flatmap - can it be run without rescheduling?
  * TODO fix flatmap trace - possibly by reimplementing flatten
- * TODO fix withtimeout - it's synchronous
  *
  *
  * @author jodzga

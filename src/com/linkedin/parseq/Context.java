@@ -72,9 +72,6 @@ public interface Context
    */
   After after(Promise<?>... promises);
 
-  //TODO do we really need this???
-  After afterTask(Task<Object> rootTask, Promise<?>... promises);
-
   /**
    * Provides a mechanism for "plugins" to generate data which should be passed in via the context.
    * The intent is that the "plugin" registers engine specific data it needed via the engine builder.

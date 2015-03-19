@@ -441,11 +441,6 @@ public class TestTaskStates
     }
 
     @Override
-    public After afterTask(Task<Object> rootTask, Promise<?>... promises) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public TraceBuilder getTraceBuilder() {
       return new TraceBuilder(1024);
     }
