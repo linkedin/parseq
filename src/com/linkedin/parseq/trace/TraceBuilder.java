@@ -67,9 +67,7 @@ public class TraceBuilder {
     addShallowTrace(from);
     addShallowTrace(to);
     final TraceRelationship rel = new TraceRelationship(from.getId(), to.getId(), relationship);
-    if (!_relationships.add(rel)) {
-      throw new IllegalArgumentException("Relationship already exists: " + rel);
-    }
+    _relationships.add(rel);
     increaseRefCount(from.getId());
     increaseRefCount(to.getId());
   }

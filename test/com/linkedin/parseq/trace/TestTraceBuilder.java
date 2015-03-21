@@ -18,7 +18,6 @@ package com.linkedin.parseq.trace;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
 
 import org.testng.annotations.Test;
 
@@ -59,14 +58,11 @@ public class TestTraceBuilder
     .setResultType(ResultType.UNFINISHED);
     final TraceBuilder builder = new TraceBuilder(1024);
     builder.addRelationship(Relationship.SUCCESSOR_OF, trace1, trace2);
-    try
-    {
-      builder.addRelationship(Relationship.SUCCESSOR_OF, trace1, trace2);
-      fail("Should have thrown IllegalArgumentException");
-    }
-    catch (IllegalArgumentException e)
-    {
-      // Expected case
-    }
+    builder.addRelationship(Relationship.SUCCESSOR_OF, trace1, trace2);
+    Trace trace = builder.build();
+    assertEquals(trace1.build(), trace.getTraceMap().get(trace1.getId()));
+    assertEquals(trace2.build(), trace.getTraceMap().get(trace2.getId()));
+    assertEquals(1, trace.getRelationships().size());
+    assertTrue(trace.getRelationships().contains(new TraceRelationship(trace1.getId(), trace2.getId(), Relationship.SUCCESSOR_OF)));
   }
 }
