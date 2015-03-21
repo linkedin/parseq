@@ -49,6 +49,19 @@ public class ShallowTraceBuilder {
     _id = id;
   }
 
+  public ShallowTraceBuilder(final ShallowTrace shallowTrace) {
+    this(shallowTrace.getId());
+    setResultType(shallowTrace.getResultType());
+    setName(shallowTrace.getName());
+    setValue(shallowTrace.getValue());
+    setStartNanos(shallowTrace.getStartNanos());
+    setPendingNanos(shallowTrace.getPendingNanos());
+    setEndNanos(shallowTrace.getEndNanos());
+    setHidden(shallowTrace.getHidden());
+    setSystemHidden(shallowTrace.getSystemHidden());
+    _attributes.putAll(shallowTrace.getAttributes());
+  }
+
   public boolean getHidden() {
     return _hidden;
   }
