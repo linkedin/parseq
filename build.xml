@@ -292,7 +292,7 @@
         <delete dir="${java.io.tmpdir}/tracevis-server" />
         <mkdir dir="${java.io.tmpdir}/tracevis-server" />
         <untar src="${tools.dir}/tracevis/dist/parseq-tracevis.tar.gz" dest="${java.io.tmpdir}/tracevis-server" compression="gzip"/>
-        <java fork="true" jar="${tools.dir}/tracevis-server/target/tracevis-server-0.0.1-SNAPSHOT-jar-with-dependencies.jar" failonerror="true" dir="${java.io.tmpdir}/tracevis-server">
+        <java fork="true" jar="${tools.dir}/tracevis-server/target/tracevis-server-jar-with-dependencies.jar" failonerror="true" dir="${java.io.tmpdir}/tracevis-server">
             <arg value="8080" />
             <arg value="${dot.location}" />
         </java>

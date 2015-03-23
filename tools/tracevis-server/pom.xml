@@ -37,17 +37,17 @@
         <artifactId>jetty-maven-plugin</artifactId>
         <version>${jettyVersion}</version>
       </plugin>
-	<plugin>
-		<groupId>org.apache.maven.plugins</groupId>
-		<artifactId>maven-compiler-plugin</artifactId>
-		<version>3.0</version>
-		<configuration>
-			<source>1.8</source>
-			<target>1.8</target>
-			<testSource>1.8</testSource>
-			<testTarget>1.8</testTarget>
-		</configuration>
-	</plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.0</version>
+        <configuration>
+            <source>1.8</source>
+            <target>1.8</target>
+            <testSource>1.8</testSource>
+            <testTarget>1.8</testTarget>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
@@ -66,6 +66,7 @@
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
           </descriptorRefs>
+          <finalName>tracevis-server</finalName>
           <archive>
             <manifest>
               <mainClass>com.linkedin.parseq.TracevisServer</mainClass>

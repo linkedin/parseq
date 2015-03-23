@@ -26,7 +26,7 @@ public class TracevisServer {
 
   private static final Logger LOG = LoggerFactory.getLogger(TracevisServer.class);
 
-  private static final int CACHE_SIZE = 100;
+  private static final int CACHE_SIZE = 1024;
   private static final String CACHE_LOCATION = "./tracevis/cache/";
   private static final String TYPE = "svg";
 
