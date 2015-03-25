@@ -100,7 +100,6 @@ public class ExampleUtil
     catch (IOException e)
     {
       System.err.println("Failed to encode JSON");
-      e.printStackTrace();
     }
     System.out.println();
   }

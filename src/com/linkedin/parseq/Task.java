@@ -21,7 +21,6 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 import com.linkedin.parseq.function.Consumer1;
@@ -42,6 +41,10 @@ import com.linkedin.parseq.trace.Trace;
 import com.linkedin.parseq.trace.TraceBuilder;
 
 /**
+ * TODO make sure tasks don't have references to tasks they depended on to decrease GC overhead
+ * TODO change behavior of cancel to return false only if task has not been DONE and
+ * to guarantee cancellation otherwise
+ *
  * A task represents a deferred execution that also contains its resulting
  * value. In addition, tasks include tracing information that can be
  * used with various trace printers.
@@ -144,7 +147,7 @@ public interface Task<T> extends Promise<T>, Cancellable
   //------------------- default methods -------------------
 
   default <R> Task<R> apply(final String desc, final PromisePropagator<T, R> propagator) {
-    return FusionTask.fuse(desc, this, propagator, new AtomicReference<>(), Optional.empty());
+    return FusionTask.fuse(desc, this, propagator, Optional.empty());
   }
 
   /**

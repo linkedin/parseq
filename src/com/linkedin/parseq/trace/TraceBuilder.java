@@ -23,8 +23,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import com.linkedin.parseq.internal.ArgumentUtil;
-
 /**
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
@@ -55,9 +53,6 @@ public class TraceBuilder {
   }
 
   public synchronized void addRelationship(final Relationship relationship, final ShallowTraceBuilder from, final ShallowTraceBuilder to) {
-    ArgumentUtil.requireNotNull(relationship, "relationship");
-    ArgumentUtil.requireNotNull(from, "from");
-    ArgumentUtil.requireNotNull(to, "to");
     if (_relationships.size() == _maxRelationshipsPerTrace) {
       TraceRelationship r = _relationships.iterator().next();
       _relationships.remove(r);

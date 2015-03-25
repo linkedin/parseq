@@ -3,15 +3,8 @@ package com.linkedin.parseq.collection.async;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
-import com.linkedin.parseq.collection.transducer.Reducer;
-import com.linkedin.parseq.collection.transducer.Ref;
-import com.linkedin.parseq.collection.transducer.Reducer.Step;
-import com.linkedin.parseq.promise.Promise;
-import com.linkedin.parseq.promise.Promises;
-import com.linkedin.parseq.promise.SettablePromise;
 import com.linkedin.parseq.BaseTask;
 import com.linkedin.parseq.Context;
 import com.linkedin.parseq.ContextRunWrapper;
@@ -19,6 +12,12 @@ import com.linkedin.parseq.FusionTask;
 import com.linkedin.parseq.Priority;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.TaskOrValue;
+import com.linkedin.parseq.collection.transducer.Reducer;
+import com.linkedin.parseq.collection.transducer.Reducer.Step;
+import com.linkedin.parseq.collection.transducer.Ref;
+import com.linkedin.parseq.promise.Promise;
+import com.linkedin.parseq.promise.Promises;
+import com.linkedin.parseq.promise.SettablePromise;
 
 /**
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
@@ -139,7 +138,7 @@ public class AsyncFoldTask<Z, T> extends BaseTask<Z> implements Ref<Z> {
                    */
                 }
               }
-            }, new AtomicReference<>(), Optional.empty());
+            }, Optional.empty());
       }
 
       /**

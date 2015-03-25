@@ -164,7 +164,7 @@ import com.linkedin.parseq.internal.Continuations;
     }
     catch (Throwable e)
     {
-      LOGGER.warn("An exception was thrown by listener: " + listener.getClass(), e);
+      LOGGER.error("An exception was thrown by listener", e);
     }
   }
 

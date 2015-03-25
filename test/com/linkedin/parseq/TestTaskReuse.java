@@ -16,6 +16,10 @@
 
 package com.linkedin.parseq;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.testng.Assert.*;
+
 import org.testng.annotations.Test;
 
 /**
@@ -24,13 +28,71 @@ import org.testng.annotations.Test;
 public class TestTaskReuse extends BaseEngineTest
 {
 
-  //TODO
-
   @Test
   public void testExecuteMultipleTimes() {
-    Task<String> task = Task.callable(() -> "hello");
-    runAndWait("TestTaskExecution.testExecuteMultipleTimes", task);
-    runAndWait("TestTaskExecution.testExecuteMultipleTimes", task);
-    runAndWait("TestTaskExecution.testExecuteMultipleTimes", task);
+    final AtomicInteger counter = new AtomicInteger();
+
+    Task<String> task = Task.callable(() -> {
+      counter.incrementAndGet();
+      return "hello";
+    });
+    runAndWait("TestTaskExecution.testExecuteMultipleTimes-1", task);
+    runAndWait("TestTaskExecution.testExecuteMultipleTimes-2", task);
+    runAndWait("TestTaskExecution.testExecuteMultipleTimes-3", task);
+
+    assertEquals(counter.get(), 1);
   }
+
+  @Test
+  public void testTaskReusedByTwoPlans() {
+    final AtomicInteger counter = new AtomicInteger();
+
+    Task<String> task = Task.callable(() -> {
+      counter.incrementAndGet();
+      return "hello";
+    });
+
+    Task<String> plan1 = task.map(s -> s + " on earth!");
+    Task<String> plan2 = task.map(s -> s + " on moon!");
+
+    runAndWait("TestTaskExecution.testTaskReusedByTwoPlans-plan1", plan1);
+    runAndWait("TestTaskExecution.testTaskReusedByTwoPlans-plan2", plan2);
+
+    assertEquals(counter.get(), 1);
+    System.out.println(plan1.getTrace().getTraceMap());
+    assertEquals(countTasks(plan1.getTrace()), 2);
+    assertEquals(countTasks(plan2.getTrace()), 2);
+  }
+
+  @Test
+  public void testTaskReusedByTwoPlansAndMerged() {
+    final AtomicInteger counter = new AtomicInteger();
+
+    Task<String> task = Task.callable(() -> {
+      counter.incrementAndGet();
+      return "hello";
+    });
+
+    Task<String> plan1 = task.map(s -> s + " on earth!");
+    Task<String> plan2 = task.map(s -> s + " on moon!");
+
+    runAndWait("TestTaskExecution.testTaskReusedByTwoPlansAndMerged-plan1", plan1);
+    runAndWait("TestTaskExecution.testTaskReusedByTwoPlansAndMerged-plan2", plan2);
+    Task<Integer> length1 = plan1.map(s -> s.length());
+    Task<Integer> length2 = plan2.map(s -> s.length());
+
+    Task<Integer> merged = Task.par(length1, length2).map((a, b) -> a + b);
+    runAndWait("TestTaskExecution.testTaskReusedByTwoPlansAndMerged-merged", merged);
+
+    assertEquals(counter.get(), 1);
+    assertEquals(countTasks(merged.getTrace()), 8);
+
+    logTracingResults("plan1", plan1);
+    logTracingResults("plan2", plan2);
+
+    assertEquals(countTasks(plan1.getTrace()), 2);
+    assertEquals(countTasks(plan2.getTrace()), 2);
+  }
+
+
 }
