@@ -28,6 +28,7 @@ function render(root, graph) {
   var hash = sha1(dotFormat);
   
   var xhr = new XMLHttpRequest();
+  
   xhr.onreadystatechange = function() {
   if (xhr.readyState == 4) {
     if (xhr.status == 200) {
@@ -35,14 +36,26 @@ function render(root, graph) {
       root.append('img')
         .attr('id', 'graphviz-img')
         .attr('class', 'inject-me')
-        .style('width', '100%')
-        .style('height', '100%')
         .attr('data-src', 'cache/' + hash + '.svg');
       var mySVGsToInject = document.querySelectorAll('img.inject-me');
       var injectorOptions = {
          evalScripts: 'once',
          each: function (svg) {
           if (svg) {
+            var svgWidth = parseInt(svg.getAttribute('width'), 10);
+            var svgHeight = parseInt(svg.getAttribute('height'), 10);
+            var divWidth = document.getElementById('resultView').clientWidth;
+            var divHeight = window.innerHeight - document.getElementById('app-container').clientHeight - 20;
+            svg.setAttribute('style', 'width: ' + divWidth + ' ; height: ' + divHeight);
+            svg.setAttribute('width', divWidth);
+            svg.setAttribute('height', divHeight);
+            var svgFit = true; 
+            if (svgWidth < divWidth && svgHeight < divHeight) {
+              var svgScale = Math.max(svgWidth / divWidth, svgHeight / divHeight);
+              var svgTransform = document.getElementById('graph0').getAttribute('transform');
+              document.getElementById('graph0').setAttribute('transform', 'scale(' + svgScale + ' ' + svgScale + ') ' + svgTransform);
+              svgFit = false;
+            }
             var beforePan = function(oldPan, newPan) {
             var stopHorizontal = false,
               stopVertical = false,
@@ -63,17 +76,27 @@ function render(root, graph) {
             var panZoom = window.panZoom = svgPanZoom(svg, {
               zoomEnabled: true,
               controlIconsEnabled: true,
-              fit: 1,
-              center: 1,
+              fit: svgFit,
+              center: true,
               beforePan: beforePan
             });
             window.onresize = function() {
+              document.getElementById('graphviz-img')
+                .setAttribute('style', 'width: ' + document.getElementById('resultView').clientWidth +
+                ' ; height: ' + (window.innerHeight - document.getElementById('app-container').clientHeight - 20));
+              document.getElementById('graphviz-img')
+                .setAttribute('width', document.getElementById('resultView').clientWidth);
+              document.getElementById('graphviz-img')
+                .setAttribute('height', (window.innerHeight - document.getElementById('app-container').clientHeight - 20));
               panZoom.resize();
+              panZoom.fit();
+              panZoom.center();
             };
           }
         }
       };
       SVGInjector(mySVGsToInject, injectorOptions);
+      
     } else {
       var textarea = root.append('textarea')
         .style('width', '100%')

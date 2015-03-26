@@ -461,17 +461,17 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   /**
-   * Equivalent to {@code onError("onError", consumer)}.
+   * Equivalent to {@code onFailure("onFailure", consumer)}.
    * @see #onFailure(String, Consumer1)
    */
   default Task<T> onFailure(final Consumer1<Throwable> consumer) {
-    return onFailure("onError", consumer);
+    return onFailure("onFailure", consumer);
   }
 
   /**
    * This method transforms {@code Task<T>} into {@code Task<Try<T>>}.
    * It allows explicit handling of failures by returning potential exceptions as a result of
-   * task execution. Task returned by this method will always complete succesfully.
+   * task execution. Task returned by this method will always complete successfully.
    * If this task completes successfully then return task will be
    * completed with result value wrapped with {@link Success}.
    * <pre><code>
@@ -495,7 +495,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * {@link #recover(String, Function) recover}, {@link #recoverWith(String, Function) recoverWith}
    * or {@link #fallBackTo(String, Function) fallBackTo}.
    * <p/>
-   * @return
+   * @return a new task that will complete successfully with the result of this task
    * @see Try
    * @see #recover(String, Function) recover
    * @see #recoverWith(String, Function) recoverWith
@@ -517,6 +517,42 @@ public interface Task<T> extends Promise<T>, Cancellable
    */
   default Task<Try<T>> withTry() {
     return withTry("withTry");
+  }
+
+  /**
+   * This method is similar in spirit to {@code finally} block in
+   * {@code try-catch-finally} expression. It allows to handle result of
+   * this task regardless of whether it finished successfully or failed.
+   * Returned task completes with exactly the same result as this task unless
+   * {@code consumer} threw exception in which case it will fail with that exception.
+   *
+   * @param desc description of a consumer, it will show up in a trace
+   * @param consumer consumer of a result of this task
+   * @return a new task that will complete with exactly the same result as this task unless
+   * {@code consumer} threw exception in which case it will fail with that exception
+   */
+  default Task<T> lastly(final String desc, final Consumer1<Try<T>> consumer) {
+    return apply(desc,  (src, dst) -> {
+      try {
+        if (src.isFailed()) {
+          consumer.accept(Failure.of(src.getError()));
+          dst.fail(src.getError());
+        } else {
+          consumer.accept(Success.of(src.get()));
+          dst.done(src.get());
+        }
+      } catch (Exception e) {
+        dst.fail(e);
+      }
+    });
+  }
+
+  /**
+   * Equivalent to {@code lastly("lastly", consumer)}.
+   * @see #lastly(String, Consumer1)
+   */
+  default Task<T> lastly(final Consumer1<Try<T>> consumer) {
+    return lastly("lastly", consumer);
   }
 
   /**
