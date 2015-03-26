@@ -36,9 +36,21 @@ textarea {
 textarea.error {
   color: red;
 }
+
+#app-container[id] {
+  height: auto;
+  overflow: hidden;
+}
+
+#resultView {
+  margin: 0;
+  padding-bottom: 32000px;
+  margin-bottom: -32000px;
+}
+
 </style>
 
-<div class="container-fluid">
+<div class="container-fluid" id="app-container">
   <div class="row-fluid">
     <div class="page-header">
       <h1>ParSeq JSON Trace Viewer</h1>

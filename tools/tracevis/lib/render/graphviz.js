@@ -31,15 +31,25 @@ function render(root, graph) {
   xhr.onreadystatechange = function() {
   if (xhr.readyState == 4) {
     if (xhr.status == 200) {
+      root.select('#graphviz-info').remove();
       root.select('#graphviz-img').remove();
-      root.append('img')
+      root.append('div')
+        .attr('class', 'alert alert-info')
+        .attr('id', 'graphviz-info')
+        .text('You can use zooming and panning on a diagram below.');
+      root.append('object')
         .attr('id', 'graphviz-img')
-        .attr('src', 'cache/' + hash + '.svg');
+        .attr('type', 'image/svg+xml')
+        .style('width', '100%')
+        .style('height', '600px')
+        .attr('data', 'cache/' + hash + '.svg');
+      setTimeout(function() { root.select('#graphviz-info').remove(); }, 5000);
     } else {
       var textarea = root.append('textarea')
         .style('width', '100%')
         .style('height', '600px');
       textarea.text(dot.write(graph));
+      alert('Contacting TracevisServer failed, status: ' + xhr.status + '\n' + xhr.responseText);
     }
   }
   }
