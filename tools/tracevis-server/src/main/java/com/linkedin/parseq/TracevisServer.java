@@ -105,9 +105,8 @@ public class TracevisServer {
       /**
        * Writes
        */
-      private void handleProcessFailure(final HttpServletResponse response, final Result result) throws IOException {
+      private void writeFailureInfo(final HttpServletResponse response, final Result result) throws IOException {
         final PrintWriter writer = response.getWriter();
-          response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
           writer.write("graphviz process returned: " + result.getStatus() + "\n");
           writer.write("stdout:\n");
           Files.lines(result.getStdout())
@@ -143,27 +142,35 @@ public class TracevisServer {
         final Task<Result> graphvizWithTimeout =
             graphviz.withTimeout(TIMEOUT_MS * 2, TimeUnit.MILLISECONDS);
 
-        //task that send response to the client
-        final Task<?> sendResponse = graphvizWithTimeout
+        //task that handles result
+        final Task<Result> handleRsult = graphvizWithTimeout
             .andThen("response", result -> {
               if (result.getStatus() != 0) {
-                handleProcessFailure(response, result);
-                ctx.complete();
+                writeFailureInfo(response, result);
               } else {
                 hashManager.add(hash);
-                response.setStatus(HttpServletResponse.SC_OK);
-                ctx.complete();
               }
-            })
-            .onFailure(e -> {
-              final PrintWriter writer = response.getWriter();
-              writer.write(e.toString());
-              response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            });
+
+        //task that completes response by setting status and completing async context
+        final Task<Result> completeResponse = handleRsult
+            .lastly("complete", result -> {
+              if (!result.isFailed()) {
+                if (result.get().getStatus() == 0) {
+                  response.setStatus(HttpServletResponse.SC_OK);
+                } else {
+                  response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                }
+              } else {
+                final PrintWriter writer = response.getWriter();
+                writer.write(result.getError().toString());
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+              }
               ctx.complete();
             });
 
         //run plan
-        engine.run(sendResponse);
+        engine.run(completeResponse);
       }
     };
 
