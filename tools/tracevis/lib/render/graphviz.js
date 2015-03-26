@@ -31,19 +31,49 @@ function render(root, graph) {
   xhr.onreadystatechange = function() {
   if (xhr.readyState == 4) {
     if (xhr.status == 200) {
-      root.select('#graphviz-info').remove();
       root.select('#graphviz-img').remove();
-      root.append('div')
-        .attr('class', 'alert alert-info')
-        .attr('id', 'graphviz-info')
-        .text('You can use zooming and panning on a diagram below.');
-      root.append('object')
+      root.append('img')
         .attr('id', 'graphviz-img')
-        .attr('type', 'image/svg+xml')
+        .attr('class', 'inject-me')
         .style('width', '100%')
-        .style('height', '600px')
-        .attr('data', 'cache/' + hash + '.svg');
-      setTimeout(function() { root.select('#graphviz-info').remove(); }, 5000);
+        .style('height', '100%')
+        .attr('data-src', 'cache/' + hash + '.svg');
+      var mySVGsToInject = document.querySelectorAll('img.inject-me');
+      var injectorOptions = {
+         evalScripts: 'once',
+         each: function (svg) {
+          if (svg) {
+            var beforePan = function(oldPan, newPan) {
+            var stopHorizontal = false,
+              stopVertical = false,
+              gutterWidth = 100,
+              gutterHeight = 100,
+               // Computed variables
+              sizes = this.getSizes(),
+              leftLimit = -((sizes.viewBox.x + sizes.viewBox.width) * sizes.realZoom) + gutterWidth,
+              rightLimit = sizes.width - gutterWidth - (sizes.viewBox.x * sizes.realZoom),
+              topLimit = -((sizes.viewBox.y + sizes.viewBox.height) * sizes.realZoom) + gutterHeight,
+              bottomLimit = sizes.height - gutterHeight - (sizes.viewBox.y * sizes.realZoom)
+
+              customPan = {}
+              customPan.x = Math.max(leftLimit, Math.min(rightLimit, newPan.x))
+              customPan.y = Math.max(topLimit, Math.min(bottomLimit, newPan.y))
+              return customPan
+            }
+            var panZoom = window.panZoom = svgPanZoom(svg, {
+              zoomEnabled: true,
+              controlIconsEnabled: true,
+              fit: 1,
+              center: 1,
+              beforePan: beforePan
+            });
+            window.onresize = function() {
+              panZoom.resize();
+            };
+          }
+        }
+      };
+      SVGInjector(mySVGsToInject, injectorOptions);
     } else {
       var textarea = root.append('textarea')
         .style('width', '100%')

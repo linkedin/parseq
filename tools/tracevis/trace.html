@@ -37,17 +37,6 @@ textarea.error {
   color: red;
 }
 
-#app-container[id] {
-  height: auto;
-  overflow: hidden;
-}
-
-#resultView {
-  margin: 0;
-  padding-bottom: 32000px;
-  margin-bottom: -32000px;
-}
-
 </style>
 
 <div class="container-fluid" id="app-container">
@@ -99,6 +88,8 @@ textarea.error {
 
 <script src="node_modules/d3/d3.js"></script>
 <script src="build/parseq-tracevis.js"></script>
+<script src="node_modules/svg-injector/svg-injector.js"></script>
+<script src="node_modules/svg-pan-zoom/dist/svg-pan-zoom.js"></script>
 
 <script>
   var

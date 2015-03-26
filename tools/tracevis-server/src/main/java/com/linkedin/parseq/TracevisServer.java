@@ -3,17 +3,9 @@ package com.linkedin.parseq;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URI;
 import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystemNotFoundException;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
-import java.util.Collections;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -55,32 +47,11 @@ public class TracevisServer {
     file(hash, "dot").delete();
   }
 
-  static String readFullyFromJar(String filename) throws Exception {
-    final URI uri = TracevisServer.class.getResource(filename).toURI();
-    Path path;
-    try {
-      path = Paths.get(uri);
-      return readFromPath(path);
-    } catch (FileSystemNotFoundException exp) {
-      try (FileSystem fs = FileSystems.newFileSystem(uri, Collections.emptyMap())) {
-        path = Paths.get(uri);
-        return readFromPath(path);
-      }
-    }
-  }
-
-  private static String readFromPath(Path path) throws IOException {
-    final byte[] bytes = Files.readAllBytes(path);
-    return new String(bytes);
-  }
-
  public static void main(String[] args) throws Exception {
     final int PORT = Integer.parseInt(args[0]);
     final String DOT = args[1];
 
     LOG.info("Starting server on port: " + PORT + ", dot location: " + DOT);
-
-    final String SVGPan = readFullyFromJar("/SVGPan");
 
     final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() + 1);
     final Engine engine = new EngineBuilder()
@@ -121,7 +92,7 @@ public class TracevisServer {
             } else {
               try {
                 Files.copy(request.getInputStream(), file(hash, "dot").toPath(), StandardCopyOption.REPLACE_EXISTING);
-                handleGraphBuilding(DOT, hashManager, request, response, hash, engine, SVGPan);
+                handleGraphBuilding(DOT, hashManager, request, response, hash, engine);
               } catch (FileAlreadyExistsException e) {
                 LOG.warn("failed writing dot file: ", file(hash, "dot").toPath());
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -131,41 +102,54 @@ public class TracevisServer {
         }
       }
 
+      /**
+       * Writes
+       */
+      private void handleProcessFailure(final HttpServletResponse response, final Result result) throws IOException {
+        final PrintWriter writer = response.getWriter();
+          response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+          writer.write("graphviz process returned: " + result.getStatus() + "\n");
+          writer.write("stdout:\n");
+          Files.lines(result.getStdout())
+            .forEach(line -> writer.println(line));
+          writer.write("\nstderr:\n");
+          Files.lines(result.getStderr())
+            .forEach(line -> writer.println(line));
+      }
+
       private void handleGraphBuilding(final String DOT, final HashManager hashManager,
           final HttpServletRequest request, final HttpServletResponse response, final String hash,
-          final Engine engine, String SVGPan) throws IOException {
+          final Engine engine) throws IOException {
+
         LOG.info("building: " + hash);
 
+        //process request in async mode
         final AsyncContext ctx = request.startAsync();
-        final Task<Result> graphviz = Exec.command("graphviz", TIMEOUT_MS, TimeUnit.MILLISECONDS, DOT, "-T" + TYPE, "-Grankdir=LR", "-Gnewrank=true",
-            file(hash, "dot").getAbsolutePath())
-            .withTimeout(TIMEOUT_MS * 2, TimeUnit.MILLISECONDS)
+
+        // Task that runs a graphviz command.
+        // We give process TIMEOUT_MS time to finish, after that
+        // it will be forcefully killed.
+        final Task<Result> graphviz =
+            Exec.command("graphviz", TIMEOUT_MS, TimeUnit.MILLISECONDS,
+                DOT,
+                "-T" + TYPE,
+                "-Grankdir=LR", "-Gnewrank=true",
+                file(hash, "dot").getAbsolutePath(),
+                "-o", file(hash, TYPE).getAbsolutePath());
+
+        //Since Exec utility allows only certain number of processes
+        //to run in parallel and rests are enqueued, we also specify
+        //timeout for this equal to 2 * TIMEOUT_MS
+        final Task<Result> graphvizWithTimeout =
+            graphviz.withTimeout(TIMEOUT_MS * 2, TimeUnit.MILLISECONDS);
+
+        //task that send response to the client
+        final Task<?> sendResponse = graphvizWithTimeout
             .andThen("response", result -> {
-              final PrintWriter writer = response.getWriter();
               if (result.getStatus() != 0) {
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                writer.write("graphviz process returned: " + result.getStatus() + "\n");
-                writer.write("stdout:\n");
-                Files.lines(result.getStdout())
-                  .forEach(line -> writer.println(line));
-                writer.write("\nstderr:\n");
-                Files.lines(result.getStderr())
-                  .forEach(line -> writer.println(line));
+                handleProcessFailure(response, result);
                 ctx.complete();
               } else {
-                PrintWriter resultFileWriter =
-                    new PrintWriter(Files.newOutputStream(file(hash, TYPE).toPath(), StandardOpenOption.CREATE_NEW));
-                try {
-                  Files.lines(result.getStdout())
-                  .forEach(line -> {
-                    if (line.startsWith("<g id=\"graph0\"")) {
-                      resultFileWriter.println(SVGPan);
-                    }
-                    resultFileWriter.println(line);
-                  });
-                } finally {
-                  resultFileWriter.close();
-                }
                 hashManager.add(hash);
                 response.setStatus(HttpServletResponse.SC_OK);
                 ctx.complete();
@@ -177,7 +161,9 @@ public class TracevisServer {
               response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
               ctx.complete();
             });
-        engine.run(graphviz);
+
+        //run plan
+        engine.run(sendResponse);
       }
     };
 
