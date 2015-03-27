@@ -50,8 +50,8 @@ function render(root, graph) {
             svg.setAttribute('width', divWidth);
             svg.setAttribute('height', divHeight);
             var svgFit = true; 
+            var svgScale = Math.max(svgWidth / divWidth, svgHeight / divHeight);
             if (svgWidth < divWidth && svgHeight < divHeight) {
-              var svgScale = Math.max(svgWidth / divWidth, svgHeight / divHeight);
               var graph = document.getElementsByClassName('graph')[0];
               var svgTransform = graph.getAttribute('transform');
               graph.setAttribute('transform', 'scale(' + svgScale + ' ' + svgScale + ') ' + svgTransform);
@@ -78,6 +78,7 @@ function render(root, graph) {
               zoomEnabled: true,
               controlIconsEnabled: true,
               fit: svgFit,
+              maxZoom: (svgScale > 1) ? 10*svgScale : 10,
               center: true,
               beforePan: beforePan
             });

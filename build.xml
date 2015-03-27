@@ -289,11 +289,7 @@
     </target>
 
     <target name="run-tracevis-server" depends="verify-dot-exists, dist-tracevis, package-tracevis-server" description="Runs the tracevis-server" >
-        <delete dir="${java.io.tmpdir}/tracevis-server" />
-        <mkdir dir="${java.io.tmpdir}/tracevis-server" />
-        <untar src="${tools.dir}/tracevis/dist/parseq-tracevis.tar.gz" dest="${java.io.tmpdir}/tracevis-server" compression="gzip"/>
-        <java fork="true" jar="${tools.dir}/tracevis-server/target/tracevis-server-jar-with-dependencies.jar" failonerror="true" dir="${java.io.tmpdir}/tracevis-server">
-            <arg value="8080" />
+        <java fork="true" jar="${tools.dir}/tracevis-server/target/tracevis-server-jar-with-dependencies.jar" failonerror="true">
             <arg value="${dot.location}" />
         </java>
     </target>
