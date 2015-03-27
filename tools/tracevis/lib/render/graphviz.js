@@ -52,8 +52,9 @@ function render(root, graph) {
             var svgFit = true; 
             if (svgWidth < divWidth && svgHeight < divHeight) {
               var svgScale = Math.max(svgWidth / divWidth, svgHeight / divHeight);
-              var svgTransform = document.getElementById('graph0').getAttribute('transform');
-              document.getElementById('graph0').setAttribute('transform', 'scale(' + svgScale + ' ' + svgScale + ') ' + svgTransform);
+              var graph = document.getElementsByClassName('graph')[0];
+              var svgTransform = graph.getAttribute('transform');
+              graph.setAttribute('transform', 'scale(' + svgScale + ' ' + svgScale + ') ' + svgTransform);
               svgFit = false;
             }
             var beforePan = function(oldPan, newPan) {
