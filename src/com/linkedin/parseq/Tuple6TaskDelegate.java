@@ -105,14 +105,6 @@ public class Tuple6TaskDelegate<T1, T2, T3, T4, T5, T6> implements Tuple6Task<T1
    * {@inheritDoc}
    */
   @Override
-  public void wrapContextRun(ContextRunWrapper<Tuple6<T1, T2, T3, T4, T5, T6>> wrapper) {
-    _task.wrapContextRun(wrapper);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public ShallowTrace getShallowTrace() {
     return _task.getShallowTrace();
   }

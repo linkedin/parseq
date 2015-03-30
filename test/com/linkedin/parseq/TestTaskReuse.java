@@ -59,7 +59,6 @@ public class TestTaskReuse extends BaseEngineTest
     runAndWait("TestTaskExecution.testTaskReusedByTwoPlans-plan2", plan2);
 
     assertEquals(counter.get(), 1);
-    System.out.println(plan1.getTrace().getTraceMap());
     assertEquals(countTasks(plan1.getTrace()), 2);
     assertEquals(countTasks(plan2.getTrace()), 2);
   }
@@ -78,8 +77,8 @@ public class TestTaskReuse extends BaseEngineTest
 
     runAndWait("TestTaskExecution.testTaskReusedByTwoPlansAndMerged-plan1", plan1);
     runAndWait("TestTaskExecution.testTaskReusedByTwoPlansAndMerged-plan2", plan2);
-    Task<Integer> length1 = plan1.map(s -> s.length());
-    Task<Integer> length2 = plan2.map(s -> s.length());
+    Task<Integer> length1 = plan1.map("length", s -> s.length());
+    Task<Integer> length2 = plan2.map("length", s -> s.length());
 
     Task<Integer> merged = Task.par(length1, length2).map((a, b) -> a + b);
     runAndWait("TestTaskExecution.testTaskReusedByTwoPlansAndMerged-merged", merged);

@@ -105,14 +105,6 @@ public class Tuple3TaskDelegate<T1, T2, T3> implements Tuple3Task<T1, T2, T3> {
    * {@inheritDoc}
    */
   @Override
-  public void wrapContextRun(ContextRunWrapper<Tuple3<T1, T2, T3>> wrapper) {
-    _task.wrapContextRun(wrapper);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public ShallowTrace getShallowTrace() {
     return _task.getShallowTrace();
   }

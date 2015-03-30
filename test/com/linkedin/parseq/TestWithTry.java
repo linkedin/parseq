@@ -16,7 +16,7 @@ public class TestWithTry extends BaseEngineTest
   public void testHappyPath() throws InterruptedException
   {
     final Task<Try<String>> task = Task.callable("test", () -> "hello")
-        .withTry();
+        .toTry();
 
     runAndWait("TestWithTry.testHappyPath", task);
 
@@ -33,7 +33,7 @@ public class TestWithTry extends BaseEngineTest
         throw new RuntimeException("boom");
       }
       return "hello";
-    }).withTry();
+    }).toTry();
 
     runAndWait("TestWithTry.testError", task);
 

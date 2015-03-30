@@ -109,14 +109,6 @@ public class Tuple${i}TaskDelegate<<@typeParameters i/>> implements Tuple${i}Tas
    * {@inheritDoc}
    */
   @Override
-  public void wrapContextRun(ContextRunWrapper<Tuple${i}<<@typeParameters i/>>> wrapper) {
-    _task.wrapContextRun(wrapper);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public ShallowTrace getShallowTrace() {
     return _task.getShallowTrace();
   }

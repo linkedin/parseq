@@ -105,14 +105,6 @@ public class Tuple9TaskDelegate<T1, T2, T3, T4, T5, T6, T7, T8, T9> implements T
    * {@inheritDoc}
    */
   @Override
-  public void wrapContextRun(ContextRunWrapper<Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9>> wrapper) {
-    _task.wrapContextRun(wrapper);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public ShallowTrace getShallowTrace() {
     return _task.getShallowTrace();
   }

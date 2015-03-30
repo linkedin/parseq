@@ -21,6 +21,7 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 import com.linkedin.parseq.function.Consumer1;
@@ -114,8 +115,6 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @param predecessors that lead to the execution of this task
    */
   void contextRun(Context context, Task<?> parent, Collection<Task<?>> predecessors);
-
-  void wrapContextRun(ContextRunWrapper<T> wrapper);
 
   /**
    * Returns the ShallowTrace for this task. The ShallowTrace will be
@@ -444,7 +443,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @return a new task which will complete with result of this task
    */
   default Task<T> onFailure(final String desc, final Consumer1<Throwable> consumer) {
-    ArgumentUtil.requireNotNull(consumer, "function");
+    ArgumentUtil.requireNotNull(consumer, "consumer");
     return apply(desc,  (src, dst) -> {
       if (src.isFailed() && !(src.getError() instanceof EarlyFinishException)) {
         try {
@@ -468,6 +467,34 @@ public interface Task<T> extends Promise<T>, Cancellable
     return onFailure("onFailure", consumer);
   }
 
+
+  //TODO doc
+  default Task<T> onCancelled(final String desc, final Runnable action) {
+    ArgumentUtil.requireNotNull(action, "action");
+    return apply(desc,  (src, dst) -> {
+      if (src.isFailed() && (src.getError() instanceof EarlyFinishException)) {
+        try {
+          action.run();
+        } catch (Exception e) {
+          //exceptions thrown by an action are ignored
+        } finally {
+          dst.fail(src.getError());
+        }
+      } else {
+        dst.done(src.get());
+      }
+    });
+  }
+
+  /**
+   * Equivalent to {@code onCancelled("onCancelled", action)}.
+   * @see #onCancelled(String, Runnable)
+   */
+  default Task<T> onCancelled(final Runnable action) {
+    return onCancelled("onCancelled", action);
+  }
+
+
   /**
    * This method transforms {@code Task<T>} into {@code Task<Try<T>>}.
    * It allows explicit handling of failures by returning potential exceptions as a result of
@@ -478,7 +505,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    *  Task{@code <String>} hello = Task.value("Hello World");
    *
    *  // this task will complete with Success("Hello World")
-   *  Task{@code <Try<String>>} helloTry = hello.withTry("try");
+   *  Task{@code <Try<String>>} helloTry = hello.toTry("try");
    * </code></pre>
    *
    * If this task is completed with an exception then the returned task will be
@@ -489,7 +516,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    *  });
    *
    *  // this task will complete successfully with Failure(java.lang.StringIndexOutOfBoundsException)
-   *  Task{@code <Try<String>>} failingTry = failing.withTry("try");
+   *  Task{@code <Try<String>>} failingTry = failing.toTry("try");
    * </code></pre>
    * Note that all failures are automatically propagated and usually it is enough to use
    * {@link #recover(String, Function) recover}, {@link #recoverWith(String, Function) recoverWith}
@@ -501,23 +528,59 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @see #recoverWith(String, Function) recoverWith
    * @see #fallBackTo(String, Function) fallBackTo
    */
-  default Task<Try<T>> withTry(final String desc) {
+  default Task<Try<T>> toTry(final String desc) {
     return apply(desc,  (src, dst) -> {
-      if (src.isFailed()) {
-        dst.done(Failure.of(src.getError()));
+      dst.done(Promises.toTry(src));
+    });
+  }
+
+  /**
+   * Equivalent to {@code toTry("toTry")}.
+   * @see #toTry(String)
+   */
+  default Task<Try<T>> toTry() {
+    return toTry("toTry");
+  }
+
+  /**
+   * Creates a new task that applies a transformation to the result of this
+   * task.
+   *
+   * TODO
+   *
+   * @param desc
+   * @param func
+   * @return
+   */
+  default <R> Task<R> transform(final String desc, final Function1<Try<? super T>, Try<R>> func) {
+    ArgumentUtil.requireNotNull(func, "function");
+    return apply(desc,  (src, dst) -> {
+      final Try<T> tryT = Promises.toTry(src);
+      if (tryT.isFailed() && tryT.getError() instanceof EarlyFinishException) {
+        dst.fail(src.getError());
       } else {
-        dst.done(Success.of(src.get()));
+        try {
+          final Try<R> tryR = func.apply(tryT);
+          if (tryR.isFailed()) {
+            dst.fail(tryR.getError());
+          } else {
+            dst.done(tryR.get());
+          }
+        } catch (Exception e) {
+          dst.fail(e);
+        }
       }
     });
   }
 
   /**
-   * Equivalent to {@code withTry("withTry")}.
-   * @see #withTry(String)
+   * Equivalent to {@code transform("transform", func)}.
+   * @see #transform(String, Function1)
    */
-  default Task<Try<T>> withTry() {
-    return withTry("withTry");
+  default <R> Task<R> transform(final Function1<Try<? super T>, Try<R>> func) {
+    return transform("transform", func);
   }
+
 
   /**
    * This method is similar in spirit to {@code finally} block in
@@ -621,17 +684,32 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   /**
+   * TODO
+   *
    * @param time the time to wait before timing out
    * @param unit the units for the time
    * @param <T> the value type for the task
    * @return the new task with a timeout
    */
-  default Task<T> withTimeout(final long time, final TimeUnit unit)
-  {
+  default Task<T> withTimeout(final long time, final TimeUnit unit) {
     final Task<T> that = this;
     Task<T> withTimeout = async("withTimeout " + time + " " + TimeUnitHelper.toString(unit), ctx -> {
+      final AtomicBoolean committed = new AtomicBoolean();
       final SettablePromise<T> result = Promises.settable();
-      Promises.propagateResult(that, result);
+      final Task<?> timeoutTask = Task.action("timeoutTimer", () -> {
+        if (committed.compareAndSet(false, true)) {
+          result.fail(Exceptions.TIMEOUT_EXCEPTION);
+        }
+      });
+      //timeout tasks should run as early as possible
+      timeoutTask.setPriority(Priority.MAX_PRIORITY);
+      ctx.createTimer(time, unit, timeoutTask);
+      that.addListener(p -> {
+        if (committed.compareAndSet(false, true)) {
+          Promises.propagateResult(that, result);
+        }
+      });
+
       //we want to schedule this task as soon as possible
       //because timeout timer has started ticking
       that.setPriority(Priority.MAX_PRIORITY);
@@ -639,7 +717,6 @@ public interface Task<T> extends Promise<T>, Cancellable
       return result;
     }, false);
     withTimeout.setPriority(getPriority());
-    withTimeout.wrapContextRun(new TimeoutContextRunWrapper<T>(time, unit, Exceptions.TIMEOUT_EXCEPTION));
     return withTimeout;
   }
 

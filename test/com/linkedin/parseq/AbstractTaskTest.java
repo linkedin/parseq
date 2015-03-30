@@ -83,13 +83,13 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
   }
 
   public void testTry(int expectedNumberOfTasks) {
-    Task<Try<Integer>> success = getSuccessTask().map("strlen", String::length).withTry();
+    Task<Try<Integer>> success = getSuccessTask().map("strlen", String::length).toTry();
     runAndWait("AbstractTaskTest.testTrySuccess", success);
     assertFalse(success.get().isFailed());
     assertEquals((int) success.get().get(), TASK_VALUE.length());
     assertEquals(countTasks(success.getTrace()), expectedNumberOfTasks);
 
-    Task<Try<Integer>> failure = getFailureTask().map("strlen", String::length).withTry();
+    Task<Try<Integer>> failure = getFailureTask().map("strlen", String::length).toTry();
     runAndWait("AbstractTaskTest.testTryFailure", failure);
     assertTrue(failure.get().isFailed());
     assertEquals(failure.get().getError().getMessage(), TASK_ERROR_MESSAGE);

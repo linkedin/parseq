@@ -16,6 +16,9 @@
 
 package com.linkedin.parseq.promise;
 
+import com.linkedin.parseq.function.Failure;
+import com.linkedin.parseq.function.Success;
+import com.linkedin.parseq.function.Try;
 
 /**
  * This class provides a set of static helper methods that make it easier to
@@ -91,4 +94,20 @@ public class Promises
       final SettablePromise<T> dest) {
     propagateResult(source, ((Settable<T>)dest));
   }
+
+  /**
+   * Returns instance of {@link Try} that represents result a promise has completed with.
+   * This method throws {@link PromiseUnresolvedException} if teh promise has not been resolved yet.
+   *
+   * @return instance of {@link Try} that represents result the promise has completed with
+   * @see Try
+   */
+  public static <T> Try<T> toTry(final Promise<T> promise) {
+    if (promise.isFailed()) {
+      return Failure.of(promise.getError());
+    } else {
+      return Success.of(promise.get());
+    }
+  }
+
 }

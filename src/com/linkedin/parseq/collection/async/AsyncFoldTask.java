@@ -1,15 +1,11 @@
 package com.linkedin.parseq.collection.async;
 
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import com.linkedin.parseq.BaseTask;
 import com.linkedin.parseq.Context;
-import com.linkedin.parseq.ContextRunWrapper;
 import com.linkedin.parseq.FusionTask;
-import com.linkedin.parseq.Priority;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.TaskOrValue;
 import com.linkedin.parseq.collection.transducer.Reducer;
@@ -186,45 +182,6 @@ public class AsyncFoldTask<Z, T> extends BaseTask<Z> implements Ref<Z> {
 
     _tasks = null;
     return result;
-  }
-
-  class WithinContextRunWrapper implements ContextRunWrapper<Z> {
-
-    protected final SettablePromise<Z> _result = Promises.settable();
-    protected final AtomicBoolean _committed = new AtomicBoolean();
-    private final long _time;
-    private final TimeUnit _unit;
-
-    public WithinContextRunWrapper(long time, TimeUnit unit) {
-      _time = time;
-      _unit = unit;
-    }
-
-    @Override
-    public void before(Context context) {
-      final Task<?> withinTask = Task.action("withinTimer", () -> {
-        if (_committed.compareAndSet(false, true)) {
-          if (!_streamingComplete) {
-            _streamingComplete = true;
-            _subscription.cancel();
-          }
-          _result.done(_partialResult);
-        }
-      });
-      //within tasks should run as early as possible
-      withinTask.setPriority(Priority.MAX_PRIORITY);
-      context.createTimer(_time, _unit, withinTask);
-    }
-
-    @Override
-    public Promise<Z> after(Context context, Promise<Z> promise) {
-      promise.addListener(p -> {
-        if (_committed.compareAndSet(false, true)) {
-          Promises.propagateResult(promise, _result);
-        }
-      });
-      return _result;
-    }
   }
 
   void scheduleTask(Task<?> task, Context context, Task<?> rootTask) {

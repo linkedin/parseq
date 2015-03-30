@@ -77,11 +77,13 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
   }
 
   private final Long _id = IdGenerator.getNextId();
-  private final AtomicReference<State<T>> _stateRef;
+  private final AtomicReference<State> _stateRef;
   private final String _name;
   protected final ShallowTraceBuilder _shallowTraceBuilder;
 
   protected volatile Function<T, String> _traceValueProvider;
+
+  private volatile TraceBuilder _traceBuilder;
 
   /**
    * Constructs a base task without a specified name. The name for this task
@@ -103,11 +105,11 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     super(Promises.<T>settable());
 
     _name = name;
-    final State<T> state = new State<T>(StateType.INIT, Priority.DEFAULT_PRIORITY, null, null);
+    final State state = State.INIT;
     _shallowTraceBuilder = new ShallowTraceBuilder(_id);
     _shallowTraceBuilder.setName(getName());
     _shallowTraceBuilder.setResultType(ResultType.UNFINISHED);
-    _stateRef = new AtomicReference<State<T>>(state);
+    _stateRef = new AtomicReference<State>(state);
   }
 
   @Override
@@ -129,8 +131,8 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
       throw new IllegalArgumentException("Priority out of bounds: " + priority);
     }
 
-    State<T> state;
-    State<T> newState;
+    State state;
+    State newState;
     do
     {
       state = _stateRef.get();
@@ -139,7 +141,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
         return false;
       }
 
-      newState = new State<T>(state.getType(), priority, state.getContextRunWrapper(), state.getTraceBuilder());
+      newState = new State(state.getType(), priority);
     }
     while (!_stateRef.compareAndSet(state, newState));
 
@@ -148,7 +150,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
 
   @Override
   public TraceBuilder getTraceBuilder() {
-    return _stateRef.get().getTraceBuilder();
+    return _traceBuilder;
   }
 
   @Override
@@ -175,13 +177,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
         try
         {
           final Context wrapperContext = new WrappedContext(context);
-          final ContextRunWrapper<T> contextRunWrapper = _stateRef.get().getContextRunWrapper();
-          if (contextRunWrapper != null) {
-            contextRunWrapper.before(wrapperContext);
-            promise = contextRunWrapper.after(wrapperContext, doContextRun(wrapperContext));
-          } else {
-            promise = doContextRun(wrapperContext);
-          }
+          promise = doContextRun(wrapperContext);
         }
         finally
         {
@@ -334,8 +330,8 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
 
   protected boolean transitionRun(final TraceBuilder traceBuilder)
   {
-    State<T> state;
-    State<T> newState;
+    State state;
+    State newState;
     final long startNanos = System.nanoTime();
     do
     {
@@ -344,10 +340,10 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
       {
         return false;
       }
-      newState = new State<T>(StateType.RUN, state.getPriority(), state.getContextRunWrapper(),
-          traceBuilder);
+      newState = state.transitionRun();
     }
     while (!_stateRef.compareAndSet(state, newState));
+    _traceBuilder = traceBuilder;
     traceBuilder.addShallowTrace(_shallowTraceBuilder);
     _shallowTraceBuilder.setStartNanos(startNanos);
 
@@ -356,8 +352,8 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
 
   protected void transitionPending()
   {
-    State<T> state;
-    State<T> newState;
+    State state;
+    State newState;
     final long pendingNanos = System.nanoTime();
     do
     {
@@ -366,7 +362,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
       {
         return;
       }
-      newState = new State<T>(StateType.PENDING, state.getPriority(), state.getContextRunWrapper(), state.getTraceBuilder());
+      newState = state.transitionPending();
     }
     while (!_stateRef.compareAndSet(state, newState));
     _shallowTraceBuilder.setPendingNanos(pendingNanos);
@@ -374,8 +370,8 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
 
   protected boolean transitionCancel()
   {
-    State<T> state;
-    State<T> newState;
+    State state;
+    State newState;
 
     //TODO if previous state was PENDING then notify
     //asynchronous execution about the cancellation
@@ -389,7 +385,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
         return false;
       }
 
-      newState = new State<T>(StateType.DONE, state.getPriority(), state.getContextRunWrapper(), state.getTraceBuilder());
+      newState = state.transitionDone();
     }
     while (!_stateRef.compareAndSet(state, newState));
 
@@ -398,8 +394,8 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
 
   protected boolean transitionDone()
   {
-    State<T> state;
-    State<T> newState;
+    State state;
+    State newState;
     do
     {
       state = _stateRef.get();
@@ -408,7 +404,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
         return false;
       }
 
-      newState = new State<T>(StateType.DONE, state.getPriority(), state.getContextRunWrapper(), state.getTraceBuilder());
+      newState = state.transitionDone();
     }
     while (!_stateRef.compareAndSet(state, newState));
     return true;
@@ -419,23 +415,17 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     return (SettablePromise<T>)super.getDelegate();
   }
 
-  protected static class State<T>
+  protected static class State
   {
     private final StateType _type;
     private final int _priority;
-    private final ContextRunWrapper<T> _contextRunWrapper;
-    private final TraceBuilder _traceBuilder;
 
 
     private State(final StateType type,
-                  final int priority,
-                  ContextRunWrapper<T>contextRunWrapper,
-                  TraceBuilder traceBuilder)
+                  final int priority)
     {
       _type = type;
       _priority = priority;
-      _contextRunWrapper = contextRunWrapper;
-      _traceBuilder = traceBuilder;
     }
 
     public StateType getType() {
@@ -446,14 +436,85 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
       return _priority;
     }
 
-    public ContextRunWrapper<T> getContextRunWrapper() {
-      return _contextRunWrapper;
+    public State transitionRun() {
+      return new State(StateType.RUN, _priority);
     }
 
-    public TraceBuilder getTraceBuilder() {
-      return _traceBuilder;
+    public State transitionPending() {
+      return new State(StateType.PENDING, _priority);
     }
 
+    public State transitionDone() {
+      return new State(StateType.DONE, _priority);
+    }
+
+    public static final State INIT = new State(StateType.INIT, Priority.DEFAULT_PRIORITY) {
+      @Override
+      final public State transitionDone() {
+        return DONE;
+      };
+
+      @Override
+      final public State transitionRun() {
+        return RUN;
+      }
+
+      @Override
+      final public State transitionPending() {
+        return PENDING;
+      }
+    };
+
+    public static final State RUN = new State(StateType.RUN, Priority.DEFAULT_PRIORITY) {
+      @Override
+      final public State transitionDone() {
+        return DONE;
+      };
+
+      @Override
+      final public State transitionRun() {
+        return RUN;
+      }
+
+      @Override
+      final public State transitionPending() {
+        return PENDING;
+      }
+    };
+
+    public static final State PENDING = new State(StateType.PENDING, Priority.DEFAULT_PRIORITY) {
+      @Override
+      final public State transitionDone() {
+        return DONE;
+      };
+
+      @Override
+      final public State transitionRun() {
+        return RUN;
+      }
+
+      @Override
+      final public State transitionPending() {
+        return PENDING;
+      }
+    };
+
+    public static final State DONE = new State(StateType.DONE, Priority.DEFAULT_PRIORITY) {
+      @Override
+      final public State transitionDone() {
+        return DONE;
+      };
+
+      @Override
+      final public State transitionRun() {
+        return RUN;
+      }
+
+      @Override
+      final public State transitionPending() {
+        return PENDING;
+      }
+    };
   }
 
   private class WrappedContext implements Context
@@ -556,26 +617,6 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     public TaskLogger getTaskLogger() {
       return _context.getTaskLogger();
     }
-  }
-
-  @Override
-  public void wrapContextRun(final ContextRunWrapper<T> wrapper) {
-    State<T> state;
-    State<T> newState;
-    do
-    {
-      state = _stateRef.get();
-      if (state.getType() != StateType.INIT)
-      {
-        throw new RuntimeException("wrapContextRun can be only called on task in INIT state, current state: " + state.getType());
-      }
-      if (state.getContextRunWrapper() != null) {
-        newState = new State<T>(state.getType(), state.getPriority(), state.getContextRunWrapper().compose(wrapper), state.getTraceBuilder());
-      } else {
-        newState = new State<T>(state.getType(), state.getPriority(), wrapper, state.getTraceBuilder());
-      }
-    }
-    while (!_stateRef.compareAndSet(state, newState));
   }
 
   @Override
