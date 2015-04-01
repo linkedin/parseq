@@ -19,6 +19,7 @@ public class TracevisServerJarMain {
       System.out.println("Incorrect arguments, expecting: DOT_LOCATION <PORT>\n"
           + "  DOT_LOCATION - location of graphviz dot executable\n"
           + "  <PORT>       - optional port number, default is " + Constants.DEFAULT_PORT);
+      System.exit(1);
     }
     final String dotLocation = args[0];
     final int port = (args.length == 2) ? Integer.parseInt(args[1]) : Constants.DEFAULT_PORT;

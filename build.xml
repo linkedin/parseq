@@ -9,6 +9,7 @@
     <property name="test.dir" value="${basedir}/test" />
     <property name="src.test.dir" value="${basedir}/src-test" />
     <property name="tools.dir" value="${basedir}/tools" />
+    <property name="contrib.dir" value="${basedir}/contrib" />
     <property name="build.dir" value="${basedir}/build" />
     <property name="example.build.dir" value="${build.dir}/example" />
     <property name="src.build.dir" value="${build.dir}/src" />
@@ -257,7 +258,7 @@
                 <arg value="clean" />
             </args>
         </make>
-        <exec executable="mvn" failonerror="true" dir="${tools.dir}/tracevis-server">
+        <exec executable="mvn" failonerror="true" dir="${contrib.dir}/parseq-tracevis-server">
             <arg value="clean"/>
         </exec>
     </target>
@@ -279,7 +280,7 @@
     </target>
 
     <target name="package-tracevis-server" description="Builds the tracevis-server package">
-        <exec executable="mvn" failonerror="true" dir="${tools.dir}/tracevis-server">
+        <exec executable="mvn" failonerror="true" dir="${contrib.dir}/parseq-tracevis-server">
             <arg value="package"/>
         </exec>
     </target>
@@ -289,7 +290,7 @@
     </target>
 
     <target name="run-tracevis-server" depends="verify-dot-exists, dist-tracevis, package-tracevis-server" description="Runs the tracevis-server" >
-        <java fork="true" jar="${tools.dir}/tracevis-server/target/tracevis-server-jar-with-dependencies.jar" failonerror="true">
+        <java fork="true" jar="${contrib.dir}/parseq-tracevis-server/target/parseq-tracevis-server-jar-with-dependencies.jar" failonerror="true">
             <arg value="${dot.location}" />
         </java>
     </target>
