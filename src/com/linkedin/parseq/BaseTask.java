@@ -609,6 +609,11 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     }
 
     @Override
+    public Long getTaskId() {
+      return _context.getTaskId();
+    }
+
+    @Override
     public TaskLogger getTaskLogger() {
       return _context.getTaskLogger();
     }

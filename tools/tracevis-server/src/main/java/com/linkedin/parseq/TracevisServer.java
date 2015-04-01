@@ -193,7 +193,7 @@ public class TracevisServer {
 
    //task that completes response by setting status and completing async context
    final Task<Result> completeResponse = handleRsult
-       .lastly("complete", result -> {
+       .transform("complete", result -> {
          if (!result.isFailed()) {
            if (result.get().getStatus() == 0) {
              response.setStatus(HttpServletResponse.SC_OK);
@@ -206,6 +206,7 @@ public class TracevisServer {
            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
          }
          ctx.complete();
+         return result;
        });
 
    //run plan

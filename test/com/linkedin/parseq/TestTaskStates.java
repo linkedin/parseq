@@ -477,6 +477,11 @@ public class TestTaskStates
     }
 
     @Override
+    public Long getTaskId() {
+      return 0L;
+    }
+
+    @Override
     public TaskLogger getTaskLogger() {
      return new NullTaskLog();
     }

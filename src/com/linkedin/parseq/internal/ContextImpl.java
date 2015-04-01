@@ -302,6 +302,10 @@ public class ContextImpl implements Context, Cancellable
     return _planContext.getId();
   }
 
+  public Long getTaskId() {
+    return _task.getId();
+  }
+
   @Override
   public TaskLogger getTaskLogger() {
     return _planContext.getTaskLogger();

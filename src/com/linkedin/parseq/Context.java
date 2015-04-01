@@ -88,5 +88,7 @@ public interface Context
 
   Long getPlanId();
 
+  Long getTaskId();
+
   TaskLogger getTaskLogger();
 }
