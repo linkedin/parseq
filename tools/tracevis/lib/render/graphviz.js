@@ -28,11 +28,11 @@ function render(root, graph) {
   var hash = sha1(dotFormat);
   
   var xhr = new XMLHttpRequest();
+  root.selectAll("*").remove();
   
   xhr.onreadystatechange = function() {
   if (xhr.readyState == 4) {
     if (xhr.status == 200) {
-      root.select('#graphviz-img').remove();
       root.append('img')
         .attr('id', 'graphviz-img')
         .attr('class', 'inject-me')
@@ -98,7 +98,13 @@ function render(root, graph) {
         }
       };
       SVGInjector(mySVGsToInject, injectorOptions);
-      
+      root.append('div')
+        .attr('class', 'navbar navbar-fixed-bottom')
+        .append('small')
+        .attr('style', 'margin: 0px; padding: 0px;')
+        .append('a')
+        .attr("href", "https://github.com/linkedin/parseq/wiki/Tracing#graphviz-view")
+        .text('Understanding this diagram');
     } else {
       var textarea = root.append('textarea')
         .style('width', '100%')
