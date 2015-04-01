@@ -154,8 +154,8 @@ public class Tuple${i}TaskDelegate<<@typeParameters i/>> implements Tuple${i}Tas
   }
 
   @Override
-  public void traceValue(Function<Tuple${i}<<@typeParameters i/>>, String> serializer) {
-    _task.traceValue(serializer);
+  public void setTraceValueSerializer(Function<Tuple${i}<<@typeParameters i/>>, String> serializer) {
+    _task.setTraceValueSerializer(serializer);
   }
 
   @Override
