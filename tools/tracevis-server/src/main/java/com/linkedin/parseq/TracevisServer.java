@@ -41,6 +41,7 @@ public class TracevisServer {
   private final int _port;
   private final String _dotLocation;
   private final HashManager _hashManager;
+  private final Exec _exec;
 
   public TracevisServer(final String dotLocation, final int port, final Path baseLocation, final int cacheSize, final long timeoutMs) {
     _dotLocation = dotLocation;
@@ -50,6 +51,7 @@ public class TracevisServer {
     _cacheSize = cacheSize;
     _timeoutMs = timeoutMs;
     _hashManager = new HashManager(this::removeCached, _cacheSize);
+    _exec = new Exec(Runtime.getRuntime().availableProcessors(), 5, 1000);
   }
 
   private Path pathToCacheFile(String hash, String ext) {
@@ -81,6 +83,8 @@ public class TracevisServer {
     for (File f: _cacheLocation.toFile().listFiles()) {
       f.delete();
     }
+
+    _exec.start();
 
     Server server = new Server(_port);
 
@@ -130,7 +134,7 @@ public class TracevisServer {
       server.stop();
       engine.shutdown();
       scheduler.shutdownNow();
-      Exec.close();
+      _exec.stop();
     }
   }
 
@@ -161,16 +165,16 @@ public class TracevisServer {
    // We give process TIMEOUT_MS time to finish, after that
    // it will be forcefully killed.
    final Task<Result> graphviz =
-       Exec.command("graphviz", _timeoutMs, TimeUnit.MILLISECONDS,
+       _exec.command("graphviz", _timeoutMs, TimeUnit.MILLISECONDS,
            _dotLocation,
            "-T" + Constants.OUTPUT_TYPE,
            "-Grankdir=LR", "-Gnewrank=true",
            pathToCacheFile(hash, "dot").toString(),
            "-o", pathToCacheFile(hash, Constants.OUTPUT_TYPE).toString());
 
-   //Since Exec utility allows only certain number of processes
-   //to run in parallel and rest is enqueued, we also specify
-   //timeout for this equal to 2 * graphviz timeout
+   // Since Exec utility allows only certain number of processes
+   // to run in parallel and rest is enqueued, we also specify
+   // timeout on a task level equal to 2 * graphviz timeout.
    final Task<Result> graphvizWithTimeout =
        graphviz.withTimeout(_timeoutMs * 2, TimeUnit.MILLISECONDS);
 
