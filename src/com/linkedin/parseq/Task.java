@@ -552,7 +552,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @return a new task that will apply a transformation to the result of this task
    * @see Try
    */
-  default <R> Task<R> transform(final String desc, final Function1<Try<? super T>, Try<R>> func) {
+  default <R> Task<R> transform(final String desc, final Function1<Try<T>, Try<R>> func) {
     ArgumentUtil.requireNotNull(func, "function");
     return apply(desc,  (src, dst) -> {
       final Try<T> tryT = Promises.toTry(src);
@@ -577,7 +577,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * Equivalent to {@code transform("transform", func)}.
    * @see #transform(String, Function1)
    */
-  default <R> Task<R> transform(final Function1<Try<? super T>, Try<R>> func) {
+  default <R> Task<R> transform(final Function1<Try<T>, Try<R>> func) {
     return transform("transform", func);
   }
 
