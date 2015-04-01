@@ -458,7 +458,7 @@ import com.linkedin.parseq.collection.ParSeqCollection;
    * Creates a new task that will run each of the supplied tasks in parallel (e.g.
    * tasks[0] can be run at the same time as task2). This is a type-safe,
    * collection-based alternative to {@link #vapar(Task[])}.
-   * <p/>
+   * <p>
    * When all tasks complete successfully, you can use
    * {@link com.linkedin.parseq.ParTask#get()} to get a list of the results. If
    * at least one task failed, then this task will also be marked as failed. Use
@@ -539,7 +539,7 @@ import com.linkedin.parseq.collection.ParSeqCollection;
    * Creates a new task that will run each of the supplied tasks in parallel (e.g.
    * tasks[0] can be run at the same time as task2). <strong>This method is not
    * type-safe</strong> - prefer one of the {@code par} options when possible.
-   * <p/>
+   * <p>
    * When all tasks complete successfully, you can use
    * {@link com.linkedin.parseq.ParTask#get()} to get a list of the results. If
    * at least one task failed, then this task will also be marked as failed. Use

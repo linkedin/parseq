@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
  * other tasks. Each task gets its own context, but contexts are hierarchical
  * such that any state changes made from this context are visible to other
  * contexts in the hierarchy.
- * <p/>
+ * <p>
  * If a task finished while it still has pending timers or tasks, those
  * timers and tasks will be cancelled - they are guaranteed not to execute.
  *

@@ -63,7 +63,7 @@ public class TestTaskLogging extends BaseEngineTest
         resetLoggers();
 
         final Task<?> task = Task.value("t1", taskValue);
-        task.traceValue(Object::toString);
+        task.setTraceValueSerializer(Object::toString);
         setLogLevel(logger, level);
         runAndWait("TestTaskLogging.testSingleTaskCombinations", task);
 
@@ -128,7 +128,7 @@ public class TestTaskLogging extends BaseEngineTest
   public void testCompositeTaskWithAllLoggerTrace() throws InterruptedException
   {
     final Task<?> child1 = Task.value("t1", "value");
-    child1.traceValue(Object::toString);
+    child1.setTraceValueSerializer(Object::toString);
     final Task<?> child2 = TestUtil.noop();
     final Task<?> parent = Tasks.seq(child1, child2);
 
@@ -160,7 +160,7 @@ public class TestTaskLogging extends BaseEngineTest
   public void testCompositeTaskWithPlanClassLoggerTrace() throws InterruptedException
   {
     final Task<?> child1 = Task.value("t1", "value");
-    child1.traceValue(Object::toString);
+    child1.setTraceValueSerializer(Object::toString);
     final Task<?> child2 = TestUtil.noop();
     final Task<?> parent = Tasks.seq(child1, child2);
 

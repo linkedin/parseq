@@ -32,7 +32,7 @@ import java.util.concurrent.Executor;
  * tasks wrapped in AsyncCallableTask do not get any special memory consistency
  * guarantees and should not attempt to use shared state. In others, they should
  * act as a stateless function.
- * <p/>
+ * <p>
  * To use this class with an engine, register an executor with engine using
  * {@link #register(EngineBuilder, java.util.concurrent.Executor)}
  *

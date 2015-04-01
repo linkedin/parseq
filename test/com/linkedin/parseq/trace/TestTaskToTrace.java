@@ -37,6 +37,7 @@ import com.linkedin.parseq.BaseEngineTest;
 import com.linkedin.parseq.BaseTask;
 import com.linkedin.parseq.Context;
 import com.linkedin.parseq.EarlyFinishException;
+import com.linkedin.parseq.Exceptions;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
@@ -557,7 +558,7 @@ public class TestTaskToTrace extends BaseEngineTest
       assertEquals(task.getShallowTrace().getEndNanos(), trace.getEndNanos());
     }
     if (task.isDone()) {
-      if (task.isFailed() && !(task.getError() instanceof EarlyFinishException)) {
+      if (task.isFailed() && !(Exceptions.isEarlyFinish(task.getError()))) {
         assertNotNull(trace.getValue());
       } else {
         assertNull(trace.getValue());

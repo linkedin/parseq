@@ -28,7 +28,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * A configurable builder that makes {@link Engine}s.
- * <p/>
+ * <p>
  * Minimum required configuration:
  * <ul>
  *   <li>taskExecutor</li>
@@ -49,7 +49,7 @@ public class EngineBuilder
 
   /**
    * Sets the task executor for the engine.
-   * <p/>
+   * <p>
    * The lifecycle of the executor is not managed by the engine.
    *
    * @param taskExecutor the executor to use for the engine
@@ -64,7 +64,7 @@ public class EngineBuilder
 
   /**
    * Sets the timer scheduler for the engine.
-   * <p/>
+   * <p>
    * The lifecycle of the scheduler is not managed by the engine.
    *
    * @param timerScheduler the scheduler to use for the engine
@@ -79,7 +79,7 @@ public class EngineBuilder
 
   /**
    * Sets the timer scheduler for the engine.
-   * <p/>
+   * <p>
    * The lifecycle of the scheduler is not managed by the engine.
    *
    * @param timerScheduler the scheduler to use for the engine

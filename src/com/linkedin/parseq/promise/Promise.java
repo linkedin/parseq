@@ -58,7 +58,7 @@ public interface Promise<P>
    * Gets the value in this promise or, if the promise contains an error,
    * returns the given default value. This is one mechanism for gracefully
    * handling promise failure.
-   * <p/>
+   * <p>
    * If the promise has not been resolved then this method will throw
    * {@link PromiseUnresolvedException}.
    *
@@ -73,7 +73,7 @@ public interface Promise<P>
   /**
    * Blocks the current thread for an unbounded amount of time until the promise
    * has be resolved.
-   * <p/>
+   * <p>
    * For asynchronous workflows, use {@link #addListener(PromiseListener)},
    * which will notify the user when the promise is resolved instead of blocking
    * the current thread.
@@ -86,7 +86,7 @@ public interface Promise<P>
    * Blocks the current thread for up to the specified amount of time or until
    * the promise has been resolved. If the promise was resolved before the
    * specified time has expired, this method returns {@code true}.
-   * <p/>
+   * <p>
    * For asynchronous workflows, use {@link #addListener(PromiseListener)},
    * which will notify the user when the promise is resolved instead of blocking
    * the current thread.
@@ -102,7 +102,7 @@ public interface Promise<P>
    * Adds a listener to this promise that will be notified when the promise is
    * resolved. If the promise has already been resolved then the listener is
    * notified immediately.
-   * <p/>
+   * <p>
    * Listener will be called on a thread which completed this promise.
    *
    * @param listener the listener to add to this promise

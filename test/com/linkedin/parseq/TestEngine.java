@@ -208,8 +208,8 @@ public class TestEngine
         }
       });
       assertTrue(task.isFailed());
-      assertTrue("Expected underlying exception to be instance of RejectedExecutionException, but was: " + task.getError().getCause(),
-                 task.getError().getCause() instanceof RejectedExecutionException);
+      assertTrue("Expected underlying exception to be instance of RejectedExecutionException, but was: " + task.getError().getCause().getCause(),
+                 task.getError().getCause().getCause() instanceof RejectedExecutionException);
 
       engine.shutdown();
     }

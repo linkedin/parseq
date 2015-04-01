@@ -23,7 +23,7 @@ import com.linkedin.parseq.internal.ArgumentUtil;
 /**
  * A shallow trace is a trace without any relationship information. Use
  * {@link ShallowTraceBuilder} to construct new instances of this class.
- * <p/>
+ * <p>
  * This class is immutable and thread-safe.
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)

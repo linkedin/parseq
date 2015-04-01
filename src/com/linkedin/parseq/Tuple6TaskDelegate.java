@@ -150,8 +150,8 @@ public class Tuple6TaskDelegate<T1, T2, T3, T4, T5, T6> implements Tuple6Task<T1
   }
 
   @Override
-  public void traceValue(Function<Tuple6<T1, T2, T3, T4, T5, T6>, String> serializer) {
-    _task.traceValue(serializer);
+  public void setTraceValueSerializer(Function<Tuple6<T1, T2, T3, T4, T5, T6>, String> serializer) {
+    _task.setTraceValueSerializer(serializer);
   }
 
   @Override

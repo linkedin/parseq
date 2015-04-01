@@ -3,7 +3,7 @@ package com.linkedin.parseq.promise;
 public interface Settable<P> {
   /**
    * Sets the value for this promise to the given value.
-   * <p/>
+   * <p>
    * The guarantee is that after this method is finished the promise
    * has been completed but it is not guaranteed that all listeners have been
    * called. Listeners can be notified shortly after this method returns.
@@ -15,7 +15,7 @@ public interface Settable<P> {
 
   /**
    * Sets an error on this promise.
-   * <p/>
+   * <p>
    * The guarantee is that after this method is finished the promise
    * has been completed but it is not guaranteed that all listeners have been
    * called. Listeners can be notified shortly after this method returns.

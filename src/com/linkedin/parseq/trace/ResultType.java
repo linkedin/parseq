@@ -17,6 +17,7 @@
 package com.linkedin.parseq.trace;
 
 import com.linkedin.parseq.EarlyFinishException;
+import com.linkedin.parseq.Exceptions;
 import com.linkedin.parseq.Task;
 
 /**
@@ -61,7 +62,7 @@ public enum ResultType
     }
     else if (task.isFailed())
     {
-      if (task.getError() instanceof EarlyFinishException)
+      if (Exceptions.isEarlyFinish(task.getError()))
       {
         return EARLY_FINISH;
       }

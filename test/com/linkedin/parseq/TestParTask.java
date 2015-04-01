@@ -411,8 +411,8 @@ public class TestParTask extends BaseEngineTest
     getEngine().run(par);
 
     promise1.done("done1");
-    promise2.fail(new EarlyFinishException());
-    promise3.fail(new EarlyFinishException());
+    promise2.fail(new CancellationException(new EarlyFinishException()));
+    promise3.fail(new CancellationException(new EarlyFinishException()));
     assertTrue(par.await(5, TimeUnit.SECONDS));
 
     if (!par.isFailed())
@@ -421,7 +421,7 @@ public class TestParTask extends BaseEngineTest
     }
     List<String> successful = par.getSuccessful();
     List<Task<String>> tasks = par.getTasks();
-    assertEquals("Should be early finish", true, par.getError() instanceof  EarlyFinishException);
+    assertTrue("Should be early finish", Exceptions.isEarlyFinish(par.getError()));
     assertEquals(1, successful.size());
     assertEquals("done1", successful.get(0));
     assertEquals(3, tasks.size());

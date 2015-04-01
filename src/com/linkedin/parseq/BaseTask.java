@@ -23,6 +23,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.linkedin.parseq.internal.IdGenerator;
 import com.linkedin.parseq.internal.TaskLogger;
 import com.linkedin.parseq.promise.DelegatingPromise;
@@ -37,9 +40,6 @@ import com.linkedin.parseq.trace.Trace;
 import com.linkedin.parseq.trace.TraceBuilder;
 
 /**
- * TODO break tasks referencing each other through context, replace with ids
- *
- *
  * An abstract base class that can be used to build implementations of
  * {@link Task}.
  *
@@ -48,6 +48,8 @@ import com.linkedin.parseq.trace.TraceBuilder;
  */
 public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T>
 {
+  static final Logger LOGGER = LoggerFactory.getLogger(BaseTask.class);
+
   private static enum StateType
   {
     // The initial state of the task.
@@ -103,7 +105,6 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
   public BaseTask(final String name)
   {
     super(Promises.<T>settable());
-
     _name = name;
     final State state = State.INIT;
     _shallowTraceBuilder = new ShallowTraceBuilder(_id);
@@ -188,17 +189,17 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
           {
             if (resolvedPromise.isFailed())
             {
-              traceAndFail(resolvedPromise.getError(), taskLogger);
+              fail(resolvedPromise.getError(), taskLogger);
             }
             else
             {
-              traceAndDone(resolvedPromise.get(), taskLogger);
+              done(resolvedPromise.get(), taskLogger);
             }
           });
       }
       catch (Throwable t)
       {
-        traceAndFail(t, taskLogger);
+        fail(t, taskLogger);
       }
     }
     else
@@ -236,19 +237,25 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
   }
 
   @Override
-  public boolean cancel(final Exception reason)
+  public boolean cancel(final Exception rootReason)
   {
-    if (transitionCancel())
+    if (transitionCancel(rootReason))
     {
-      if (reason instanceof EarlyFinishException) {
-        _shallowTraceBuilder.setResultType(ResultType.EARLY_FINISH);
-      } else {
-        _shallowTraceBuilder.setResultType(ResultType.ERROR);
-      }
+      final Exception reason = new CancellationException(rootReason);
+      traceFailure(reason);
       getSettableDelegate().fail(reason);
       return true;
     }
     return false;
+  }
+
+  protected void traceFailure(final Throwable reason) {
+    if (Exceptions.isEarlyFinish(reason)) {
+      _shallowTraceBuilder.setResultType(ResultType.EARLY_FINISH);
+    } else {
+      _shallowTraceBuilder.setResultType(ResultType.ERROR);
+      _shallowTraceBuilder.setValue(Exceptions.failureToString(reason));
+    }
   }
 
   @Override
@@ -263,7 +270,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
   }
 
   @Override
-  public void traceValue(final Function<T, String> traceValueProvider) {
+  public void setTraceValueSerializer(final Function<T, String> traceValueProvider) {
     _traceValueProvider = traceValueProvider;
   }
 
@@ -286,7 +293,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
    */
   protected abstract Promise<? extends T> run(final Context context) throws Throwable;
 
-  private void traceAndDone(final T value, final TaskLogger taskLogger) {
+  private void traceDone(final T value) {
     _shallowTraceBuilder.setResultType(ResultType.SUCCESS);
     final Function<T, String> traceValueProvider = _traceValueProvider;
     if (traceValueProvider != null) {
@@ -296,32 +303,23 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
         _shallowTraceBuilder.setValue(e.toString());
       }
     }
-    done(value, taskLogger);
   }
 
   private void done(final T value, final TaskLogger taskLogger)
   {
     if (transitionDone())
     {
+      traceDone(value);
       getSettableDelegate().done(value);
       taskLogger.logTaskEnd(BaseTask.this, _traceValueProvider);
     }
-  }
-
-  private void traceAndFail(final Throwable error, final TaskLogger taskLogger) {
-    if (error instanceof EarlyFinishException) {
-      _shallowTraceBuilder.setResultType(ResultType.EARLY_FINISH);
-    } else {
-      _shallowTraceBuilder.setResultType(ResultType.ERROR);
-      _shallowTraceBuilder.setValue(error.toString());
-    }
-    fail(error , taskLogger);
   }
 
   private void fail(final Throwable error, final TaskLogger taskLogger)
   {
     if (transitionDone())
     {
+      traceFailure(error);
       getSettableDelegate().fail(error);
       taskLogger.logTaskEnd(BaseTask.this, _traceValueProvider);
     }
@@ -368,13 +366,10 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     _shallowTraceBuilder.setPendingNanos(pendingNanos);
   }
 
-  protected boolean transitionCancel()
+  protected boolean transitionCancel(final Exception reason)
   {
     State state;
     State newState;
-
-    //TODO if previous state was PENDING then notify
-    //asynchronous execution about the cancellation
 
     do
     {

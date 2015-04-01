@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * A {@link Task} that will attempt to run the given task within the given
  * timeout. If the timeout expires then this task will fail with a
  * {@link TimeoutException}.
- * <p/>
+ * <p>
  * Use {@link Tasks#timeoutWithError(String, long, java.util.concurrent.TimeUnit, Task)}
  * to create an instances of this class.
  *

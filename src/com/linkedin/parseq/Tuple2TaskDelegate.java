@@ -150,8 +150,8 @@ public class Tuple2TaskDelegate<T1, T2> implements Tuple2Task<T1, T2> {
   }
 
   @Override
-  public void traceValue(Function<Tuple2<T1, T2>, String> serializer) {
-    _task.traceValue(serializer);
+  public void setTraceValueSerializer(Function<Tuple2<T1, T2>, String> serializer) {
+    _task.setTraceValueSerializer(serializer);
   }
 
   @Override

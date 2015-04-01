@@ -150,8 +150,8 @@ public class Tuple8TaskDelegate<T1, T2, T3, T4, T5, T6, T7, T8> implements Tuple
   }
 
   @Override
-  public void traceValue(Function<Tuple8<T1, T2, T3, T4, T5, T6, T7, T8>, String> serializer) {
-    _task.traceValue(serializer);
+  public void setTraceValueSerializer(Function<Tuple8<T1, T2, T3, T4, T5, T6, T7, T8>, String> serializer) {
+    _task.setTraceValueSerializer(serializer);
   }
 
   @Override

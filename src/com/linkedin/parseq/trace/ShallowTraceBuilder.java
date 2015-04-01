@@ -25,7 +25,7 @@ import com.linkedin.parseq.internal.ArgumentUtil;
 
 /**
  * Use this class to build new {@link ShallowTraceImp} instances.
- * <p/>
+ * <p>
  * This class is thread-safe.
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)

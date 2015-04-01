@@ -150,8 +150,8 @@ public class Tuple5TaskDelegate<T1, T2, T3, T4, T5> implements Tuple5Task<T1, T2
   }
 
   @Override
-  public void traceValue(Function<Tuple5<T1, T2, T3, T4, T5>, String> serializer) {
-    _task.traceValue(serializer);
+  public void setTraceValueSerializer(Function<Tuple5<T1, T2, T3, T4, T5>, String> serializer) {
+    _task.setTraceValueSerializer(serializer);
   }
 
   @Override

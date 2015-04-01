@@ -15,7 +15,7 @@ import com.linkedin.parseq.promise.SettablePromise;
  * This interface allows calling {@link #map(Function) map} and
  * {@link #flatMap(Function) flatMap} regardless of the underlying type.
  *
- * <p/>
+ * <p>
  * This interface is experimental and may be modified or removed in future
  * versions.
  * @author jodzga

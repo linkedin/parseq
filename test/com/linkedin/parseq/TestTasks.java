@@ -221,7 +221,7 @@ public class TestTasks extends BaseEngineTest
     // The original task should also be failed - this time with an early finish
     // exception.
     assertTrue(task.isFailed());
-    assertTrue(task.getError() instanceof EarlyFinishException);
+    assertTrue(Exceptions.isEarlyFinish(task.getError()));
   }
 
   @Test

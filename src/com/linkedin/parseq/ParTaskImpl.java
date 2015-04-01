@@ -31,7 +31,7 @@ import java.util.List;
 
 /**
  * A {@link Task} that will run all of the constructor-supplied tasks in parallel.
- * <p/>
+ * <p>
  * Use {@link Tasks#par(Task[])} or {@link Tasks#par(Iterable)} to create an
  * instance of this class.
  *

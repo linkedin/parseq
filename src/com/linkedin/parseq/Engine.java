@@ -165,7 +165,7 @@ public class Engine
    * shutdown. No new tasks will be accepted, but already running tasks will be
    * allowed to finish. Use {@link #awaitTermination(int, java.util.concurrent.TimeUnit)}
    * to wait for the engine to shutdown.
-   * <p/>
+   * <p>
    * If the engine is already shutting down or stopped this method will have
    * no effect.
    */

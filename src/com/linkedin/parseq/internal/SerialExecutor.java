@@ -21,13 +21,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * An executor that provides the following guarantees:
- * <p/>
+ * <p>
  * 1. Only one task may be executed at a time
  * 2. The completion of a task happens-before the execution of the next task
- * <p/>
+ * <p>
  * For more on the happens-before constraint see the {@code java.util.concurrent}
  * package documentation.
- * <p/>
+ * <p>
  * It is possible for the underlying executor to throw an exception signaling
  * that it is not able to accept new work. For example, this can occur with an
  * executor that has a bounded queue size and an

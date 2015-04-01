@@ -25,7 +25,7 @@ import java.util.concurrent.Callable;
 /**
  * A {@link Task} that will run a {@link Callable} and will set the task's value
  * to the value returned from the callable.
- * <p/>
+ * <p>
  * Use {@link Tasks#callable(String, java.util.concurrent.Callable)} to create
  * instances of this class.
  *

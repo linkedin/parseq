@@ -21,8 +21,12 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.linkedin.parseq.function.Consumer1;
 import com.linkedin.parseq.function.Failure;
@@ -42,22 +46,19 @@ import com.linkedin.parseq.trace.Trace;
 import com.linkedin.parseq.trace.TraceBuilder;
 
 /**
- * TODO make sure tasks don't have references to tasks they depended on to decrease GC overhead
- * TODO change behavior of cancel to return false only if task has not been DONE and
- * to guarantee cancellation otherwise
- *
  * A task represents a deferred execution that also contains its resulting
  * value. In addition, tasks include tracing information that can be
  * used with various trace printers.
- * <p/>
+ * <p>
  * Tasks should be run using an {@link Engine}. They should not be run directly.
- * <p/>
+ * <p>
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
 public interface Task<T> extends Promise<T>, Cancellable
 {
+  static final Logger LOGGER = LoggerFactory.getLogger(Task.class);
 
   //------------------- interface definition -------------------
 
@@ -79,11 +80,11 @@ public interface Task<T> extends Promise<T>, Cancellable
    * Overrides the priority for this task. Higher priority tasks will be
    * executed before lower priority tasks in the same context. In most cases,
    * the default priority is sufficient.
-   * <p/>
+   * <p>
    * The default priority is 0. Use {@code priority < 0} to make a task
    * lower priority and {@code priority > 0} to make a task higher
    * priority.
-   * <p/>
+   * <p>
    * If the task has already started execution the priority cannot be
    * changed.
    *
@@ -98,12 +99,12 @@ public interface Task<T> extends Promise<T>, Cancellable
    * Allows adding {@code String} representation of value computed by this task to trace.
    * When this task is finished successfully, value will be converted to String using given
    * serializer and it will be included in this task's trace.
-   * <p/>
+   * <p>
    * Failures are automatically included in a trace.
    * @param serializer serialized used for converting result of this task
    * to String that will be included in this task's trace.
    */
-  void traceValue(Function<T, String> serializer);
+  void setTraceValueSerializer(Function<T, String> serializer);
 
   /**
    * Attempts to run the task with the given context. This method is
@@ -384,6 +385,10 @@ public interface Task<T> extends Promise<T>, Cancellable
    *      .map(p {@code ->} p.getFirstName() + " " + p.getLastName())
    *      .recover(e {@code ->} "Member " + id);
    * </code></pre>
+   * <p>
+   * Note that task cancellation is not considered to be a failure.
+   * If this task has been cancelled then task returned by this method will also
+   * be cancelled and recovery function will not be applied.
    *
    * @param desc description of a recovery function, it will show up in a trace
    * @param func recovery function which can complete task with a value depending on
@@ -393,7 +398,7 @@ public interface Task<T> extends Promise<T>, Cancellable
   default Task<T> recover(final String desc, final Function1<Throwable, T> func) {
     ArgumentUtil.requireNotNull(func, "function");
     return apply(desc,  (src, dst) -> {
-      if (src.isFailed() && !(src.getError() instanceof EarlyFinishException)) {
+      if (src.isFailed() && !(Exceptions.isCancellation(src.getError()))) {
         try {
           dst.done(func.apply(src.getError()));
         } catch (Throwable t) {
@@ -424,7 +429,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    *  });
    *
    *  // this task will print out java.lang.StringIndexOutOfBoundsException
-   *  // and complete with it
+   *  // and complete with that exception as a reason for failure
    *  Task{@code <String>} sayHello = failing.onFailure(System.out::println);
    * </code></pre>
    *
@@ -436,8 +441,12 @@ public interface Task<T> extends Promise<T>, Cancellable
    *  Task{@code <String>} sayHello = hello.onFailure(System.out::println);
    * </code></pre>
    *
-   * Note that exceptions thrown by a consumer will be ignored.
-   * <p/>
+   * Exceptions thrown by a consumer will be ignored.
+   * <p>
+   * Note that task cancellation is not considered to be a failure.
+   * If this task has been cancelled then task returned by this method will also
+   * be cancelled and consumer will not be called.
+   *
    * @param desc description of a consumer, it will show up in a trace
    * @param consumer consumer of an exception this task failed with
    * @return a new task which will complete with result of this task
@@ -445,11 +454,12 @@ public interface Task<T> extends Promise<T>, Cancellable
   default Task<T> onFailure(final String desc, final Consumer1<Throwable> consumer) {
     ArgumentUtil.requireNotNull(consumer, "consumer");
     return apply(desc,  (src, dst) -> {
-      if (src.isFailed() && !(src.getError() instanceof EarlyFinishException)) {
+      if (src.isFailed() && !(Exceptions.isCancellation(src.getError()))) {
         try {
           consumer.accept(src.getError());
         } catch (Exception e) {
-          //exceptions thrown by consumer are ignored
+          //exceptions thrown by consumer are logged and ignored
+          LOGGER.error("Exception thrown by onFailure consumer: ", e);
         } finally {
           dst.fail(src.getError());
         }
@@ -466,34 +476,6 @@ public interface Task<T> extends Promise<T>, Cancellable
   default Task<T> onFailure(final Consumer1<Throwable> consumer) {
     return onFailure("onFailure", consumer);
   }
-
-
-  //TODO doc
-  default Task<T> onCancelled(final String desc, final Runnable action) {
-    ArgumentUtil.requireNotNull(action, "action");
-    return apply(desc,  (src, dst) -> {
-      if (src.isFailed() && (src.getError() instanceof EarlyFinishException)) {
-        try {
-          action.run();
-        } catch (Exception e) {
-          //exceptions thrown by an action are ignored
-        } finally {
-          dst.fail(src.getError());
-        }
-      } else {
-        dst.done(src.get());
-      }
-    });
-  }
-
-  /**
-   * Equivalent to {@code onCancelled("onCancelled", action)}.
-   * @see #onCancelled(String, Runnable)
-   */
-  default Task<T> onCancelled(final Runnable action) {
-    return onCancelled("onCancelled", action);
-  }
-
 
   /**
    * This method transforms {@code Task<T>} into {@code Task<Try<T>>}.
@@ -521,7 +503,8 @@ public interface Task<T> extends Promise<T>, Cancellable
    * Note that all failures are automatically propagated and usually it is enough to use
    * {@link #recover(String, Function) recover}, {@link #recoverWith(String, Function) recoverWith}
    * or {@link #fallBackTo(String, Function) fallBackTo}.
-   * <p/>
+   * <p>
+   * @param desc description of a consumer, it will show up in a trace
    * @return a new task that will complete successfully with the result of this task
    * @see Try
    * @see #recover(String, Function) recover
@@ -544,19 +527,36 @@ public interface Task<T> extends Promise<T>, Cancellable
 
   /**
    * Creates a new task that applies a transformation to the result of this
-   * task.
+   * task. This method allows handling both successful completion and failure
+   * at the same time.
+   * <pre><code>
+   * Task{@code <Integer>} num = ...
    *
-   * TODO
+   * // this task will complete with either complete successfully
+   * // with String representation of num or fail with  MyLibException
+   * Task{@code <String>} text = num.transform("toString", t -> {
+   *   if (t.isFailed()) {
+   *     return Failure.of(new MyLibException(t.getError()));
+   *   } else {
+   *     return Success.of(String.valueOf(t.get()));
+   *   }
+   * });
+   * </code></pre>
+   * <p>
+   * Note that task cancellation is not considered to be a failure.
+   * If this task has been cancelled then task returned by this method will also
+   * be cancelled and transformation will not be applied.
    *
-   * @param desc
-   * @param func
-   * @return
+   * @param desc description of a consumer, it will show up in a trace
+   * @param func a transformation to be applied to the result of this task
+   * @return a new task that will apply a transformation to the result of this task
+   * @see Try
    */
   default <R> Task<R> transform(final String desc, final Function1<Try<? super T>, Try<R>> func) {
     ArgumentUtil.requireNotNull(func, "function");
     return apply(desc,  (src, dst) -> {
       final Try<T> tryT = Promises.toTry(src);
-      if (tryT.isFailed() && tryT.getError() instanceof EarlyFinishException) {
+      if (tryT.isFailed() && Exceptions.isCancellation(tryT.getError())) {
         dst.fail(src.getError());
       } else {
         try {
@@ -579,43 +579,6 @@ public interface Task<T> extends Promise<T>, Cancellable
    */
   default <R> Task<R> transform(final Function1<Try<? super T>, Try<R>> func) {
     return transform("transform", func);
-  }
-
-
-  /**
-   * This method is similar in spirit to {@code finally} block in
-   * {@code try-catch-finally} expression. It allows to handle result of
-   * this task regardless of whether it finished successfully or failed.
-   * Returned task completes with exactly the same result as this task unless
-   * {@code consumer} threw exception in which case it will fail with that exception.
-   *
-   * @param desc description of a consumer, it will show up in a trace
-   * @param consumer consumer of a result of this task
-   * @return a new task that will complete with exactly the same result as this task unless
-   * {@code consumer} threw exception in which case it will fail with that exception
-   */
-  default Task<T> lastly(final String desc, final Consumer1<Try<T>> consumer) {
-    return apply(desc,  (src, dst) -> {
-      try {
-        if (src.isFailed()) {
-          consumer.accept(Failure.of(src.getError()));
-          dst.fail(src.getError());
-        } else {
-          consumer.accept(Success.of(src.get()));
-          dst.done(src.get());
-        }
-      } catch (Exception e) {
-        dst.fail(e);
-      }
-    });
-  }
-
-  /**
-   * Equivalent to {@code lastly("lastly", consumer)}.
-   * @see #lastly(String, Consumer1)
-   */
-  default Task<T> lastly(final Consumer1<Try<T>> consumer) {
-    return lastly("lastly", consumer);
   }
 
   /**
@@ -643,7 +606,10 @@ public interface Task<T> extends Promise<T>, Cancellable
    * </code></pre>
    *
    * If recovery task fails then returned task is completed with that failure.
-   * <p/>
+   * <p>
+   * Note that task cancellation is not considered to be a failure.
+   * If this task has been cancelled then task returned by this method will also
+   * be cancelled and recovery function will not be applied.
    *
    * @param desc description of a recovery function, it will show up in a trace
    * @param func recovery function provides task which will be used to recover from
@@ -656,7 +622,7 @@ public interface Task<T> extends Promise<T>, Cancellable
     return async(desc, context -> {
       final SettablePromise<T> result = Promises.settable();
       final Task<T> recovery = async(desc, ctx -> {
-        if (that.isFailed() && !(that.getError() instanceof EarlyFinishException)) {
+        if (that.isFailed() && !(Exceptions.isCancellation(that.getError()))) {
           try {
             Task<T> r = func.apply(that.getError());
             Promises.propagateResult(r, result);
@@ -684,7 +650,10 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   /**
-   * TODO
+   * Creates a new task that has a timeout associated with it. If this task finishes
+   * before the timeout occurs then returned task will be completed with the value of this task.
+   * If this task does not complete in the given time then returned task will
+   * fail with a {@link TimeoutException} as a reason of failure and this task will be cancelled.
    *
    * @param time the time to wait before timing out
    * @param unit the units for the time
@@ -772,7 +741,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * // this task will fail with java.lang.ArithmeticException
    * Task{@code <Void>} task = Task.action("division", () -> System.out.println(2 / 0));
    * </code></pre>
-   * <p/>
+   * <p>
    * @param name a name that describes the action
    * @param action the action that will be executed when the task is run
    * @return the new task that will execute the action
@@ -831,7 +800,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * // this task will fail with java.lang.ArithmeticException
    * Task{@code <Integer>} task = Task.callable("division", () -> 2 / 0);
    * </code></pre>
-   * <p/>
+   * <p>
    * @param name a name that describes the task, it will show up in a trace
    * @param callable the callable to execute when this task is run
    * @param <T> the type of the return value for this task
@@ -909,7 +878,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * This method is not appropriate for long running or blocking callables.
    * If callable is long running or blocking use
    * {@link #blocking(String, Callable, Executor) blocking} method.
-   * <p/>
+   * <p>
    *
    * @param <T> the type of the return value for this task
    * @param name a name that describes the task, it will show up in a trace
@@ -1040,7 +1009,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks.
-   * <p/>
+   * <p>
    * @return task that will run given tasks in parallel
    */
   public static <T1, T2> Tuple2Task<T1, T2> par(final Task<T1> task1,
@@ -1064,7 +1033,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks.
-   * <p/>
+   * <p>
    * @return task that will run given tasks in parallel
    */
   public static <T1, T2, T3> Tuple3Task<T1, T2, T3> par(final Task<T1> task1,
@@ -1089,7 +1058,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks.
-   * <p/>
+   * <p>
    * @return task that will run given tasks in parallel
    */
   public static <T1, T2, T3, T4> Tuple4Task<T1, T2, T3, T4> par(final Task<T1> task1,
@@ -1115,7 +1084,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks.
-   * <p/>
+   * <p>
    * @return task that will run given tasks in parallel
    */
   public static <T1, T2, T3, T4, T5> Tuple5Task<T1, T2, T3, T4, T5> par(final Task<T1> task1,
@@ -1142,7 +1111,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks.
-   * <p/>
+   * <p>
    * @return task that will run given tasks in parallel
    */
   public static <T1, T2, T3, T4, T5, T6> Tuple6Task<T1, T2, T3, T4, T5, T6> par(final Task<T1> task1,
@@ -1170,7 +1139,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks.
-   * <p/>
+   * <p>
    * @return task that will run given tasks in parallel
    */
   public static <T1, T2, T3, T4, T5, T6, T7> Tuple7Task<T1, T2, T3, T4, T5, T6, T7> par(final Task<T1> task1,
@@ -1199,7 +1168,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks.
-   * <p/>
+   * <p>
    * @return task that will run given tasks in parallel
    */
   public static <T1, T2, T3, T4, T5, T6, T7, T8> Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> par(final Task<T1> task1,
@@ -1229,7 +1198,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks.
-   * <p/>
+   * <p>
    * @return task that will run given tasks in parallel
    */
   public static <T1, T2, T3, T4, T5, T6, T7, T8, T9> Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> par(final Task<T1> task1,

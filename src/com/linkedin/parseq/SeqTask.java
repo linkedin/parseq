@@ -27,7 +27,7 @@ import java.util.List;
 
 /**
  * A {@link Task} that will run the constructor-supplied tasks one after the other.
- * <p/>
+ * <p>
  * Use {@link Tasks#seq(Iterable)} or {@link Tasks#seq(java.lang.Iterable)} to create
  * instances of this class.
  *

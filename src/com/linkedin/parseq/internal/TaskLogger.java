@@ -19,6 +19,7 @@ package com.linkedin.parseq.internal;
 import java.util.function.Function;
 
 import com.linkedin.parseq.EarlyFinishException;
+import com.linkedin.parseq.Exceptions;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.trace.ResultType;
 import com.linkedin.parseq.trace.ShallowTrace;
@@ -132,8 +133,8 @@ public class TaskLogger
   }
 
   private <T> String stringValue(Task<T> task, Function<T, String> traceValueProvider) {
-    if (task.isFailed() && !(task.getError() instanceof EarlyFinishException)) {
-      return task.getError().toString();
+    if (task.isFailed()) {
+      return Exceptions.failureToString(task.getError());
     } else {
       if (traceValueProvider != null) {
         try {

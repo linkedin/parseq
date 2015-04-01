@@ -149,12 +149,7 @@ public class FusionTask<S, T>  extends BaseTask<T> {
               public void fail(final Throwable error) throws PromiseResolvedException {
                 try {
                   trnasitionToDone(traceContext);
-                  if (error instanceof EarlyFinishException) {
-                    _shallowTraceBuilder.setResultType(ResultType.EARLY_FINISH);
-                  } else {
-                    _shallowTraceBuilder.setResultType(ResultType.ERROR);
-                    _shallowTraceBuilder.setValue(error.toString());
-                  }
+                  traceFailure(error);
                   settable.fail(error);
                   traceContext.getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);
                   CONTINUATIONS.submit(() -> dest.fail(error), null);
@@ -234,7 +229,7 @@ public class FusionTask<S, T>  extends BaseTask<T> {
     return Task.async(desc, context -> {
       final SettablePromise<T> result = Promises.settable();
       context.after(that).run(() -> {
-        if (that.isFailed() && !(that.getError() instanceof EarlyFinishException)) {
+        if (that.isFailed() && !(Exceptions.isCancellation(that.getError()))) {
           try {
             Task<T> r = func.apply(that.getError());
             Promises.propagateResult(r, result);

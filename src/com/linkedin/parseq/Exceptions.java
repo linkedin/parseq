@@ -32,4 +32,25 @@ public class Exceptions {
   public static Exception noSuchElement(final Throwable cause) {
     return addCause(new NoSuchElementException(), cause);
   }
+
+  public static boolean isCancellation(final Throwable e) {
+    return e instanceof CancellationException;
+  }
+
+  public static boolean isEarlyFinish(final Throwable e) {
+    return isCancellation(e) && e.getCause() instanceof EarlyFinishException;
+  }
+
+  public static String failureToString(final Throwable e) {
+    if (isCancellation(e)) {
+      if (isEarlyFinish(e)) {
+        return "";
+      } else {
+        return "cancelled because: " + e.getCause().toString();
+      }
+    } else {
+      return e.toString();
+    }
+  }
+
 }

@@ -77,7 +77,7 @@ public class TestTaskStates
     final Exception reason = new Exception();
 
     assertTrue(task.cancel(reason));
-    assertFailed(task, reason);
+    assertCancelled(task, reason);
   }
 
   @Test
@@ -90,7 +90,7 @@ public class TestTaskStates
     assertTrue(task.cancel(reason1));
     assertFalse(task.cancel(reason2));
 
-    assertFailed(task, reason1);
+    assertCancelled(task, reason1);
   }
 
   @Test
@@ -289,7 +289,7 @@ public class TestTaskStates
 
     assertTrue(task.await(5, TimeUnit.SECONDS));
 
-    assertFailed(task, reason);
+    assertCancelled(task, reason);
   }
 
   @Test
@@ -404,6 +404,27 @@ public class TestTaskStates
     catch (PromiseException e)
     {
       assertEquals(exception, e.getCause());
+    }
+  }
+
+  private void assertCancelled(final Task<?> task, Exception exception)
+  {
+
+    assertTrue(task.isDone());
+    assertTrue(task.isFailed());
+    assertTrue(Exceptions.isCancellation(task.getError()));
+    assertEquals(exception, task.getError().getCause());
+    assertTrue(task.getShallowTrace().getStartNanos() > 0);
+    assertTrue(task.getShallowTrace().getStartNanos() <= task.getShallowTrace().getEndNanos());
+
+    try
+    {
+      task.get();
+      fail("Should have thwon PromiseException");
+    }
+    catch (PromiseException e)
+    {
+      assertEquals(exception, e.getCause().getCause());
     }
   }
 
