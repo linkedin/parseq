@@ -82,6 +82,7 @@ function render(root, graph) {
               var startX = _this.node().getAttribute('x');
               _this.attr('transform', 'translate(' + (-1 * startX * (scale -1)) + ') scale(' + scale + ', 1)');
             });
+            d3.select('#slider-text').text(value.toFixed(2) + 'ms');
       }
       
       SVGInjector(mySVGsToInject, {
@@ -225,6 +226,14 @@ function render(root, graph) {
         .attr('id', 'graphviz-slider')
         .call(slider);
         
+      root.select('#graphviz-footer')
+        .append('div')
+        .attr('id', 'graphviz-footer-slider-text')
+        .attr('class', 'span1')
+        .append('h4')
+        .append('span')
+        .attr('id', 'slider-text')
+        .text('0.00ms');
       
       });
         
