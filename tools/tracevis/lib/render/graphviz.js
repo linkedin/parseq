@@ -14,6 +14,13 @@
  * the License.
  */
 
+var progressColorsMap = {
+  '#e0ffe0': '#60D060',
+  '#ffe0e0': '#FF6F6F',
+  '#fffacd': '#FFFD76',
+  '#aaaaaa': '#cccccc'
+}
+
 var dot = require('graphlib-dot'),
     dotify = require('../trace/dotify'),
     sha1 = require('sha1');
@@ -39,7 +46,7 @@ function render(root, graph) {
     var node = graph.node(u);
     timings[u] = {
       start: (graph.node(u).startNanos  / (1000 * 1000)) - minStartMs,
-      end: Math.max((graph.node(u).endNanos / (1000 * 1000)) - minStartMs, (graph.node(u).startNanos  / (1000 * 1000)) - minStartMs + 1)
+      end: (graph.node(u).endNanos / (1000 * 1000)) - minStartMs
     };
   });
 
@@ -59,6 +66,23 @@ function render(root, graph) {
         .attr('data-src', 'cache/' + hash + '.svg');
         
       var mySVGsToInject = document.querySelectorAll('img.inject-me');
+      
+      var sliderUpdate = function(value) {
+            d3.selectAll('.pb-rect').each(function(d, i) {
+              var _this = d3.select(this);
+              var id = this.getAttribute('id').substring(8);
+              var timing = timings[id];
+              var scale = (value - timing.start) / (timing.end - timing.start);
+              if (scale < 0) {
+                scale = 0;
+              }
+              if (scale > 1) {
+                scale = 1;
+              }
+              var startX = _this.node().getAttribute('x');
+              _this.attr('transform', 'translate(' + (-1 * startX * (scale -1)) + ') scale(' + scale + ', 1)');
+            });
+      }
       
       SVGInjector(mySVGsToInject, {
         evalScripts: 'once',
@@ -148,7 +172,7 @@ function render(root, graph) {
             var id = title.substring(5);
             var ellipse = _this.select('ellipse');
             var bbox = ellipse.node().getBBox();
-            var rect = defs.append('mask')
+            var rect = defs.append('clipPath')
               .attr('id', 'pb-' + id)
               .append('rect')
               .attr('class', 'pb-rect')
@@ -156,15 +180,18 @@ function render(root, graph) {
               .attr("x", bbox.x)
               .attr("y", bbox.y)
               .attr("width", bbox.width)
-              .attr("height", bbox.height)
-              .style("fill", d3.rgb(ellipse.style('fill')).darker(2));
-            ellipse.attr('mask', 'url(#pb-' + id + ')');
+              .attr("height", bbox.height);
+            var cloned = ellipse.node().cloneNode();
+            this.insertBefore(cloned, ellipse.node().nextSibling);
+            d3.select(cloned)
+              .style("fill", progressColorsMap[d3.rgb(ellipse.style('fill')).toString()])
+              .attr('clip-path', 'url(#pb-' + id + ')');
           } else {
             //normal nodes
             var id = title;
             var path = _this.select('path');
             var bbox = path.node().getBBox();
-            var rect = defs.append('mask')
+            var rect = defs.append('clipPath')
               .attr('id', 'pb-' + id)
               .append('rect')
               .attr('class', 'pb-rect')
@@ -172,32 +199,23 @@ function render(root, graph) {
               .attr("x", bbox.x)
               .attr("y", bbox.y)
               .attr("width", bbox.width)
-              .attr("height", bbox.height)
-              .attr("opacity", 1)
-              .style("fill", d3.rgb(path.style('fill')).darker(2));
-            path.attr('mask', 'url(#pb-' + id + ')');
+              .attr("height", bbox.height);
+            var cloned = path.node().cloneNode();
+            this.insertBefore(cloned, path.node().nextSibling);
+            d3.select(cloned)
+              .style("fill", progressColorsMap[d3.rgb(path.style('fill')).toString()])
+              .attr('clip-path', 'url(#pb-' + id + ')');
           }
         }
+        
+        sliderUpdate(0);
       });
         
       var slider = d3.slider().min(0).max(maxEndMs - minStartMs).axis(d3.svg.axis().orient("top").ticks(10))
-/*        .on("slide", function(evt, value) {
-            d3.selectAll('.pb-rect').each(function(d, i) {
-              var _this = d3.select(this);
-              var id = this.getAttribute('id').substring(8);
-              var timing = timings[id];
-              var percentComplete = (value - timing.start) / (timing.end - timing.start);
-              if (percentComplete < 0) {
-                percentComplete = 0;
-              }
-              if (percentComplete > 1) {
-                percentComplete = 1;
-              }
-              var scale = 1 - percentComplete;
-              _this.attr('transform', 'scale(' + scale + ', 1) translate(' + _this.node().getAttribute('x') + ')');
-            })
+        .on("slide", function(evt, value) {
+           sliderUpdate(value);
          })
-*/
+
       root.select('#graphviz-footer')
         .append('div')
         .attr('id', 'graphviz-footer-right')

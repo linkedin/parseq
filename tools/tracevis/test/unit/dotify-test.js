@@ -97,9 +97,9 @@ describe('dotify', function() {
 
     describe('colors', function() {
       var COLOR_MAP = {
-        SUCCESS: '#60d060',
-        ERROR: '#ff6f6f',
-        EARLY_FINISH: '#fffd76',
+        SUCCESS: '#e0ffe0',
+        ERROR: '#ffe0e0',
+        EARLY_FINISH: '#fffacd',
         ALL_OTHERS: '#aaaaaa'
       };
 

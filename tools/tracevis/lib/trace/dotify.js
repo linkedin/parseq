@@ -333,9 +333,9 @@ function escapeLabel(label) {
 
 function fillcolor(resultType) {
   switch (resultType) {
-    case 'SUCCESS':      return '#60d060';
-    case 'ERROR':        return '#ff6f6f';
-    case 'EARLY_FINISH': return '#fffd76';
+    case 'SUCCESS':      return '#e0ffe0';
+    case 'ERROR':        return '#ffe0e0';
+    case 'EARLY_FINISH': return '#fffacd';
     default:             return '#aaaaaa';
   }
 }
