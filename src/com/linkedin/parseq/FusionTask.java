@@ -274,7 +274,7 @@ public class FusionTask<S, T>  extends BaseTask<T> {
             }
             propagate(traceContext, result);
             return result;
-          }, false);
+          }, true);
       context.after(_task).run(propagationTask);
       context.run(_task);
     }

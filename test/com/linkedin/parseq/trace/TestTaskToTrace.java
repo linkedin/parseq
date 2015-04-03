@@ -331,7 +331,7 @@ public class TestTaskToTrace extends BaseEngineTest
     runAndWait("TestTaskToTrace.testTraceWithEarlyFinish", task);
 
     assertEquals(1, getRelationships(task.getTrace(), task.getId()).size());
-    assertTrue(task.getTrace().getRelationships().contains(new TraceRelationship(task.getId(), innerTask.getId(), Relationship.PARENT_OF)));
+    assertTrue(task.getTrace().getRelationships().contains(new TraceRelationship(task.getId(), innerTask.getId(), Relationship.POTENTIAL_PARENT_OF)));
     assertEquals(ResultType.EARLY_FINISH, task.getTrace().getTraceMap().get(innerTask.getId()).getResultType());
   }
 

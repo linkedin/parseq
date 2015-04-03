@@ -86,12 +86,35 @@ public class TestTaskReuse extends BaseEngineTest
     assertEquals(counter.get(), 1);
     assertEquals(countTasks(merged.getTrace()), 8);
 
-    logTracingResults("plan1", plan1);
-    logTracingResults("plan2", plan2);
-
     assertEquals(countTasks(plan1.getTrace()), 2);
     assertEquals(countTasks(plan2.getTrace()), 2);
   }
 
+  @Test
+  public void testTaskReusedByTwoPlansAndMergedWithFlatMap() {
+    final AtomicInteger counter = new AtomicInteger();
+
+    Task<String> task = Task.callable(() -> {
+      counter.incrementAndGet();
+      return "hello";
+    });
+
+    Task<String> plan1 = task.flatMap("+eatch", s -> Task.callable(() -> s + " on earth!"));
+    Task<String> plan2 = task.flatMap("+moon", s -> Task.callable(() -> s + " on moon!"));
+
+    runAndWait("TestTaskExecution.testTaskReusedByTwoPlansAndMergedWithFlatMap-plan1", plan1);
+    runAndWait("TestTaskExecution.testTaskReusedByTwoPlansAndMergedWithFlatMap-plan2", plan2);
+    Task<Integer> length1 = plan1.map("length", s -> s.length());
+    Task<Integer> length2 = plan2.map("length", s -> s.length());
+
+    Task<Integer> merged = Task.par(length1, length2).map((a, b) -> a + b);
+    runAndWait("TestTaskExecution.testTaskReusedByTwoPlansAndMergedWithFlatMap-merged", merged);
+
+    assertEquals(counter.get(), 1);
+    assertEquals(countTasks(merged.getTrace()), 9);
+
+    assertEquals(countTasks(plan1.getTrace()), 4);
+    assertEquals(countTasks(plan2.getTrace()), 4);
+  }
 
 }

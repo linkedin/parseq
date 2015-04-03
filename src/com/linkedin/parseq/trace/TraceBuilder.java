@@ -83,47 +83,14 @@ public class TraceBuilder {
     return _relationships.contains(relationship);
   }
 
-  private void findPotentialParents(final Map<Long, Set<Long>> potentialParents) {
-    for (TraceRelationship rel: _relationships) {
-      switch(rel.getRelationhsip())
-      {
-        case SUCCESSOR_OF:
-          break;
-        case POSSIBLE_SUCCESSOR_OF:
-          break;
-        case CHILD_OF:
-          potentialParents.putIfAbsent(rel.getFrom(), new HashSet<>());
-          potentialParents.get(rel.getFrom()).add(rel.getTo());
-          break;
-        case POTENTIAL_CHILD_OF:
-          potentialParents.putIfAbsent(rel.getFrom(), new HashSet<>());
-          potentialParents.get(rel.getFrom()).add(rel.getTo());
-          break;
-        case POTENTIAL_PARENT_OF:
-          potentialParents.putIfAbsent(rel.getTo(), new HashSet<>());
-          potentialParents.get(rel.getTo()).add(rel.getFrom());
-          break;
-        case PARENT_OF:
-          potentialParents.putIfAbsent(rel.getTo(), new HashSet<>());
-          potentialParents.get(rel.getTo()).add(rel.getFrom());
-          break;
-        default:
-          throw new IllegalStateException("Unknown relationship type: " + rel);
-      }
-    }
-  }
-
   public synchronized Trace build() {
 
     final Map<Long, ShallowTrace> traceMap = new HashMap<>();
     final Set<TraceRelationship> relationships = new HashSet<>();
 
-    final Map<Long, Set<Long>> potentialParents = new HashMap<>();
-
     for (Entry<Long, RefCounted<ShallowTraceBuilder>> entry: _traceBuilders.entrySet()) {
       traceMap.put(entry.getKey(), entry.getValue()._value.build());
     }
-    findPotentialParents(potentialParents);
 
     for (TraceRelationship rel: _relationships) {
 
@@ -149,12 +116,7 @@ public class TraceBuilder {
           break;
         case POTENTIAL_PARENT_OF:
           if (!relationships.contains(new TraceRelationship(rel.getFrom(), rel.getTo(), Relationship.PARENT_OF))) {
-            if (potentialParents.get(rel.getTo()).size() > 1) {
-              relationships.add(rel);
-            } else {
-              relationships.remove(new TraceRelationship(rel.getFrom(), rel.getTo(), Relationship.POTENTIAL_PARENT_OF));
-              relationships.add(new TraceRelationship(rel.getFrom(), rel.getTo(), Relationship.PARENT_OF));
-            }
+            relationships.add(rel);
           }
           break;
         case PARENT_OF:
