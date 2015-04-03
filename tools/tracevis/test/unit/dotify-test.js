@@ -68,7 +68,7 @@ describe('dotify', function() {
       assert.propertyVal(d.node('cluster_parent'), 'label', 'parent task (@0.000, 250.000, +500.000)');
       assert.propertyVal(d.node('cluster_parent'), 'labeljust', 'l');
       assert.propertyVal(d.node('cluster_parent'), 'style', 'dashed');
-      assert.propertyVal(d.node('cluster_parent'), 'color', '#aaaaaa');
+      assert.propertyVal(d.node('cluster_parent'), 'color', '#cccccc');
     });
 
     it('styles source nodes', function() {
@@ -100,7 +100,7 @@ describe('dotify', function() {
         SUCCESS: '#e0ffe0',
         ERROR: '#ffe0e0',
         EARLY_FINISH: '#fffacd',
-        ALL_OTHERS: '#aaaaaa'
+        ALL_OTHERS: '#cccccc'
       };
 
       Object.keys(COLOR_MAP).forEach(function(type) {

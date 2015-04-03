@@ -18,7 +18,7 @@ var progressColorsMap = {
   '#e0ffe0': '#60D060',
   '#ffe0e0': '#FF6F6F',
   '#fffacd': '#FFFD76',
-  '#aaaaaa': '#cccccc'
+  '#cccccc': '#aaaaaa'
 }
 
 var dot = require('graphlib-dot'),
@@ -179,7 +179,7 @@ function render(root, graph) {
               .attr('id', 'pb-rect-' + id)
               .attr("x", bbox.x)
               .attr("y", bbox.y)
-              .attr("width", bbox.width)
+              .attr("width", (d3.rgb(ellipse.style('fill')).toString() == '#cccccc') ? bbox.width / 2 : bbox.width)
               .attr("height", bbox.height);
             var cloned = ellipse.node().cloneNode();
             this.insertBefore(cloned, ellipse.node().nextSibling);
@@ -198,7 +198,7 @@ function render(root, graph) {
               .attr('id', 'pb-rect-' + id)
               .attr("x", bbox.x)
               .attr("y", bbox.y)
-              .attr("width", bbox.width)
+              .attr("width", (d3.rgb(path.style('fill')).toString() == '#cccccc') ? bbox.width / 2 : bbox.width)
               .attr("height", bbox.height);
             var cloned = path.node().cloneNode();
             this.insertBefore(cloned, path.node().nextSibling);

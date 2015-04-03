@@ -76,7 +76,7 @@ function rewriteNodes(g, parents) {
         label: value.name + ' (' + start + ', ' + run + ', ' + total + ')',
         labeljust: 'l',
         style:     'dashed',
-        color:     '#aaaaaa',
+        color:     '#cccccc',
         fillcolor: fillcolor(value.resultType),
         resultType: value.resultType
       });
@@ -336,7 +336,7 @@ function fillcolor(resultType) {
     case 'SUCCESS':      return '#e0ffe0';
     case 'ERROR':        return '#ffe0e0';
     case 'EARLY_FINISH': return '#fffacd';
-    default:             return '#aaaaaa';
+    default:             return '#cccccc';
   }
 }
 
