@@ -23,6 +23,26 @@ module.exports = render;
 function render(root, graph) {
   root.classed('graphvizview', true);
 
+  var minStartMs = Math.min.apply(Math,
+                                graph.nodes().map(function(u) {
+                                  return graph.node(u).startNanos;
+                                })) / (1000 * 1000);
+                                
+  var maxEndMs = Math.max.apply(Math,
+                                graph.nodes().map(function(u) {
+                                  return graph.node(u).endNanos;
+                                })) / (1000 * 1000);
+
+  var timings = [];
+  
+  graph.nodes().map(function(u) {
+    var node = graph.node(u);
+    timings[u] = {
+      start: (graph.node(u).startNanos  / (1000 * 1000)) - minStartMs,
+      end: Math.max((graph.node(u).endNanos / (1000 * 1000)) - minStartMs, (graph.node(u).startNanos  / (1000 * 1000)) - minStartMs + 1)
+    };
+  });
+
   var graph = dotify(graph);
   var dotFormat = dot.write(graph);
   var hash = sha1(dotFormat);
@@ -37,11 +57,13 @@ function render(root, graph) {
         .attr('id', 'graphviz-img')
         .attr('class', 'inject-me')
         .attr('data-src', 'cache/' + hash + '.svg');
+        
       var mySVGsToInject = document.querySelectorAll('img.inject-me');
-      var injectorOptions = {
-         evalScripts: 'once',
-         each: function (svg) {
-          if (svg) {
+      
+      SVGInjector(mySVGsToInject, {
+        evalScripts: 'once',
+        each: function (svg) {
+
             var svgWidth = parseInt(svg.getAttribute('width'), 10);
             var svgHeight = parseInt(svg.getAttribute('height'), 10);
             var divWidth = document.getElementById('resultView').clientWidth;
@@ -74,6 +96,7 @@ function render(root, graph) {
               customPan.y = Math.max(topLimit, Math.min(bottomLimit, newPan.y))
               return customPan
             }
+
             var panZoom = window.panZoom = svgPanZoom(svg, {
               zoomEnabled: true,
               controlIconsEnabled: true,
@@ -82,6 +105,7 @@ function render(root, graph) {
               center: true,
               beforePan: beforePan
             });
+            
             window.onresize = function() {
               document.getElementById('graphviz-img')
                 .setAttribute('style', 'width: ' + document.getElementById('resultView').clientWidth +
@@ -94,17 +118,98 @@ function render(root, graph) {
               panZoom.fit();
               panZoom.center();
             };
-          }
+            
         }
-      };
-      SVGInjector(mySVGsToInject, injectorOptions);
+      }, function() {
+
       root.append('div')
-        .attr('class', 'navbar navbar-fixed-bottom')
+        .attr('id', 'graphviz-footer')
+        .attr('class', 'navbar navbar-fixed-bottom row-fluid')
+        .append('div')
+        .attr('id', 'graphviz-footer-left')
+        .attr('class', 'span3')
         .append('small')
         .attr('style', 'margin: 0px; padding: 0px;')
         .append('a')
+        .attr('style', 'padding-left: 10px;')
         .attr("href", "https://github.com/linkedin/parseq/wiki/Tracing#graphviz-view")
         .text('Understanding this diagram');
+
+      var svg = root.select('#graphviz-img').node();
+            
+      var defs = d3.select('.graph').append('defs');
+            
+      root.selectAll('.node').each(function(d, i) {
+        var _this = d3.select(this);
+        var title = _this.select('title').text();
+        if (!title.startsWith('source_')) {
+          if (title.startsWith('sink_')) {
+            //sinks of clusters
+            var id = title.substring(5);
+            var ellipse = _this.select('ellipse');
+            var bbox = ellipse.node().getBBox();
+            var rect = defs.append('mask')
+              .attr('id', 'pb-' + id)
+              .append('rect')
+              .attr('class', 'pb-rect')
+              .attr('id', 'pb-rect-' + id)
+              .attr("x", bbox.x)
+              .attr("y", bbox.y)
+              .attr("width", bbox.width)
+              .attr("height", bbox.height)
+              .style("fill", d3.rgb(ellipse.style('fill')).darker(2));
+            ellipse.attr('mask', 'url(#pb-' + id + ')');
+          } else {
+            //normal nodes
+            var id = title;
+            var path = _this.select('path');
+            var bbox = path.node().getBBox();
+            var rect = defs.append('mask')
+              .attr('id', 'pb-' + id)
+              .append('rect')
+              .attr('class', 'pb-rect')
+              .attr('id', 'pb-rect-' + id)
+              .attr("x", bbox.x)
+              .attr("y", bbox.y)
+              .attr("width", bbox.width)
+              .attr("height", bbox.height)
+              .attr("opacity", 1)
+              .style("fill", d3.rgb(path.style('fill')).darker(2));
+            path.attr('mask', 'url(#pb-' + id + ')');
+          }
+        }
+      });
+        
+      var slider = d3.slider().min(0).max(maxEndMs - minStartMs).axis(d3.svg.axis().orient("top").ticks(10))
+/*        .on("slide", function(evt, value) {
+            d3.selectAll('.pb-rect').each(function(d, i) {
+              var _this = d3.select(this);
+              var id = this.getAttribute('id').substring(8);
+              var timing = timings[id];
+              var percentComplete = (value - timing.start) / (timing.end - timing.start);
+              if (percentComplete < 0) {
+                percentComplete = 0;
+              }
+              if (percentComplete > 1) {
+                percentComplete = 1;
+              }
+              var scale = 1 - percentComplete;
+              _this.attr('transform', 'scale(' + scale + ', 1) translate(' + _this.node().getAttribute('x') + ')');
+            })
+         })
+*/
+      root.select('#graphviz-footer')
+        .append('div')
+        .attr('id', 'graphviz-footer-right')
+        .attr('class', 'span6')
+        .attr('style', 'padding-bottom: 20px;')
+        .append('div')
+        .attr('id', 'graphviz-slider')
+        .call(slider);
+        
+      
+      });
+        
     } else {
       var textarea = root.append('textarea')
         .style('width', '100%')

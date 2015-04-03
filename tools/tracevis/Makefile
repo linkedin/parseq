@@ -48,7 +48,7 @@ build/tracevis: bootstrap css img trace.html | build/tracevis/js
 	sed -e "s|node_modules/d3/d3.js|js/d3.min.js|" -e "s|node_modules/svg-injector/svg-injector.js|js/svg-injector.min.js|" -e "s|node_modules/svg-pan-zoom/dist/svg-pan-zoom.js|js/svg-pan-zoom.min.js|" -e "s|build/$(MODULE_JS)|js/$(MODULE_MIN_JS)|" trace.html > build/tracevis/trace.html
 	@echo
 
-build/tracevis/js: build/$(MODULE_JS) build/$(MODULE_MIN_JS) node_modules/d3/d3.min.js node_modules/svg-injector/dist/svg-injector.min.js node_modules/svg-injector/dist/svg-injector.map.js node_modules/svg-pan-zoom/dist/svg-pan-zoom.min.js
+build/tracevis/js: build/$(MODULE_JS) build/$(MODULE_MIN_JS) node_modules/d3/d3.min.js js/d3.slider.js node_modules/svg-injector/dist/svg-injector.min.js node_modules/svg-injector/dist/svg-injector.map.js node_modules/svg-pan-zoom/dist/svg-pan-zoom.min.js
 	rm -rf $@
 	mkdir -p $@
 	cp $^ $@
