@@ -6,7 +6,7 @@ import java.util.concurrent.TimeoutException;
 
 public class Exceptions {
 
-  public static final Exception EARLY_FINISH_EXCEPTION = sanitize(new EarlyFinishException("Task cancelled because parent was already finished"));
+  public static final Exception EARLY_FINISH_EXCEPTION = sanitize(new EarlyFinishException("Task execution cancelled because it's promise was already completed"));
   public static final Exception TIMEOUT_EXCEPTION = sanitize(new TimeoutException());
   public static final Exception NO_SUCH_ELEMENT_EXCEPTION = sanitize(new NoSuchElementException());
 

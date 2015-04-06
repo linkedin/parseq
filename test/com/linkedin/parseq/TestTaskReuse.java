@@ -16,6 +16,7 @@
 
 package com.linkedin.parseq;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.testng.Assert.*;
@@ -42,7 +43,7 @@ public class TestTaskReuse extends BaseEngineTest
 
     assertEquals(counter.get(), 1);
   }
-  
+
   /**
    * In this case the "increaser" task is not being executed because
    * the "bob" task has already been resolved and test1 task is
@@ -54,38 +55,104 @@ public class TestTaskReuse extends BaseEngineTest
 
     final Task<String> bob = Task.value("bob", "bob");
     runAndWait("TestTaskReuse.testLastTaskResolved-bob", bob);
-    
+
     Task<String> task = Task.callable("increaser", () -> {
       counter.incrementAndGet();
       return "hello";
     });
-    
+
     Task<String> test1 = task.andThen(bob);
-    
+
     runAndWait("TestTaskReuse.testLastTaskResolved", test1);
 
     assertEquals(counter.get(), 0);
   }
-  
+
   @Test
   public void testLastTaskAlreadyResolvedShareable() {
     final AtomicInteger counter = new AtomicInteger();
 
     final Task<String> bob = Task.value("bob", "bob");
     runAndWait("TestTaskReuse.testLastTaskAlreadyResolvedShareable-bob", bob);
-    
+
     Task<String> task = Task.callable("increaser", () -> {
       counter.incrementAndGet();
       return "hello";
     });
-    
+
     Task<String> test1 = task.andThen(bob.shareable());
-    
+
     runAndWait("TestTaskReuse.testLastTaskAlreadyResolvedShareable", test1);
 
     assertEquals(counter.get(), 1);
   }
-  
+
+  @Test
+  public void testShareableWithPar() {
+    final AtomicInteger counter = new AtomicInteger();
+
+    Task<String> task = Task.callable("increaser", () -> {
+      counter.incrementAndGet();
+      return "hello";
+    });
+
+    Task<String> test =
+        Task.par(task.shareable().map(x -> x + "1"), task.shareable().map(x -> x + "2")).map((a, b) -> a + b);
+
+    runAndWait("TestTaskReuse.testShareableWithPar", test);
+
+    assertEquals(counter.get(), 1);
+    assertEquals(test.get(), "hello1hello2");
+  }
+
+  @Test
+  public void testCancellationPar() {
+
+    Task<String> task = delayedValue("hello",50, TimeUnit.MILLISECONDS);
+
+    Task<String> test1 =
+        Task.par(task.map(x -> x + "1"), Task.failure(new RuntimeException("ups"))).map((a, b) -> a + b);
+
+    try {
+      runAndWait("TestTaskReuse.testCancellationPar-test1", test1);
+      fail("should have failed!");
+    } catch (Exception ex) {
+      assertTrue(test1.isFailed());
+    }
+
+    Task<String> test2 =
+        Task.par(task.map("1", x -> x + "1"), task.map("2", x -> x + "2")).map((a, b) -> a + b);
+
+    try {
+      runAndWait("TestTaskReuse.testCancellationPar-test2", test2);
+      fail("should have failed!");
+    } catch (Exception ex) {
+      assertTrue(test2.isFailed());
+    }
+  }
+
+  @Test
+  public void testShareableCancellationPar() {
+
+    Task<String> task = delayedValue("hello",50, TimeUnit.MILLISECONDS);
+
+    Task<String> test1 =
+        Task.par(task.shareable().map(x -> x + "1"), Task.failure(new RuntimeException("ups"))).map((a, b) -> a + b);
+
+    try {
+      runAndWait("TestTaskReuse.testCancellationPar-test1", test1);
+      fail("should have failed!");
+    } catch (Exception ex) {
+      assertTrue(test1.isFailed());
+    }
+
+    Task<String> test2 =
+        Task.par(task.shareable().map("1", x -> x + "1"), task.shareable().map("2", x -> x + "2")).map((a, b) -> a + b);
+
+    runAndWait("TestTaskReuse.testCancellationPar-test2", test2);
+    assertEquals(test2.get(), "hello1hello2");
+  }
+
   @Test
   public void testTaskReusedByTwoPlans() {
     final AtomicInteger counter = new AtomicInteger();
@@ -142,7 +209,7 @@ public class TestTaskReuse extends BaseEngineTest
       return "hello";
     });
 
-    Task<String> plan1 = task.flatMap("+eatch", s -> Task.callable(() -> s + " on earth!"));
+    Task<String> plan1 = task.flatMap("+earch", s -> Task.callable(() -> s + " on earth!"));
     Task<String> plan2 = task.flatMap("+moon", s -> Task.callable(() -> s + " on moon!"));
 
     runAndWait("TestTaskReuse.testTaskReusedByTwoPlansAndMergedWithFlatMap-plan1", plan1);
@@ -159,5 +226,7 @@ public class TestTaskReuse extends BaseEngineTest
     assertEquals(countTasks(plan1.getTrace()), 4);
     assertEquals(countTasks(plan2.getTrace()), 4);
   }
+
+
 
 }
