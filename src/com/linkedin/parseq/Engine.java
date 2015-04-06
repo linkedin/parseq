@@ -48,6 +48,7 @@ public class Engine
   private static final Logger LOG = LoggerFactory.getLogger(LOGGER_BASE);
 
   public static final String MAX_RELATIONSHIPS_PER_TRACE = "_MaxRelationshipsPerTrace_";
+  private static final int DEFUALT_MAX_RELATIONSHIPS_PER_TRACE = 4096;
 
   private static final State INIT = new State(StateName.RUN, 0);
   private static final State TERMINATED = new State(StateName.TERMINATED, 0);
@@ -63,7 +64,6 @@ public class Engine
 
   private final Map<String, Object > _properties;
 
-  private static final int DEFUALT_MAX_RELATIONSHIPS_PER_TRACE = 1024;
   private final int _maxRelationshipsPerTrace;
 
   private final PromiseListener<Object> _taskDoneListener = new PromiseListener<Object>()
