@@ -86,7 +86,6 @@ public class ContextImpl implements Context, Cancellable
       @Override
       public void onResolved(Promise<Object> resolvedPromise)
       {
-        //TODO is this iteration safe? can _cancellables be modified at the same time?
         for (Iterator<Cancellable> it = _cancellables.iterator(); it.hasNext(); )
         {
           final Cancellable cancellable = it.next();
@@ -147,6 +146,16 @@ public class ContextImpl implements Context, Cancellable
     }
   }
 
+  @Override
+  public void runSideEffect(final Task<?>... tasks)
+  {
+    checkInTask();
+    for (final Task<?> task : tasks)
+    {
+      runSideEffectSubTask(task, NO_PREDECESSORS);
+    }
+  }
+  
   @Override
   public void runSubTask(Task<?> task, Task<?> rootTask) {
     // check reference equality to make sure model is consistent i.e.

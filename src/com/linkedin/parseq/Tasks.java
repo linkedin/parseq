@@ -48,7 +48,7 @@ import com.linkedin.parseq.collection.ParSeqCollection;
    */
   @Deprecated public static Task<Void> action(final String name, final Runnable runnable)
   {
-    return Task.action(name, runnable);
+    return Task.action(name, runnable::run);
   }
 
   /**

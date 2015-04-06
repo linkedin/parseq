@@ -617,6 +617,15 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     public TaskLogger getTaskLogger() {
       return _context.getTaskLogger();
     }
+
+    @Override
+    public void runSideEffect(Task<?>... tasks) {
+      _context.runSideEffect(tasks);
+      for(Task<?> task : tasks)
+      {
+        getTraceBuilder().addRelationship(Relationship.POTENTIAL_PARENT_OF, getShallowTraceBuilder(), task.getShallowTraceBuilder());
+      }
+    }
   }
 
   @Override

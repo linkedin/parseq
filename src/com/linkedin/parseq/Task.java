@@ -28,6 +28,7 @@ import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.linkedin.parseq.function.Action;
 import com.linkedin.parseq.function.Consumer1;
 import com.linkedin.parseq.function.Failure;
 import com.linkedin.parseq.function.Function1;
@@ -234,8 +235,8 @@ public interface Task<T> extends Promise<T>, Cancellable
    * Creates a new task that will run another task as a side effect once the primary task
    * completes successfully. The properties of side effect task are:
    * <ul>
-   * <li>The side effect task will not be run if the primary task fails or
-   * is canceled.</li>
+   * <li>The side effect task will not be run if the primary task has not run e.g. due to
+   * failure or cancellation.</li>
    * <li>The side effect does not affect returned task. It means that
    * failure of side effect task is not propagated to returned task.</li>
    * <li>The returned task is marked done once this task completes, even if
@@ -252,7 +253,8 @@ public interface Task<T> extends Promise<T>, Cancellable
    *  Task{@code <String>} userName = id.flatMap("fetch", u -> fetch(u))
    *      .withSideEffect("update memcache", u -> updateMemcache(u));
    * </code></pre>
-   * @param desc description of a function, it will show up in a trace
+   * 
+   * @param desc description of a side effect, it will show up in a trace
    * @param func function to be applied on result of successful completion of this task
    * to get side effect task
    * @return a new task that will run side effect task specified by given function upon succesful
@@ -261,7 +263,7 @@ public interface Task<T> extends Promise<T>, Cancellable
   default Task<T> withSideEffect(final String desc, final Function1<? super T, Task<?>> func) {
     ArgumentUtil.requireNotNull(func, "function");
     final Task<T> that = this;
-    return async(desc, context -> {
+    return async("withSideEffect", context -> {
       final Task<?> sideEffectWrapper = async(desc, ctx -> {
         Task<?> sideEffect = func.apply(that.get());
         ctx.run(sideEffect);
@@ -274,13 +276,23 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   /**
-   * Equivalent to {@code withSideEffect("withSideEffect", func)}.
+   * Equivalent to {@code withSideEffect("sideEffect", func)}.
    * @see #withSideEffect(String, Function)
    */
   default Task<T> withSideEffect(final Function1<? super T, Task<?>> func) {
-    return withSideEffect("withSideEffect", func);
+    return withSideEffect("sideEffect", func);
   }
 
+  default Task<T> shareable() {
+    final Task<T> that = this;
+    return async("shareable", context -> {
+      final SettablePromise<T> result = Promises.settable();
+      context.runSideEffect(that);
+      Promises.propagateResult(that, result);
+      return result;
+    }, true);
+  }
+  
   /**
    * Creates a new task which applies a consumer to the result of this task
    * and completes with a result of this task. It is used
@@ -737,7 +749,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * Task{@code <Void>} task = Task.action("greeting", () -> System.out.println("Hello"));
    * </code></pre>
    *
-   * Returned task will fail if {@code Runnable} passed in as a parameter throws
+   * Returned task will fail if {@code Action} passed in as a parameter throws
    * an exception.
    * <pre><code>
    * // this task will fail with java.lang.ArithmeticException
@@ -748,7 +760,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @param action the action that will be executed when the task is run
    * @return the new task that will execute the action
    */
-  public static Task<Void> action(final String desc, final Runnable action)
+  public static Task<Void> action(final String desc, final Action action)
   {
     ArgumentUtil.requireNotNull(action, "action");
     return async(desc, () -> {
@@ -758,12 +770,12 @@ public interface Task<T> extends Promise<T>, Cancellable
   }
 
   /**
-   * Equivalent to {@code action("action", runnable)}.
-   * @see #action(String, Runnable)
+   * Equivalent to {@code action("action", action)}.
+   * @see #action(String, Action)
    */
-  public static Task<Void> action(final Runnable runnable)
+  public static Task<Void> action(final Action action)
   {
-    return action("action", runnable);
+    return action("action", action);
   }
 
   /**

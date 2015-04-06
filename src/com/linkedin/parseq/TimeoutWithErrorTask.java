@@ -16,14 +16,15 @@
 
 package com.linkedin.parseq;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import com.linkedin.parseq.function.Action;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
-
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * A {@link Task} that will attempt to run the given task within the given
@@ -58,7 +59,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
     final SettablePromise<T> result = Promises.settable();
     final AtomicBoolean committed = new AtomicBoolean();
 
-    final Task<?> timeoutTask = Task.action("timeoutTimer", new Runnable()
+    final Task<?> timeoutTask = Task.action("timeoutTimer", new Action()
     {
       @Override
       public void run()

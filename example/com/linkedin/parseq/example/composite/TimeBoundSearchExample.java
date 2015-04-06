@@ -30,6 +30,7 @@ import com.linkedin.parseq.Task;
 import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.example.common.MockService;
 import com.linkedin.parseq.example.common.SimpleMockRequest;
+import com.linkedin.parseq.function.Action;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
@@ -135,7 +136,7 @@ public class TimeBoundSearchExample extends AbstractExample
 
     private Task<?> checkDone()
     {
-      return Task.action("checkDone", new Runnable()
+      return Task.action("checkDone", new Action()
       {
         @Override
         public void run()
@@ -151,7 +152,7 @@ public class TimeBoundSearchExample extends AbstractExample
 
     private Task<?> addResponse(final Promise<Integer> response)
     {
-      return Task.action("addResponse", new Runnable()
+      return Task.action("addResponse", new Action()
       {
         @Override
         public void run()

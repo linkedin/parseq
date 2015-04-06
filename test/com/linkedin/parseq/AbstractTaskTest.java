@@ -207,20 +207,21 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
   }
 
   @Test
-  public void testWithSideEffectCalcel() throws Exception {
-    Task<String> cancelMain = delayedValue("canceled", 6000, TimeUnit.MILLISECONDS);
+  public void testWithSideEffectCancel() throws Exception {
+    Task<String> cancelMain = delayedValue("value", 6000, TimeUnit.MILLISECONDS);
     Task<String> fastSideEffect = getSuccessTask();
     Task<String> cancel = cancelMain.withSideEffect(s -> fastSideEffect);
 
     // test cancel, side effect task should not be run
     // add 10 ms delay so that we can reliably cancel it before it's run by the engine
-    run(delayedValue(0, 10, TimeUnit.MILLISECONDS).andThen(cancel));
+    Task<String> mainTaks = delayedValue("value", 10, TimeUnit.MILLISECONDS).andThen(cancel);
+    run(mainTaks);
     assertTrue(cancelMain.cancel(new Exception("canceled")));
     cancel.await();
     fastSideEffect.await(10, TimeUnit.MILLISECONDS);
     assertTrue(cancel.isDone());
     assertFalse(fastSideEffect.isDone());
-    logTracingResults("AbstractTaskTest.testWithSideEffectCalcel", cancel);
+    logTracingResults("AbstractTaskTest.testWithSideEffectCancel", mainTaks);
   }
 
   public void testWithSideEffectFailure(int expectedNumberOfTasks) throws Exception {

@@ -51,6 +51,7 @@ public class BaseEngineTest
   private Engine _engine;
   private ListLoggerFactory _loggerFactory;
 
+  @SuppressWarnings("deprecation")
   @BeforeMethod
   public void setUp() throws Exception
   {
@@ -169,7 +170,7 @@ public class BaseEngineTest
    */
   protected <T> Task<T> delayedValue(T value, long time, TimeUnit timeUnit)
   {
-    return Task.async("delayed " + time + " " + TimeUnitHelper.toString(timeUnit), () -> {
+    return Task.async(value.toString() + " delayed " + time + " " + TimeUnitHelper.toString(timeUnit), () -> {
       final SettablePromise<T> promise = Promises.settable();
       _scheduler.schedule(() -> promise.done(value), time, timeUnit);
       return promise;
@@ -180,9 +181,9 @@ public class BaseEngineTest
    * Returns task which fails with given error after specified period
    * of time. Timer starts counting the moment this method is invoked.
    */
-  protected <T> Task<T> delayedFailure(T value, Throwable error, long time, TimeUnit timeUnit)
+  protected <T> Task<T> delayedFailure(Throwable error, long time, TimeUnit timeUnit)
   {
-    return Task.async("delayedFailure", () -> {
+    return Task.async(error.toString() + " delayed " + time + " " + TimeUnitHelper.toString(timeUnit), () -> {
       final SettablePromise<T> promise = Promises.settable();
       _scheduler.schedule(() -> promise.fail(error), time, timeUnit);
       return promise;

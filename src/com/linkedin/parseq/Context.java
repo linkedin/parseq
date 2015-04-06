@@ -53,6 +53,8 @@ public interface Context
    * @param tasks the tasks to run
    */
   void run(Task<?>... tasks);
+  
+  void runSideEffect(Task<?>... tasks);
 
   /**
    * TODO

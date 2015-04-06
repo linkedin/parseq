@@ -30,6 +30,7 @@ import com.linkedin.parseq.example.composite.classifier.client.Client;
 import com.linkedin.parseq.example.composite.classifier.client.Request;
 import com.linkedin.parseq.example.composite.classifier.client.impl.GetNetworkRequest;
 import com.linkedin.parseq.example.composite.classifier.client.impl.TruthMapRequest;
+import com.linkedin.parseq.function.Action;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
@@ -111,7 +112,7 @@ public class ClassifierPlanFactory
 
     private Task<?> classifyTask(final Classifier classifier)
     {
-      return Task.action(classifier.getClass().getSimpleName(), new Runnable()
+      return Task.action(classifier.getClass().getSimpleName(), new Action()
       {
         @Override
         public void run()
@@ -137,7 +138,7 @@ public class ClassifierPlanFactory
                                          final Classification classification,
                                          final Promise<Map<Long, Boolean>> result)
     {
-      return Task.action(name + "Classifier", new Runnable()
+      return Task.action(name + "Classifier", new Action()
       {
         @Override
         public void run()
@@ -161,7 +162,7 @@ public class ClassifierPlanFactory
 
     private Task<?> connectedClassifyTask(final Task<Network> network)
     {
-      return Task.action("ConnectedClassifier", new Runnable()
+      return Task.action("ConnectedClassifier", new Action()
       {
         @Override
         public void run()
@@ -173,7 +174,7 @@ public class ClassifierPlanFactory
 
     private Task<?> networkClassifyTask(final Task<Network> network)
     {
-      return Task.action("NetworkClassifier", new Runnable()
+      return Task.action("NetworkClassifier", new Action()
       {
         @Override
         public void run()

@@ -485,6 +485,11 @@ public class TestTaskStates
     public TaskLogger getTaskLogger() {
      return new NullTaskLog();
     }
+
+    @Override
+    public void runSideEffect(Task<?>... tasks) {
+      throw new UnsupportedOperationException();
+    }
   }
 
   private static class NullTaskLog extends TaskLogger
