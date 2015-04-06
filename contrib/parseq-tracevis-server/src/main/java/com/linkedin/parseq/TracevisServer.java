@@ -3,10 +3,10 @@ package com.linkedin.parseq;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -42,6 +42,8 @@ public class TracevisServer {
   private final String _dotLocation;
   private final HashManager _hashManager;
   private final Exec _exec;
+  private final ConcurrentHashMap<String, Task<Result>> _inFlightBuildTasks =
+      new ConcurrentHashMap<String, Task<Result>>();
 
   public TracevisServer(final String dotLocation, final int port, final Path baseLocation, final int cacheSize, final long timeoutMs) {
     _dotLocation = dotLocation;
@@ -109,13 +111,7 @@ public class TracevisServer {
               LOG.info("hash found in cache: " + hash);
               response.setStatus(HttpServletResponse.SC_OK);
             } else {
-              try {
-                Files.copy(request.getInputStream(), pathToCacheFile(hash, "dot"), StandardCopyOption.REPLACE_EXISTING);
-                handleGraphBuilding(request, response, hash, engine);
-              } catch (FileAlreadyExistsException e) {
-                LOG.warn("failed writing dot file: ", pathToCacheFile(hash, "dot"));
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-              }
+              handleGraphBuilding(request, response, hash, engine);
             }
           }
         }
@@ -156,30 +152,13 @@ public class TracevisServer {
  private void handleGraphBuilding(final HttpServletRequest request, final HttpServletResponse response,
      final String hash, final Engine engine) throws IOException {
 
-   LOG.info("building: " + hash);
-
    //process request in async mode
    final AsyncContext ctx = request.startAsync();
 
-   // Task that runs a graphviz command.
-   // We give process TIMEOUT_MS time to finish, after that
-   // it will be forcefully killed.
-   final Task<Result> graphviz =
-       _exec.command("graphviz", _timeoutMs, TimeUnit.MILLISECONDS,
-           _dotLocation,
-           "-T" + Constants.OUTPUT_TYPE,
-           "-Grankdir=LR", "-Gnewrank=true",
-           pathToCacheFile(hash, "dot").toString(),
-           "-o", pathToCacheFile(hash, Constants.OUTPUT_TYPE).toString());
-
-   // Since Exec utility allows only certain number of processes
-   // to run in parallel and rest is enqueued, we also specify
-   // timeout on a task level equal to 2 * graphviz timeout.
-   final Task<Result> graphvizWithTimeout =
-       graphviz.withTimeout(_timeoutMs * 2, TimeUnit.MILLISECONDS);
+   final Task<Result> buildTask = getBuildTask(request, hash);
 
    //task that handles result
-   final Task<Result> handleRsult = graphvizWithTimeout
+   final Task<Result> handleRsult = buildTask
        .andThen("response", result -> {
          switch (result.getStatus()) {
            case 0:
@@ -210,11 +189,63 @@ public class TracevisServer {
            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
          }
          ctx.complete();
+         //clean up cache
+         _inFlightBuildTasks.remove(hash, buildTask);
          return result;
        });
 
    //run plan
    engine.run(completeResponse);
  }
+
+ /**
+  * Returns task that builds graph using graphviz. Returned task might
+  * be shared with other concurrent requests.
+  */
+  private Task<Result> getBuildTask(HttpServletRequest request, String hash) {
+    Task<Result> existing = _inFlightBuildTasks.get(hash);
+    if (existing != null) {
+      LOG.info("using in flight shareable: " + hash);
+      return existing.shareable();
+    } else {
+      Task<Result> newBuildTask = createNewBuildTask(request, hash);
+      existing = _inFlightBuildTasks.putIfAbsent(hash, newBuildTask);
+      if (existing != null) {
+        LOG.info("using in flight shareable: " + hash);
+        return existing.shareable();
+      } else {
+        return newBuildTask;
+      }
+    }
+  }
+
+  /**
+   * Returns new task that builds graph using graphviz.
+   */
+  private Task<Result> createNewBuildTask(HttpServletRequest request, String hash) {
+    LOG.info("building: " + hash);
+    final Task<Void> createDotFile = Task.action("createDotFile", () -> {
+      Files.copy(request.getInputStream(), pathToCacheFile(hash, "dot"), StandardCopyOption.REPLACE_EXISTING);
+    });
+
+    // Task that runs a graphviz command.
+    // We give process TIMEOUT_MS time to finish, after that
+    // it will be forcefully killed.
+    final Task<Result> graphviz =
+        _exec.command("graphviz", _timeoutMs, TimeUnit.MILLISECONDS,
+            _dotLocation,
+            "-T" + Constants.OUTPUT_TYPE,
+            "-Grankdir=LR", "-Gnewrank=true",
+            pathToCacheFile(hash, "dot").toString(),
+            "-o", pathToCacheFile(hash, Constants.OUTPUT_TYPE).toString());
+
+    // Since Exec utility allows only certain number of processes
+    // to run in parallel and rest is enqueued, we also specify
+    // timeout on a task level equal to 2 * graphviz timeout.
+    final Task<Result> graphvizWithTimeout =
+        graphviz.withTimeout(_timeoutMs * 2, TimeUnit.MILLISECONDS);
+
+    return createDotFile.andThen(graphvizWithTimeout);
+  }
 
 }

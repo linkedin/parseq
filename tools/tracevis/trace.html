@@ -54,8 +54,8 @@ textarea.error {
         <div class="span2">
           <ul class="nav nav-list">
             <li class="nav-header">Views</li>
-            <li id="viewWaterfall"><a onclick="setView('waterfall'); refreshView();">Waterfall</a></li>
             <li id="viewGraphviz"><a onclick="setView('graphviz'); refreshView();">Graphviz</a></li>
+            <li id="viewWaterfall"><a onclick="setView('waterfall'); refreshView();">Waterfall</a></li>
             <li id="viewTable"><a onclick="setView('table'); refreshView();">Table</a></li>
           </ul>
         </div>
@@ -98,7 +98,7 @@ textarea.error {
 var inputJSON = d3.select("#jsonText");
 
 var currentView;
-setView("waterfall");
+setView("graphviz");
 
 /* If the URL contains a trace, inject it into the input textarea */
 var traceRE = /(?:\?|&)trace=([^\&]+)/;
@@ -119,8 +119,8 @@ function setView(view) {
 
 function selectView(view) {
   switch (view) {
-    case "waterfall": return d3.select("#viewWaterfall");
     case "graphviz": return d3.select("#viewGraphviz");
+    case "waterfall": return d3.select("#viewWaterfall");
     case "table": return d3.select("#viewTable");
   }
 }
