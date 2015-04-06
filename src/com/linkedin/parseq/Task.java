@@ -46,6 +46,8 @@ import com.linkedin.parseq.trace.Trace;
 import com.linkedin.parseq.trace.TraceBuilder;
 
 /**
+ * TODO add extensive documentations
+ * 
  * A task represents a deferred execution that also contains its resulting
  * value. In addition, tasks include tracing information that can be
  * used with various trace printers.
@@ -742,14 +744,14 @@ public interface Task<T> extends Promise<T>, Cancellable
    * Task{@code <Void>} task = Task.action("division", () -> System.out.println(2 / 0));
    * </code></pre>
    * <p>
-   * @param name a name that describes the action
+   * @param desc a description the action, it will show up in a trace
    * @param action the action that will be executed when the task is run
    * @return the new task that will execute the action
    */
-  public static Task<Void> action(final String name, final Runnable action)
+  public static Task<Void> action(final String desc, final Runnable action)
   {
     ArgumentUtil.requireNotNull(action, "action");
-    return async(name, () -> {
+    return async(desc, () -> {
       action.run();
       return Promises.VOID;
     }, false);
@@ -764,20 +766,46 @@ public interface Task<T> extends Promise<T>, Cancellable
     return action("action", runnable);
   }
 
-  public static <T> Task<T> value(final String name, final T value) {
-    return callable(name, () -> value);
+  /**
+   * Creates a new task that will be resolved with given value when it is
+   * executed. Note that this task is not initially completed. 
+   * 
+   * @param name a description of the value, it will show up in a trace
+   * @param value a value the task will be resolved with
+   * @return new task that will be resolved with given value when it is
+   * executed
+   */
+  public static <T> Task<T> value(final String desc, final T value) {
+    return callable(desc, () -> value);
   }
 
+  /**
+   * Equivalent to {@code value("value", value)}.
+   * @see #value(String, Object)
+   */
   public static <T> Task<T> value(final T value) {
-    return callable("value", () -> value);
+    return value("value", value);
   }
 
-  public static <T> Task<T> failure(final String name, final Throwable failure) {
-    return FusionTask.create(name, Promises.value(null), (src, dst) -> {
+  /**
+   * Creates a new task that will be fail with given exception when it is
+   * executed. Note that this task is not initially completed. 
+   * 
+   * @param desc a description of the failure, it will show up in a trace
+   * @param failure a failure the task will fail with
+   * @return new task that will fail with given failure when it is
+   * executed
+   */
+  public static <T> Task<T> failure(final String desc, final Throwable failure) {
+    return FusionTask.create(desc, Promises.value(null), (src, dst) -> {
       dst.fail(failure);
     });
   }
 
+  /**
+   * Equivalent to {@code failure("failure", failure)}.
+   * @see #failure(String, Throwable)
+   */
   public static <T> Task<T> failure(final Throwable failure) {
     return failure("failure", failure);
   }
