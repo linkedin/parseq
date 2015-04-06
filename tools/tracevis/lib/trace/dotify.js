@@ -61,6 +61,7 @@ function extractPotentialParents(graph) {
 function rewriteNodes(g, parents) {
   g.eachNode(function(u, value) { if (value === undefined) { g.node(u, {}); } });
   
+  //limit displayed name of nodes to 64 characters to avoid exploding graph size
   g.eachNode(function(u, value) { if (value.name && value.name.length > 64) { value.name = value.name.substring(0, 61) + "..." } });
 
   var minStartNanos = Math.min.apply(Math, g.nodes().map(function(u) { return g.node(u).startNanos; }));
