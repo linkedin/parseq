@@ -19,6 +19,9 @@ package com.linkedin.parseq.trace;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.testng.annotations.Test;
 
 import com.linkedin.parseq.internal.IdGenerator;
@@ -65,4 +68,38 @@ public class TestTraceBuilder
     assertEquals(1, trace.getRelationships().size());
     assertTrue(trace.getRelationships().contains(new TraceRelationship(trace1.getId(), trace2.getId(), Relationship.SUCCESSOR_OF)));
   }
+
+  @Test
+  public void testRelationshipRetention()
+  {
+    final TraceBuilder builder = new TraceBuilder(4096);
+    for (int i = 0; i < 4096*10; i++) {
+      final ShallowTraceBuilder trace1 = new ShallowTraceBuilder(IdGenerator.getNextId())
+          .setName("task1")
+          .setResultType(ResultType.UNFINISHED);
+          final ShallowTraceBuilder trace2 = new ShallowTraceBuilder(IdGenerator.getNextId())
+          .setName("task2")
+          .setResultType(ResultType.UNFINISHED);
+          builder.addRelationship(Relationship.SUCCESSOR_OF, trace1, trace2);
+    }
+
+    List<TraceRelationship> rels = new ArrayList<TraceRelationship>();
+    for (int i = 0; i < 4096; i++) {
+      final ShallowTraceBuilder trace1 = new ShallowTraceBuilder(IdGenerator.getNextId())
+          .setName("task1")
+          .setResultType(ResultType.UNFINISHED);
+          final ShallowTraceBuilder trace2 = new ShallowTraceBuilder(IdGenerator.getNextId())
+          .setName("task2")
+          .setResultType(ResultType.UNFINISHED);
+          builder.addRelationship(Relationship.SUCCESSOR_OF, trace1, trace2);
+          rels.add(new TraceRelationship(trace1.getId(), trace2.getId(), Relationship.SUCCESSOR_OF));
+    }
+
+    Trace trace = builder.build();
+    assertEquals(rels.size(), trace.getRelationships().size());
+    for (TraceRelationship rel: rels) {
+      assertTrue(trace.getRelationships().contains(rel));
+    }
+  }
+
 }
