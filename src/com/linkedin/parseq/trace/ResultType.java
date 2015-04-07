@@ -16,7 +16,6 @@
 
 package com.linkedin.parseq.trace;
 
-import com.linkedin.parseq.EarlyFinishException;
 import com.linkedin.parseq.Exceptions;
 import com.linkedin.parseq.Task;
 
