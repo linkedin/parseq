@@ -131,4 +131,10 @@
       </plugin>
     </plugins>
   </build>
+  <scm>
+  	<connection>scm:git:git://github.com/linkedin/parseq.git</connection>
+  	<url>https://github.com/linkedin/parseq</url>
+  </scm>
+  <url>https://github.com/linkedin/parseq</url>
+  <name>parseq-tracevis-server</name>
 </project>

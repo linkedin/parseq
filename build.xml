@@ -2,7 +2,6 @@
 <project xmlns:ivy="antlib:org.apache.ivy.ant" name="parseq" default="build" basedir=".">
     <description>ParSeq Project</description>
 
-    <property name="example.dir" value="${basedir}/example" />
     <property name="src.dir" value="${basedir}/src" />
 	<property name="src.fmpp.dir" location="${basedir}/fmpp/templates" />
 	<property name="src.fmpp.data" location="${basedir}/fmpp/data" />
@@ -11,7 +10,6 @@
     <property name="tools.dir" value="${basedir}/tools" />
     <property name="contrib.dir" value="${basedir}/contrib" />
     <property name="build.dir" value="${basedir}/build" />
-    <property name="example.build.dir" value="${build.dir}/example" />
     <property name="src.build.dir" value="${build.dir}/src" />
     <property name="lib.build.dir" value="${build.dir}/lib" />
     <property name="test.build.dir" value="${build.dir}/test" />
@@ -91,7 +89,6 @@
     </target>
 
     <target name="prepare" depends="bootstrap, version-props">
-        <mkdir dir="${example.build.dir}" />
         <mkdir dir="${src.build.dir}" />
         <mkdir dir="${lib.build.dir}" />
         <mkdir dir="${test.build.dir}" />
@@ -113,14 +110,9 @@
             data="tdd(../data/fmpp.tdd)"/>
     </target>
 
-    <target name="build-src" depends="prepare, generate-src" description="Builds src and example files.">
+    <target name="build-src" depends="prepare, generate-src" description="Builds src.">
         <javac includeantruntime="false" destdir="${src.build.dir}" source="${javac.source}" target="${javac.target}" debug="${debug}">
             <src path="${src.dir}"/>
-            <classpath refid="build.classpath"/>
-            <compilerarg value="-Xlint"/>
-        </javac>
-        <javac includeantruntime="false" destdir="${example.build.dir}" source="${javac.source}" target="${javac.target}" debug="${debug}">
-            <src path="${example.dir}"/>
             <classpath refid="build.classpath"/>
             <compilerarg value="-Xlint"/>
         </javac>

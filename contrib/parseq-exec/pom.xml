@@ -44,4 +44,10 @@
         </plugins>
     </build>
 
+    <name>parseq-exec</name>
+    <url>https://github.com/linkedin/parseq</url>
+    <scm>
+    	<url>https://github.com/linkedin/parseq</url>
+    	<connection>scm:git:git://github.com/linkedin/parseq.git</connection>
+    </scm>
 </project>
