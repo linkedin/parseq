@@ -106,6 +106,7 @@ public class TestTaskLogging extends BaseEngineTest {
     }
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testCompositeTaskWithAllLoggerTrace() throws InterruptedException {
     final Task<?> child1 = Task.value("t1", "value");
@@ -121,6 +122,7 @@ public class TestTaskLogging extends BaseEngineTest {
     assertTaskLogged(child2, "null", ALL_LOGGER, ListLogger.LEVEL_TRACE);
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testCompositeTaskWithRootLoggerTrace() throws InterruptedException {
     final Task<?> child1 = Task.value("t1", "value");
@@ -136,6 +138,7 @@ public class TestTaskLogging extends BaseEngineTest {
     assertEquals("Should only log start and stop for the root trace: " + entries, 2, entries.size());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testCompositeTaskWithPlanClassLoggerTrace() throws InterruptedException {
     final Task<?> child1 = Task.value("t1", "value");

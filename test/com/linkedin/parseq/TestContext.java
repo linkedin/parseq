@@ -23,13 +23,10 @@ import org.testng.annotations.Test;
 
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.linkedin.parseq.Tasks.action;
-import static com.linkedin.parseq.Tasks.callable;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -101,12 +98,7 @@ public class TestContext extends BaseEngineTest {
     final String value = "done";
 
     final SettablePromise<String> promise = Promises.settable();
-    final Task<?> timerTask = action("timerTask", new Runnable() {
-      @Override
-      public void run() {
-        promise.done(value);
-      }
-    });
+    final Task<?> timerTask = Task.action("timerTask", () -> promise.done(value));
 
     final Task<String> task = new BaseTask<String>() {
       @Override
@@ -124,12 +116,7 @@ public class TestContext extends BaseEngineTest {
   public void testRun() throws InterruptedException {
     final String value = "done";
 
-    final Task<String> innerTask = callable("innerTask", new Callable<String>() {
-      @Override
-      public String call() throws Exception {
-        return value;
-      }
-    });
+    final Task<String> innerTask = Task.callable("innerTask",() -> value);
 
     final Task<String> task = new BaseTask<String>() {
       @Override
@@ -150,20 +137,12 @@ public class TestContext extends BaseEngineTest {
 
     final AtomicReference<String> predecessorValueRef = new AtomicReference<String>();
 
-    final Task<String> predecessorTask = callable("predecessorTask", new Callable<String>() {
-      @Override
-      public String call() throws Exception {
-        return predecessorValue;
-      }
-    });
+    final Task<String> predecessorTask = Task.callable("predecessorTask", () -> predecessorValue);
 
-    final Task<String> successorTask = callable("successorTask", new Callable<String>() {
-      @Override
-      public String call() throws Exception {
-        predecessorValueRef.set(predecessorTask.get());
-        return successorValue;
-      }
-    });
+    final Task<String> successorTask = Task.callable("successorTask", () -> {
+      predecessorValueRef.set(predecessorTask.get());
+      return successorValue;
+    } );
 
     final Task<String> task = new BaseTask<String>() {
       @Override
@@ -197,12 +176,7 @@ public class TestContext extends BaseEngineTest {
         t3.setPriority(0);
 
         context.run(t1, t2, t3);
-        context.after(t1, t2, t3).run(Tasks.action("done", new Runnable() {
-          @Override
-          public void run() {
-            promise.done(queue);
-          }
-        }));
+        context.after(t1, t2, t3).run(Task.action("done", () -> promise.done(queue)));
 
         return promise;
       }
@@ -218,11 +192,6 @@ public class TestContext extends BaseEngineTest {
   }
 
   private static <T> Task<?> enqueueTask(final Queue<T> queue, final T value) {
-    return Tasks.action("enqueue", new Runnable() {
-      @Override
-      public void run() {
-        queue.add(value);
-      }
-    });
+    return Task.action("enqueue", () -> queue.add(value));
   }
 }

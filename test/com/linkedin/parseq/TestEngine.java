@@ -125,7 +125,7 @@ public class TestEngine {
       }
     };
     final Task<String> sucTask = Task.value(sucValue);
-    final Task<String> seq = Tasks.seq(predTask, sucTask);
+    final Task<String> seq = predTask.andThen(sucTask);
 
     _engine.run(seq);
     _engine.shutdown();

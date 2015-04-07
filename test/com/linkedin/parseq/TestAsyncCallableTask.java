@@ -20,6 +20,7 @@ import static org.testng.AssertJUnit.*;
  * @version $Revision:$
  */
 public class TestAsyncCallableTask extends BaseEngineTest {
+  @SuppressWarnings("deprecation")
   @Test
   public void testConcurrentTasks() throws InterruptedException {
     // This test ensures that a single plan can run more than one blocking task
@@ -55,6 +56,7 @@ public class TestAsyncCallableTask extends BaseEngineTest {
     }
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testThrowingCallable() throws InterruptedException {
     // Ensures that if a callable wrapped in an AsyncCallableTask throws that
@@ -78,6 +80,7 @@ public class TestAsyncCallableTask extends BaseEngineTest {
     assertTrue(task.isFailed());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testTaskWithoutExecutor() throws InterruptedException {
     final int numCores = Runtime.getRuntime().availableProcessors();

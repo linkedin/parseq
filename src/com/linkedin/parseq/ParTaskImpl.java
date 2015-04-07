@@ -16,7 +16,6 @@
 
 package com.linkedin.parseq;
 
-import com.linkedin.parseq.collection.ParSeqCollection;
 import com.linkedin.parseq.internal.InternalUtil;
 import com.linkedin.parseq.internal.SystemHiddenTask;
 import com.linkedin.parseq.promise.Promise;

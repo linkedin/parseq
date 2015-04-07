@@ -17,9 +17,6 @@
 package com.linkedin.parseq.trace;
 
 import static com.linkedin.parseq.Task.value;
-import static com.linkedin.parseq.Tasks.par;
-import static com.linkedin.parseq.Tasks.seq;
-import static com.linkedin.parseq.Tasks.withSideEffect;
 import static org.testng.AssertJUnit.*;
 
 import java.io.IOException;
@@ -36,9 +33,9 @@ import org.testng.annotations.Test;
 import com.linkedin.parseq.BaseEngineTest;
 import com.linkedin.parseq.BaseTask;
 import com.linkedin.parseq.Context;
-import com.linkedin.parseq.EarlyFinishException;
 import com.linkedin.parseq.Exceptions;
 import com.linkedin.parseq.Task;
+import com.linkedin.parseq.Tasks;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
@@ -97,14 +94,14 @@ public class TestTaskToTrace extends BaseEngineTest {
     final Task<String> task1 = value("taskName1", "value");
     final Task<String> task2 = value("taskName2", "value2");
 
-    final Task<?> seq1 = seq(task1, task2);
+    final Task<?> seq1 = task1.andThen(task2);
     runAndWait("TestTaskToTrace.testSeqSystemHiddenTrace", seq1);
 
     assertTrue(seq1.getShallowTrace().getSystemHidden());
 
     final Task<String> task3 = value("taskName3", "value3");
     final Task<String> task4 = value("taskName4", "value4");
-    final Task<?> seq2 = seq(task3, task4);
+    final Task<?> seq2 = task3.andThen(task4);
 
     assertTrue(seq2.getShallowTrace().getSystemHidden());
   }
@@ -114,7 +111,7 @@ public class TestTaskToTrace extends BaseEngineTest {
     final Task<String> task1 = value("taskName1", "value");
     final Task<String> task2 = value("taskName2", "value2");
 
-    final Task<?> par1 = par(task1, task2);
+    final Task<?> par1 = Task.par(task1, task2);
 
     runAndWait("TestTaskToTrace.testParSystemHiddenTrace", par1);
 
@@ -122,7 +119,7 @@ public class TestTaskToTrace extends BaseEngineTest {
 
     final Task<String> task3 = value("taskName3", "value3");
     final Task<String> task4 = value("taskName4", "value4");
-    final Task<?> par2 = par(task3, task4);
+    final Task<?> par2 = Task.par(task3, task4);
 
     assertTrue(par2.getShallowTrace().getSystemHidden());
   }
@@ -132,7 +129,7 @@ public class TestTaskToTrace extends BaseEngineTest {
     final Task<String> task1 = value("taskName1", "value1");
     final Task<String> task2 = value("taskName2", "value2");
 
-    final Task<String> withSideEffects = withSideEffect(task1, task2);
+    final Task<String> withSideEffects = task1.withSideEffect(x -> task2);
     runAndWait("TestTaskToTrace.testSideEffectSystemTrace", withSideEffects);
 
     assertTrue(withSideEffects.getShallowTrace().getSystemHidden());
@@ -154,7 +151,7 @@ public class TestTaskToTrace extends BaseEngineTest {
       }
     };
 
-    final Task<?> par1 = par(task1, task2);
+    final Task<?> par1 = Task.par(task1, task2);
     runAndWait("TestTaskToTrace.testNotHiddenTrace", par1);
 
     assertFalse(par1.getShallowTrace().getHidden());
@@ -190,7 +187,7 @@ public class TestTaskToTrace extends BaseEngineTest {
       }
     };
 
-    final Task<?> par1 = par(task1, task2);
+    final Task<?> par1 = Task.par(task1, task2);
     runAndWait("TestTaskToTrace.testUserHiddenTrace", par1);
 
     assertFalse(par1.getShallowTrace().getHidden());
@@ -241,7 +238,7 @@ public class TestTaskToTrace extends BaseEngineTest {
     final Task<String> predecessor = value("predecessor", "predecessorValue");
     final Task<String> successor = value("successor", "successorValue");
 
-    final Task<?> seq = seq(predecessor, successor);
+    final Task<?> seq = predecessor.andThen(successor);
     runAndWait("TestTaskToTrace.testTraceWithPredecessorTrace", seq);
 
     verifyShallowTrace(successor);
@@ -260,7 +257,7 @@ public class TestTaskToTrace extends BaseEngineTest {
     final Task<String> baseTask = value("base", "baseValue");
     final Task<String> sideEffect = value("sideEffect", "sideEffectValue");
 
-    final Task<String> withSideEffect = withSideEffect(baseTask, sideEffect);
+    final Task<String> withSideEffect = baseTask.withSideEffect(x -> sideEffect);
     runAndWait("TestTaskToTrace.testSideEffectsPredecessorTrace", withSideEffect);
     assertTrue(sideEffect.await(5, TimeUnit.SECONDS));
 
@@ -273,11 +270,12 @@ public class TestTaskToTrace extends BaseEngineTest {
         .contains(new TraceRelationship(withSideEffect.getId(), baseTask.getId(), Relationship.PARENT_OF)));
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testTraceWithSuccessChild() throws InterruptedException {
     final Task<String> task = value("taskName", "value");
 
-    final Task<?> seq = seq(Arrays.asList(task));
+    final Task<?> seq = Tasks.seq(Arrays.asList(task));
     runAndWait("TestTaskToTrace.testTraceWithSuccessChild", seq);
 
     verifyShallowTrace(task);
@@ -350,7 +348,7 @@ public class TestTaskToTrace extends BaseEngineTest {
       }
     };
 
-    Task<?> par = par(task1, task2);
+    Task<?> par = Task.par(task1, task2);
     runAndWait("TestTaskToTrace.testTraceWithMultiplePotentialParentsPar", par);
 
     Set<Long> tasksWithParent = new HashSet<>();
@@ -399,19 +397,18 @@ public class TestTaskToTrace extends BaseEngineTest {
       @Override
       protected Promise<? extends String> run(Context context) throws Exception {
         context.run(innerTask);
-
         return Promises.value("value3");
       }
     };
 
-    Task<?> seq = seq(task1, task2, task3);
+    Task<?> seq = task1.andThen(task2).andThen(task3);
     runAndWait("TestTaskToTrace.testTraceWithMultiplePotentialParentsSeq", seq);
 
     Set<Long> tasksWithParent = new HashSet<>();
     Map<Long, Integer> tasksWithPotentialParent = new HashMap<>();
     assertAndFindParent(seq.getTrace(), tasksWithParent, tasksWithPotentialParent);
 
-    assertEquals(3, tasksWithParent.size());
+    assertEquals(4, tasksWithParent.size());
     assertEquals((Integer) 3, tasksWithPotentialParent.get(innerTask.getId()));
     assertEquals(1, tasksWithPotentialParent.size());
     assertTrue(tasksWithParent.contains(task1.getId()));

@@ -13,7 +13,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.linkedin.parseq.Tasks.action;
 import static com.linkedin.parseq.Tasks.par;
 import static com.linkedin.parseq.Task.value;
 import static org.testng.AssertJUnit.assertEquals;
@@ -55,15 +54,12 @@ public class TestParTask extends BaseEngineTest {
     final Task<?>[] tasks = new BaseTask<?>[iters];
     final AtomicInteger counter = new AtomicInteger(0);
     for (int i = 0; i < iters; i++) {
-      tasks[i] = action("task-" + i, new Runnable() {
-        @Override
-        public void run() {
-          // Note: We intentionally do not use CAS. We guarantee that
-          // the run method of Tasks are never executed in parallel.
-          final int currentCount = counter.get();
-          counter.set(currentCount + 1);
-        }
-      });
+      tasks[i] = Task.action("task-" + i, () -> {
+        // Note: We intentionally do not use CAS. We guarantee that
+        // the run method of Tasks are never executed in parallel.
+        final int currentCount = counter.get();
+        counter.set(currentCount + 1);
+      } );
     }
 
     final ParTask<?> par = par(Arrays.asList(tasks));
@@ -76,6 +72,7 @@ public class TestParTask extends BaseEngineTest {
     assertEquals(500, counter.get());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testAsyncTasksInPar() throws InterruptedException {
     // Tasks cannot have their run methods invoked at the same time, however
@@ -193,6 +190,7 @@ public class TestParTask extends BaseEngineTest {
     assertEquals(par.get(), par.getSuccessful());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testParWithGeneralType() throws InterruptedException {
     final Integer intVal = 123;
@@ -433,6 +431,7 @@ public class TestParTask extends BaseEngineTest {
     assertEquals(true, tasks.get(2).isFailed());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testPar2() throws InterruptedException {
     final Task<List<Integer>> par = par(value(1), value(2));
@@ -440,6 +439,7 @@ public class TestParTask extends BaseEngineTest {
     assertEquals(Arrays.asList(1, 2), par.get());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testPar3() throws InterruptedException {
     final Task<List<Integer>> par = par(value(1), value(2), value(3));
@@ -447,6 +447,7 @@ public class TestParTask extends BaseEngineTest {
     assertEquals(Arrays.asList(1, 2, 3), par.get());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testPar4() throws InterruptedException {
     final Task<List<Integer>> par = par(value(1), value(2), value(3), value(4));
@@ -454,6 +455,7 @@ public class TestParTask extends BaseEngineTest {
     assertEquals(Arrays.asList(1, 2, 3, 4), par.get());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testPar5() throws InterruptedException {
     final Task<List<Integer>> par = par(value(1), value(2), value(3), value(4), value(5));
@@ -461,6 +463,7 @@ public class TestParTask extends BaseEngineTest {
     assertEquals(Arrays.asList(1, 2, 3, 4, 5), par.get());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testPar6() throws InterruptedException {
     final Task<List<Integer>> par = par(value(1), value(2), value(3), value(4), value(5), value(6));
@@ -468,6 +471,7 @@ public class TestParTask extends BaseEngineTest {
     assertEquals(Arrays.asList(1, 2, 3, 4, 5, 6), par.get());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testPar7() throws InterruptedException {
     final Task<List<Integer>> par = par(value(1), value(2), value(3), value(4), value(5), value(6), value(7));
@@ -475,6 +479,7 @@ public class TestParTask extends BaseEngineTest {
     assertEquals(Arrays.asList(1, 2, 3, 4, 5, 6, 7), par.get());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testPar8() throws InterruptedException {
     final Task<List<Integer>> par = par(value(1), value(2), value(3), value(4), value(5), value(6), value(7), value(8));
@@ -482,6 +487,7 @@ public class TestParTask extends BaseEngineTest {
     assertEquals(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8), par.get());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testPar9() throws InterruptedException {
     final Task<List<Integer>> par =
@@ -490,6 +496,7 @@ public class TestParTask extends BaseEngineTest {
     assertEquals(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9), par.get());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testPar10() throws InterruptedException {
     final Task<List<Integer>> par =

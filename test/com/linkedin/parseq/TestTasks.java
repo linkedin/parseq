@@ -16,7 +16,6 @@
 
 package com.linkedin.parseq;
 
-import static com.linkedin.parseq.Tasks.withSideEffect;
 import static com.linkedin.parseq.Task.value;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -26,7 +25,6 @@ import static org.testng.AssertJUnit.fail;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -109,7 +107,7 @@ public class TestTasks extends BaseEngineTest {
       }
     };
 
-    Task<String> withSideEffect = withSideEffect(fastTask, settableTask);
+    Task<String> withSideEffect = fastTask.withSideEffect(x -> settableTask);
     runAndWait("TestTasks.testSideEffectPartialCompletion", withSideEffect);
     assertTrue(withSideEffect.isDone());
     assertTrue(fastTask.isDone());
@@ -133,7 +131,7 @@ public class TestTasks extends BaseEngineTest {
       }
     };
 
-    Task<String> withSideEffect = withSideEffect(taskOne, taskTwo);
+    Task<String> withSideEffect = taskOne.withSideEffect(x -> taskTwo);
     runAndWait("TestTasks.testSideEffectFullCompletion", withSideEffect);
     taskTwo.await();
     assertTrue(withSideEffect.isDone());
@@ -157,7 +155,7 @@ public class TestTasks extends BaseEngineTest {
       }
     };
 
-    Task<String> withSideEffect = withSideEffect(settableTask, fastTask);
+    Task<String> withSideEffect = settableTask.withSideEffect(x -> fastTask);
     // add 10 ms delay so that we can cancel settableTask reliably
     getEngine().run(delayedValue("value", 10, TimeUnit.MILLISECONDS).andThen(withSideEffect));
     assertTrue(settableTask.cancel(new Exception("task cancelled")));
@@ -177,7 +175,7 @@ public class TestTasks extends BaseEngineTest {
       }
     };
 
-    final Task<String> timeoutTask = Tasks.timeoutWithError(200, TimeUnit.MILLISECONDS, task);
+    final Task<String> timeoutTask = task.withTimeout(200, TimeUnit.MILLISECONDS);
 
     try {
       runAndWait("TestTasks.testTimeoutTaskWithTimeout", timeoutTask);
@@ -199,14 +197,9 @@ public class TestTasks extends BaseEngineTest {
   @Test
   public void testTimeoutTaskWithoutTimeout() throws InterruptedException {
     final String value = "value";
-    final Task<String> task = Tasks.callable("task", new Callable<String>() {
-      @Override
-      public String call() throws Exception {
-        return value;
-      }
-    });
+    final Task<String> task = Task.callable("task", () -> value);
 
-    final Task<String> timeoutTask = Tasks.timeoutWithError(200, TimeUnit.MILLISECONDS, task);
+    final Task<String> timeoutTask = task.withTimeout(200, TimeUnit.MILLISECONDS);
 
     runAndWait("TestTasks.testTimeoutTaskWithoutTimeout", timeoutTask);
 
@@ -219,14 +212,11 @@ public class TestTasks extends BaseEngineTest {
   @Test
   public void testTimeoutTaskWithError() throws InterruptedException {
     final Exception error = new Exception();
-    final Task<String> task = Tasks.callable("task", new Callable<String>() {
-      @Override
-      public String call() throws Exception {
-        throw error;
-      }
-    });
+    final Task<String> task = Task.callable("task", () -> {
+      throw error;
+    } );
 
-    final Task<String> timeoutTask = Tasks.timeoutWithError(2000, TimeUnit.MILLISECONDS, task);
+    final Task<String> timeoutTask = task.withTimeout(2000, TimeUnit.MILLISECONDS);
 
     getEngine().run(timeoutTask);
 
@@ -299,6 +289,7 @@ public class TestTasks extends BaseEngineTest {
     }
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testThrowableCallableNoError() throws InterruptedException {
     final Integer magic = 0x5f3759df;
@@ -319,6 +310,7 @@ public class TestTasks extends BaseEngineTest {
     assertEquals("magic", task.getName());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void testThrowableCallableWithError() throws InterruptedException {
     final Throwable throwable = new Throwable();
