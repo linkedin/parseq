@@ -29,7 +29,7 @@ import java.util.concurrent.Executor;
  * This class provides a wrapper to allow synchronous tasks to be treated as
  * asynchronous tasks. This can be used for tasks that are blocking and are not
  * CPU intensive, like JDBC requests. Unlike tasks created with
- * {@link com.linkedin.parseq.TasksHelper.Tasks#callable(String, java.util.concurrent.Callable)},
+ * {@link com.linkedin.parseq.Tasks#callable(String, java.util.concurrent.Callable)},
  * tasks wrapped in AsyncCallableTask do not get any special memory consistency
  * guarantees and should not attempt to use shared state. In others, they should
  * act as a stateless function.

@@ -42,6 +42,7 @@ import java.util.List;
  * @see Task#andThen(String, Task) Task.andThen
  * @see Task
  */
+@Deprecated
 /* package private */ class SeqTask<T> extends SystemHiddenTask<T> {
   private volatile List<Task<?>> _tasks;
 

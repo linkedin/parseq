@@ -388,12 +388,12 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * <blockquote><pre>
    *
    * // this method return task which asynchronously retrieves Person by id
-   * Task{@code<Person>} fetchPerson(Long id) {
+   * Task{@code <Person>} fetchPerson(Long id) {
    * (...)
    * }
    *
-   * // this task will fetch Person object and transform it into {@code"<first name> <last name>"}
-   * // if fetching Person failed then form {@code"Member <id>"} will be return
+   * // this task will fetch Person object and transform it into {@code "<first name> <last name>"}
+   * // if fetching Person failed then form {@code "Member <id>"} will be return
    * Task{@code <String>} userName = fetchPerson(id)
    *      .map(p {@code ->} p.getFirstName() + " " + p.getLastName())
    *      .recover(e {@code ->} "Member " + id);
@@ -600,16 +600,16 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * <blockquote><pre>
    *
    * // this method return task which asynchronously retrieves Person by id from cache
-   * Task{@code<Person>} fetchFromCache(Long id) {
+   * Task{@code <Person>} fetchFromCache(Long id) {
    * (...)
    * }
    *
    * // this method return task which asynchronously retrieves Person by id from DB
-   * Task{@code<Person>} fetchFromDB(Long id) {
+   * Task{@code <Person>} fetchFromDB(Long id) {
    * (...)
    * }
    *
-   * // this task will fetch Person object and transform it into {@code"<first name> <last name>"}
+   * // this task will fetch Person object and transform it into {@code "<first name> <last name>"}
    * // it will first try to fetch from cache and when it fails for any reason it will
    * // attempt to fetch from DB
    * Task{@code <String>} userName = fetchFromCache(id)

@@ -426,6 +426,7 @@ public class Tasks {
    * @param <T> the result value for the sequence of tasks
    * @return a new task that will run the given tasks sequentially
    */
+  @SuppressWarnings("deprecation")
   private static <T> Task<T> vaseq(final Task<?>... tasks) {
     return new SeqTask<T>("seq", Arrays.asList(tasks));
   }

@@ -147,7 +147,7 @@
     </target>
 
     <target name="doc" description="Build the javadoc." depends="build-src">
-        <javadoc destdir="${doc.build.dir}">
+        <javadoc destdir="${doc.build.dir}" additionalparam="-Xdoclint:none">
             <packageset dir="${src.dir}">
                 <exclude name="com/linkedin/parseq/internal"/>
             </packageset>
@@ -156,7 +156,7 @@
     </target>
 
     <target name="doc-test" description="Build the javadoc for test artifact." depends="build-src-test">
-        <javadoc destdir="${doc.test.build.dir}">
+        <javadoc destdir="${doc.test.build.dir}" additionalparam="-Xdoclint:none">
             <packageset dir="${src.test.dir}"/>
             <classpath refid="test.classpath"/>
         </javadoc>

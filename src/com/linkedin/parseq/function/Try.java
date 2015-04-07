@@ -4,7 +4,7 @@ import java.util.NoSuchElementException;
 
 
 /**
- * The {@code Try interface represents result that may either be a
+ * The {@code Try} interface represents result that may either be a
  * successful completion or a failure. It has two implementation: {@link Success}
  * and {@link Failure}. New instances of {@code Try} can be created by either
  * calling {@code Success.of(...)} of {@code Failure.of(...)}.
@@ -35,13 +35,13 @@ public interface Try<T> {
   /**
    * Returns {@code Throwable} associated with this failure or
    * null if result represents successful completion.
-   * @return
+   * @return the error associated with this failure
    */
   Throwable getError();
 
   /**
    * Returns either {@link ResultType#success success} or {@link ResultType#failure failure}.
-   * @return
+   * @return the type of the result
    */
   ResultType resultType();
 
