@@ -41,7 +41,7 @@ public interface Tuple${i}Task<<@typeParameters i/>> extends Task<Tuple${i}<<@ty
    */
   @Override
   default Tuple${i}Task<<@typeParameters i/>> recover(final Function1<Throwable, Tuple${i}<<@typeParameters i/>>> f) {
-    return cast(recover(f));
+    return cast(Task.super.recover(f));
   }
   
   /**
@@ -49,7 +49,7 @@ public interface Tuple${i}Task<<@typeParameters i/>> extends Task<Tuple${i}<<@ty
    */
   @Override
   default Tuple${i}Task<<@typeParameters i/>> recover(final String desc, final Function1<Throwable, Tuple${i}<<@typeParameters i/>>> f) {
-    return cast(recover(desc, f));
+    return cast(Task.super.recover(desc, f));
   }
 
   /**
@@ -57,7 +57,7 @@ public interface Tuple${i}Task<<@typeParameters i/>> extends Task<Tuple${i}<<@ty
    */
   @Override
   default Tuple${i}Task<<@typeParameters i/>> recoverWith(final Function1<Throwable, Task<Tuple${i}<<@typeParameters i/>>>> f) {
-    return cast(recoverWith(f));
+    return cast(Task.super.recoverWith(f));
   }
   
   /**
@@ -65,7 +65,7 @@ public interface Tuple${i}Task<<@typeParameters i/>> extends Task<Tuple${i}<<@ty
    */
   @Override
   default Tuple${i}Task<<@typeParameters i/>> recoverWith(final String desc, final Function1<Throwable, Task<Tuple${i}<<@typeParameters i/>>>> f) {
-    return cast(recoverWith(desc, f));
+    return cast(Task.super.recoverWith(desc, f));
   }
   
   public static <<@typeParameters i/>> Tuple${i}Task<<@typeParameters i/>> cast(final Task<Tuple${i}<<@typeParameters i/>>> task) {

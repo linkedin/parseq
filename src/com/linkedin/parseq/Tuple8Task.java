@@ -37,7 +37,7 @@ public interface Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> extends Task<Tuple8<
    */
   @Override
   default Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> recover(final Function1<Throwable, Tuple8<T1, T2, T3, T4, T5, T6, T7, T8>> f) {
-    return cast(recover(f));
+    return cast(Task.super.recover(f));
   }
   
   /**
@@ -45,7 +45,7 @@ public interface Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> extends Task<Tuple8<
    */
   @Override
   default Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> recover(final String desc, final Function1<Throwable, Tuple8<T1, T2, T3, T4, T5, T6, T7, T8>> f) {
-    return cast(recover(desc, f));
+    return cast(Task.super.recover(desc, f));
   }
 
   /**
@@ -53,7 +53,7 @@ public interface Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> extends Task<Tuple8<
    */
   @Override
   default Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> recoverWith(final Function1<Throwable, Task<Tuple8<T1, T2, T3, T4, T5, T6, T7, T8>>> f) {
-    return cast(recoverWith(f));
+    return cast(Task.super.recoverWith(f));
   }
   
   /**
@@ -61,7 +61,7 @@ public interface Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> extends Task<Tuple8<
    */
   @Override
   default Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> recoverWith(final String desc, final Function1<Throwable, Task<Tuple8<T1, T2, T3, T4, T5, T6, T7, T8>>> f) {
-    return cast(recoverWith(desc, f));
+    return cast(Task.super.recoverWith(desc, f));
   }
   
   public static <T1, T2, T3, T4, T5, T6, T7, T8> Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> cast(final Task<Tuple8<T1, T2, T3, T4, T5, T6, T7, T8>> task) {

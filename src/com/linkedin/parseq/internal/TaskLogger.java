@@ -18,7 +18,6 @@ package com.linkedin.parseq.internal;
 
 import java.util.function.Function;
 
-import com.linkedin.parseq.EarlyFinishException;
 import com.linkedin.parseq.Exceptions;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.trace.ResultType;
@@ -79,7 +78,7 @@ public class TaskLogger
     {
       _planLogger.debug(START_TASK_FORMAT, _planId, task.getName());
     }
-    else if (_rootLogger.isDebugEnabled() && _rootId == task.getId())
+    else if (_rootLogger.isDebugEnabled() && _rootId.equals(task.getId()))
     {
       _rootLogger.debug(START_TASK_FORMAT, _planId, task.getName());
     }
@@ -104,14 +103,14 @@ public class TaskLogger
                         new Object[] {_planId, task.getName(),
                                       elapsedMillis(task), ResultType.fromTask(task)});
     }
-    else if (_rootId == task.getId() && _rootLogger.isTraceEnabled())
+    else if (_rootId.equals(task.getId()) && _rootLogger.isTraceEnabled())
     {
       _rootLogger.trace(END_TASK_TRACE_FORMAT,
           new Object[]{_planId, task.getName(),
               elapsedMillis(task),
               ResultType.fromTask(task), stringValue(task, traceValueProvider)});
     }
-    else if (_rootId == task.getId() && _rootLogger.isDebugEnabled())
+    else if (_rootId.equals(task.getId()) && _rootLogger.isDebugEnabled())
     {
       _rootLogger.debug(END_TASK_DEBUG_FORMAT,
                         new Object[] {_planId, task.getName(),
