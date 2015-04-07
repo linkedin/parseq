@@ -40,7 +40,7 @@ public interface Try<T> {
   Throwable getError();
 
   /**
-   * Returns either {@code success} or {@failure}.
+   * Returns either {@link ResultType#success success} or {@link ResultType#failure failure}.
    * @return
    */
   ResultType resultType();

@@ -41,7 +41,7 @@ public interface After {
    * given Supplier is run. Supplier will be called with After semantics e.g.
    * when all Promises are resolved.
    *
-   * @param task the task to run
+   * @param taskSupplier the supplier of a task to run
    */
   void run(Supplier<Optional<Task<?>>> taskSupplier);
 

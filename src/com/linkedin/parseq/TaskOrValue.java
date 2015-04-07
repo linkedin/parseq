@@ -12,8 +12,8 @@ import com.linkedin.parseq.promise.SettablePromise;
 
 /**
  * {@code TaskOrValue} represents either {@link Task} or a value.
- * This interface allows calling {@link #map(Function) map} and
- * {@link #flatMap(Function) flatMap} regardless of the underlying type.
+ * This interface allows calling {@link #map(Function1) map} and
+ * {@link #flatMap(Function1) flatMap} regardless of the underlying type.
  *
  * <p>
  * This interface is experimental and may be modified or removed in future

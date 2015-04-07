@@ -49,7 +49,7 @@ import com.linkedin.parseq.trace.TraceBuilder;
 
 /**
  * TODO add extensive documentations
- * 
+ *
  * A task represents a deferred execution that also contains its resulting
  * value. In addition, tasks include tracing information that can be
  * used with various trace printers.
@@ -114,7 +114,6 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * reserved for use by {@link Engine} and {@link Context}.
    *
    * @param context the context to use while running this step
-   * @param taskLogger the logger used for task events
    * @param parent the parent of this task
    * @param predecessors that lead to the execution of this task
    */
@@ -156,23 +155,23 @@ public interface Task<T> extends Promise<T>, Cancellable {
   /**
    * Creates a new task by applying a function to the successful result of this task.
    * Returned task will complete with value calculated by a function.
-   * <pre><code>
+   * <blockquote><pre>
    * Task{@code <String>} hello = Task.value("Hello World");
    *
    * // this task will complete with value 11
-   * Task{@code <Integer>} length = hello.map(s -> s.length());
-   * </code></pre>
+   * Task{@code <Integer>} length = hello.map(s {@code ->} s.length());
+   * </pre></blockquote>
    *
    * If this task is completed with an exception then the new task will also complete
    * with that exception.
-   * <pre><code>
-   *  Task{@code <String>} failing = Task.callable("hello", () -> {
+   * <blockquote><pre>
+   *  Task{@code <String>} failing = Task.callable("hello", () {@code ->} {
    *    return "Hello World".substring(100);
    *  });
    *
    *  // this task will fail with java.lang.StringIndexOutOfBoundsException
-   *  Task{@code <Integer>} length = failing.map("length", s -> s.length());
-   * </code></pre>
+   *  Task{@code <Integer>} length = failing.map("length", s {@code ->} s.length());
+   * </pre></blockquote>
    * @param <R> return type of function <code>func</code>
    * @param desc description of a mapping function, it will show up in a trace
    * @param func function to be applied to successful result of this task.
@@ -185,7 +184,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
 
   /**
    * Equivalent to {@code map("map", func)}.
-   * @see #map(String, Function)
+   * @see #map(String, Function1)
    */
   default <R> Task<R> map(final Function1<? super T, ? extends R> func) {
     return map("map", func);
@@ -195,22 +194,22 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * Creates a new task by applying a function to the successful result of this task and
    * returns the result of a function as the new task.
    * Returned task will complete with value calculated by a task returned by the function.
-   * <pre><code>
+   * <blockquote><pre>
    *  Task{@code <URI>} url = Task.value("uri", URI.create("http://linkedin.com"));
    *
    *  // this task will complete with contents of a LinkedIn homepage
    *  // assuming fetch(u) fetches contents given by a URI
-   *  Task{@code <String>} homepage = url.flatMap("fetch", u -> fetch(u));
-   * </code></pre>
+   *  Task{@code <String>} homepage = url.flatMap("fetch", u {@code ->} fetch(u));
+   * </pre></blockquote>
    *
    * If this task is completed with an exception then the new task will also contain
    * that exception.
-   * <pre><code>
-   *  Task{@code <URI>} url = Task.callable("uri", () -> URI.create("not a URI"));
+   * <blockquote><pre>
+   *  Task{@code <URI>} url = Task.callable("uri", () {@code ->} URI.create("not a URI"));
    *
    *  // this task will fail with java.lang.IllegalArgumentException
-   *  Task{@code <String>} homepage = url.flatMap("fetch", u -> fetch(u));
-   * </code></pre>
+   *  Task{@code <String>} homepage = url.flatMap("fetch", u {@code ->} fetch(u));
+   * </pre></blockquote>
    * @param <R> return type of function <code>func</code>
    * @param desc description of a mapping function, it will show up in a trace
    * @param func function to be applied to successful result of this task which returns new task
@@ -225,7 +224,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
 
   /**
    * Equivalent to {@code flatMap("flatMap", func)}.
-   * @see #flatMap(String, Function)
+   * @see #flatMap(String, Function1)
    */
   default <R> Task<R> flatMap(final Function1<? super T, Task<R>> func) {
     return flatMap("flatMap", func);
@@ -245,15 +244,15 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * The side effect task is useful in situations where operation (side effect) should continue to run
    * in the background but it's execution is not required for the main computation. An example might
    * be updating cache once data has been retrieved from the main source.
-   * <pre><code>
+   * <blockquote><pre>
    *  Task{@code <Long>} id = Task.value(1223L);
    *
    *  // this task will be completed as soon as user name is fetched
    *  // by fetch() method and will not fail even if updateMemcache() fails
-   *  Task{@code <String>} userName = id.flatMap("fetch", u -> fetch(u))
-   *      .withSideEffect("update memcache", u -> updateMemcache(u));
-   * </code></pre>
-   * 
+   *  Task{@code <String>} userName = id.flatMap("fetch", u {@code ->} fetch(u))
+   *      .withSideEffect("update memcache", u {@code ->} updateMemcache(u));
+   * </pre></blockquote>
+   *
    * @param desc description of a side effect, it will show up in a trace
    * @param func function to be applied on result of successful completion of this task
    * to get side effect task
@@ -277,7 +276,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
 
   /**
    * Equivalent to {@code withSideEffect("sideEffect", func)}.
-   * @see #withSideEffect(String, Function)
+   * @see #withSideEffect(String, Function1)
    */
   default Task<T> withSideEffect(final Function1<? super T, Task<?>> func) {
     return withSideEffect("sideEffect", func);
@@ -298,23 +297,23 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * and completes with a result of this task. It is used
    * in situations where consumer needs to be called after successful
    * completion of this task.
-   * <pre><code>
+   * <blockquote><pre>
    *  Task{@code <String>} hello = Task.value("Hello World");
    *
    *  // this task will print "Hello World"
    *  Task{@code <String>} sayHello = hello.andThen(System.out::println);
-   * </code></pre>
+   * </pre></blockquote>
    *
    * If this task fails then consumer will not be called and failure
    * will be propagated to task returned by this method.
-   * <pre><code>
+   * <blockquote><pre>
    *  Task{@code <String>} failing = Task.callable("hello", () {@code ->} {
    *    return "Hello World".substring(100);
    *  });
    *
    *  // this task will fail with java.lang.StringIndexOutOfBoundsException
    *  Task{@code <String>} sayHello = failing.andThen(System.out::println);
-   * </code></pre>
+   * </pre></blockquote>
    *
    * @param desc description of a consumer, it will show up in a trace
    * @param consumer consumer of a value returned by this task
@@ -344,7 +343,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * If this task fails then task passed in as a parameter will
    * not be scheduled for execution and failure
    * will be propagated to task returned by this method.
-   * <pre><code>
+   * <blockquote><pre>
    *  // task which processes payment
    *  Task{@code <PaymentStatus>} processPayment = processPayment(...);
    *
@@ -355,8 +354,9 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *  // successfully processed
    *  Task{@code <ShipmentInfo>} shipAfterPayment =
    *      processPayment.andThen("shipProductAterPayment", shipProduct);
-   * </code></pre>
+   * </pre></blockquote>
    *
+   * @param <R> return type of the <code>task</code>
    * @param desc description of a task, it will show up in a trace
    * @param task task which will be executed after successful completion of this task
    * @return a new task which will run given task after successful completion of this task
@@ -385,7 +385,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * Creates a new task that will handle failure of this task.
    * Early completion due to cancellation is not considered to be a failure.
    * If this task completes successfully, then recovery function is not called.
-   * <pre><code>
+   * <blockquote><pre>
    *
    * // this method return task which asynchronously retrieves Person by id
    * Task{@code<Person>} fetchPerson(Long id) {
@@ -397,7 +397,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * Task{@code <String>} userName = fetchPerson(id)
    *      .map(p {@code ->} p.getFirstName() + " " + p.getLastName())
    *      .recover(e {@code ->} "Member " + id);
-   * </code></pre>
+   * </pre></blockquote>
    * <p>
    * Note that task cancellation is not considered to be a failure.
    * If this task has been cancelled then task returned by this method will also
@@ -425,7 +425,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
 
   /**
    * Equivalent to {@code recover("recover", func)}.
-   * @see #recover(String, Function)
+   * @see #recover(String, Function1)
    */
   default Task<T> recover(final Function1<Throwable, T> func) {
     return recover("recover", func);
@@ -436,7 +436,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * task may fail with. It is used in situations where consumer needs
    * to be called after failure of this task. Result of task returned by
    * this method will be exactly the same as result of this task.
-   * <pre><code>
+   * <blockquote><pre>
    *  Task{@code <String>} failing = Task.callable("hello", () {@code ->} {
    *    return "Hello World".substring(100);
    *  });
@@ -444,15 +444,15 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *  // this task will print out java.lang.StringIndexOutOfBoundsException
    *  // and complete with that exception as a reason for failure
    *  Task{@code <String>} sayHello = failing.onFailure(System.out::println);
-   * </code></pre>
+   * </pre></blockquote>
    *
    * If this task completes successfully then consumer will not be called.
-   * <pre><code>
+   * <blockquote><pre>
    *  Task{@code <String>} hello = Task.value("Hello World");
    *
    *  // this task will print "Hello World"
    *  Task{@code <String>} sayHello = hello.onFailure(System.out::println);
-   * </code></pre>
+   * </pre></blockquote>
    *
    * Exceptions thrown by a consumer will be ignored.
    * <p>
@@ -496,33 +496,31 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * task execution. Task returned by this method will always complete successfully.
    * If this task completes successfully then return task will be
    * completed with result value wrapped with {@link Success}.
-   * <pre><code>
+   * <blockquote><pre>
    *  Task{@code <String>} hello = Task.value("Hello World");
    *
    *  // this task will complete with Success("Hello World")
    *  Task{@code <Try<String>>} helloTry = hello.toTry("try");
-   * </code></pre>
+   * </pre></blockquote>
    *
    * If this task is completed with an exception then the returned task will be
    * completed with an exception wrapped with {@link Failure}.
-   * <pre><code>
-   *  Task{@code <String>} failing = Task.callable("hello", () -> {
+   * <blockquote><pre>
+   *  Task{@code <String>} failing = Task.callable("hello", () {@code ->} {
    *      return "Hello World".substring(100);
    *  });
    *
    *  // this task will complete successfully with Failure(java.lang.StringIndexOutOfBoundsException)
    *  Task{@code <Try<String>>} failingTry = failing.toTry("try");
-   * </code></pre>
+   * </pre></blockquote>
    * Note that all failures are automatically propagated and usually it is enough to use
-   * {@link #recover(String, Function) recover}, {@link #recoverWith(String, Function) recoverWith}
-   * or {@link #fallBackTo(String, Function) fallBackTo}.
+   * {@link #recover(String, Function1) recover} or {@link #recoverWith(String, Function1) recoverWith}.
    * <p>
    * @param desc description of a consumer, it will show up in a trace
    * @return a new task that will complete successfully with the result of this task
    * @see Try
-   * @see #recover(String, Function) recover
-   * @see #recoverWith(String, Function) recoverWith
-   * @see #fallBackTo(String, Function) fallBackTo
+   * @see #recover(String, Function1) recover
+   * @see #recoverWith(String, Function1) recoverWith
    */
   default Task<Try<T>> toTry(final String desc) {
     return apply(desc, (src, dst) -> {
@@ -542,24 +540,25 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * Creates a new task that applies a transformation to the result of this
    * task. This method allows handling both successful completion and failure
    * at the same time.
-   * <pre><code>
+   * <blockquote><pre>
    * Task{@code <Integer>} num = ...
    *
    * // this task will complete with either complete successfully
    * // with String representation of num or fail with  MyLibException
-   * Task{@code <String>} text = num.transform("toString", t -> {
+   * Task{@code <String>} text = num.transform("toString", t {@code ->} {
    *   if (t.isFailed()) {
    *     return Failure.of(new MyLibException(t.getError()));
    *   } else {
    *     return Success.of(String.valueOf(t.get()));
    *   }
    * });
-   * </code></pre>
+   * </pre></blockquote>
    * <p>
    * Note that task cancellation is not considered to be a failure.
    * If this task has been cancelled then task returned by this method will also
    * be cancelled and transformation will not be applied.
    *
+   * @param <R> type parameter of function <code>func</code> return <code>Try</code>
    * @param desc description of a consumer, it will show up in a trace
    * @param func a transformation to be applied to the result of this task
    * @return a new task that will apply a transformation to the result of this task
@@ -598,7 +597,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * Creates a new task that will handle failure of this task.
    * Early completion due to cancellation is not considered to be a failure.
    * If this task completes successfully, then recovery function is not called.
-   * <pre><code>
+   * <blockquote><pre>
    *
    * // this method return task which asynchronously retrieves Person by id from cache
    * Task{@code<Person>} fetchFromCache(Long id) {
@@ -616,7 +615,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * Task{@code <String>} userName = fetchFromCache(id)
    *      .recoverWith(e {@code ->} fetchFromDB(id))
    *      .map(p {@code ->} p.getFirstName() + " " + p.getLastName());
-   * </code></pre>
+   * </pre></blockquote>
    *
    * If recovery task fails then returned task is completed with that failure.
    * <p>
@@ -656,7 +655,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
 
   /**
    * Equivalent to {@code recoverWith("recoverWith", func)}.
-   * @see #recoverWith(String, Function)
+   * @see #recoverWith(String, Function1)
    */
   default Task<T> recoverWith(final Function1<Throwable, Task<T>> func) {
     return recoverWith("recoverWith", func);
@@ -670,7 +669,6 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *
    * @param time the time to wait before timing out
    * @param unit the units for the time
-   * @param <T> the value type for the task
    * @return the new task with a timeout
    */
   default Task<T> withTimeout(final long time, final TimeUnit unit) {
@@ -704,6 +702,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
 
   /**
    * Converts {@code Task<Task<R>>} into {@code Task<R>}.
+   * @param <R> return type of nested <code>task</code>
    * @param desc description that will show up in a trace
    * @param task task to be flattened
    * @return flattened task
@@ -728,7 +727,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
 
   /**
    * Equivalent to {@code flatten("flatten", task)}.
-   * @see #flatMap(String, Function)
+   * @see #flatten(String, Task)
    */
 
   public static <R> Task<R> flatten(final Task<Task<R>> task) {
@@ -743,17 +742,17 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * It is not appropriate for long running or blocking actions. If action is
    * long running or blocking use {@link #blocking(String, Callable, Executor) blocking} method.
    *
-   * <pre><code>
+   * <blockquote><pre>
    * // this task will print "Hello" on standard output
-   * Task{@code <Void>} task = Task.action("greeting", () -> System.out.println("Hello"));
-   * </code></pre>
+   * Task{@code <Void>} task = Task.action("greeting", () {@code ->} System.out.println("Hello"));
+   * </pre></blockquote>
    *
    * Returned task will fail if {@code Action} passed in as a parameter throws
    * an exception.
-   * <pre><code>
+   * <blockquote><pre>
    * // this task will fail with java.lang.ArithmeticException
-   * Task{@code <Void>} task = Task.action("division", () -> System.out.println(2 / 0));
-   * </code></pre>
+   * Task{@code <Void>} task = Task.action("division", () {@code ->} System.out.println(2 / 0));
+   * </pre></blockquote>
    * <p>
    * @param desc a description the action, it will show up in a trace
    * @param action the action that will be executed when the task is run
@@ -777,9 +776,10 @@ public interface Task<T> extends Promise<T>, Cancellable {
 
   /**
    * Creates a new task that will be resolved with given value when it is
-   * executed. Note that this task is not initially completed. 
-   * 
-   * @param name a description of the value, it will show up in a trace
+   * executed. Note that this task is not initially completed.
+   *
+   * @param <T> type of the value
+   * @param desc a description of the value, it will show up in a trace
    * @param value a value the task will be resolved with
    * @return new task that will be resolved with given value when it is
    * executed
@@ -798,8 +798,9 @@ public interface Task<T> extends Promise<T>, Cancellable {
 
   /**
    * Creates a new task that will be fail with given exception when it is
-   * executed. Note that this task is not initially completed. 
-   * 
+   * executed. Note that this task is not initially completed.
+   *
+   * @param <T> type parameter of the returned task
    * @param desc a description of the failure, it will show up in a trace
    * @param failure a failure the task will fail with
    * @return new task that will fail with given failure when it is
@@ -826,21 +827,21 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * long running or blocking callables. If callable is long running or blocking
    * use {@link #blocking(String, Callable, Executor) blocking} method.
    *
-   * <pre><code>
+   * <blockquote><pre>
    * // this task will complete with {@code String} representing current time
-   * Task{@code <String>} task = Task.callable("current time", () -> new Date().toString());
-   * </code></pre>
+   * Task{@code <String>} task = Task.callable("current time", () {@code ->} new Date().toString());
+   * </pre></blockquote>
    *
    * Returned task will fail if callable passed in as a parameter throws
    * an exception.
-   * <pre><code>
+   * <blockquote><pre>
    * // this task will fail with java.lang.ArithmeticException
-   * Task{@code <Integer>} task = Task.callable("division", () -> 2 / 0);
-   * </code></pre>
+   * Task{@code <Integer>} task = Task.callable("division", () {@code ->} 2 / 0);
+   * </pre></blockquote>
    * <p>
+   * @param <T> the type of the return value for this task
    * @param name a name that describes the task, it will show up in a trace
    * @param callable the callable to execute when this task is run
-   * @param <T> the type of the return value for this task
    * @return the new task that will invoke the callable and complete with it's result
    */
   public static <T> Task<T> callable(final String name, final Callable<? extends T> callable) {
@@ -868,12 +869,12 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * or manipulate existing tasks. The following example shows how to integrate
    * <a href="https://github.com/AsyncHttpClient">AsyncHttpClient</a> with ParSeq.
    *
-   * <pre><code>
+   * <blockquote><pre>
    *  // Creates a task that asynchronouslyexecutes given HTTP request
    *  // and will complete with HTTP response. It uses asyncHttpRequest()
    *  // method as a lambda of shape: ThrowableCallable{@code <Promise<Response>>}.
    *  Task{@code <Response>} httpTask(final Request request) {
-   *    return Task.async(() -> asyncHttpRequest(request), false);
+   *    return Task.async(() {@code ->} asyncHttpRequest(request), false);
    *  }
    *
    *  // This method uses HTTP_CLIENT to make asynchronous
@@ -909,7 +910,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *    // resolved by the time we return this promise.
    *    return promise;
    *  }
-   * </code></pre>
+   * </pre></blockquote>
    *
    * This method is not appropriate for long running or blocking callables.
    * If callable is long running or blocking use
@@ -1023,7 +1024,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
 
   /**
    * Equivalent to {@code blocking("blocking", callable, executor)}.
-   * @see #blocking(String, ThrowableCallable, Executor)
+   * @see #blocking(String, Callable, Executor)
    */
   public static <T> Task<T> blocking(final Callable<? extends T> callable, final Executor executor) {
     return blocking("blocking", callable, executor);
@@ -1034,14 +1035,14 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * will be resolved with results of all tasks as soon as all of them has
    * been completed successfully.
    *
-   * <pre><code>
+   * <blockquote><pre>
    *  // this task will asynchronously fetch user and company in parallel
    *  // and create signature in a form {@code "<first name> <last name> working for <company>"}
    *  Task{@code <String>} signature =
    *      Task.par(fetchUser(userId), fetchCompany(companyId))
    *        .map((user, company) {@code ->}
    *          user.getFirstName() + user.getLastName() + " working for " + company.getName());
-   * </code></pre>
+   * </pre></blockquote>
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks.
@@ -1057,14 +1058,14 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * will be resolved with results of all tasks as soon as all of them has
    * been completed successfully.
    *
-   * <pre><code>
+   * <blockquote><pre>
    *  // this task will asynchronously fetch user and company in parallel
    *  // and create signature in a form {@code "<first name> <last name> working for <company>"}
    *  Task{@code <String>} signature =
    *      Task.par(fetchUser(userId), fetchCompany(companyId))
    *        .map((user, company) {@code ->}
    *          user.getFirstName() + user.getLastName() + " working for " + company.getName());
-   * </code></pre>
+   * </pre></blockquote>
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks.
@@ -1081,14 +1082,14 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * will be resolved with results of all tasks as soon as all of them has
    * been completed successfully.
    *
-   * <pre><code>
+   * <blockquote><pre>
    *  // this task will asynchronously fetch user and company in parallel
    *  // and create signature in a form {@code "<first name> <last name> working for <company>"}
    *  Task{@code <String>} signature =
    *      Task.par(fetchUser(userId), fetchCompany(companyId))
    *        .map((user, company) {@code ->}
    *          user.getFirstName() + user.getLastName() + " working for " + company.getName());
-   * </code></pre>
+   * </pre></blockquote>
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks.
@@ -1105,14 +1106,14 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * will be resolved with results of all tasks as soon as all of them has
    * been completed successfully.
    *
-   * <pre><code>
+   * <blockquote><pre>
    *  // this task will asynchronously fetch user and company in parallel
    *  // and create signature in a form {@code "<first name> <last name> working for <company>"}
    *  Task{@code <String>} signature =
    *      Task.par(fetchUser(userId), fetchCompany(companyId))
    *        .map((user, company) {@code ->}
    *          user.getFirstName() + user.getLastName() + " working for " + company.getName());
-   * </code></pre>
+   * </pre></blockquote>
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks.
@@ -1129,14 +1130,14 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * will be resolved with results of all tasks as soon as all of them has
    * been completed successfully.
    *
-   * <pre><code>
+   * <blockquote><pre>
    *  // this task will asynchronously fetch user and company in parallel
    *  // and create signature in a form {@code "<first name> <last name> working for <company>"}
    *  Task{@code <String>} signature =
    *      Task.par(fetchUser(userId), fetchCompany(companyId))
    *        .map((user, company) {@code ->}
    *          user.getFirstName() + user.getLastName() + " working for " + company.getName());
-   * </code></pre>
+   * </pre></blockquote>
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks.
@@ -1153,14 +1154,14 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * will be resolved with results of all tasks as soon as all of them has
    * been completed successfully.
    *
-   * <pre><code>
+   * <blockquote><pre>
    *  // this task will asynchronously fetch user and company in parallel
    *  // and create signature in a form {@code "<first name> <last name> working for <company>"}
    *  Task{@code <String>} signature =
    *      Task.par(fetchUser(userId), fetchCompany(companyId))
    *        .map((user, company) {@code ->}
    *          user.getFirstName() + user.getLastName() + " working for " + company.getName());
-   * </code></pre>
+   * </pre></blockquote>
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks.
@@ -1178,14 +1179,14 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * will be resolved with results of all tasks as soon as all of them has
    * been completed successfully.
    *
-   * <pre><code>
+   * <blockquote><pre>
    *  // this task will asynchronously fetch user and company in parallel
    *  // and create signature in a form {@code "<first name> <last name> working for <company>"}
    *  Task{@code <String>} signature =
    *      Task.par(fetchUser(userId), fetchCompany(companyId))
    *        .map((user, company) {@code ->}
    *          user.getFirstName() + user.getLastName() + " working for " + company.getName());
-   * </code></pre>
+   * </pre></blockquote>
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks.
@@ -1203,14 +1204,14 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * will be resolved with results of all tasks as soon as all of them has
    * been completed successfully.
    *
-   * <pre><code>
+   * <blockquote><pre>
    *  // this task will asynchronously fetch user and company in parallel
    *  // and create signature in a form {@code "<first name> <last name> working for <company>"}
    *  Task{@code <String>} signature =
    *      Task.par(fetchUser(userId), fetchCompany(companyId))
    *        .map((user, company) {@code ->}
    *          user.getFirstName() + user.getLastName() + " working for " + company.getName());
-   * </code></pre>
+   * </pre></blockquote>
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks.

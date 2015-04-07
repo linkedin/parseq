@@ -36,12 +36,9 @@ import java.util.List;
  * Use {@link Tasks#par(Task[])} or {@link Tasks#par(Iterable)} to create an
  * instance of this class.
  *
- * @deprecated  As of 2.0.0, replaced by {@link Task#par(Task, Task) Task.par} or
- * {@link ParSeqCollection#fromTasks(Task...) ParSeqCollection.fromTasks}.
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Chi Chan (ckchan@linkedin.com)
  * @see Task#par(Task, Task) Task.par
- * @see ParSeqCollection#fromTasks(Task...) ParSeqCollection.fromTasks
  */
 /* package private */ class ParTaskImpl<T> extends SystemHiddenTask<List<T>>implements ParTask<T> {
   private final List<Task<T>> _tasks;
