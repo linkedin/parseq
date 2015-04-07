@@ -9,25 +9,22 @@ import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.example.common.ExampleUtil;
 import com.linkedin.parseq.example.common.MockService;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class ErrorPropagationExample extends AbstractExample
-{
-  public static void main(String[] args) throws Exception
-  {
+public class ErrorPropagationExample extends AbstractExample {
+  public static void main(String[] args) throws Exception {
     new ErrorPropagationExample().runExample();
   }
 
   @Override
-  protected void doRunExample(final Engine engine) throws Exception
-  {
+  protected void doRunExample(final Engine engine) throws Exception {
     final MockService<String> httpClient = getService();
 
     final Task<Integer> fetchAndLength =
-        fetch404Url(httpClient, "http://www.google.com")
-          .map("length", x -> x.length());
+        fetch404Url(httpClient, "http://www.google.com").map("length", x -> x.length());
 
     engine.run(fetchAndLength);
 

@@ -8,6 +8,7 @@ import com.linkedin.parseq.collection.transducer.Reducer.Step;
 import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.TaskOrValue;
 
+
 @FunctionalInterface
 public interface Transducer<T, R> extends Function<Reducer<Object, R>, Reducer<Object, T>> {
 
@@ -23,24 +24,26 @@ public interface Transducer<T, R> extends Function<Reducer<Object, R>, Reducer<O
     return map(e -> {
       consumer.accept(e);
       return e;
-    });
+    } );
   }
 
   default Transducer<T, R> filter(final Predicate<R> predicate) {
     return fr -> apply((z, r) -> r.flatMap(rValue -> {
-        if (predicate.test(rValue)) {
-            return fr.apply(z, TaskOrValue.value(rValue));
-          } else {
-            return TaskOrValue.value(Step.cont(z.refGet()));
-          }
-      }));
+      if (predicate.test(rValue)) {
+        return fr.apply(z, TaskOrValue.value(rValue));
+      } else {
+        return TaskOrValue.value(Step.cont(z.refGet()));
+      }
+    } ));
   }
 
   static final class Counter {
     int _counter;
+
     public Counter(int counter) {
       _counter = counter;
     }
+
     int inc() {
       _counter++;
       return _counter;
@@ -50,46 +53,46 @@ public interface Transducer<T, R> extends Function<Reducer<Object, R>, Reducer<O
   default Transducer<T, R> take(final int n) {
     ArgumentUtil.requirePositive(n, "number of elements to take");
     final Counter counter = new Counter(0);
-    return fr -> apply((z, r) ->
-      fr.apply(z, r).map(s -> {
-        if (counter.inc() < n) {
-          return Step.cont(s.getValue());
-        } else {
-          return Step.done(s.getValue());
-        }
-    }));
+    return fr -> apply((z, r) -> fr.apply(z, r).map(s -> {
+      if (counter.inc() < n) {
+        return Step.cont(s.getValue());
+      } else {
+        return Step.done(s.getValue());
+      }
+    } ));
   }
 
   default Transducer<T, R> drop(final int n) {
     ArgumentUtil.requirePositive(n, "number of elements to drop");
-      final Counter counter = new Counter(0);
-      return fr -> apply((z, r) ->
-      fr.apply(z, r).map(s -> {
-        if (counter.inc() <= n) {
-          return Step.cont(z.refGet());
-        } else {
-          return s;
-        }
-    }));
+    final Counter counter = new Counter(0);
+    return fr -> apply((z, r) -> fr.apply(z, r).map(s -> {
+      if (counter.inc() <= n) {
+        return Step.cont(z.refGet());
+      } else {
+        return s;
+      }
+    } ));
   }
 
   default Transducer<T, R> takeWhile(final Predicate<R> predicate) {
     //TODO
     return null;
-//    return fr -> apply((z, r) -> r.flatMap(rValue -> {
-//      if (predicate.test(rValue)) {
-//        return fr.apply(z, TaskOrValue.value(rValue));
-//      } else {
-//        return TaskOrValue.value(Step.done(z.refGet()));
-//      }
-//    }));
+    //    return fr -> apply((z, r) -> r.flatMap(rValue -> {
+    //      if (predicate.test(rValue)) {
+    //        return fr.apply(z, TaskOrValue.value(rValue));
+    //      } else {
+    //        return TaskOrValue.value(Step.done(z.refGet()));
+    //      }
+    //    }));
   }
 
   static final class Trap {
     boolean _closed = false;
+
     void trigger() {
       _closed = true;
     }
+
     boolean closed() {
       return _closed;
     }
@@ -98,17 +101,17 @@ public interface Transducer<T, R> extends Function<Reducer<Object, R>, Reducer<O
   default Transducer<T, R> dropWhile(final Predicate<R> predicate) {
     //TODO
     return null;
-//    final Trap trap = new Trap();
-//    return fr -> apply((z, r) -> r.flatMap(rValue -> {
-//      if (!trap.closed()) {
-//        if (predicate.test(rValue)) {
-//          return TaskOrValue.value(Step.cont(z.refGet()));
-//        } else {
-//          trap.trigger();
-//        }
-//      }
-//      return fr.apply(z, TaskOrValue.value(rValue));
-//    }));
+    //    final Trap trap = new Trap();
+    //    return fr -> apply((z, r) -> r.flatMap(rValue -> {
+    //      if (!trap.closed()) {
+    //        if (predicate.test(rValue)) {
+    //          return TaskOrValue.value(Step.cont(z.refGet()));
+    //        } else {
+    //          trap.trigger();
+    //        }
+    //      }
+    //      return fr.apply(z, TaskOrValue.value(rValue));
+    //    }));
   }
 
   @SuppressWarnings("rawtypes")

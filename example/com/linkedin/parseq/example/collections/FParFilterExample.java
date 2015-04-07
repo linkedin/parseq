@@ -14,29 +14,25 @@ import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.example.common.ExampleUtil;
 import com.linkedin.parseq.example.common.MockService;
 
+
 /**
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class FParFilterExample extends AbstractExample
-{
-  public static void main(String[] args) throws Exception
-  {
+public class FParFilterExample extends AbstractExample {
+  public static void main(String[] args) throws Exception {
     new FParFilterExample().runExample();
   }
 
   @Override
-  protected void doRunExample(final Engine engine) throws Exception
-  {
+  protected void doRunExample(final Engine engine) throws Exception {
     final MockService<String> httpClient = getService();
     List<String> urls = Arrays.asList("http://www.linkedin.com", "http://www.google.com", "http://www.twitter.com");
 
     Task<String> find =
         ParSeqCollection.fromValues(urls)
-          .mapTask(url -> fetchUrl(httpClient, url)
-                        .withTimeout(200, TimeUnit.MILLISECONDS)
-                        .recover("default", t -> ""))
-            .filter(s -> s.contains("google"))
-            .find(s -> s.contains("google"));
+            .mapTask(
+                url -> fetchUrl(httpClient, url).withTimeout(200, TimeUnit.MILLISECONDS).recover("default", t -> ""))
+        .filter(s -> s.contains("google")).find(s -> s.contains("google"));
 
     engine.run(find);
 

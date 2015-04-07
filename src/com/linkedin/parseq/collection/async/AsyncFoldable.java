@@ -7,6 +7,7 @@ import com.linkedin.parseq.collection.transducer.Reducer;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.TaskOrValue;
 
+
 public class AsyncFoldable<Z, T> implements Foldable<Z, T, Task<Z>> {
 
   private final Publisher<TaskOrValue<T>> _input;

@@ -21,29 +21,25 @@ import org.slf4j.ILoggerFactory;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class ListLoggerFactory implements ILoggerFactory
-{
+public class ListLoggerFactory implements ILoggerFactory {
   private final ConcurrentMap<String, ListLogger> _loggerMap = new ConcurrentHashMap<String, ListLogger>();
 
-  public void reset()
-  {
-    for (ListLogger logger : _loggerMap.values())
-    {
+  public void reset() {
+    for (ListLogger logger : _loggerMap.values()) {
       logger.reset();
     }
   }
 
   @Override
-  public ListLogger getLogger(final String loggerName)
-  {
+  public ListLogger getLogger(final String loggerName) {
     // We could use the memoizer pattern here, but given that this is for
     // test only, we'll keep this simple.
     ListLogger logger = _loggerMap.get(loggerName);
-    if (logger != null)
-    {
+    if (logger != null) {
       return logger;
     }
 

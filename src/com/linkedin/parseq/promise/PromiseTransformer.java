@@ -2,6 +2,7 @@ package com.linkedin.parseq.promise;
 
 import com.linkedin.parseq.function.Function1;
 
+
 public class PromiseTransformer<S, T> implements PromisePropagator<S, T> {
 
   private final Function1<? super S, ? extends T> _transform;
@@ -14,7 +15,7 @@ public class PromiseTransformer<S, T> implements PromisePropagator<S, T> {
   @Override
   public <R> PromisePropagator<S, R> compose(final PromisePropagator<T, R> propagator) {
     if (propagator instanceof PromiseTransformer) {
-      return doCompose((PromiseTransformer)propagator);
+      return doCompose((PromiseTransformer) propagator);
     } else {
       return PromisePropagator.super.compose(propagator);
     }
@@ -42,6 +43,6 @@ public class PromiseTransformer<S, T> implements PromisePropagator<S, T> {
 
   @SuppressWarnings("unchecked")
   public static <R> PromiseTransformer<R, R> identity() {
-    return (PromiseTransformer<R, R>)IDENTITY;
+    return (PromiseTransformer<R, R>) IDENTITY;
   }
 }

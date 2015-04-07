@@ -26,39 +26,34 @@ import org.testng.annotations.Test;
 
 import com.linkedin.parseq.internal.IdGenerator;
 
+
 /**
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class TestTraceBuilder
-{
+public class TestTraceBuilder {
 
   @Test
-  public void testAddRelationship()
-  {
-    final ShallowTraceBuilder trace1 = new ShallowTraceBuilder(IdGenerator.getNextId())
-      .setName("task1")
-      .setResultType(ResultType.UNFINISHED);
-    final ShallowTraceBuilder trace2 = new ShallowTraceBuilder(IdGenerator.getNextId())
-    .setName("task2")
-    .setResultType(ResultType.UNFINISHED);
+  public void testAddRelationship() {
+    final ShallowTraceBuilder trace1 =
+        new ShallowTraceBuilder(IdGenerator.getNextId()).setName("task1").setResultType(ResultType.UNFINISHED);
+    final ShallowTraceBuilder trace2 =
+        new ShallowTraceBuilder(IdGenerator.getNextId()).setName("task2").setResultType(ResultType.UNFINISHED);
     final TraceBuilder builder = new TraceBuilder(1024);
     builder.addRelationship(Relationship.SUCCESSOR_OF, trace1, trace2);
     Trace trace = builder.build();
     assertEquals(trace1.build(), trace.getTraceMap().get(trace1.getId()));
     assertEquals(trace2.build(), trace.getTraceMap().get(trace2.getId()));
     assertEquals(1, trace.getRelationships().size());
-    assertTrue(trace.getRelationships().contains(new TraceRelationship(trace1.getId(), trace2.getId(), Relationship.SUCCESSOR_OF)));
+    assertTrue(trace.getRelationships()
+        .contains(new TraceRelationship(trace1.getId(), trace2.getId(), Relationship.SUCCESSOR_OF)));
   }
 
   @Test
-  public void testAddRelationshipTwice()
-  {
-    final ShallowTraceBuilder trace1 = new ShallowTraceBuilder(IdGenerator.getNextId())
-    .setName("task1")
-    .setResultType(ResultType.UNFINISHED);
-    final ShallowTraceBuilder trace2 = new ShallowTraceBuilder(IdGenerator.getNextId())
-    .setName("task2")
-    .setResultType(ResultType.UNFINISHED);
+  public void testAddRelationshipTwice() {
+    final ShallowTraceBuilder trace1 =
+        new ShallowTraceBuilder(IdGenerator.getNextId()).setName("task1").setResultType(ResultType.UNFINISHED);
+    final ShallowTraceBuilder trace2 =
+        new ShallowTraceBuilder(IdGenerator.getNextId()).setName("task2").setResultType(ResultType.UNFINISHED);
     final TraceBuilder builder = new TraceBuilder(1024);
     builder.addRelationship(Relationship.SUCCESSOR_OF, trace1, trace2);
     builder.addRelationship(Relationship.SUCCESSOR_OF, trace1, trace2);
@@ -66,38 +61,34 @@ public class TestTraceBuilder
     assertEquals(trace1.build(), trace.getTraceMap().get(trace1.getId()));
     assertEquals(trace2.build(), trace.getTraceMap().get(trace2.getId()));
     assertEquals(1, trace.getRelationships().size());
-    assertTrue(trace.getRelationships().contains(new TraceRelationship(trace1.getId(), trace2.getId(), Relationship.SUCCESSOR_OF)));
+    assertTrue(trace.getRelationships()
+        .contains(new TraceRelationship(trace1.getId(), trace2.getId(), Relationship.SUCCESSOR_OF)));
   }
 
   @Test
-  public void testRelationshipRetention()
-  {
+  public void testRelationshipRetention() {
     final TraceBuilder builder = new TraceBuilder(4096);
-    for (int i = 0; i < 4096*10; i++) {
-      final ShallowTraceBuilder trace1 = new ShallowTraceBuilder(IdGenerator.getNextId())
-          .setName("task1")
-          .setResultType(ResultType.UNFINISHED);
-          final ShallowTraceBuilder trace2 = new ShallowTraceBuilder(IdGenerator.getNextId())
-          .setName("task2")
-          .setResultType(ResultType.UNFINISHED);
-          builder.addRelationship(Relationship.SUCCESSOR_OF, trace1, trace2);
+    for (int i = 0; i < 4096 * 10; i++) {
+      final ShallowTraceBuilder trace1 =
+          new ShallowTraceBuilder(IdGenerator.getNextId()).setName("task1").setResultType(ResultType.UNFINISHED);
+      final ShallowTraceBuilder trace2 =
+          new ShallowTraceBuilder(IdGenerator.getNextId()).setName("task2").setResultType(ResultType.UNFINISHED);
+      builder.addRelationship(Relationship.SUCCESSOR_OF, trace1, trace2);
     }
 
     List<TraceRelationship> rels = new ArrayList<TraceRelationship>();
     for (int i = 0; i < 4096; i++) {
-      final ShallowTraceBuilder trace1 = new ShallowTraceBuilder(IdGenerator.getNextId())
-          .setName("task1")
-          .setResultType(ResultType.UNFINISHED);
-          final ShallowTraceBuilder trace2 = new ShallowTraceBuilder(IdGenerator.getNextId())
-          .setName("task2")
-          .setResultType(ResultType.UNFINISHED);
-          builder.addRelationship(Relationship.SUCCESSOR_OF, trace1, trace2);
-          rels.add(new TraceRelationship(trace1.getId(), trace2.getId(), Relationship.SUCCESSOR_OF));
+      final ShallowTraceBuilder trace1 =
+          new ShallowTraceBuilder(IdGenerator.getNextId()).setName("task1").setResultType(ResultType.UNFINISHED);
+      final ShallowTraceBuilder trace2 =
+          new ShallowTraceBuilder(IdGenerator.getNextId()).setName("task2").setResultType(ResultType.UNFINISHED);
+      builder.addRelationship(Relationship.SUCCESSOR_OF, trace1, trace2);
+      rels.add(new TraceRelationship(trace1.getId(), trace2.getId(), Relationship.SUCCESSOR_OF));
     }
 
     Trace trace = builder.build();
     assertEquals(rels.size(), trace.getRelationships().size());
-    for (TraceRelationship rel: rels) {
+    for (TraceRelationship rel : rels) {
       assertTrue(trace.getRelationships().contains(rel));
     }
   }

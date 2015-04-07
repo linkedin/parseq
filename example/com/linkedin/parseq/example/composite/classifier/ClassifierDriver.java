@@ -29,13 +29,12 @@ import com.linkedin.parseq.example.common.ExampleUtil;
 import com.linkedin.parseq.example.composite.classifier.client.Client;
 import com.linkedin.parseq.example.composite.classifier.client.impl.ClientImpl;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class ClassifierDriver
-{
-  public static void main(String[] args) throws InterruptedException
-  {
+public class ClassifierDriver {
+  public static void main(String[] args) throws InterruptedException {
     final long viewerId = 0;
 
     final Set<Long> unclassified = new HashSet<Long>();
@@ -48,23 +47,17 @@ public class ClassifierDriver
 
     final int numCores = Runtime.getRuntime().availableProcessors();
     final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(numCores + 1);
-    final Engine engine = new EngineBuilder()
-        .setTaskExecutor(scheduler)
-        .setTimerScheduler(scheduler)
-        .build();
+    final Engine engine = new EngineBuilder().setTaskExecutor(scheduler).setTimerScheduler(scheduler).build();
 
     final ClassifierPlanFactory classifier = new ClassifierPlanFactory(restLiClient);
-    try
-    {
+    try {
       final Task<Map<Long, Classification>> classifications = classifier.classify(viewerId, unclassified);
       engine.run(classifications);
       classifications.await();
       System.out.println(classifications.get());
 
       ExampleUtil.printTracingResults(classifications);
-    }
-    finally
-    {
+    } finally {
       serviceScheduler.shutdownNow();
       engine.shutdown();
       scheduler.shutdownNow();

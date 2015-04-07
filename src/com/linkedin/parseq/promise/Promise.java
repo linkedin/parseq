@@ -18,6 +18,7 @@ package com.linkedin.parseq.promise;
 
 import java.util.concurrent.TimeUnit;
 
+
 /**
  * A Promise, like a {@link java.util.concurrent.Future}, represents the result
  * of an asynchronous computation. However, Promises are designed to work in
@@ -27,8 +28,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public interface Promise<P>
-{
+public interface Promise<P> {
   /**
    * If the promise's value is set, then this method returns the value. If the
    * promise has an error, the error is thrown, wrapped in a

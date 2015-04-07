@@ -19,20 +19,15 @@ package com.linkedin.parseq.example.legacy.composite.classifier;
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class SelfClassifier implements Classifier
-{
+public class SelfClassifier implements Classifier {
   private final long viewerId;
 
-  public SelfClassifier(final long viewerId)
-  {
+  public SelfClassifier(final long viewerId) {
     this.viewerId = viewerId;
   }
 
   @Override
-  public Classification classify(final long vieweeId)
-  {
-    return vieweeId == viewerId
-        ? Classification.FULL_VISIBILITY
-        : null;
+  public Classification classify(final long vieweeId) {
+    return vieweeId == viewerId ? Classification.FULL_VISIBILITY : null;
   }
 }

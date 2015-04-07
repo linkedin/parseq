@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+
 /**
  * A {@link Task} that will run the constructor-supplied tasks one after the other.
  * <p>
@@ -41,21 +42,17 @@ import java.util.List;
  * @see Task#andThen(String, Task) Task.andThen
  * @see Task
  */
-/* package private */ class SeqTask<T> extends SystemHiddenTask<T>
-{
+/* package private */ class SeqTask<T> extends SystemHiddenTask<T> {
   private volatile List<Task<?>> _tasks;
 
-  public SeqTask(final String name, final Iterable<? extends Task<?>> tasks)
-  {
+  public SeqTask(final String name, final Iterable<? extends Task<?>> tasks) {
     super(name);
     List<Task<?>> taskList = new ArrayList<Task<?>>();
-    for(Task<?> task : tasks)
-    {
+    for (Task<?> task : tasks) {
       taskList.add(task);
     }
 
-    if (taskList.size() == 0)
-    {
+    if (taskList.size() == 0) {
       throw new IllegalArgumentException("No tasks to sequence!");
     }
 
@@ -63,13 +60,11 @@ import java.util.List;
   }
 
   @Override
-  protected Promise<? extends T> run(final Context context) throws Exception
-  {
+  protected Promise<? extends T> run(final Context context) throws Exception {
     final SettablePromise<T> result = Promises.settable();
 
     Task<?> prevTask = _tasks.get(0);
-    for (int i = 1; i < _tasks.size(); i++)
-    {
+    for (int i = 1; i < _tasks.size(); i++) {
       final Task<?> currTask = _tasks.get(i);
       context.after(prevTask).run(currTask);
       prevTask = currTask;
@@ -78,7 +73,7 @@ import java.util.List;
     // This is unsafe, but we don't have the ability to do type checking
     // with varargs.
     @SuppressWarnings("unchecked")
-    final Task<T> typedPrevTask = (Task<T>)prevTask;
+    final Task<T> typedPrevTask = (Task<T>) prevTask;
     Promises.propagateResult(typedPrevTask, result);
     context.run(_tasks.get(0));
 

@@ -15,30 +15,25 @@ import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.example.common.ExampleUtil;
 import com.linkedin.parseq.example.common.MockService;
 
+
 /**
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class ParFilterExample extends AbstractExample
-{
-  public static void main(String[] args) throws Exception
-  {
+public class ParFilterExample extends AbstractExample {
+  public static void main(String[] args) throws Exception {
     new ParFilterExample().runExample();
   }
 
   @Override
-  protected void doRunExample(final Engine engine) throws Exception
-  {
+  protected void doRunExample(final Engine engine) throws Exception {
     final MockService<String> httpClient = getService();
     List<String> urls = Arrays.asList("http://www.linkedin.com", "http://www.google.com", "http://www.twitter.com");
 
     List<Task<String>> fetchSizes = fetchList(httpClient, urls);
 
-    Task<String> find =
-        ParSeqCollection.fromTasks(fetchSizes)
-          .filter(s -> !s.contains("google"))
-          .flatMap(z -> ParSeqCollection.fromTasks(fetchList(httpClient, urls))
-                .filter(s -> s.contains("twitter")))
-          .find(s -> s.contains("twitter"));
+    Task<String> find = ParSeqCollection.fromTasks(fetchSizes).filter(s -> !s.contains("google"))
+        .flatMap(z -> ParSeqCollection.fromTasks(fetchList(httpClient, urls)).filter(s -> s.contains("twitter")))
+        .find(s -> s.contains("twitter"));
 
     engine.run(find);
 
@@ -50,12 +45,8 @@ public class ParFilterExample extends AbstractExample
   }
 
   private List<Task<String>> fetchList(final MockService<String> httpClient, List<String> urls) {
-    List<Task<String>> fetchSizes =
-      urls.stream()
-        .map(url ->
-              fetchUrl(httpClient, url)
-                 .withTimeout(200, TimeUnit.MILLISECONDS)
-                 .recover("default", t -> ""))
+    List<Task<String>> fetchSizes = urls.stream()
+        .map(url -> fetchUrl(httpClient, url).withTimeout(200, TimeUnit.MILLISECONDS).recover("default", t -> ""))
         .collect(Collectors.toList());
     return fetchSizes;
   }

@@ -20,7 +20,6 @@ package com.linkedin.parseq.example.legacy.composite.classifier;
  * @author Chris Pettitt
  * @version $Revision$
  */
-public interface Classifier
-{
+public interface Classifier {
   Classification classify(long vieweeId);
 }

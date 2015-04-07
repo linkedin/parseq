@@ -3,6 +3,7 @@ package com.linkedin.parseq.function;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
+
 public class Failure<T> implements Try<T> {
 
   private final Throwable _error;
@@ -13,7 +14,7 @@ public class Failure<T> implements Try<T> {
 
   @Override
   public T get() {
-    throw (NoSuchElementException)new NoSuchElementException().initCause(_error);
+    throw (NoSuchElementException) new NoSuchElementException().initCause(_error);
   }
 
   @Override
@@ -37,22 +38,22 @@ public class Failure<T> implements Try<T> {
 
   @Override
   public int hashCode() {
-      return Objects.hash(_error);
+    return Objects.hash(_error);
   }
 
   @Override
   public boolean equals(Object other) {
-      if(other instanceof Failure) {
-          Failure<?> that = (Failure<?>) other;
-          return Objects.equals(this._error, that._error);
-      } else {
-          return false;
-      }
+    if (other instanceof Failure) {
+      Failure<?> that = (Failure<?>) other;
+      return Objects.equals(this._error, that._error);
+    } else {
+      return false;
+    }
   }
 
   @Override
   public String toString() {
-      return "failure(" + _error + ")";
+    return "failure(" + _error + ")";
   }
 
 }

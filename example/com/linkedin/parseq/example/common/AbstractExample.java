@@ -22,28 +22,21 @@ import com.linkedin.parseq.EngineBuilder;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public abstract class AbstractExample
-{
+public abstract class AbstractExample {
   private volatile ScheduledExecutorService _serviceScheduler;
 
-  public void runExample() throws Exception
-  {
+  public void runExample() throws Exception {
     _serviceScheduler = Executors.newScheduledThreadPool(2);
     final int numCores = Runtime.getRuntime().availableProcessors();
     final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(numCores + 1);
-    final Engine engine = new EngineBuilder()
-        .setTaskExecutor(scheduler)
-        .setTimerScheduler(scheduler)
-        .build();
-    try
-    {
+    final Engine engine = new EngineBuilder().setTaskExecutor(scheduler).setTimerScheduler(scheduler).build();
+    try {
       doRunExample(engine);
-    }
-    finally
-    {
+    } finally {
       engine.shutdown();
       scheduler.shutdownNow();
       _serviceScheduler.shutdown();
@@ -53,8 +46,7 @@ public abstract class AbstractExample
 
   protected abstract void doRunExample(Engine engine) throws Exception;
 
-  protected <T> MockService<T> getService()
-  {
+  protected <T> MockService<T> getService() {
     return new MockService<T>(_serviceScheduler);
   }
 }

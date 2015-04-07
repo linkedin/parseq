@@ -36,14 +36,14 @@ import com.linkedin.parseq.promise.SettablePromise;
 import com.linkedin.parseq.trace.Trace;
 import com.linkedin.parseq.trace.codec.json.JsonTraceCodec;
 
+
 /**
  * A base class that builds an Engine with default configuration.
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class BaseEngineTest
-{
+public class BaseEngineTest {
   private static final Logger LOG = LoggerFactory.getLogger(BaseEngineTest.class.getName());
 
   private ScheduledExecutorService _scheduler;
@@ -53,23 +53,19 @@ public class BaseEngineTest
 
   @SuppressWarnings("deprecation")
   @BeforeMethod
-  public void setUp() throws Exception
-  {
+  public void setUp() throws Exception {
     final int numCores = Runtime.getRuntime().availableProcessors();
     _scheduler = Executors.newScheduledThreadPool(numCores + 1);
     _asyncExecutor = Executors.newFixedThreadPool(2);
     _loggerFactory = new ListLoggerFactory();
-    EngineBuilder engineBuilder = new EngineBuilder()
-        .setTaskExecutor(_scheduler)
-        .setTimerScheduler(_scheduler)
-        .setLoggerFactory(_loggerFactory);
+    EngineBuilder engineBuilder =
+        new EngineBuilder().setTaskExecutor(_scheduler).setTimerScheduler(_scheduler).setLoggerFactory(_loggerFactory);
     AsyncCallableTask.register(engineBuilder, _asyncExecutor);
     _engine = engineBuilder.build();
   }
 
   @AfterMethod
-  public void tearDown() throws Exception
-  {
+  public void tearDown() throws Exception {
     _engine.shutdown();
     _engine.awaitTermination(200, TimeUnit.MILLISECONDS);
     _engine = null;
@@ -81,8 +77,7 @@ public class BaseEngineTest
     _loggerFactory = null;
   }
 
-  protected Engine getEngine()
-  {
+  protected Engine getEngine() {
     return _engine;
   }
 
@@ -94,8 +89,7 @@ public class BaseEngineTest
    * Equivalent to {@code runAndWait(desc, task, 5, TimeUnit.SECONDS)}.
    * @see #runAndWait(String, Task, long, TimeUnit)
    */
-  protected <T> T runAndWait(final String desc, Task<T> task)
-  {
+  protected <T> T runAndWait(final String desc, Task<T> task) {
     return runAndWait(desc, task, 5, TimeUnit.SECONDS);
   }
 
@@ -110,18 +104,14 @@ public class BaseEngineTest
    * @param timeUnit unit of time
    * @return value task was completed with or exception is being thrown if task failed
    */
-  protected <T> T runAndWait(final String desc, Task<T> task, long time, TimeUnit timeUnit)
-  {
-    try
-    {
+  protected <T> T runAndWait(final String desc, Task<T> task, long time, TimeUnit timeUnit) {
+    try {
       _engine.run(task);
       assertTrue(task.await(time, timeUnit));
       return task.get();
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
-    }
-    finally
-    {
+    } finally {
       logTracingResults(desc, task);
     }
   }
@@ -134,33 +124,25 @@ public class BaseEngineTest
     _engine.run(task);
   }
 
-  protected void logTracingResults(final String test, final Task<?> task)
-  {
+  protected void logTracingResults(final String test, final Task<?> task) {
     final Trace trace = task.getTrace();
 
-    try
-    {
+    try {
       LOG.info("Trace [" + test + "]: " + new JsonTraceCodec().encode(trace));
-    }
-    catch (IOException e)
-    {
+    } catch (IOException e) {
       LOG.error("Failed to encode JSON");
     }
   }
 
-
-  protected void setLogLevel(final String loggerName, final int level)
-  {
+  protected void setLogLevel(final String loggerName, final int level) {
     _loggerFactory.getLogger(loggerName).setLogLevel(level);
   }
 
-  protected List<ListLogger.Entry> getLogEntries(final String loggerName)
-  {
+  protected List<ListLogger.Entry> getLogEntries(final String loggerName) {
     return _loggerFactory.getLogger(loggerName).getEntries();
   }
 
-  protected void resetLoggers()
-  {
+  protected void resetLoggers() {
     _loggerFactory.reset();
   }
 
@@ -168,26 +150,24 @@ public class BaseEngineTest
    * Returns task which completes with given value after specified period
    * of time. Timer starts counting the moment this method is invoked.
    */
-  protected <T> Task<T> delayedValue(T value, long time, TimeUnit timeUnit)
-  {
+  protected <T> Task<T> delayedValue(T value, long time, TimeUnit timeUnit) {
     return Task.async(value.toString() + " delayed " + time + " " + TimeUnitHelper.toString(timeUnit), () -> {
       final SettablePromise<T> promise = Promises.settable();
       _scheduler.schedule(() -> promise.done(value), time, timeUnit);
       return promise;
-    }, false);
+    } , false);
   }
 
   /**
    * Returns task which fails with given error after specified period
    * of time. Timer starts counting the moment this method is invoked.
    */
-  protected <T> Task<T> delayedFailure(Throwable error, long time, TimeUnit timeUnit)
-  {
+  protected <T> Task<T> delayedFailure(Throwable error, long time, TimeUnit timeUnit) {
     return Task.async(error.toString() + " delayed " + time + " " + TimeUnitHelper.toString(timeUnit), () -> {
       final SettablePromise<T> promise = Promises.settable();
       _scheduler.schedule(() -> promise.fail(error), time, timeUnit);
       return promise;
-    }, false);
+    } , false);
   }
 
   protected int countTasks(Trace trace) {

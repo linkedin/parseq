@@ -24,14 +24,13 @@ import java.util.concurrent.TimeUnit;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class TestDelegatingPromise
-{
+public class TestDelegatingPromise {
   @Test
-  public void testGet()
-  {
+  public void testGet() {
     final Promise<String> delegate = Promises.value("value");
     final Promise<String> promise = new DelegatingPromise<String>(delegate);
     assertEquals(delegate.get(), promise.get());
@@ -39,8 +38,7 @@ public class TestDelegatingPromise
   }
 
   @Test
-  public void testGetError()
-  {
+  public void testGetError() {
     final Promise<String> delegate = Promises.error(new Exception());
     final Promise<String> promise = new DelegatingPromise<String>(delegate);
     assertEquals(delegate.getError(), promise.getError());
@@ -49,26 +47,21 @@ public class TestDelegatingPromise
   }
 
   @Test
-  public void testGetOrDefaultWithError()
-  {
+  public void testGetOrDefaultWithError() {
     final Promise<String> delegate = Promises.error(new Exception());
     final Promise<String> promise = new DelegatingPromise<String>(delegate);
-    assertEquals(delegate.getOrDefault("defaultValue"),
-                 promise.getOrDefault("defaultValue"));
+    assertEquals(delegate.getOrDefault("defaultValue"), promise.getOrDefault("defaultValue"));
   }
 
   @Test
-  public void testGetOrDefaultWithValue()
-  {
+  public void testGetOrDefaultWithValue() {
     final Promise<String> delegate = Promises.value("value");
     final Promise<String> promise = new DelegatingPromise<String>(delegate);
-    assertEquals(delegate.getOrDefault("defaulValue"),
-                 promise.getOrDefault("defaultValue"));
+    assertEquals(delegate.getOrDefault("defaulValue"), promise.getOrDefault("defaultValue"));
   }
 
   @Test
-  public void testAwait() throws InterruptedException
-  {
+  public void testAwait() throws InterruptedException {
     final SettablePromise<String> delegate = Promises.settable();
     final Promise<String> promise = new DelegatingPromise<String>(delegate);
 
@@ -80,18 +73,15 @@ public class TestDelegatingPromise
   }
 
   @Test
-  public void testAddListener() throws InterruptedException
-  {
+  public void testAddListener() throws InterruptedException {
     final SettablePromise<String> delegate = Promises.settable();
     final Promise<String> promise = new DelegatingPromise<String>(delegate);
 
     final String value = "value";
     final CountDownLatch cdl = new CountDownLatch(1);
-    promise.addListener(new PromiseListener<String>()
-    {
+    promise.addListener(new PromiseListener<String>() {
       @Override
-      public void onResolved(Promise<String> resolvedPromise)
-      {
+      public void onResolved(Promise<String> resolvedPromise) {
         cdl.countDown();
       }
     });

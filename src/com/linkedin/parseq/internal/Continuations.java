@@ -3,6 +3,7 @@ package com.linkedin.parseq.internal;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
+
 /**
  * This class allows running the following code structure:
  * <pre><code>
@@ -61,7 +62,7 @@ public class Continuations {
         while (!conts._scheduled.isEmpty()) {
           final Runnable next = conts._scheduled.pollFirst();
           next.run();
-          while(!conts._active.isEmpty()) {
+          while (!conts._active.isEmpty()) {
             conts._scheduled.addFirst(conts._active.pollLast());
           }
         }

@@ -4,13 +4,16 @@ import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 
+
 public class Exceptions {
 
-  public static final Exception EARLY_FINISH_EXCEPTION = sanitize(new EarlyFinishException("Task execution cancelled because it's promise was already completed"));
+  public static final Exception EARLY_FINISH_EXCEPTION =
+      sanitize(new EarlyFinishException("Task execution cancelled because it's promise was already completed"));
   public static final Exception TIMEOUT_EXCEPTION = sanitize(new TimeoutException());
   public static final Exception NO_SUCH_ELEMENT_EXCEPTION = sanitize(new NoSuchElementException());
 
-  private Exceptions() {}
+  private Exceptions() {
+  }
 
   private static Exception sanitize(Exception e) {
     // Clear out everything but the last frame
@@ -26,7 +29,7 @@ public class Exceptions {
   }
 
   private static Exception addCause(Exception e, Throwable cause) {
-    return (Exception)e.initCause(cause);
+    return (Exception) e.initCause(cause);
   }
 
   public static Exception noSuchElement(final Throwable cause) {

@@ -22,12 +22,10 @@ package com.linkedin.parseq;
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class EngineShutdownException extends Exception
-{
+public class EngineShutdownException extends Exception {
   private static final long serialVersionUID = 0L;
 
-  public EngineShutdownException(final String message)
-  {
+  public EngineShutdownException(final String message) {
     super(message);
   }
 }

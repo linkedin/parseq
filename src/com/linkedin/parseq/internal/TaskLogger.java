@@ -25,6 +25,7 @@ import com.linkedin.parseq.trace.ShallowTrace;
 
 import org.slf4j.Logger;
 
+
 /**
  * The trace logger will log to the first logger in the following sequence that
  * accepts debug or trace logging.
@@ -39,11 +40,11 @@ import org.slf4j.Logger;
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class TaskLogger
-{
+public class TaskLogger {
   private static final String START_TASK_FORMAT = "[plan={}]: Starting task '{}'";
   private static final String END_TASK_DEBUG_FORMAT = "[plan={}]: Ending task '{}'. Elapsed: {}ms, Result type: {}.";
-  private static final String END_TASK_TRACE_FORMAT = "[plan={}]: Ending task '{}'. Elapsed: {}ms, Result type: {}. Value: {}.";
+  private static final String END_TASK_TRACE_FORMAT =
+      "[plan={}]: Ending task '{}'. Elapsed: {}ms, Result type: {}. Value: {}.";
 
   /**
    * The id of a root task for the plan. Used to determine if a given task should be
@@ -62,9 +63,8 @@ public class TaskLogger
 
   private final Long _planId;
 
-  public TaskLogger(final Long planId, final Long rootId, final Logger allLogger,
-                    final Logger rootLogger, final Logger planLogger)
-  {
+  public TaskLogger(final Long planId, final Long rootId, final Logger allLogger, final Logger rootLogger,
+      final Logger planLogger) {
     _allLogger = allLogger;
     _rootLogger = rootLogger;
     _planLogger = planLogger;
@@ -72,62 +72,35 @@ public class TaskLogger
     _planId = planId;
   }
 
-  public void logTaskStart(final Task<?> task)
-  {
-    if (_planLogger.isDebugEnabled())
-    {
+  public void logTaskStart(final Task<?> task) {
+    if (_planLogger.isDebugEnabled()) {
       _planLogger.debug(START_TASK_FORMAT, _planId, task.getName());
-    }
-    else if (_rootLogger.isDebugEnabled() && _rootId.equals(task.getId()))
-    {
+    } else if (_rootLogger.isDebugEnabled() && _rootId.equals(task.getId())) {
       _rootLogger.debug(START_TASK_FORMAT, _planId, task.getName());
-    }
-    else if (_allLogger.isDebugEnabled())
-    {
+    } else if (_allLogger.isDebugEnabled()) {
       _allLogger.debug(START_TASK_FORMAT, _planId, task.getName());
     }
   }
 
-  public <T> void logTaskEnd(final Task<T> task, final Function<T, String> traceValueProvider)
-  {
-    if (_planLogger.isTraceEnabled())
-    {
-      _planLogger.trace(END_TASK_TRACE_FORMAT,
-          new Object[]{_planId, task.getName(),
-              elapsedMillis(task),
-              ResultType.fromTask(task), stringValue(task, traceValueProvider)});
-    }
-    else if (_planLogger.isDebugEnabled())
-    {
+  public <T> void logTaskEnd(final Task<T> task, final Function<T, String> traceValueProvider) {
+    if (_planLogger.isTraceEnabled()) {
+      _planLogger.trace(END_TASK_TRACE_FORMAT, new Object[] { _planId, task.getName(), elapsedMillis(task), ResultType
+          .fromTask(task), stringValue(task, traceValueProvider) });
+    } else if (_planLogger.isDebugEnabled()) {
       _planLogger.debug(END_TASK_DEBUG_FORMAT,
-                        new Object[] {_planId, task.getName(),
-                                      elapsedMillis(task), ResultType.fromTask(task)});
-    }
-    else if (_rootId.equals(task.getId()) && _rootLogger.isTraceEnabled())
-    {
-      _rootLogger.trace(END_TASK_TRACE_FORMAT,
-          new Object[]{_planId, task.getName(),
-              elapsedMillis(task),
-              ResultType.fromTask(task), stringValue(task, traceValueProvider)});
-    }
-    else if (_rootId.equals(task.getId()) && _rootLogger.isDebugEnabled())
-    {
+          new Object[] { _planId, task.getName(), elapsedMillis(task), ResultType.fromTask(task) });
+    } else if (_rootId.equals(task.getId()) && _rootLogger.isTraceEnabled()) {
+      _rootLogger.trace(END_TASK_TRACE_FORMAT, new Object[] { _planId, task.getName(), elapsedMillis(task), ResultType
+          .fromTask(task), stringValue(task, traceValueProvider) });
+    } else if (_rootId.equals(task.getId()) && _rootLogger.isDebugEnabled()) {
       _rootLogger.debug(END_TASK_DEBUG_FORMAT,
-                        new Object[] {_planId, task.getName(),
-                            elapsedMillis(task), ResultType.fromTask(task)});
-    }
-    else if (_allLogger.isTraceEnabled())
-    {
-      _allLogger.trace(END_TASK_TRACE_FORMAT,
-                       new Object[] {_planId, task.getName(),
-                           elapsedMillis(task),
-                           ResultType.fromTask(task), stringValue(task, traceValueProvider)});
-    }
-    else if (_allLogger.isDebugEnabled())
-    {
+          new Object[] { _planId, task.getName(), elapsedMillis(task), ResultType.fromTask(task) });
+    } else if (_allLogger.isTraceEnabled()) {
+      _allLogger.trace(END_TASK_TRACE_FORMAT, new Object[] { _planId, task.getName(), elapsedMillis(task), ResultType
+          .fromTask(task), stringValue(task, traceValueProvider) });
+    } else if (_allLogger.isDebugEnabled()) {
       _allLogger.debug(END_TASK_DEBUG_FORMAT,
-                       new Object[] {_planId, task.getName(),
-                           elapsedMillis(task), ResultType.fromTask(task)});
+          new Object[] { _planId, task.getName(), elapsedMillis(task), ResultType.fromTask(task) });
     }
   }
 
@@ -146,8 +119,7 @@ public class TaskLogger
     return "null";
   }
 
-  private long elapsedMillis(final Task<?> task)
-  {
+  private long elapsedMillis(final Task<?> task) {
     final ShallowTrace trace = task.getShallowTrace();
     return (trace.getEndNanos() - trace.getStartNanos()) / 1000000;
   }

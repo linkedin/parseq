@@ -1,6 +1,5 @@
 package com.linkedin.parseq.trace;
 
-
 /**
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */

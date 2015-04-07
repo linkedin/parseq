@@ -25,6 +25,7 @@ import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.example.common.ExampleUtil;
 import com.linkedin.parseq.function.Tuples;
 
+
 /**
  * The merge sort example demonstrates how branching and recursive plan
  * execution work. It is not intended as a model for doing parallel
@@ -32,10 +33,8 @@ import com.linkedin.parseq.function.Tuples;
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class MergeSortExample extends AbstractExample
-{
-  public static void main(String[] args) throws Exception
-  {
+public class MergeSortExample extends AbstractExample {
+  public static void main(String[] args) throws Exception {
     new MergeSortExample().runExample();
   }
 
@@ -64,9 +63,8 @@ public class MergeSortExample extends AbstractExample
       // Neither base case applied, so recursively split this problem into
       // smaller problems and then merge the results.
       return Task.callable("split", () -> Tuples.tuple(range.firstHalf(), range.secondHalf()))
-        .flatMap(ranges ->
-           Task.par(mergeSort(toSort, ranges._1()), mergeSort(toSort, ranges._2()))
-              .map("merge", parts -> merge(ranges._1(), parts._1(), ranges._2(), parts._2())));
+          .flatMap(ranges -> Task.par(mergeSort(toSort, ranges._1()), mergeSort(toSort, ranges._2())).map("merge",
+              parts -> merge(ranges._1(), parts._1(), ranges._2(), parts._2())));
     }
   }
 

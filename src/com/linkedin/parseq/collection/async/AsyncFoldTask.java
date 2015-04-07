@@ -15,10 +15,11 @@ import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 
+
 /**
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class AsyncFoldTask<Z, T> extends BaseTask<Z> implements Ref<Z> {
+public class AsyncFoldTask<Z, T> extends BaseTask<Z>implements Ref<Z> {
 
   private Publisher<TaskOrValue<T>> _tasks;
   private boolean _streamingComplete = false;
@@ -40,8 +41,7 @@ public class AsyncFoldTask<Z, T> extends BaseTask<Z> implements Ref<Z> {
   //TODO: when result is resolved, then tasks should be early finished, not started?
 
   @Override
-  protected Promise<? extends Z> run(final Context context) throws Exception
-  {
+  protected Promise<? extends Z> run(final Context context) throws Exception {
     final SettablePromise<Z> result = Promises.settable();
 
     _tasks.subscribe(new Subscriber<TaskOrValue<T>>() {
@@ -81,13 +81,13 @@ public class AsyncFoldTask<Z, T> extends BaseTask<Z> implements Ref<Z> {
                 _pending--;
                 onNextStep(p.get());
               }
-            });
-          scheduleTask(step.getTask(), context, AsyncFoldTask.this);
-//            scheduleTask(fusedPropgatingTask("reduce", step.getTask(),
-//                s -> {
-//                  _pending--;
-//                  onNextStep(s);
-//                }), context, AsyncFoldTask.this);
+            } );
+            scheduleTask(step.getTask(), context, AsyncFoldTask.this);
+            //            scheduleTask(fusedPropgatingTask("reduce", step.getTask(),
+            //                s -> {
+            //                  _pending--;
+            //                  onNextStep(s);
+            //                }), context, AsyncFoldTask.this);
           } else {
             onNextStep(step.getValue());
           }
@@ -100,41 +100,39 @@ public class AsyncFoldTask<Z, T> extends BaseTask<Z> implements Ref<Z> {
 
       private void onNextTask(Task<T> task) {
         _pending++;
-        scheduleTask(fusedPropgatingTask("step", task,
-            t -> {
-              _pending--;
-              onNextValue(TaskOrValue.value(t));
-            }), context, AsyncFoldTask.this);
+        scheduleTask(fusedPropgatingTask("step", task, t -> {
+          _pending--;
+          onNextValue(TaskOrValue.value(t));
+        } ), context, AsyncFoldTask.this);
       }
 
-      private <A> FusionTask<?, A> fusedPropgatingTask(final String description, final Task<A> task, final Consumer<A> consumer) {
-        return FusionTask.fuse(description, task,
-            (p, t) -> {
-              try
-              {
-                //propagate result
-                if (p.isFailed()) {
-                  t.fail(p.getError());
-                } else {
-                  t.done(p.get());
-                }
-              } finally {
-                if (!result.isDone()) {
-                  if (p.isFailed()) {
-                    _subscription.cancel();
-                    _partialResult = null;
-                    result.fail(p.getError());
-                  } else {
-                    consumer.accept(p.get());
-                  }
-                } else {
-                  /**
-                   * result is resolved, it means that stream has completed or
-                   * it has been cancelled
-                   */
-                }
+      private <A> FusionTask<?, A> fusedPropgatingTask(final String description, final Task<A> task,
+          final Consumer<A> consumer) {
+        return FusionTask.fuse(description, task, (p, t) -> {
+          try {
+            //propagate result
+            if (p.isFailed()) {
+              t.fail(p.getError());
+            } else {
+              t.done(p.get());
+            }
+          } finally {
+            if (!result.isDone()) {
+              if (p.isFailed()) {
+                _subscription.cancel();
+                _partialResult = null;
+                result.fail(p.getError());
+              } else {
+                consumer.accept(p.get());
               }
-            }, Optional.empty());
+            } else {
+              /**
+               * result is resolved, it means that stream has completed or
+               * it has been cancelled
+               */
+            }
+          }
+        } , Optional.empty());
       }
 
       /**

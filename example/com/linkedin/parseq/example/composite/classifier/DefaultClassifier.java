@@ -19,18 +19,15 @@ package com.linkedin.parseq.example.composite.classifier;
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class DefaultClassifier implements Classifier
-{
+public class DefaultClassifier implements Classifier {
   private static DefaultClassifier INSTANCE = new DefaultClassifier();
 
-  public static DefaultClassifier instance()
-  {
+  public static DefaultClassifier instance() {
     return INSTANCE;
   }
 
   @Override
-  public Classification classify(final long vieweeId)
-  {
+  public Classification classify(final long vieweeId) {
     return Classification.NO_VISIBILITY;
   }
 }

@@ -1,7 +1,6 @@
 package com.linkedin.parseq.collection.async;
 
-
-public class PushablePublisher<T> implements Publisher<T>{
+public class PushablePublisher<T> implements Publisher<T> {
   private Subscriber<? super T> _subscriber;
   private final Subscription _subscription;
 

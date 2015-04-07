@@ -20,6 +20,7 @@ import java.util.Map;
 
 import com.linkedin.parseq.internal.ArgumentUtil;
 
+
 /**
  * A shallow trace is a trace without any relationship information. Use
  * {@link ShallowTraceBuilder} to construct new instances of this class.
@@ -30,8 +31,7 @@ import com.linkedin.parseq.internal.ArgumentUtil;
  * @author Chi Chan (ckchan@linkedin.com)
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class ShallowTraceImp implements ShallowTrace
-{
+public class ShallowTraceImp implements ShallowTrace {
   private final Long _id;
   private final String _name;
   private final boolean _hidden;
@@ -43,17 +43,9 @@ public class ShallowTraceImp implements ShallowTrace
   private final Long _endNanos;
   private final Map<String, String> _attributes;
 
-  /* package private */ ShallowTraceImp(final Long id,
-                                     final String name,
-                                     final boolean hidden,
-                                     final boolean systemHidden,
-                                     final ResultType resultType,
-                                     final String value,
-                                     final Long startNanos,
-                                     final Long pendingNanos,
-                                     final Long endNanos,
-                                     final Map<String, String> attributes)
-  {
+  /* package private */ ShallowTraceImp(final Long id, final String name, final boolean hidden,
+      final boolean systemHidden, final ResultType resultType, final String value, final Long startNanos,
+      final Long pendingNanos, final Long endNanos, final Map<String, String> attributes) {
     ArgumentUtil.requireNotNull(id, "id");
     ArgumentUtil.requireNotNull(name, "name");
     ArgumentUtil.requireNotNull(resultType, "resultType");
@@ -69,11 +61,9 @@ public class ShallowTraceImp implements ShallowTrace
     _systemHidden = systemHidden;
     _attributes = attributes;
 
-    switch (resultType)
-    {
+    switch (resultType) {
       case EARLY_FINISH:
-        if (value != null)
-        {
+        if (value != null) {
           throw new IllegalArgumentException("value cannot be set if the task is finished early");
         }
         ArgumentUtil.requireNotNull(startNanos, "startNanos");
@@ -87,8 +77,7 @@ public class ShallowTraceImp implements ShallowTrace
         ArgumentUtil.requireNotNull(endNanos, "endNanos");
         break;
       case UNFINISHED:
-        if (value != null)
-        {
+        if (value != null) {
           throw new IllegalArgumentException("value cannot be set if the task is UNFINISHED");
         }
         break;
@@ -96,8 +85,7 @@ public class ShallowTraceImp implements ShallowTrace
         throw new IllegalArgumentException("Unexpected result type: " + resultType);
     }
 
-    if (startNanos != null && resultType != ResultType.UNFINISHED)
-    {
+    if (startNanos != null && resultType != ResultType.UNFINISHED) {
       ArgumentUtil.requireNotNull(pendingNanos, "pendingNanos");
       ArgumentUtil.requireNotNull(endNanos, "endNanos");
     }
@@ -107,8 +95,7 @@ public class ShallowTraceImp implements ShallowTrace
    * @see com.linkedin.parseq.trace.ShallowTraceI#getName()
    */
   @Override
-  public String getName()
-  {
+  public String getName() {
     return _name;
   }
 
@@ -116,8 +103,7 @@ public class ShallowTraceImp implements ShallowTrace
    * @see com.linkedin.parseq.trace.ShallowTraceI#getHidden()
    */
   @Override
-  public boolean getHidden()
-  {
+  public boolean getHidden() {
     return _hidden;
   }
 
@@ -125,8 +111,7 @@ public class ShallowTraceImp implements ShallowTrace
    * @see com.linkedin.parseq.trace.ShallowTraceI#getSystemHidden()
    */
   @Override
-  public boolean getSystemHidden()
-  {
+  public boolean getSystemHidden() {
     return _systemHidden;
   }
 
@@ -134,8 +119,7 @@ public class ShallowTraceImp implements ShallowTrace
    * @see com.linkedin.parseq.trace.ShallowTraceI#getValue()
    */
   @Override
-  public String getValue()
-  {
+  public String getValue() {
     return _value;
   }
 
@@ -143,8 +127,7 @@ public class ShallowTraceImp implements ShallowTrace
    * @see com.linkedin.parseq.trace.ShallowTraceI#getResultType()
    */
   @Override
-  public ResultType getResultType()
-  {
+  public ResultType getResultType() {
     return _resultType;
   }
 
@@ -152,8 +135,7 @@ public class ShallowTraceImp implements ShallowTrace
    * @see com.linkedin.parseq.trace.ShallowTraceI#getStartNanos()
    */
   @Override
-  public Long getStartNanos()
-  {
+  public Long getStartNanos() {
     return _startNanos;
   }
 
@@ -161,8 +143,7 @@ public class ShallowTraceImp implements ShallowTrace
    * @see com.linkedin.parseq.trace.ShallowTraceI#getPendingNanos()
    */
   @Override
-  public Long getPendingNanos()
-  {
+  public Long getPendingNanos() {
     return _pendingNanos;
   }
 
@@ -170,8 +151,7 @@ public class ShallowTraceImp implements ShallowTrace
    * @see com.linkedin.parseq.trace.ShallowTraceI#getEndNanos()
    */
   @Override
-  public Long getEndNanos()
-  {
+  public Long getEndNanos() {
     return _endNanos;
   }
 
@@ -179,8 +159,7 @@ public class ShallowTraceImp implements ShallowTrace
    * @see com.linkedin.parseq.trace.ShallowTraceI#getAttributes()
    */
   @Override
-  public Map<String,String> getAttributes()
-  {
+  public Map<String, String> getAttributes() {
     return _attributes;
   }
 
@@ -264,9 +243,9 @@ public class ShallowTraceImp implements ShallowTrace
 
   @Override
   public String toString() {
-    return "ShallowTrace [id=" + _id + ", name=" + _name + ", hidden=" + _hidden + ", systemHidden="
-        + _systemHidden + ", resultType=" + _resultType + ", value=" + _value + ", startNanos=" + _startNanos
-        + ", pendingNanos=" + _pendingNanos + ", endNanos=" + _endNanos + ", attributes=" + _attributes + "]";
+    return "ShallowTrace [id=" + _id + ", name=" + _name + ", hidden=" + _hidden + ", systemHidden=" + _systemHidden
+        + ", resultType=" + _resultType + ", value=" + _value + ", startNanos=" + _startNanos + ", pendingNanos="
+        + _pendingNanos + ", endNanos=" + _endNanos + ", attributes=" + _attributes + "]";
   }
 
 }

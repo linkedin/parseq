@@ -25,19 +25,16 @@ import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 
-public class Par8Task<T1, T2, T3, T4, T5, T6, T7, T8> extends SystemHiddenTask<Tuple8<T1, T2, T3, T4, T5, T6, T7, T8>> implements Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8>
-{
+public class Par8Task<T1, T2, T3, T4, T5, T6, T7, T8> extends SystemHiddenTask<Tuple8<T1, T2, T3, T4, T5, T6, T7, T8>> implements Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> {
   private final Tuple8<Task<T1>, Task<T2>, Task<T3>, Task<T4>, Task<T5>, Task<T6>, Task<T7>, Task<T8>> _tasks;
 
-  public Par8Task(final String name, Task<T1> task1, Task<T2> task2, Task<T3> task3, Task<T4> task4, Task<T5> task5, Task<T6> task6, Task<T7> task7, Task<T8> task8)
-  {
+  public Par8Task(final String name, Task<T1> task1, Task<T2> task2, Task<T3> task3, Task<T4> task4, Task<T5> task5, Task<T6> task6, Task<T7> task7, Task<T8> task8) {
     super(name);
     _tasks = tuple(task1, task2, task3, task4, task5, task6, task7, task8);
   }
 
   @Override
-  protected Promise<Tuple8<T1, T2, T3, T4, T5, T6, T7, T8>> run(final Context context) throws Exception
-  {
+  protected Promise<Tuple8<T1, T2, T3, T4, T5, T6, T7, T8>> run(final Context context) throws Exception {
     final SettablePromise<Tuple8<T1, T2, T3, T4, T5, T6, T7, T8>> result = Promises.settable();
 
     InternalUtil.fastFailAfter(p -> {

@@ -19,22 +19,18 @@ package com.linkedin.parseq.example.composite.classifier;
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class NetworkClassifier implements Classifier
-{
+public class NetworkClassifier implements Classifier {
   private final Network _subnet;
 
-  public NetworkClassifier(final Network subnet)
-  {
+  public NetworkClassifier(final Network subnet) {
     _subnet = subnet;
   }
 
   @Override
-  public Classification classify(final long vieweeId)
-  {
+  public Classification classify(final long vieweeId) {
     final Network.Distance distance = _subnet.getDistance(vieweeId);
 
     return Network.Distance.D2.equals(distance) || Network.Distance.D3.equals(distance)
-        ? Classification.PARTIAL_VISIBILITY
-        : null;
+        ? Classification.PARTIAL_VISIBILITY : null;
   }
 }

@@ -27,26 +27,24 @@ import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.trace.Trace;
 import com.linkedin.parseq.trace.codec.json.JsonTraceCodec;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class ExampleUtil
-{
+public class ExampleUtil {
   private static final Random RANDOM = new Random();
   private static final int DEFAULT_LATENCY_MEAN = 100;
   private static final int DEFAULT_LATENCY_STDDEV = 50;
   private static final int LATENCY_MIN = 10;
 
-  private ExampleUtil() {}
+  private ExampleUtil() {
+  }
 
-  public static <RES> Task<RES> callService(final String name,
-                                            final MockService<RES> service,
-                                            final MockRequest<RES> request)
-  {
+  public static <RES> Task<RES> callService(final String name, final MockService<RES> service,
+      final MockRequest<RES> request) {
     return new BaseTask<RES>(name) {
       @Override
-      protected Promise<RES> run(final Context context) throws Exception
-      {
+      protected Promise<RES> run(final Context context) throws Exception {
         return service.call(request);
       }
     };
@@ -55,50 +53,43 @@ public class ExampleUtil
   public static <T> Task<T> fetch(String name, final MockService<T> service, final int id, final Map<Integer, T> map) {
     final long mean = DEFAULT_LATENCY_MEAN;
     final long stddev = DEFAULT_LATENCY_STDDEV;
-    final long latency = Math.max(LATENCY_MIN, (int)(RANDOM.nextGaussian() * stddev + mean));
-    final MockRequest<T> request = (map.containsKey(id)) ?
-        new SimpleMockRequest<T>(latency, map.get(id)) :
-        new ErrorMockRequest<T>(latency, new Exception("404"));
+    final long latency = Math.max(LATENCY_MIN, (int) (RANDOM.nextGaussian() * stddev + mean));
+    final MockRequest<T> request = (map.containsKey(id)) ? new SimpleMockRequest<T>(latency, map.get(id))
+        : new ErrorMockRequest<T>(latency, new Exception("404"));
     return callService("fetch" + name + "[id=" + id + "]", service, request);
   }
 
-  public static Task<String> fetchUrl(final MockService<String> httpClient,
-                                      final String url)
-  {
+  public static Task<String> fetchUrl(final MockService<String> httpClient, final String url) {
     final long mean = DEFAULT_LATENCY_MEAN;
     final long stddev = DEFAULT_LATENCY_STDDEV;
-    final long latency = Math.max(LATENCY_MIN, (int)(RANDOM.nextGaussian() * stddev + mean));
-    return callService("fetch[url=" + url + "]", httpClient, new SimpleMockRequest<String>(latency, "HTTP response for " + url));
+    final long latency = Math.max(LATENCY_MIN, (int) (RANDOM.nextGaussian() * stddev + mean));
+    return callService("fetch[url=" + url + "]", httpClient,
+        new SimpleMockRequest<String>(latency, "HTTP response for " + url));
   }
 
   public static Task<String> fetchUrl(final MockService<String> httpClient, final String url, final long latency) {
-    return callService("fetch[url=" + url + "]", httpClient, new SimpleMockRequest<String>(latency,
-        "HTTP response for " + url));
+    return callService("fetch[url=" + url + "]", httpClient,
+        new SimpleMockRequest<String>(latency, "HTTP response for " + url));
   }
 
-  public static Task<String> fetch404Url(final MockService<String> httpClient,
-                                         final String url)
-  {
+  public static Task<String> fetch404Url(final MockService<String> httpClient, final String url) {
     final long mean = DEFAULT_LATENCY_MEAN;
     final long stddev = DEFAULT_LATENCY_STDDEV;
-    final long latency = Math.max(LATENCY_MIN, (int)(RANDOM.nextGaussian() * stddev + mean));
-    return callService("fetch[url=" + url + "]", httpClient, new ErrorMockRequest<String>(latency, new Exception(url + ": 404")));
+    final long latency = Math.max(LATENCY_MIN, (int) (RANDOM.nextGaussian() * stddev + mean));
+    return callService("fetch[url=" + url + "]", httpClient,
+        new ErrorMockRequest<String>(latency, new Exception(url + ": 404")));
   }
 
-  public static void printTracingResults(final Task<?> task)
-  {
+  public static void printTracingResults(final Task<?> task) {
     final Trace trace = task.getTrace();
 
     System.out.println();
     System.out.println();
     System.out.println("JSON Trace:");
 
-    try
-    {
+    try {
       System.out.println(new JsonTraceCodec().encode(trace));
-    }
-    catch (IOException e)
-    {
+    } catch (IOException e) {
       System.err.println("Failed to encode JSON");
     }
     System.out.println();

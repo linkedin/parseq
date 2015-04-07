@@ -31,37 +31,31 @@ import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.example.common.MockService;
 import com.linkedin.parseq.example.common.SimpleMockRequest;
 
+
 /**
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class FixedTimeBoundSearchExample extends AbstractExample
-{
+public class FixedTimeBoundSearchExample extends AbstractExample {
   // How long it takes to get a response for each request
   private static final List<Long> REQUEST_LATENCIES = Arrays.asList(175L, 67L, 30L, 20L, 177L, 350L);
 
-  public static void main(String[] args) throws Exception
-  {
+  public static void main(String[] args) throws Exception {
     new FixedTimeBoundSearchExample().runExample();
   }
 
   @Override
-  protected void doRunExample(final Engine engine) throws Exception
-  {
+  protected void doRunExample(final Engine engine) throws Exception {
     final MockService<Integer> service = getService();
 
     AtomicInteger idx = new AtomicInteger();
-    Task<List<Integer>> example =
-        ParSeqCollection.fromValues(REQUEST_LATENCIES)
-          .mapTask(requestLatency -> callService("subSearch[" + idx.get() + "]",
-                                      service,
-                                      new SimpleMockRequest<Integer>(requestLatency, idx.getAndIncrement())))
-          .within(200, TimeUnit.MILLISECONDS)
-          .toList();
+    Task<List<Integer>> example = ParSeqCollection.fromValues(REQUEST_LATENCIES)
+        .mapTask(requestLatency -> callService("subSearch[" + idx.get() + "]", service,
+            new SimpleMockRequest<Integer>(requestLatency, idx.getAndIncrement())))
+        .within(200, TimeUnit.MILLISECONDS).toList();
 
     System.out.printf("This com.linkedin.asm.example will issue %d parallel requests\n", REQUEST_LATENCIES.size());
     System.out.println();
-    for (int i = 0; i < REQUEST_LATENCIES.size(); i++)
-    {
+    for (int i = 0; i < REQUEST_LATENCIES.size(); i++) {
       System.out.printf("Request %d will take %3dms to complete\n", i, REQUEST_LATENCIES.get(i));
     }
 

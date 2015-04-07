@@ -19,6 +19,7 @@ package com.linkedin.parseq.internal;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
+
 /**
  * An executor that provides the following guarantees:
  * <p>
@@ -37,16 +38,14 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class SerialExecutor implements Executor
-{
+public class SerialExecutor implements Executor {
   private final Executor _executor;
   private final RejectedSerialExecutionHandler _rejectionHandler;
   private final ExecutorLoop _executorLoop = new ExecutorLoop();
   private final FIFOPriorityQueue<Runnable> _queue = new FIFOPriorityQueue<Runnable>();
   private final AtomicInteger _pendingCount = new AtomicInteger();
 
-  public SerialExecutor(final Executor executor, final RejectedSerialExecutionHandler rejectionHandler)
-  {
+  public SerialExecutor(final Executor executor, final RejectedSerialExecutionHandler rejectionHandler) {
     assert executor != null;
     assert rejectionHandler != null;
 
@@ -54,32 +53,24 @@ public class SerialExecutor implements Executor
     _rejectionHandler = rejectionHandler;
   }
 
-  public void execute(final Runnable runnable)
-  {
+  public void execute(final Runnable runnable) {
     _queue.add(runnable);
-    if (_pendingCount.getAndIncrement() == 0)
-    {
+    if (_pendingCount.getAndIncrement() == 0) {
       tryExecuteLoop();
     }
   }
 
-  private void tryExecuteLoop()
-  {
-    try
-    {
+  private void tryExecuteLoop() {
+    try {
       _executor.execute(_executorLoop);
-    }
-    catch (Throwable t)
-    {
+    } catch (Throwable t) {
       _rejectionHandler.rejectedExecution(t);
     }
   }
 
-  private class ExecutorLoop implements Runnable
-  {
+  private class ExecutorLoop implements Runnable {
     @Override
-    public void run()
-    {
+    public void run() {
       // This runnable is only scheduled when the queue is non-empty.
       final Runnable runnable = _queue.poll();
 
@@ -91,17 +82,13 @@ public class SerialExecutor implements Executor
       // this because there is no other happens-before guarantee when a new
       // task is added while this executor is currently processing a task.
       _pendingCount.get();
-      try
-      {
+      try {
         runnable.run();
-      }
-      finally
-      {
+      } finally {
         // In addition to its obvious use, this CAS operation acts like an
         // exit from a monitor for memory consistency purposes. See the note
         // above for more details.
-        if (_pendingCount.decrementAndGet() > 0)
-        {
+        if (_pendingCount.decrementAndGet() > 0) {
           tryExecuteLoop();
         }
       }

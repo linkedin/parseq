@@ -26,6 +26,7 @@ import com.linkedin.parseq.promise.PromiseListener;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 
+
 /**
  * A {@link Task} that will attempt to run the given task within the given
  * timeout. If the timeout expires then this task will fail with a
@@ -38,15 +39,13 @@ import com.linkedin.parseq.promise.SettablePromise;
  * @see Task#withTimeout(long, TimeUnit) Task.withTimeout
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-/* package private */ @Deprecated class TimeoutWithErrorTask<T> extends BaseTask<T>
-{
+/* package private */ @Deprecated
+class TimeoutWithErrorTask<T> extends BaseTask<T> {
   private final long _time;
   private final TimeUnit _unit;
   private final Task<T> _task;
 
-  public TimeoutWithErrorTask(final String name, final long time,
-                              final TimeUnit unit, final Task<T> task)
-  {
+  public TimeoutWithErrorTask(final String name, final long time, final TimeUnit unit, final Task<T> task) {
     super(name);
     _time = time;
     _unit = unit;
@@ -54,18 +53,14 @@ import com.linkedin.parseq.promise.SettablePromise;
   }
 
   @Override
-  protected Promise<? extends T> run(final Context context) throws Exception
-  {
+  protected Promise<? extends T> run(final Context context) throws Exception {
     final SettablePromise<T> result = Promises.settable();
     final AtomicBoolean committed = new AtomicBoolean();
 
-    final Task<?> timeoutTask = Task.action("timeoutTimer", new Action()
-    {
+    final Task<?> timeoutTask = Task.action("timeoutTimer", new Action() {
       @Override
-      public void run()
-      {
-        if (committed.compareAndSet(false, true))
-        {
+      public void run() {
+        if (committed.compareAndSet(false, true)) {
           result.fail(new TimeoutException());
         }
       }
@@ -74,13 +69,10 @@ import com.linkedin.parseq.promise.SettablePromise;
     context.createTimer(_time, _unit, timeoutTask);
     context.run(_task);
 
-    _task.addListener(new PromiseListener<T>()
-    {
+    _task.addListener(new PromiseListener<T>() {
       @Override
-      public void onResolved(Promise<T> resolvedPromise)
-      {
-        if (committed.compareAndSet(false, true))
-        {
+      public void onResolved(Promise<T> resolvedPromise) {
+        if (committed.compareAndSet(false, true)) {
           Promises.propagateResult(_task, result);
         }
       }

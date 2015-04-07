@@ -18,27 +18,24 @@ package com.linkedin.parseq.example.composite.classifier.client.impl;
 
 import com.linkedin.parseq.example.composite.classifier.Network;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class GetNetworkRequest extends AbstractRequest<Network>
-{
+public class GetNetworkRequest extends AbstractRequest<Network> {
   private final long _memberId;
 
-  public GetNetworkRequest(final long memberId)
-  {
+  public GetNetworkRequest(final long memberId) {
     _memberId = memberId;
   }
 
   @Override
-  public Network getResponse()
-  {
+  public Network getResponse() {
     return new Network(_memberId);
   }
 
   @Override
-  public String getName()
-  {
+  public String getName() {
     return "getNetwork";
   }
 }

@@ -6,17 +6,15 @@ import org.testng.annotations.Test;
 
 import com.linkedin.parseq.function.Try;
 
+
 /**
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class TestWithTry extends BaseEngineTest
-{
+public class TestWithTry extends BaseEngineTest {
 
   @Test
-  public void testHappyPath() throws InterruptedException
-  {
-    final Task<Try<String>> task = Task.callable("test", () -> "hello")
-        .toTry();
+  public void testHappyPath() throws InterruptedException {
+    final Task<Try<String>> task = Task.callable("test", () -> "hello").toTry();
 
     runAndWait("TestWithTry.testHappyPath", task);
 
@@ -25,15 +23,14 @@ public class TestWithTry extends BaseEngineTest
   }
 
   @Test
-  public void testError() throws InterruptedException
-  {
+  public void testError() throws InterruptedException {
     @SuppressWarnings("unused")
     final Task<Try<String>> task = Task.callable("test", () -> {
       if (true) {
         throw new RuntimeException("boom");
       }
       return "hello";
-    }).toTry();
+    } ).toTry();
 
     runAndWait("TestWithTry.testError", task);
 

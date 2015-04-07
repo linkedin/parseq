@@ -26,39 +26,32 @@ import java.util.Random;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class ClientImpl implements Client
-{
+public class ClientImpl implements Client {
   private static final int LATENCY_MIN = 10;
 
   private final ScheduledExecutorService scheduler;
   private final Random random = new Random();
 
-  public ClientImpl(final ScheduledExecutorService scheduler)
-  {
+  public ClientImpl(final ScheduledExecutorService scheduler) {
     this.scheduler = scheduler;
   }
 
   @Override
-  public <T> Promise<T> sendRequest(final Request<T> request)
-  {
+  public <T> Promise<T> sendRequest(final Request<T> request) {
     final SettablePromise<T> promise = Promises.settable();
     final int mean = request.getLatencyMean();
     final int stddev = request.getLatencyStdDev();
-    final int latency = Math.max(LATENCY_MIN, (int)(random.nextGaussian() * stddev + mean));
-    scheduler.schedule(new Runnable()
-    {
+    final int latency = Math.max(LATENCY_MIN, (int) (random.nextGaussian() * stddev + mean));
+    scheduler.schedule(new Runnable() {
       @Override
-      public void run()
-      {
-        try
-        {
+      public void run() {
+        try {
           promise.done(request.getResponse());
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
           promise.fail(e);
         }
       }

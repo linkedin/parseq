@@ -12,35 +12,30 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+
 /**
  * @author  Zhenkai Zhu
  */
-public class TestCachedLoggerFactory
-{
+public class TestCachedLoggerFactory {
 
   @Test
-  public void testCaching() throws Exception
-  {
+  public void testCaching() throws Exception {
     CountingLoggerFactory loggerFactory = new CountingLoggerFactory();
     final ILoggerFactory cachedFactory = new CachedLoggerFactory(loggerFactory);
 
     ExecutorService executorService = Executors.newFixedThreadPool(5);
     CountDownLatch startRace = new CountDownLatch(1);
     CountDownLatch stopRace = new CountDownLatch(5);
-    for (int i = 0; i < 5; i++)
-    {
+    for (int i = 0; i < 5; i++) {
       executorService.submit(() -> {
-        try
-        {
+        try {
           startRace.await();
           cachedFactory.getLogger("com.linkedin.parseq.Task");
           stopRace.countDown();
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
           Assert.fail();
         }
-      });
+      } );
     }
     // start race
     startRace.countDown();
@@ -48,20 +43,17 @@ public class TestCachedLoggerFactory
     Assert.assertEquals(loggerFactory.getCount(), 1);
   }
 
-  private static class CountingLoggerFactory implements ILoggerFactory
-  {
+  private static class CountingLoggerFactory implements ILoggerFactory {
     private final AtomicInteger _count = new AtomicInteger(0);
     private final ILoggerFactory _loggerFactory = LoggerFactory.getILoggerFactory();
 
     @Override
-    public Logger getLogger(String s)
-    {
+    public Logger getLogger(String s) {
       _count.incrementAndGet();
       return _loggerFactory.getLogger(s);
     }
 
-    public int getCount()
-    {
+    public int getCount() {
       return _count.get();
     }
   }

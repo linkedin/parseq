@@ -19,25 +19,21 @@ package com.linkedin.parseq.example.common;
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class ErrorMockRequest<T> implements MockRequest<T>
-{
+public class ErrorMockRequest<T> implements MockRequest<T> {
   private final long _latency;
   private final Exception _error;
 
-  public ErrorMockRequest(final long latency, final Exception error)
-  {
+  public ErrorMockRequest(final long latency, final Exception error) {
     _latency = latency;
     _error = error;
   }
 
-  public long getLatency()
-  {
+  public long getLatency() {
     return _latency;
   }
 
   @Override
-  public T getResult() throws Exception
-  {
+  public T getResult() throws Exception {
     throw _error;
   }
 

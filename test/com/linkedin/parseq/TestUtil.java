@@ -23,47 +23,38 @@ import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.spi.LoggerRepository;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class TestUtil
-{
-  private TestUtil() {}
-
-  public static Task<?> noop()
-  {
-    return Task.action("noop", () -> {});
+public class TestUtil {
+  private TestUtil() {
   }
 
+  public static Task<?> noop() {
+    return Task.action("noop", () -> {
+    } );
+  }
 
-  public static void assertThrows(final Class<? extends Exception> exceptionClass,
-                                  final ThrowingRunnable runnable)
-  {
-    try
-    {
+  public static void assertThrows(final Class<? extends Exception> exceptionClass, final ThrowingRunnable runnable) {
+    try {
       runnable.run();
-    }
-    catch (Exception e)
-    {
+    } catch (Exception e) {
       assertTrue("Expected exception: " + exceptionClass.getName() + " but got: " + e.getClass().getName(),
-                 exceptionClass.isInstance(e));
+          exceptionClass.isInstance(e));
       return;
     }
     fail("Should have thrown " + exceptionClass.getName());
   }
 
-  public static void withDisabledLogging(final Runnable r)
-  {
+  public static void withDisabledLogging(final Runnable r) {
     // Note: this assumes we're using Log4J and needs to be fixed up if this changes.
     final LoggerRepository loggerRepo = LogManager.getLoggerRepository();
     final Level oldLevel = loggerRepo.getThreshold();
     loggerRepo.setThreshold(Level.OFF);
-    try
-    {
+    try {
       r.run();
-    }
-    finally
-    {
+    } finally {
       loggerRepo.setThreshold(oldLevel);
     }
   }

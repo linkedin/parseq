@@ -169,7 +169,7 @@ public interface TaskOrValue<T> {
     }
 
     @Override
-    public <A> TaskOrValue<A> map(Function1<T, A> func){
+    public <A> TaskOrValue<A> map(Function1<T, A> func) {
       try {
         return value(func.apply(getValue()));
       } catch (Exception e) {

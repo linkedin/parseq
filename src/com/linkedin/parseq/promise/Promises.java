@@ -20,6 +20,7 @@ import com.linkedin.parseq.function.Failure;
 import com.linkedin.parseq.function.Success;
 import com.linkedin.parseq.function.Try;
 
+
 /**
  * This class provides a set of static helper methods that make it easier to
  * work with {@link Promise}s.
@@ -27,11 +28,11 @@ import com.linkedin.parseq.function.Try;
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class Promises
-{
+public class Promises {
   public static final Promise<Void> VOID = value(null);
 
-  private Promises() {}
+  private Promises() {
+  }
 
   /**
    * Creates a new promise that is already resolved with the given value.
@@ -41,8 +42,7 @@ public class Promises
    * @return the promise
    */
   @SuppressWarnings("unchecked")
-  public static <T> Promise<T> value(final T value)
-  {
+  public static <T> Promise<T> value(final T value) {
     if (value == null) {
       if (VOID == null) {
         return new ResolvedValue<T>(value);
@@ -60,8 +60,7 @@ public class Promises
    * @param <T> the type of the value for the promise
    * @return the promise
    */
-  public static <T> Promise<T> error(final Throwable error)
-  {
+  public static <T> Promise<T> error(final Throwable error) {
     return new ResolvedError<T>(error);
   }
 
@@ -71,8 +70,7 @@ public class Promises
    * @param <T> the type of the value for the promise
    * @return the promise
    */
-  public static <T> SettablePromise<T> settable()
-  {
+  public static <T> SettablePromise<T> settable() {
     return new SettablePromiseImpl<T>();
   }
 
@@ -84,15 +82,12 @@ public class Promises
    * @param dest the destination promise
    * @param <T> the value type for both promises
    */
-  public static <T> void propagateResult(final Promise<T> source,
-                                         final Settable<T> dest)
-  {
+  public static <T> void propagateResult(final Promise<T> source, final Settable<T> dest) {
     source.addListener(new TransformingPromiseListener<T, T>(dest, PromiseTransformer.identity()));
   }
 
-  public static <T> void propagateResult(final Promise<T> source,
-      final SettablePromise<T> dest) {
-    propagateResult(source, ((Settable<T>)dest));
+  public static <T> void propagateResult(final Promise<T> source, final SettablePromise<T> dest) {
+    propagateResult(source, ((Settable<T>) dest));
   }
 
   /**

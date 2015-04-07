@@ -20,38 +20,32 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class TruthMapRequest extends AbstractRequest<Map<Long, Boolean>>
-{
+public class TruthMapRequest extends AbstractRequest<Map<Long, Boolean>> {
   private final String _name;
   private final int _remainder;
   private final Set<Long> _memberIds;
 
-  public TruthMapRequest(final String name,
-                         final int remainder,
-                         final Set<Long> memberIds)
-  {
+  public TruthMapRequest(final String name, final int remainder, final Set<Long> memberIds) {
     _name = name;
     _remainder = remainder;
     _memberIds = memberIds;
   }
 
   @Override
-  public Map<Long, Boolean> getResponse()
-  {
+  public Map<Long, Boolean> getResponse() {
     final Map<Long, Boolean> result = new HashMap<Long, Boolean>();
-    for (Long memberId : _memberIds)
-    {
+    for (Long memberId : _memberIds) {
       result.put(memberId, memberId % 10 == _remainder);
     }
     return result;
   }
 
   @Override
-  public String getName()
-  {
+  public String getName() {
     return _name;
   }
 }

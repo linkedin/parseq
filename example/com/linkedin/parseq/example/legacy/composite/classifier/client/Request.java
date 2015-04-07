@@ -19,8 +19,7 @@ package com.linkedin.parseq.example.legacy.composite.classifier.client;
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public interface Request<T>
-{
+public interface Request<T> {
   T getResponse();
 
   int getLatencyMean();

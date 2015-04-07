@@ -21,8 +21,7 @@ package com.linkedin.parseq;
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public interface Cancellable
-{
+public interface Cancellable {
   /**
    * Attempts to cancel the object with the given reason. Check the return
    * value to determine if cancellation was successful. Subsequent calls to

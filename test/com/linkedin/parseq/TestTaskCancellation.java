@@ -26,11 +26,11 @@ import org.testng.annotations.Test;
 
 import com.linkedin.parseq.promise.Promises;
 
+
 /**
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class TestTaskCancellation extends BaseEngineTest
-{
+public class TestTaskCancellation extends BaseEngineTest {
 
   @Test
   public void testTaskCancellationAfterRun() throws InterruptedException {
@@ -40,13 +40,13 @@ public class TestTaskCancellation extends BaseEngineTest
     Task<?> uncompleted = Task.async(() -> {
       runLatch.countDown();
       return Promises.settable();
-    }, false);
+    } , false);
     uncompleted.addListener(p -> {
       if (p.isFailed() && Exceptions.isCancellation(p.getError())) {
         cancelActionValue.set(p.getError().getCause());
       }
       listenerLatch.countDown();
-    });
+    } );
     getEngine().run(uncompleted);
     runLatch.await(5, TimeUnit.SECONDS);
     Exception cancelReason = new Exception();
@@ -64,7 +64,7 @@ public class TestTaskCancellation extends BaseEngineTest
       if (p.isFailed() && Exceptions.isCancellation(p.getError())) {
         cancelActionValue.set(p.getError().getCause());
       }
-    });
+    } );
     Exception cancelReason = new Exception();
     assertTrue(uncompleted.cancel(cancelReason));
     getEngine().run(uncompleted);
@@ -81,7 +81,7 @@ public class TestTaskCancellation extends BaseEngineTest
       if (p.isFailed() && Exceptions.isCancellation(p.getError())) {
         cancelActionValue.set(p.getError().getCause());
       }
-    });
+    } );
     runAndWait("TestTaskCancellation.testTaskCancellationAfterCompleted", completed);
     Exception cancelReason = new Exception();
     assertFalse(completed.cancel(cancelReason));
@@ -97,17 +97,15 @@ public class TestTaskCancellation extends BaseEngineTest
     Task<Integer> uncompleted = Task.async(() -> {
       runLatch.countDown();
       return Promises.settable();
-    }, false);
+    } , false);
     uncompleted.addListener(p -> {
       if (p.isFailed() && Exceptions.isCancellation(p.getError())) {
         cancelActionValue.set(p.getError().getCause());
       }
       listenerLatch.countDown();
-    });
-    Task<?> task = Task.par(completed, uncompleted)
-        .map((x, y) -> x + y)
-        .withTimeout(10, TimeUnit.MILLISECONDS)
-        .recover(e -> 0);
+    } );
+    Task<?> task =
+        Task.par(completed, uncompleted).map((x, y) -> x + y).withTimeout(10, TimeUnit.MILLISECONDS).recover(e -> 0);
     runAndWait("TestTaskCancellation.testTaskCancellationPar", task);
     listenerLatch.await(5, TimeUnit.SECONDS);
 
@@ -122,17 +120,15 @@ public class TestTaskCancellation extends BaseEngineTest
     Task<Integer> uncompleted = Task.async(() -> {
       runLatch.countDown();
       return Promises.settable();
-    }, false);
+    } , false);
     uncompleted.addListener(p -> {
       if (p.isFailed() && Exceptions.isCancellation(p.getError())) {
         cancelActionValue.set(p.getError().getCause());
       }
       listenerLatch.countDown();
-    });
+    } );
 
-    Task<?> task = uncompleted
-        .withTimeout(10, TimeUnit.MILLISECONDS)
-        .recover(e -> 0);
+    Task<?> task = uncompleted.withTimeout(10, TimeUnit.MILLISECONDS).recover(e -> 0);
     runAndWait("TestTaskCancellation.testTaskCancellationTimeout", task);
     listenerLatch.await(5, TimeUnit.SECONDS);
 

@@ -10,20 +10,18 @@ import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.example.common.MockService;
 import com.linkedin.parseq.example.common.SimpleMockRequest;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class BranchExecutedExample extends AbstractExample
-{
-  public static void main(String[] args) throws Exception
-  {
+public class BranchExecutedExample extends AbstractExample {
+  public static void main(String[] args) throws Exception {
     new BranchExecutedExample().runExample();
   }
 
   @Override
-  protected void doRunExample(final Engine engine) throws Exception
-  {
+  protected void doRunExample(final Engine engine) throws Exception {
     final MockService<Integer> serviceX = getService();
     final Task<Integer> fetchX = fetchX(serviceX, 24);
 
@@ -34,7 +32,7 @@ public class BranchExecutedExample extends AbstractExample
       } else {
         return fetchX;
       }
-    });
+    } );
 
     engine.run(bigX);
 
@@ -45,14 +43,11 @@ public class BranchExecutedExample extends AbstractExample
     printTracingResults(bigX);
   }
 
-  private static Task<Integer> add(final int x, final int toAdd)
-  {
+  private static Task<Integer> add(final int x, final int toAdd) {
     return Task.callable("add " + toAdd, () -> x + toAdd);
   }
 
-  private Task<Integer> fetchX(final MockService<Integer> serviceX,
-                                      final int x)
-  {
+  private Task<Integer> fetchX(final MockService<Integer> serviceX, final int x) {
     return callService("fetch x (x := " + x + ")", serviceX, new SimpleMockRequest<Integer>(10, x));
   }
 }

@@ -10,19 +10,17 @@ import com.linkedin.parseq.example.common.MockService;
 import static com.linkedin.parseq.Tasks.par;
 import static com.linkedin.parseq.example.common.ExampleUtil.fetchUrl;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class FanOutExample extends AbstractExample
-{
-  public static void main(String[] args) throws Exception
-  {
+public class FanOutExample extends AbstractExample {
+  public static void main(String[] args) throws Exception {
     new FanOutExample().runExample();
   }
 
   @Override
-  protected void doRunExample(final Engine engine) throws Exception
-  {
+  protected void doRunExample(final Engine engine) throws Exception {
     final MockService<String> httpClient = getService();
     final Task<String> fetchBing = fetchUrl(httpClient, "http://www.bing.com");
     final Task<String> fetchYahoo = fetchUrl(httpClient, "http://www.yahoo.com");

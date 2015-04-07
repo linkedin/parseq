@@ -26,18 +26,17 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class TestTaskLogging extends BaseEngineTest
-{
+public class TestTaskLogging extends BaseEngineTest {
   private static final String ALL_LOGGER = Engine.LOGGER_BASE + ":all";
   private static final String ROOT_LOGGER = Engine.LOGGER_BASE + ":root";
   private static final String PLAN_CLASS_LOGGER = Engine.LOGGER_BASE + ":planClass=";
 
   @Test
-  public void testSingleTaskWithDefaultLogging() throws InterruptedException
-  {
+  public void testSingleTaskWithDefaultLogging() throws InterruptedException {
     final Task<?> task = TestUtil.noop();
     runAndWait("TestTaskLogging.testSingleTaskWithDefaultLogging", task);
 
@@ -47,19 +46,14 @@ public class TestTaskLogging extends BaseEngineTest
   }
 
   @Test
-  public void testSingleTaskCombinations() throws InterruptedException
-  {
+  public void testSingleTaskCombinations() throws InterruptedException {
     final String taskValue = "value";
 
-    final String[] loggers = new String[] {
-        ALL_LOGGER, ROOT_LOGGER, planClassLogger(Task.value("dummy", "dummy"))
-    };
+    final String[] loggers = new String[] { ALL_LOGGER, ROOT_LOGGER, planClassLogger(Task.value("dummy", "dummy")) };
     final int[] levels = new int[] { ListLogger.LEVEL_DEBUG, ListLogger.LEVEL_TRACE };
 
-    for(String logger : loggers)
-    {
-      for (int level : levels)
-      {
+    for (String logger : loggers) {
+      for (int level : levels) {
         resetLoggers();
 
         final Task<?> task = Task.value("t1", taskValue);
@@ -67,14 +61,10 @@ public class TestTaskLogging extends BaseEngineTest
         setLogLevel(logger, level);
         runAndWait("TestTaskLogging.testSingleTaskCombinations", task);
 
-        for (String checkLogger : loggers)
-        {
-          if (logger.equals(checkLogger))
-          {
+        for (String checkLogger : loggers) {
+          if (logger.equals(checkLogger)) {
             assertTaskLogged(task, taskValue, checkLogger, level);
-          }
-          else
-          {
+          } else {
             assertEquals(Collections.emptyList(), getLogEntries(checkLogger));
           }
         }
@@ -83,20 +73,16 @@ public class TestTaskLogging extends BaseEngineTest
   }
 
   @Test
-  public void testSingleTaskWithErrorCombinations() throws InterruptedException
-  {
+  public void testSingleTaskWithErrorCombinations() throws InterruptedException {
     final String errorMsg = "this task has failed";
     final Exception exception = new Exception(errorMsg);
 
-    final String[] loggers = new String[] {
-        ALL_LOGGER, ROOT_LOGGER, planClassLogger(Task.failure("dummy", exception))
-    };
+    final String[] loggers =
+        new String[] { ALL_LOGGER, ROOT_LOGGER, planClassLogger(Task.failure("dummy", exception)) };
     final int[] levels = new int[] { ListLogger.LEVEL_DEBUG, ListLogger.LEVEL_TRACE };
 
-    for(String logger : loggers)
-    {
-      for (int level : levels)
-      {
+    for (String logger : loggers) {
+      for (int level : levels) {
         resetLoggers();
 
         final Task<?> task = Task.failure("t1", exception);
@@ -109,14 +95,10 @@ public class TestTaskLogging extends BaseEngineTest
           assertEquals(exception, task.getError());
         }
 
-        for (String checkLogger : loggers)
-        {
-          if (logger.equals(checkLogger))
-          {
+        for (String checkLogger : loggers) {
+          if (logger.equals(checkLogger)) {
             assertTaskLogged(task, errorMsg, checkLogger, level);
-          }
-          else
-          {
+          } else {
             assertEquals(Collections.emptyList(), getLogEntries(checkLogger));
           }
         }
@@ -125,8 +107,7 @@ public class TestTaskLogging extends BaseEngineTest
   }
 
   @Test
-  public void testCompositeTaskWithAllLoggerTrace() throws InterruptedException
-  {
+  public void testCompositeTaskWithAllLoggerTrace() throws InterruptedException {
     final Task<?> child1 = Task.value("t1", "value");
     child1.setTraceValueSerializer(Object::toString);
     final Task<?> child2 = TestUtil.noop();
@@ -141,8 +122,7 @@ public class TestTaskLogging extends BaseEngineTest
   }
 
   @Test
-  public void testCompositeTaskWithRootLoggerTrace() throws InterruptedException
-  {
+  public void testCompositeTaskWithRootLoggerTrace() throws InterruptedException {
     final Task<?> child1 = Task.value("t1", "value");
     final Task<?> child2 = TestUtil.noop();
     final Task<?> parent = Tasks.seq(child1, child2);
@@ -157,8 +137,7 @@ public class TestTaskLogging extends BaseEngineTest
   }
 
   @Test
-  public void testCompositeTaskWithPlanClassLoggerTrace() throws InterruptedException
-  {
+  public void testCompositeTaskWithPlanClassLoggerTrace() throws InterruptedException {
     final Task<?> child1 = Task.value("t1", "value");
     child1.setTraceValueSerializer(Object::toString);
     final Task<?> child2 = TestUtil.noop();
@@ -174,40 +153,29 @@ public class TestTaskLogging extends BaseEngineTest
     assertTaskLogged(child2, "null", planClassLogger, ListLogger.LEVEL_TRACE);
   }
 
-  private void assertTaskLogged(final Task<?> task,
-                                final String taskValue,
-                                final String loggerName,
-                                final int level) throws InterruptedException
-  {
-    if (level != ListLogger.LEVEL_TRACE && level != ListLogger.LEVEL_DEBUG)
-    {
+  private void assertTaskLogged(final Task<?> task, final String taskValue, final String loggerName, final int level)
+      throws InterruptedException {
+    if (level != ListLogger.LEVEL_TRACE && level != ListLogger.LEVEL_DEBUG) {
       throw new IllegalArgumentException("Log level is not trace or debug");
     }
 
-    retryAssertions(5, 20, new Runnable()
-    {
+    retryAssertions(5, 20, new Runnable() {
       @Override
-      public void run()
-      {
+      public void run() {
         final List<ListLogger.Entry> entries = getLogEntries(loggerName);
         final int startIdx = assertHasStartLog(loggerName, task, entries);
-        final int endIdx = level == ListLogger.LEVEL_TRACE
-            ? assertHasTraceEndLog(loggerName, task, taskValue, entries)
+        final int endIdx = level == ListLogger.LEVEL_TRACE ? assertHasTraceEndLog(loggerName, task, taskValue, entries)
             : assertHasDebugEndLog(loggerName, task, entries);
 
-        assertTrue("Start should happen before end. Start: " + startIdx + " End: " + endIdx,
-                   startIdx < endIdx);
+        assertTrue("Start should happen before end. Start: " + startIdx + " End: " + endIdx, startIdx < endIdx);
       }
     });
   }
 
-  private int assertHasStartLog(String loggerName, Task<?> task, List<ListLogger.Entry> entries)
-  {
-    for (int i = 0; i < entries.size(); i++)
-    {
+  private int assertHasStartLog(String loggerName, Task<?> task, List<ListLogger.Entry> entries) {
+    for (int i = 0; i < entries.size(); i++) {
       final String message = entries.get(i).getMessage();
-      if (message.contains("Starting task") && message.contains(task.getName()))
-      {
+      if (message.contains("Starting task") && message.contains(task.getName())) {
         return i;
       }
     }
@@ -216,14 +184,11 @@ public class TestTaskLogging extends BaseEngineTest
     throw new RuntimeException("Execution never gets here - see preceding fail");
   }
 
-  private int assertHasDebugEndLog(String loggerName, Task<?> task, List<ListLogger.Entry> entries)
-  {
-    for (int i = 0; i < entries.size(); i++)
-    {
+  private int assertHasDebugEndLog(String loggerName, Task<?> task, List<ListLogger.Entry> entries) {
+    for (int i = 0; i < entries.size(); i++) {
       final String message = entries.get(i).getMessage();
-      if (message.contains("Ending task") && message.contains(task.getName()) &&
-          message.contains(ResultType.fromTask(task).toString()))
-      {
+      if (message.contains("Ending task") && message.contains(task.getName())
+          && message.contains(ResultType.fromTask(task).toString())) {
         return i;
       }
     }
@@ -232,34 +197,26 @@ public class TestTaskLogging extends BaseEngineTest
     throw new RuntimeException("Execution never gets here - see preceding fail");
   }
 
-  private int assertHasTraceEndLog(String loggerName, Task<?> task, String taskValue, List<ListLogger.Entry> entries)
-  {
+  private int assertHasTraceEndLog(String loggerName, Task<?> task, String taskValue, List<ListLogger.Entry> entries) {
     final int i = assertHasDebugEndLog(loggerName, task, entries);
     final String message = entries.get(i).getMessage();
     assertContains(taskValue, message);
     return i;
   }
 
-  private static void assertContains(String substring, String actual)
-  {
+  private static void assertContains(String substring, String actual) {
     assertTrue("Actual string '" + actual + "' does not contain substring '" + substring + "'",
-               actual.contains(substring));
+        actual.contains(substring));
   }
 
   // Retries a runnable with asserts until all the asserts pass or
   // retries * delayMillis has passed.
-  private static void retryAssertions(int retries, int delayMillis,
-                                      Runnable runnable) throws InterruptedException
-  {
-    for (int i = 0; i < retries; i++)
-    {
-      try
-      {
+  private static void retryAssertions(int retries, int delayMillis, Runnable runnable) throws InterruptedException {
+    for (int i = 0; i < retries; i++) {
+      try {
         runnable.run();
         return;
-      }
-      catch (AssertionError t)
-      {
+      } catch (AssertionError t) {
         // Swallow and retry after sleep
         Thread.sleep(delayMillis);
       }
@@ -268,8 +225,7 @@ public class TestTaskLogging extends BaseEngineTest
     runnable.run();
   }
 
-  private static String planClassLogger(Task<?> plan)
-  {
+  private static String planClassLogger(Task<?> plan) {
     return PLAN_CLASS_LOGGER + plan.getClass().getName();
   }
 }

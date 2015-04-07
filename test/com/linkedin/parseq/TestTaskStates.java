@@ -43,25 +43,23 @@ import com.linkedin.parseq.promise.SettablePromise;
 import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.TraceBuilder;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class TestTaskStates
-{
+public class TestTaskStates {
   private static Task<?> NO_PARENT = null;
   private static Collection<Task<?>> NO_PREDECESSORS = Collections.emptySet();
 
   @Test
-  public void testInit()
-  {
+  public void testInit() {
     final Task<?> task = TestUtil.noop();
     assertInitOrScheduled(task);
     assertEquals(0, task.getPriority());
   }
 
   @Test
-  public void testSetPriorityAfterInit()
-  {
+  public void testSetPriorityAfterInit() {
     final int newPriority = 5;
     final Task<?> task = TestUtil.noop();
 
@@ -71,8 +69,7 @@ public class TestTaskStates
   }
 
   @Test
-  public void testCancelAfterInit()
-  {
+  public void testCancelAfterInit() {
     final Task<?> task = TestUtil.noop();
     final Exception reason = new Exception();
 
@@ -81,8 +78,7 @@ public class TestTaskStates
   }
 
   @Test
-  public void testCancelAfterCancel()
-  {
+  public void testCancelAfterCancel() {
     final Task<?> task = TestUtil.noop();
     final Exception reason1 = new Exception();
     final Exception reason2 = new Exception();
@@ -94,14 +90,11 @@ public class TestTaskStates
   }
 
   @Test
-  public void testRun() throws InterruptedException
-  {
+  public void testRun() throws InterruptedException {
     final String result = "result";
-    final Task<String> task = callable("task", new Callable<String>()
-    {
+    final Task<String> task = callable("task", new Callable<String>() {
       @Override
-      public String call() throws Exception
-      {
+      public String call() throws Exception {
         return result;
       }
     });
@@ -114,15 +107,12 @@ public class TestTaskStates
   }
 
   @Test
-  public void testRunAfterRun() throws InterruptedException
-  {
+  public void testRunAfterRun() throws InterruptedException {
     final AtomicInteger runCount = new AtomicInteger();
     final SettablePromise<Void> promise = Promises.settable();
-    final Task<Void> task = new BaseTask<Void>()
-    {
+    final Task<Void> task = new BaseTask<Void>() {
       @Override
-      protected Promise<? extends Void> run(final Context context) throws Exception
-      {
+      protected Promise<? extends Void> run(final Context context) throws Exception {
         runCount.getAndIncrement();
         return promise;
       }
@@ -147,14 +137,11 @@ public class TestTaskStates
   }
 
   @Test
-  public void testRunWithSyncError() throws InterruptedException
-  {
+  public void testRunWithSyncError() throws InterruptedException {
     final Exception exception = new Exception();
-    final Task<String> task = callable("task", new Callable<String>()
-    {
+    final Task<String> task = callable("task", new Callable<String>() {
       @Override
-      public String call() throws Exception
-      {
+      public String call() throws Exception {
         throw exception;
       }
     });
@@ -167,14 +154,11 @@ public class TestTaskStates
   }
 
   @Test
-  public void testRunWithAsyncError() throws InterruptedException
-  {
+  public void testRunWithAsyncError() throws InterruptedException {
     final Exception exception = new Exception();
-    final Task<String> task = new BaseTask<String>()
-    {
+    final Task<String> task = new BaseTask<String>() {
       @Override
-      public Promise<String> run(final Context context) throws Exception
-      {
+      public Promise<String> run(final Context context) throws Exception {
         final SettablePromise<String> promise = Promises.settable();
         promise.fail(exception);
         return promise;
@@ -189,14 +173,11 @@ public class TestTaskStates
   }
 
   @Test
-  public void testSetPriorityAfterRun() throws InterruptedException
-  {
+  public void testSetPriorityAfterRun() throws InterruptedException {
     final String result = "result";
-    final Task<String> task = Tasks.callable("task", new Callable<String>()
-    {
+    final Task<String> task = Tasks.callable("task", new Callable<String>() {
       @Override
-      public String call() throws Exception
-      {
+      public String call() throws Exception {
         return result;
       }
     });
@@ -212,8 +193,7 @@ public class TestTaskStates
   }
 
   @Test
-  public void testCancelAfterRun() throws InterruptedException
-  {
+  public void testCancelAfterRun() throws InterruptedException {
     final String result = "result";
 
     // Used to wait for the task to start running
@@ -222,22 +202,18 @@ public class TestTaskStates
     // Used to finish the sync task
     final CountDownLatch finishLatch = new CountDownLatch(1);
 
-    final Task<String> task = callable("task", new Callable<String>()
-    {
+    final Task<String> task = callable("task", new Callable<String>() {
       @Override
-      public String call() throws Exception
-      {
+      public String call() throws Exception {
         startLatch.countDown();
         finishLatch.await();
         return result;
       }
     });
 
-    final Thread thread = new Thread(new Runnable()
-    {
+    final Thread thread = new Thread(new Runnable() {
       @Override
-      public void run()
-      {
+      public void run() {
         runTask(task);
       }
     });
@@ -258,24 +234,19 @@ public class TestTaskStates
   }
 
   @Test
-  public void testCancelAfterPending() throws InterruptedException
-  {
+  public void testCancelAfterPending() throws InterruptedException {
     final SettablePromise<String> promise = Promises.settable();
 
-    final Task<String> task = new BaseTask<String>()
-    {
+    final Task<String> task = new BaseTask<String>() {
       @Override
-      public Promise<String> run(final Context context) throws Exception
-      {
+      public Promise<String> run(final Context context) throws Exception {
         return promise;
       }
     };
 
-    final Thread thread = new Thread(new Runnable()
-    {
+    final Thread thread = new Thread(new Runnable() {
       @Override
-      public void run()
-      {
+      public void run() {
         runTask(task);
       }
     });
@@ -293,14 +264,11 @@ public class TestTaskStates
   }
 
   @Test
-  public void testCancelAfterDone() throws InterruptedException
-  {
+  public void testCancelAfterDone() throws InterruptedException {
     final String result = "result";
-    final Task<String> task = callable("task", new Callable<String>()
-    {
+    final Task<String> task = callable("task", new Callable<String>() {
       @Override
-      public String call() throws Exception
-      {
+      public String call() throws Exception {
         return result;
       }
     });
@@ -316,69 +284,53 @@ public class TestTaskStates
     assertDone(task, result);
   }
 
-  private void runTask(final Task<?> task)
-  {
+  private void runTask(final Task<?> task) {
     task.contextRun(new NullContext(), NO_PARENT, NO_PREDECESSORS);
   }
 
-  private void assertInitOrScheduled(final Task<?> task)
-  {
+  private void assertInitOrScheduled(final Task<?> task) {
     assertFalse(task.isDone());
     assertFalse(task.isFailed());
     assertNull(task.getShallowTrace().getStartNanos());
     assertNull(task.getShallowTrace().getEndNanos());
 
-    try
-    {
+    try {
       task.get();
       fail("Should have thrown PromiseUnresolvedException");
-    }
-    catch (PromiseUnresolvedException e)
-    {
+    } catch (PromiseUnresolvedException e) {
       // Expected case
     }
 
-    try
-    {
+    try {
       task.getError();
       fail("Should have thrown PromiseUnresolvedException");
-    }
-    catch (PromiseUnresolvedException e)
-    {
+    } catch (PromiseUnresolvedException e) {
       // Expected case
     }
   }
 
-  private void assertRunOrPending(final Task<?> task)
-  {
+  private void assertRunOrPending(final Task<?> task) {
     assertFalse(task.isDone());
     assertFalse(task.isFailed());
     assertTrue(task.getShallowTrace().getStartNanos() > 0);
     assertNotNull(task.getShallowTrace().getEndNanos());
 
-    try
-    {
+    try {
       task.get();
       fail("Should have thrown PromiseUnresolvedException");
-    }
-    catch (PromiseUnresolvedException e)
-    {
+    } catch (PromiseUnresolvedException e) {
       // Expected case
     }
 
-    try
-    {
+    try {
       task.getError();
       fail("Should have thrown PromiseUnresolvedException");
-    }
-    catch (PromiseUnresolvedException e)
-    {
+    } catch (PromiseUnresolvedException e) {
       // Expected case
     }
   }
 
-  private <T> void assertDone(final Task<T> task, final T expectedValue)
-  {
+  private <T> void assertDone(final Task<T> task, final T expectedValue) {
     assertTrue(task.isDone());
     assertFalse(task.isFailed());
     assertEquals(expectedValue, task.get());
@@ -387,8 +339,7 @@ public class TestTaskStates
     assertTrue(task.getShallowTrace().getStartNanos() <= task.getShallowTrace().getEndNanos());
   }
 
-  private void assertFailed(final Task<?> task, Exception exception)
-  {
+  private void assertFailed(final Task<?> task, Exception exception) {
 
     assertTrue(task.isDone());
     assertTrue(task.isFailed());
@@ -396,19 +347,15 @@ public class TestTaskStates
     assertTrue(task.getShallowTrace().getStartNanos() > 0);
     assertTrue(task.getShallowTrace().getStartNanos() <= task.getShallowTrace().getEndNanos());
 
-    try
-    {
+    try {
       task.get();
       fail("Should have thwon PromiseException");
-    }
-    catch (PromiseException e)
-    {
+    } catch (PromiseException e) {
       assertEquals(exception, e.getCause());
     }
   }
 
-  private void assertCancelled(final Task<?> task, Exception exception)
-  {
+  private void assertCancelled(final Task<?> task, Exception exception) {
 
     assertTrue(task.isDone());
     assertTrue(task.isFailed());
@@ -417,42 +364,33 @@ public class TestTaskStates
     assertTrue(task.getShallowTrace().getStartNanos() > 0);
     assertTrue(task.getShallowTrace().getStartNanos() <= task.getShallowTrace().getEndNanos());
 
-    try
-    {
+    try {
       task.get();
       fail("Should have thwon PromiseException");
-    }
-    catch (PromiseException e)
-    {
+    } catch (PromiseException e) {
       assertEquals(exception, e.getCause().getCause());
     }
   }
 
-  private static class NullContext implements Context
-  {
+  private static class NullContext implements Context {
 
     @Override
-    public Cancellable createTimer(final long time, final TimeUnit unit,
-                                   final Task<?> task)
-    {
+    public Cancellable createTimer(final long time, final TimeUnit unit, final Task<?> task) {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    public void run(final Task<?>... tasks)
-    {
+    public void run(final Task<?>... tasks) {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    public After after(final Promise<?>... promises)
-    {
+    public After after(final Promise<?>... promises) {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    public Object getEngineProperty(String key)
-    {
+    public Object getEngineProperty(String key) {
       throw new UnsupportedOperationException();
     }
 
@@ -483,7 +421,7 @@ public class TestTaskStates
 
     @Override
     public TaskLogger getTaskLogger() {
-     return new NullTaskLog();
+      return new NullTaskLog();
     }
 
     @Override
@@ -492,16 +430,13 @@ public class TestTaskStates
     }
   }
 
-  private static class NullTaskLog extends TaskLogger
-  {
-    public NullTaskLog()
-    {
+  private static class NullTaskLog extends TaskLogger {
+    public NullTaskLog() {
       super(0L, 0L, null, null, null);
     }
 
     @Override
-    public void logTaskStart(final Task<?> task)
-    {
+    public void logTaskStart(final Task<?> task) {
     }
 
     @Override

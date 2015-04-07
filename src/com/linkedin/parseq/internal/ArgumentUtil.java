@@ -19,23 +19,19 @@ package com.linkedin.parseq.internal;
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class ArgumentUtil
-{
-  private ArgumentUtil() {}
+public class ArgumentUtil {
+  private ArgumentUtil() {
+  }
 
-  public static void requireNotNull(final Object obj, final String name)
-  {
-    if (obj == null)
-    {
+  public static void requireNotNull(final Object obj, final String name) {
+    if (obj == null) {
       throw new NullPointerException(name + " must not be null");
     }
   }
 
-  public static void requireNotEmpty(final String str, final String name)
-  {
+  public static void requireNotEmpty(final String str, final String name) {
     requireNotNull(str, name);
-    if (str.isEmpty())
-    {
+    if (str.isEmpty()) {
       throw new IllegalArgumentException(name + " is an empty string");
     }
   }

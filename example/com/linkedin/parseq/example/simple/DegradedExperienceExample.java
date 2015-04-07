@@ -11,27 +11,21 @@ import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.example.common.ExampleUtil;
 import com.linkedin.parseq.example.common.MockService;
 
+
 /**
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class DegradedExperienceExample extends AbstractExample
-{
-  public static void main(String[] args) throws Exception
-  {
+public class DegradedExperienceExample extends AbstractExample {
+  public static void main(String[] args) throws Exception {
     new DegradedExperienceExample().runExample();
   }
 
   @Override
-  protected void doRunExample(final Engine engine) throws Exception
-  {
+  protected void doRunExample(final Engine engine) throws Exception {
     final MockService<String> httpClient = getService();
 
-
-    final Task<Integer> fetchAndLength =
-        fetchUrl(httpClient, "http://www.google.com", 100)
-          .withTimeout(50, TimeUnit.MILLISECONDS)
-          .recover("default", t -> "")
-          .map("length", s -> s.length());
+    final Task<Integer> fetchAndLength = fetchUrl(httpClient, "http://www.google.com", 100)
+        .withTimeout(50, TimeUnit.MILLISECONDS).recover("default", t -> "").map("length", s -> s.length());
 
     engine.run(fetchAndLength);
 

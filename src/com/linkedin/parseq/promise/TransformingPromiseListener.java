@@ -16,21 +16,17 @@
 
 package com.linkedin.parseq.promise;
 
-
-public class TransformingPromiseListener<S, T> implements PromiseListener<S>
-{
+public class TransformingPromiseListener<S, T> implements PromiseListener<S> {
   private final Settable<T> _dest;
   private final PromisePropagator<S, T> _propagator;
 
- public TransformingPromiseListener(final Settable<T> dest, final PromisePropagator<S, T> propagator)
-  {
+  public TransformingPromiseListener(final Settable<T> dest, final PromisePropagator<S, T> propagator) {
     _dest = dest;
     _propagator = propagator;
   }
 
   @Override
-  public void onResolved(final Promise<S> resolvedPromise)
-  {
+  public void onResolved(final Promise<S> resolvedPromise) {
     _propagator.accept(resolvedPromise, _dest);
   }
 }

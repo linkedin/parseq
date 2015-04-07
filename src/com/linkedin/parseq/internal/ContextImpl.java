@@ -35,12 +35,12 @@ import com.linkedin.parseq.Context;
 import com.linkedin.parseq.Exceptions;
 import com.linkedin.parseq.Task;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Chi Chan (ckchan@linkedin.com)
  */
-public class ContextImpl implements Context, Cancellable
-{
+public class ContextImpl implements Context, Cancellable {
   private static final Task<?> NO_PARENT = null;
   private static final List<Task<?>> NO_PREDECESSORS = Collections.emptyList();
 
@@ -61,33 +61,24 @@ public class ContextImpl implements Context, Cancellable
 
   private final ConcurrentLinkedQueue<Cancellable> _cancellables = new ConcurrentLinkedQueue<Cancellable>();
 
-  public ContextImpl(final PlanContext planContext,
-                     final Task<?> task)
-  {
+  public ContextImpl(final PlanContext planContext, final Task<?> task) {
     this(planContext, task, NO_PARENT, NO_PREDECESSORS);
   }
 
-  private ContextImpl(final PlanContext planContext,
-                      final Task<?> task,
-                      final Task<?> parent,
-                      final List<Task<?>> predecessorTasks)
-  {
+  private ContextImpl(final PlanContext planContext, final Task<?> task, final Task<?> parent,
+      final List<Task<?>> predecessorTasks) {
     _planContext = planContext;
     _task = InternalUtil.unwildcardTask(task);
     _parent = parent;
     _predecessorTasks = predecessorTasks;
   }
 
-  public void runTask()
-  {
+  public void runTask() {
     // Cancel everything created by this task once it finishes
-    _task.addListener(new PromiseListener<Object>()
-    {
+    _task.addListener(new PromiseListener<Object>() {
       @Override
-      public void onResolved(Promise<Object> resolvedPromise)
-      {
-        for (Iterator<Cancellable> it = _cancellables.iterator(); it.hasNext(); )
-        {
+      public void onResolved(Promise<Object> resolvedPromise) {
+        for (Iterator<Cancellable> it = _cancellables.iterator(); it.hasNext();) {
           final Cancellable cancellable = it.next();
           cancellable.cancel(Exceptions.EARLY_FINISH_EXCEPTION);
           it.remove();
@@ -95,40 +86,30 @@ public class ContextImpl implements Context, Cancellable
       }
     });
 
-    _planContext.execute(new PrioritizableRunnable()
-    {
+    _planContext.execute(new PrioritizableRunnable() {
       @Override
-      public void run()
-      {
+      public void run() {
         _inTask.set(_task);
-        try
-        {
+        try {
           _task.contextRun(ContextImpl.this, _parent, _predecessorTasks);
-        }
-        finally
-        {
+        } finally {
           _inTask.remove();
         }
       }
 
       @Override
-      public int getPriority()
-      {
+      public int getPriority() {
         return _task.getPriority();
       }
     });
   }
 
   @Override
-  public Cancellable createTimer(final long time, final TimeUnit unit,
-                                 final Task<?> task)
-  {
+  public Cancellable createTimer(final long time, final TimeUnit unit, final Task<?> task) {
     checkInTask();
-    final Cancellable cancellable = _planContext.schedule(time, unit, new Runnable()
-    {
+    final Cancellable cancellable = _planContext.schedule(time, unit, new Runnable() {
       @Override
-      public void run()
-      {
+      public void run() {
         runSubTask(task, NO_PREDECESSORS);
       }
     });
@@ -137,54 +118,44 @@ public class ContextImpl implements Context, Cancellable
   }
 
   @Override
-  public void run(final Task<?>... tasks)
-  {
+  public void run(final Task<?>... tasks) {
     checkInTask();
-    for (final Task<?> task : tasks)
-    {
+    for (final Task<?> task : tasks) {
       runSubTask(task, NO_PREDECESSORS);
     }
   }
 
   @Override
-  public void runSideEffect(final Task<?>... tasks)
-  {
+  public void runSideEffect(final Task<?>... tasks) {
     checkInTask();
-    for (final Task<?> task : tasks)
-    {
+    for (final Task<?> task : tasks) {
       runSideEffectSubTask(task, NO_PREDECESSORS);
     }
   }
-  
+
   @Override
   public void runSubTask(Task<?> task, Task<?> rootTask) {
     // check reference equality to make sure model is consistent i.e.
     // subtasks have same parent
-    if (rootTask != _task)  {
+    if (rootTask != _task) {
       throw new RuntimeException("Context method invoked associated with wrong task");
     }
     final Task<?> temp = _inTask.get();
     _inTask.set(_task);
-    try
-    {
+    try {
       run(task);
-    }
-    finally
-    {
+    } finally {
       _inTask.set(temp);
     }
   }
 
   @Override
-  public After after(final Promise<?>... promises)
-  {
+  public After after(final Promise<?>... promises) {
     checkInTask();
 
     final List<Task<?>> tmpPredecessorTasks = new ArrayList<Task<?>>();
-    for (Promise<?> promise : promises)
-    {
-      if (promise instanceof Task)
-      {
+    for (Promise<?> promise : promises) {
+      if (promise instanceof Task) {
         tmpPredecessorTasks.add((Task<?>) promise);
       }
     }
@@ -193,13 +164,10 @@ public class ContextImpl implements Context, Cancellable
     return new After() {
 
       @Override
-      public void run(final Task<?> task)
-      {
-        InternalUtil.after(new PromiseListener<Object>()
-        {
+      public void run(final Task<?> task) {
+        InternalUtil.after(new PromiseListener<Object>() {
           @Override
-          public void onResolved(Promise<Object> resolvedPromise)
-          {
+          public void onResolved(Promise<Object> resolvedPromise) {
             runSubTask(task, predecessorTasks);
           }
         }, promises);
@@ -207,11 +175,9 @@ public class ContextImpl implements Context, Cancellable
 
       @Override
       public void run(final Supplier<Optional<Task<?>>> taskSupplier) {
-        InternalUtil.after(new PromiseListener<Object>()
-        {
+        InternalUtil.after(new PromiseListener<Object>() {
           @Override
-          public void onResolved(Promise<Object> resolvedPromise)
-          {
+          public void onResolved(Promise<Object> resolvedPromise) {
             Optional<Task<?>> task = taskSupplier.get();
             if (task.isPresent()) {
               runSubTask(task.get(), predecessorTasks);
@@ -221,13 +187,10 @@ public class ContextImpl implements Context, Cancellable
       }
 
       @Override
-      public void runSideEffect(final Task<?> task)
-      {
-        InternalUtil.after(new PromiseListener<Object>()
-        {
+      public void runSideEffect(final Task<?> task) {
+        InternalUtil.after(new PromiseListener<Object>() {
           @Override
-          public void onResolved(Promise<Object> resolvedPromise)
-          {
+          public void onResolved(Promise<Object> resolvedPromise) {
             runSideEffectSubTask(task, predecessorTasks);
           }
         }, promises);
@@ -236,8 +199,7 @@ public class ContextImpl implements Context, Cancellable
   }
 
   @Override
-  public boolean cancel(Exception reason)
-  {
+  public boolean cancel(Exception reason) {
     boolean result = _task.cancel(reason);
     //run the task to capture the trace data
     _task.contextRun(this, _parent, _predecessorTasks);
@@ -245,35 +207,27 @@ public class ContextImpl implements Context, Cancellable
   }
 
   @Override
-  public Object getEngineProperty(String key)
-  {
+  public Object getEngineProperty(String key) {
     return _planContext.getEngineProperty(key);
   }
 
-  private ContextImpl createSubContext(final Task<?> task, final List<Task<?>> predecessors)
-  {
+  private ContextImpl createSubContext(final Task<?> task, final List<Task<?>> predecessors) {
     return new ContextImpl(_planContext, task, _task, predecessors);
   }
 
-  private void runSubTask(final Task<?> task, final List<Task<?>> predecessors)
-  {
+  private void runSubTask(final Task<?> task, final List<Task<?>> predecessors) {
     final ContextImpl subContext = createSubContext(task, predecessors);
-    if (!isDone())
-    {
+    if (!isDone()) {
       _cancellables.add(subContext);
       subContext.runTask();
-    }
-    else
-    {
+    } else {
       subContext.cancel(Exceptions.EARLY_FINISH_EXCEPTION);
     }
   }
 
-  private void runSideEffectSubTask(final Task<?> taskWrapper, final List<Task<?>> predecessors)
-  {
+  private void runSideEffectSubTask(final Task<?> taskWrapper, final List<Task<?>> predecessors) {
     //don't run side-effect if any of the predecessors failed or were cancelled
-    for (Task<?> predecessor : predecessors)
-    {
+    for (Task<?> predecessor : predecessors) {
       if (predecessor.isFailed()) {
         return;
       }
@@ -282,16 +236,13 @@ public class ContextImpl implements Context, Cancellable
     subContext.runTask();
   }
 
-  private boolean isDone()
-  {
+  private boolean isDone() {
     return _task.isDone();
   }
 
-  private void checkInTask()
-  {
+  private void checkInTask() {
     Task<?> t = _inTask.get();
-    if (t != _task)
-    {
+    if (t != _task) {
       throw new IllegalStateException("Context method invoked while not in context's task");
     }
   }

@@ -13,27 +13,23 @@ import static com.linkedin.parseq.Tasks.seq;
 import static com.linkedin.parseq.Tasks.callable;
 import static com.linkedin.parseq.example.common.ExampleUtil.fetch404Url;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class ErrorRecoveryExample extends AbstractExample
-{
-  public static void main(String[] args) throws Exception
-  {
+public class ErrorRecoveryExample extends AbstractExample {
+  public static void main(String[] args) throws Exception {
     new ErrorRecoveryExample().runExample();
   }
 
   @Override
-  protected void doRunExample(final Engine engine) throws Exception
-  {
+  protected void doRunExample(final Engine engine) throws Exception {
     final MockService<String> httpClient = getService();
 
     final Task<String> fetch = fetch404Url(httpClient, "http://www.google.com");
-    final Task<Integer> length = callable("length", new Callable<Integer>()
-    {
+    final Task<Integer> length = callable("length", new Callable<Integer>() {
       @Override
-      public Integer call()
-      {
+      public Integer call() {
         return fetch.getOrDefault("").length();
       }
     });

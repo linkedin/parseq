@@ -36,14 +36,14 @@ import com.linkedin.parseq.internal.SerialExecutor;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
 
+
 /**
  * An object that can run a set {@link Task}s. Use {@link EngineBuilder} to
  * create Engine instances.
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class Engine
-{
+public class Engine {
   public static final String LOGGER_BASE = Engine.class.getName();
   private static final Logger LOG = LoggerFactory.getLogger(LOGGER_BASE);
 
@@ -53,7 +53,11 @@ public class Engine
   private static final State INIT = new State(StateName.RUN, 0);
   private static final State TERMINATED = new State(StateName.TERMINATED, 0);
 
-  private static enum StateName { RUN, SHUTDOWN, TERMINATED }
+  private static enum StateName {
+    RUN,
+    SHUTDOWN,
+    TERMINATED
+  }
 
   private final Executor _taskExecutor;
   private final DelayedExecutor _timerExecutor;
@@ -62,28 +66,23 @@ public class Engine
   private final AtomicReference<State> _stateRef = new AtomicReference<State>(INIT);
   private final CountDownLatch _terminated = new CountDownLatch(1);
 
-  private final Map<String, Object > _properties;
+  private final Map<String, Object> _properties;
 
   private final int _maxRelationshipsPerTrace;
 
-  private final PromiseListener<Object> _taskDoneListener = new PromiseListener<Object>()
-  {
+  private final PromiseListener<Object> _taskDoneListener = new PromiseListener<Object>() {
     @Override
-    public void onResolved(Promise<Object> resolvedPromise)
-    {
+    public void onResolved(Promise<Object> resolvedPromise) {
       assert _stateRef.get()._pendingCount > 0;
       assert _stateRef.get()._stateName != StateName.TERMINATED;
 
       State currState, newState;
-      do
-      {
+      do {
         currState = _stateRef.get();
         newState = new State(currState._stateName, currState._pendingCount - 1);
-      }
-      while (!_stateRef.compareAndSet(currState, newState));
+      } while (!_stateRef.compareAndSet(currState, newState));
 
-      if (newState._stateName == StateName.SHUTDOWN && newState._pendingCount == 0)
-      {
+      if (newState._stateName == StateName.SHUTDOWN && newState._pendingCount == 0) {
         tryTransitionTerminate();
       }
     }
@@ -93,11 +92,8 @@ public class Engine
   private final Logger _allLogger;
   private final Logger _rootLogger;
 
-  /* package private */ Engine(final Executor taskExecutor,
-                               final DelayedExecutor timerExecutor,
-                               final ILoggerFactory loggerFactory,
-                               final Map<String, Object> properties)
-  {
+  /* package private */ Engine(final Executor taskExecutor, final DelayedExecutor timerExecutor,
+      final ILoggerFactory loggerFactory, final Map<String, Object> properties) {
     _taskExecutor = taskExecutor;
     _timerExecutor = timerExecutor;
     _loggerFactory = loggerFactory;
@@ -107,14 +103,13 @@ public class Engine
     _rootLogger = loggerFactory.getLogger(LOGGER_BASE + ":root");
 
     if (_properties.containsKey(MAX_RELATIONSHIPS_PER_TRACE)) {
-      _maxRelationshipsPerTrace = (Integer)getProperty(MAX_RELATIONSHIPS_PER_TRACE);
+      _maxRelationshipsPerTrace = (Integer) getProperty(MAX_RELATIONSHIPS_PER_TRACE);
     } else {
       _maxRelationshipsPerTrace = DEFUALT_MAX_RELATIONSHIPS_PER_TRACE;
     }
   }
 
-  public Object getProperty(String key)
-  {
+  public Object getProperty(String key) {
     return _properties.get(key);
   }
 
@@ -124,8 +119,7 @@ public class Engine
    *
    * @param task the task to run
    */
-  public void run(final Task<?> task)
-  {
+  public void run(final Task<?> task) {
     ArgumentUtil.requireNotNull(task, "task");
     run(task, task.getClass().getName());
   }
@@ -136,14 +130,11 @@ public class Engine
    *
    * @param task the task to run
    */
-  public void run(final Task<?> task, final String planClass)
-  {
+  public void run(final Task<?> task, final String planClass) {
     State currState, newState;
-    do
-    {
+    do {
       currState = _stateRef.get();
-      if (currState._stateName != StateName.RUN)
-      {
+      if (currState._stateName != StateName.RUN) {
         task.cancel(new EngineShutdownException("Task submitted after engine shutdown"));
         return;
       }
@@ -152,9 +143,8 @@ public class Engine
     } while (!_stateRef.compareAndSet(currState, newState));
 
     final Executor taskExecutor = new SerialExecutor(_taskExecutor, new CancelPlanRejectionHandler(task));
-    PlanContext planContext =
-        new PlanContext(this, taskExecutor, _timerExecutor, _loggerFactory, _allLogger, _rootLogger, planClass,
-            task.getId(), _maxRelationshipsPerTrace);
+    PlanContext planContext = new PlanContext(this, taskExecutor, _timerExecutor, _loggerFactory, _allLogger,
+        _rootLogger, planClass, task.getId(), _maxRelationshipsPerTrace);
     new ContextImpl(planContext, task).runTask();
 
     InternalUtil.unwildcardTask(task).addListener(_taskDoneListener);
@@ -169,10 +159,8 @@ public class Engine
    * If the engine is already shutting down or stopped this method will have
    * no effect.
    */
-  public void shutdown()
-  {
-    if (tryTransitionShutdown())
-    {
+  public void shutdown() {
+    if (tryTransitionShutdown()) {
       tryTransitionTerminate();
     }
   }
@@ -186,8 +174,7 @@ public class Engine
    * @return {@code true} if the engine has started shutting down or if it has
    *         finished shutting down.
    */
-  public boolean isShutdown()
-  {
+  public boolean isShutdown() {
     return _stateRef.get()._stateName != StateName.RUN;
   }
 
@@ -198,8 +185,7 @@ public class Engine
    *
    * @return {@code true} if the engine has completed stopped.
    */
-  public boolean isTerminated()
-  {
+  public boolean isTerminated() {
     return _stateRef.get()._stateName == StateName.TERMINATED;
   }
 
@@ -214,68 +200,53 @@ public class Engine
    * @throws InterruptedException if this thread is interrupted while waiting
    *         for the engine to stop.
    */
-  public boolean awaitTermination(final int time, final TimeUnit unit) throws InterruptedException
-  {
+  public boolean awaitTermination(final int time, final TimeUnit unit) throws InterruptedException {
     return _terminated.await(time, unit);
   }
 
-  private boolean tryTransitionShutdown()
-  {
+  private boolean tryTransitionShutdown() {
     State currState, newState;
-    do
-    {
+    do {
       currState = _stateRef.get();
-      if (currState._stateName != StateName.RUN)
-      {
+      if (currState._stateName != StateName.RUN) {
         return false;
       }
       newState = new State(StateName.SHUTDOWN, currState._pendingCount);
-    }
-    while (!_stateRef.compareAndSet(currState, newState));
+    } while (!_stateRef.compareAndSet(currState, newState));
     return true;
   }
 
-  private void tryTransitionTerminate()
-  {
+  private void tryTransitionTerminate() {
     State currState;
-    do
-    {
+    do {
       currState = _stateRef.get();
-      if (currState._stateName != StateName.SHUTDOWN ||
-          currState._pendingCount != 0)
-      {
+      if (currState._stateName != StateName.SHUTDOWN || currState._pendingCount != 0) {
         return;
       }
-    }
-    while (!_stateRef.compareAndSet(currState, TERMINATED));
+    } while (!_stateRef.compareAndSet(currState, TERMINATED));
 
     _terminated.countDown();
   }
 
-  private static class State
-  {
+  private static class State {
     private final StateName _stateName;
     private final long _pendingCount;
 
-    private State(final StateName stateName, final long pendingCount)
-    {
+    private State(final StateName stateName, final long pendingCount) {
       _pendingCount = pendingCount;
       _stateName = stateName;
     }
   }
 
-  private static class CancelPlanRejectionHandler implements RejectedSerialExecutionHandler
-  {
+  private static class CancelPlanRejectionHandler implements RejectedSerialExecutionHandler {
     private final Task<?> _task;
 
-    private CancelPlanRejectionHandler(Task<?> task)
-    {
+    private CancelPlanRejectionHandler(Task<?> task) {
       _task = task;
     }
 
     @Override
-    public void rejectedExecution(Throwable error)
-    {
+    public void rejectedExecution(Throwable error) {
       final String msg = "Serial executor loop failed for plan: " + _task.getName();
       final SerialExecutionException ex = new SerialExecutionException(msg, error);
       final boolean wasCancelled = _task.cancel(ex);

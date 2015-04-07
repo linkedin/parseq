@@ -15,6 +15,7 @@ import com.linkedin.parseq.collection.async.AsyncCollection;
 import com.linkedin.parseq.collection.async.Subscriber;
 import com.linkedin.parseq.Task;
 
+
 /**
  * TODO proposals
  * mapTask -> mapWith

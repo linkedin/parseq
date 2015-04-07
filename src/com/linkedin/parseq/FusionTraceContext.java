@@ -4,6 +4,7 @@ import com.linkedin.parseq.internal.TaskLogger;
 import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.TraceBuilder;
 
+
 public class FusionTraceContext {
 
   private final ShallowTraceBuilder _parent;
@@ -34,6 +35,5 @@ public class FusionTraceContext {
   public TaskLogger getTaskLogger() {
     return _taskLogger;
   }
-
 
 }

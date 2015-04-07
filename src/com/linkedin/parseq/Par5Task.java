@@ -25,19 +25,16 @@ import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 
-public class Par5Task<T1, T2, T3, T4, T5> extends SystemHiddenTask<Tuple5<T1, T2, T3, T4, T5>> implements Tuple5Task<T1, T2, T3, T4, T5>
-{
+public class Par5Task<T1, T2, T3, T4, T5> extends SystemHiddenTask<Tuple5<T1, T2, T3, T4, T5>> implements Tuple5Task<T1, T2, T3, T4, T5> {
   private final Tuple5<Task<T1>, Task<T2>, Task<T3>, Task<T4>, Task<T5>> _tasks;
 
-  public Par5Task(final String name, Task<T1> task1, Task<T2> task2, Task<T3> task3, Task<T4> task4, Task<T5> task5)
-  {
+  public Par5Task(final String name, Task<T1> task1, Task<T2> task2, Task<T3> task3, Task<T4> task4, Task<T5> task5) {
     super(name);
     _tasks = tuple(task1, task2, task3, task4, task5);
   }
 
   @Override
-  protected Promise<Tuple5<T1, T2, T3, T4, T5>> run(final Context context) throws Exception
-  {
+  protected Promise<Tuple5<T1, T2, T3, T4, T5>> run(final Context context) throws Exception {
     final SettablePromise<Tuple5<T1, T2, T3, T4, T5>> result = Promises.settable();
 
     InternalUtil.fastFailAfter(p -> {

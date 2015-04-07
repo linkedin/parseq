@@ -20,6 +20,7 @@ import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
 
+
 /**
  * A {@link Task} that runs a {@link Runnable} and returns no value. Use
  * {@link Tasks#action(String, Runnable)} to create instances of this class.
@@ -29,8 +30,8 @@ import com.linkedin.parseq.promise.Promises;
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  * @see Task#action(String, Runnable) Task.action
  */
-@Deprecated public class ActionTask extends BaseTask<Void>
-{
+@Deprecated
+public class ActionTask extends BaseTask<Void> {
   private final Runnable _runnable;
 
   /**
@@ -39,16 +40,14 @@ import com.linkedin.parseq.promise.Promises;
    * @param runnable
    * @throws IllegalArgumentException if runnable
    */
-  public ActionTask(final String name, final Runnable runnable)
-  {
+  public ActionTask(final String name, final Runnable runnable) {
     super(name);
     ArgumentUtil.requireNotNull(runnable, "action");
     _runnable = runnable;
   }
 
   @Override
-  protected Promise<Void> run(final Context context) throws Exception
-  {
+  protected Promise<Void> run(final Context context) throws Exception {
     try {
       _runnable.run();
       return Promises.VOID;

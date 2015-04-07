@@ -17,6 +17,7 @@ package com.linkedin.parseq;
 
 import java.util.concurrent.Callable;
 
+
 /**
  * An object similar to {@link java.util.concurrent.Callable}, but the
  * {@link #call()} method allows a {@link Throwable} to be thrown.
@@ -26,8 +27,8 @@ import java.util.concurrent.Callable;
  * @author Chris Pettitt
  */
 @FunctionalInterface
-@Deprecated public interface ThrowableCallable<T>
-{
+@Deprecated
+public interface ThrowableCallable<T> {
   /**
    * Computes a value of type {@code T} or throws a {@link Throwable} if an
    * error occurred during the computation.

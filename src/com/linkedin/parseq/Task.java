@@ -46,6 +46,7 @@ import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.Trace;
 import com.linkedin.parseq.trace.TraceBuilder;
 
+
 /**
  * TODO add extensive documentations
  * 
@@ -59,8 +60,7 @@ import com.linkedin.parseq.trace.TraceBuilder;
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public interface Task<T> extends Promise<T>, Cancellable
-{
+public interface Task<T> extends Promise<T>, Cancellable {
   static final Logger LOGGER = LoggerFactory.getLogger(Task.class);
 
   //------------------- interface definition -------------------
@@ -178,7 +178,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @param func function to be applied to successful result of this task.
    * @return a new task which will apply given function on result of successful completion of this task
    */
-  default <R> Task<R> map(final String desc, final Function1<? super T,? extends R> func) {
+  default <R> Task<R> map(final String desc, final Function1<? super T, ? extends R> func) {
     ArgumentUtil.requireNotNull(func, "function");
     return apply(desc, new PromiseTransformer<T, R>(func));
   }
@@ -187,7 +187,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * Equivalent to {@code map("map", func)}.
    * @see #map(String, Function)
    */
-  default <R> Task<R> map(final Function1<? super T,? extends R> func) {
+  default <R> Task<R> map(final Function1<? super T, ? extends R> func) {
     return map("map", func);
   }
 
@@ -268,11 +268,11 @@ public interface Task<T> extends Promise<T>, Cancellable
         Task<?> sideEffect = func.apply(that.get());
         ctx.run(sideEffect);
         return sideEffect;
-      }, true);
+      } , true);
       context.after(that).runSideEffect(sideEffectWrapper);
       context.run(that);
       return that;
-    }, true);
+    } , true);
   }
 
   /**
@@ -290,9 +290,9 @@ public interface Task<T> extends Promise<T>, Cancellable
       context.runSideEffect(that);
       Promises.propagateResult(that, result);
       return result;
-    }, true);
+    } , true);
   }
-  
+
   /**
    * Creates a new task which applies a consumer to the result of this task
    * and completes with a result of this task. It is used
@@ -322,11 +322,10 @@ public interface Task<T> extends Promise<T>, Cancellable
    */
   default Task<T> andThen(final String desc, final Consumer1<? super T> consumer) {
     ArgumentUtil.requireNotNull(consumer, "consumer");
-    return apply(desc,
-        new PromiseTransformer<T, T>(t -> {
-          consumer.accept(t);
-          return t;
-        }));
+    return apply(desc, new PromiseTransformer<T, T>(t -> {
+      consumer.accept(t);
+      return t;
+    } ));
   }
 
   /**
@@ -371,7 +370,7 @@ public interface Task<T> extends Promise<T>, Cancellable
       Promises.propagateResult(task, result);
       context.run(that);
       return result;
-    }, true);
+    } , true);
   }
 
   /**
@@ -411,7 +410,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    */
   default Task<T> recover(final String desc, final Function1<Throwable, T> func) {
     ArgumentUtil.requireNotNull(func, "function");
-    return apply(desc,  (src, dst) -> {
+    return apply(desc, (src, dst) -> {
       if (src.isFailed() && !(Exceptions.isCancellation(src.getError()))) {
         try {
           dst.done(func.apply(src.getError()));
@@ -421,7 +420,7 @@ public interface Task<T> extends Promise<T>, Cancellable
       } else {
         dst.done(src.get());
       }
-    });
+    } );
   }
 
   /**
@@ -467,7 +466,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    */
   default Task<T> onFailure(final String desc, final Consumer1<Throwable> consumer) {
     ArgumentUtil.requireNotNull(consumer, "consumer");
-    return apply(desc,  (src, dst) -> {
+    return apply(desc, (src, dst) -> {
       if (src.isFailed() && !(Exceptions.isCancellation(src.getError()))) {
         try {
           consumer.accept(src.getError());
@@ -480,7 +479,7 @@ public interface Task<T> extends Promise<T>, Cancellable
       } else {
         dst.done(src.get());
       }
-    });
+    } );
   }
 
   /**
@@ -526,9 +525,9 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @see #fallBackTo(String, Function) fallBackTo
    */
   default Task<Try<T>> toTry(final String desc) {
-    return apply(desc,  (src, dst) -> {
+    return apply(desc, (src, dst) -> {
       dst.done(Promises.toTry(src));
-    });
+    } );
   }
 
   /**
@@ -568,7 +567,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    */
   default <R> Task<R> transform(final String desc, final Function1<Try<T>, Try<R>> func) {
     ArgumentUtil.requireNotNull(func, "function");
-    return apply(desc,  (src, dst) -> {
+    return apply(desc, (src, dst) -> {
       final Try<T> tryT = Promises.toTry(src);
       if (tryT.isFailed() && Exceptions.isCancellation(tryT.getError())) {
         dst.fail(src.getError());
@@ -584,7 +583,7 @@ public interface Task<T> extends Promise<T>, Cancellable
           dst.fail(e);
         }
       }
-    });
+    } );
   }
 
   /**
@@ -648,11 +647,11 @@ public interface Task<T> extends Promise<T>, Cancellable
           result.done(that.get());
         }
         return result;
-      }, true);
+      } , true);
       context.after(that).run(recovery);
       context.run(that);
       return result;
-    }, true);
+    } , true);
   }
 
   /**
@@ -683,7 +682,7 @@ public interface Task<T> extends Promise<T>, Cancellable
         if (committed.compareAndSet(false, true)) {
           result.fail(Exceptions.TIMEOUT_EXCEPTION);
         }
-      });
+      } );
       //timeout tasks should run as early as possible
       timeoutTask.setPriority(Priority.MAX_PRIORITY);
       ctx.createTimer(time, unit, timeoutTask);
@@ -691,14 +690,14 @@ public interface Task<T> extends Promise<T>, Cancellable
         if (committed.compareAndSet(false, true)) {
           Promises.propagateResult(that, result);
         }
-      });
+      } );
 
       //we want to schedule this task as soon as possible
       //because timeout timer has started ticking
       that.setPriority(Priority.MAX_PRIORITY);
       ctx.run(that);
       return result;
-    }, false);
+    } , false);
     withTimeout.setPriority(getPriority());
     return withTimeout;
   }
@@ -721,10 +720,10 @@ public interface Task<T> extends Promise<T>, Cancellable
           result.fail(t);
           return Optional.empty();
         }
-      });
+      } );
       context.run(task);
       return result;
-     }, true);
+    } , true);
   }
 
   /**
@@ -760,21 +759,19 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @param action the action that will be executed when the task is run
    * @return the new task that will execute the action
    */
-  public static Task<Void> action(final String desc, final Action action)
-  {
+  public static Task<Void> action(final String desc, final Action action) {
     ArgumentUtil.requireNotNull(action, "action");
     return async(desc, () -> {
       action.run();
       return Promises.VOID;
-    }, false);
+    } , false);
   }
 
   /**
    * Equivalent to {@code action("action", action)}.
    * @see #action(String, Action)
    */
-  public static Task<Void> action(final Action action)
-  {
+  public static Task<Void> action(final Action action) {
     return action("action", action);
   }
 
@@ -811,7 +808,7 @@ public interface Task<T> extends Promise<T>, Cancellable
   public static <T> Task<T> failure(final String desc, final Throwable failure) {
     return FusionTask.create(desc, Promises.value(null), (src, dst) -> {
       dst.fail(failure);
-    });
+    } );
   }
 
   /**
@@ -853,9 +850,8 @@ public interface Task<T> extends Promise<T>, Cancellable
       } catch (Throwable t) {
         dst.fail(t);
       }
-    });
+    } );
   }
-
 
   /**
    * Equivalent to {@code callable("callable", callable)}.
@@ -938,7 +934,7 @@ public interface Task<T> extends Promise<T>, Cancellable
       } catch (Throwable e) {
         return Promises.error(e);
       }
-    }, systemHidden);
+    } , systemHidden);
   }
 
   /**
@@ -1020,9 +1016,9 @@ public interface Task<T> extends Promise<T>, Cancellable
         } catch (Throwable t) {
           promise.fail(t);
         }
-      });
+      } );
       return promise;
-    }, false);
+    } , false);
   }
 
   /**
@@ -1052,8 +1048,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * <p>
    * @return task that will run given tasks in parallel
    */
-  public static <T1, T2> Tuple2Task<T1, T2> par(final Task<T1> task1,
-                                                final Task<T2> task2) {
+  public static <T1, T2> Tuple2Task<T1, T2> par(final Task<T1> task1, final Task<T2> task2) {
     return new Par2Task<T1, T2>("par2", task1, task2);
   }
 
@@ -1076,9 +1071,8 @@ public interface Task<T> extends Promise<T>, Cancellable
    * <p>
    * @return task that will run given tasks in parallel
    */
-  public static <T1, T2, T3> Tuple3Task<T1, T2, T3> par(final Task<T1> task1,
-                                                        final Task<T2> task2,
-                                                        final Task<T3> task3) {
+  public static <T1, T2, T3> Tuple3Task<T1, T2, T3> par(final Task<T1> task1, final Task<T2> task2,
+      final Task<T3> task3) {
     return new Par3Task<T1, T2, T3>("par3", task1, task2, task3);
   }
 
@@ -1101,10 +1095,8 @@ public interface Task<T> extends Promise<T>, Cancellable
    * <p>
    * @return task that will run given tasks in parallel
    */
-  public static <T1, T2, T3, T4> Tuple4Task<T1, T2, T3, T4> par(final Task<T1> task1,
-                                                                final Task<T2> task2,
-                                                                final Task<T3> task3,
-                                                                final Task<T4> task4) {
+  public static <T1, T2, T3, T4> Tuple4Task<T1, T2, T3, T4> par(final Task<T1> task1, final Task<T2> task2,
+      final Task<T3> task3, final Task<T4> task4) {
     return new Par4Task<T1, T2, T3, T4>("par4", task1, task2, task3, task4);
   }
 
@@ -1127,11 +1119,8 @@ public interface Task<T> extends Promise<T>, Cancellable
    * <p>
    * @return task that will run given tasks in parallel
    */
-  public static <T1, T2, T3, T4, T5> Tuple5Task<T1, T2, T3, T4, T5> par(final Task<T1> task1,
-                                                                        final Task<T2> task2,
-                                                                        final Task<T3> task3,
-                                                                        final Task<T4> task4,
-                                                                        final Task<T5> task5) {
+  public static <T1, T2, T3, T4, T5> Tuple5Task<T1, T2, T3, T4, T5> par(final Task<T1> task1, final Task<T2> task2,
+      final Task<T3> task3, final Task<T4> task4, final Task<T5> task5) {
     return new Par5Task<T1, T2, T3, T4, T5>("par5", task1, task2, task3, task4, task5);
   }
 
@@ -1155,11 +1144,7 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @return task that will run given tasks in parallel
    */
   public static <T1, T2, T3, T4, T5, T6> Tuple6Task<T1, T2, T3, T4, T5, T6> par(final Task<T1> task1,
-                                                                                final Task<T2> task2,
-                                                                                final Task<T3> task3,
-                                                                                final Task<T4> task4,
-                                                                                final Task<T5> task5,
-                                                                                final Task<T6> task6) {
+      final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5, final Task<T6> task6) {
     return new Par6Task<T1, T2, T3, T4, T5, T6>("par6", task1, task2, task3, task4, task5, task6);
   }
 
@@ -1183,12 +1168,8 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @return task that will run given tasks in parallel
    */
   public static <T1, T2, T3, T4, T5, T6, T7> Tuple7Task<T1, T2, T3, T4, T5, T6, T7> par(final Task<T1> task1,
-                                                                                        final Task<T2> task2,
-                                                                                        final Task<T3> task3,
-                                                                                        final Task<T4> task4,
-                                                                                        final Task<T5> task5,
-                                                                                        final Task<T6> task6,
-                                                                                        final Task<T7> task7) {
+      final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5, final Task<T6> task6,
+      final Task<T7> task7) {
     return new Par7Task<T1, T2, T3, T4, T5, T6, T7>("par7", task1, task2, task3, task4, task5, task6, task7);
   }
 
@@ -1212,13 +1193,8 @@ public interface Task<T> extends Promise<T>, Cancellable
    * @return task that will run given tasks in parallel
    */
   public static <T1, T2, T3, T4, T5, T6, T7, T8> Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> par(final Task<T1> task1,
-                                                                                                final Task<T2> task2,
-                                                                                                final Task<T3> task3,
-                                                                                                final Task<T4> task4,
-                                                                                                final Task<T5> task5,
-                                                                                                final Task<T6> task6,
-                                                                                                final Task<T7> task7,
-                                                                                                final Task<T8> task8) {
+      final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5, final Task<T6> task6,
+      final Task<T7> task7, final Task<T8> task8) {
     return new Par8Task<T1, T2, T3, T4, T5, T6, T7, T8>("par8", task1, task2, task3, task4, task5, task6, task7, task8);
   }
 
@@ -1241,16 +1217,11 @@ public interface Task<T> extends Promise<T>, Cancellable
    * <p>
    * @return task that will run given tasks in parallel
    */
-  public static <T1, T2, T3, T4, T5, T6, T7, T8, T9> Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> par(final Task<T1> task1,
-                                                                                                        final Task<T2> task2,
-                                                                                                        final Task<T3> task3,
-                                                                                                        final Task<T4> task4,
-                                                                                                        final Task<T5> task5,
-                                                                                                        final Task<T6> task6,
-                                                                                                        final Task<T7> task7,
-                                                                                                        final Task<T8> task8,
-                                                                                                        final Task<T9> task9) {
-    return new Par9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9>("par9", task1, task2, task3, task4, task5, task6, task7, task8, task9);
+  public static <T1, T2, T3, T4, T5, T6, T7, T8, T9> Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> par(
+      final Task<T1> task1, final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5,
+      final Task<T6> task6, final Task<T7> task7, final Task<T8> task8, final Task<T9> task9) {
+    return new Par9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9>("par9", task1, task2, task3, task4, task5, task6, task7,
+        task8, task9);
   }
 
 }

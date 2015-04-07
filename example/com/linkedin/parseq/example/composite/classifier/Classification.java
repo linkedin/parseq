@@ -19,8 +19,7 @@ package com.linkedin.parseq.example.composite.classifier;
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public enum Classification
-{
+public enum Classification {
   FULL_VISIBILITY,
   PARTIAL_VISIBILITY,
   NO_VISIBILITY

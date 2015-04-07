@@ -26,13 +26,13 @@ import org.slf4j.LoggerFactory;
 
 import com.linkedin.parseq.internal.Continuations;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Chi Chan (ckchan@linkedin.com)
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-/* package private */ class SettablePromiseImpl<T> implements SettablePromise<T>
-{
+/* package private */ class SettablePromiseImpl<T> implements SettablePromise<T> {
   private static final Logger LOGGER = LoggerFactory.getLogger(SettablePromiseImpl.class);
 
   private static final Continuations CONTINUATIONS = new Continuations();
@@ -47,65 +47,53 @@ import com.linkedin.parseq.internal.Continuations;
   private volatile Throwable _error;
 
   @Override
-  public void done(final T value) throws PromiseResolvedException
-  {
+  public void done(final T value) throws PromiseResolvedException {
     doFinish(value, null);
   }
 
   @Override
-  public void fail(final Throwable error) throws PromiseResolvedException
-  {
+  public void fail(final Throwable error) throws PromiseResolvedException {
     doFinish(null, error);
   }
 
   @Override
-  public T get() throws PromiseException
-  {
+  public T get() throws PromiseException {
     ensureDone();
-    if (_error != null)
-    {
+    if (_error != null) {
       throw new PromiseException(_error);
     }
     return _value;
   }
 
   @Override
-  public Throwable getError() throws PromiseUnresolvedException
-  {
+  public Throwable getError() throws PromiseUnresolvedException {
     ensureDone();
     return _error;
   }
 
   @Override
-  public T getOrDefault(final T defaultValue) throws PromiseUnresolvedException
-  {
+  public T getOrDefault(final T defaultValue) throws PromiseUnresolvedException {
     ensureDone();
-    if (_error != null)
-    {
+    if (_error != null) {
       return defaultValue;
     }
     return _value;
   }
 
   @Override
-  public void await() throws InterruptedException
-  {
+  public void await() throws InterruptedException {
     _awaitLatch.await();
   }
 
   @Override
-  public boolean await(final long time, final TimeUnit unit) throws InterruptedException
-  {
+  public boolean await(final long time, final TimeUnit unit) throws InterruptedException {
     return _awaitLatch.await(time, unit);
   }
 
   @Override
-  public void addListener(final PromiseListener<T> listener)
-  {
-    synchronized (_lock)
-    {
-      if (!isDone())
-      {
+  public void addListener(final PromiseListener<T> listener) {
+    synchronized (_lock) {
+      if (!isDone()) {
         _listeners.add(listener);
         return;
       }
@@ -115,14 +103,12 @@ import com.linkedin.parseq.internal.Continuations;
   }
 
   @Override
-  public boolean isDone()
-  {
+  public boolean isDone() {
     return _valueLatch.getCount() == 0;
   }
 
   @Override
-  public boolean isFailed()
-  {
+  public boolean isFailed() {
     return isDone() && _error != null;
   }
 
@@ -150,36 +136,28 @@ import com.linkedin.parseq.internal.Continuations;
     }
   }
 
-  private void notifyListener(final PromiseListener<T> listener)
-  {
+  private void notifyListener(final PromiseListener<T> listener) {
     // We intentionally catch Throwable around the listener invocation because
     // it will cause the notifier loop and subsequent count down in doFinish to
     // be skipped, which will certainly lead to bad behavior. It could be argued
     // that the catch should not apply for use of notifyListener from
     // addListener, but it seems better to err on the side of consistency and
     // least surprise.
-    try
-    {
+    try {
       listener.onResolved(this);
-    }
-    catch (Throwable e)
-    {
+    } catch (Throwable e) {
       LOGGER.error("An exception was thrown by listener", e);
     }
   }
 
-  private void ensureNotDone() throws PromiseResolvedException
-  {
-    if (isDone())
-    {
+  private void ensureNotDone() throws PromiseResolvedException {
+    if (isDone()) {
       throw new PromiseResolvedException("Promise has already been satisfied");
     }
   }
 
-  private void ensureDone() throws PromiseUnresolvedException
-  {
-    if (!isDone())
-    {
+  private void ensureDone() throws PromiseUnresolvedException {
+    if (!isDone()) {
       throw new PromiseUnresolvedException("Promise has not yet been satisfied");
     }
   }

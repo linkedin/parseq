@@ -24,12 +24,13 @@ import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 import com.linkedin.parseq.Task;
 
+
 /**
  * @author Chi Chan (ckchan@linkedin.com)
  */
-public class InternalUtil
-{
-  private InternalUtil() {}
+public class InternalUtil {
+  private InternalUtil() {
+  }
 
   /**
    * Invokes the {@code listener} once all given {@code promises} have been resolved.
@@ -39,13 +40,12 @@ public class InternalUtil
    *
    * @see com.linkedin.parseq.promise.PromiseListener
    */
-  public static void after(final PromiseListener<?> listener, final Promise<?>... promises)
-  {
+  public static void after(final PromiseListener<?> listener, final Promise<?>... promises) {
     final SettablePromise<Object> afterPromise = Promises.settable();
-    final PromiseListener<Object> countDownListener = new CountDownPromiseListener<Object>(promises.length, afterPromise, null);
+    final PromiseListener<Object> countDownListener =
+        new CountDownPromiseListener<Object>(promises.length, afterPromise, null);
 
-    for (Promise<?> promise : promises)
-    {
+    for (Promise<?> promise : promises) {
       unwildcardPromise(promise).addListener(countDownListener);
     }
 
@@ -61,13 +61,12 @@ public class InternalUtil
    *
    * @see com.linkedin.parseq.promise.PromiseListener
    */
-  public static void fastFailAfter(final PromiseListener<?> listener, final Promise<?>... promises)
-  {
+  public static void fastFailAfter(final PromiseListener<?> listener, final Promise<?>... promises) {
     final SettablePromise<Object> afterPromise = Promises.settable();
-    final PromiseListener<Object> countDownListener = new FastFailCountDownPromiseListener<Object>(promises.length, afterPromise, null);
+    final PromiseListener<Object> countDownListener =
+        new FastFailCountDownPromiseListener<Object>(promises.length, afterPromise, null);
 
-    for (Promise<?> promise : promises)
-    {
+    for (Promise<?> promise : promises) {
       unwildcardPromise(promise).addListener(countDownListener);
     }
 
@@ -75,20 +74,17 @@ public class InternalUtil
   }
 
   @SuppressWarnings("unchecked")
-  public static Task<Object> unwildcardTask(Task<?> task)
-  {
-    return (Task<Object>)task;
+  public static Task<Object> unwildcardTask(Task<?> task) {
+    return (Task<Object>) task;
   }
 
   @SuppressWarnings("unchecked")
-  public static Promise<Object> unwildcardPromise(Promise<?> promise)
-  {
-    return (Promise<Object>)promise;
+  public static Promise<Object> unwildcardPromise(Promise<?> promise) {
+    return (Promise<Object>) promise;
   }
 
   @SuppressWarnings("unchecked")
-  public static PromiseListener<Object> unwildcardListener(PromiseListener<?> listener)
-  {
-    return (PromiseListener<Object>)listener;
+  public static PromiseListener<Object> unwildcardListener(PromiseListener<?> listener) {
+    return (PromiseListener<Object>) listener;
   }
 }

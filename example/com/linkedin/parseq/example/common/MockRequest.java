@@ -19,8 +19,7 @@ package com.linkedin.parseq.example.common;
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public interface MockRequest<RES>
-{
+public interface MockRequest<RES> {
   long getLatency();
 
   RES getResult() throws Exception;

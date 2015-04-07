@@ -85,6 +85,6 @@ public class TestTask extends AbstractTaskTest {
   Task<String> getFailureTask() {
     return Task.async("failure", () -> {
       throw new RuntimeException(TASK_ERROR_MESSAGE);
-    }, true);
+    } , true);
   }
 }

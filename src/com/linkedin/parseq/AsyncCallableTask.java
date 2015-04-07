@@ -24,6 +24,7 @@ import com.linkedin.parseq.promise.SettablePromise;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 
+
 /**
  * This class provides a wrapper to allow synchronous tasks to be treated as
  * asynchronous tasks. This can be used for tasks that are blocking and are not
@@ -39,42 +40,40 @@ import java.util.concurrent.Executor;
  * @deprecated  As of 2.0.0, replaced by {@link Task#blocking(String, Callable, Executor) Task.blocking}.
  * @author Walter Fender (wfender@linkedin.com)
  */
-@Deprecated public class AsyncCallableTask<R> extends BaseTask<R>
-{
+@Deprecated
+public class AsyncCallableTask<R> extends BaseTask<R> {
   static final String CALLABLE_SERVICE_EXECUTOR = "_CallableServiceExecutor_";
 
   private final Callable<R> _syncJob;
 
-  public static void register(EngineBuilder builder, Executor executor)
-  {
+  public static void register(EngineBuilder builder, Executor executor) {
     builder.setEngineProperty(CALLABLE_SERVICE_EXECUTOR, executor);
   }
 
   /**
    * @deprecated  As of 2.0.0, replaced by {@link Task#blocking(String, Callable, Executor) Task.blocking}.
    */
-  @Deprecated public AsyncCallableTask(final Callable<R> syncJob)
-  {
+  @Deprecated
+  public AsyncCallableTask(final Callable<R> syncJob) {
     this(null, syncJob);
   }
 
   /**
    * @deprecated  As of 2.0.0, replaced by {@link Task#blocking(String, Callable, Executor) Task.blocking}.
    */
-  @Deprecated public AsyncCallableTask(final String name, final Callable<R> syncJob)
-  {
+  @Deprecated
+  public AsyncCallableTask(final String name, final Callable<R> syncJob) {
     super(name);
     ArgumentUtil.requireNotNull(syncJob, "job");
     _syncJob = syncJob;
   }
 
   @Override
-  protected Promise<R> run(final Context context) throws Exception
-  {
-    Executor executor = (Executor)context.getEngineProperty(CALLABLE_SERVICE_EXECUTOR);
-    if (executor == null)
-    {
-      throw new IllegalStateException("To use AsyncCallableTask you must first register an executor with the engine using AsyncCallableTask.register");
+  protected Promise<R> run(final Context context) throws Exception {
+    Executor executor = (Executor) context.getEngineProperty(CALLABLE_SERVICE_EXECUTOR);
+    if (executor == null) {
+      throw new IllegalStateException(
+          "To use AsyncCallableTask you must first register an executor with the engine using AsyncCallableTask.register");
     }
 
     final SettablePromise<R> promise = Promises.settable();
@@ -84,7 +83,7 @@ import java.util.concurrent.Executor;
       } catch (Throwable t) {
         promise.fail(t);
       }
-    });
+    } );
     return promise;
   }
 }

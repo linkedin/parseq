@@ -14,6 +14,7 @@ import java.util.function.Predicate;
 
 import com.linkedin.parseq.collection.transducer.Reducer.Step;
 
+
 /**
  * TODO merge this back to the single implementation
  *
@@ -35,7 +36,7 @@ public abstract class Transducible<T, R> {
 
   @SuppressWarnings("unchecked")
   protected <Z> Reducer<Z, T> transduce(final Reducer<Z, R> reducer) {
-    return (Reducer<Z, T>)_transducer.apply((Reducer<Object, R>)reducer);
+    return (Reducer<Z, T>) _transducer.apply((Reducer<Object, R>) reducer);
   }
 
   protected static final <R> R checkEmpty(Optional<R> result) {
@@ -60,7 +61,7 @@ public abstract class Transducible<T, R> {
     return map(e -> {
       consumer.accept(e);
       return e;
-    }, collectionBuilder);
+    } , collectionBuilder);
   }
 
   protected <V extends Transducible<T, R>> V filter(final Predicate<R> predicate,
@@ -68,8 +69,7 @@ public abstract class Transducible<T, R> {
     return collectionBuilder.apply(_transducer.filter(predicate));
   }
 
-  protected <V extends Transducible<T, R>> V take(final int n,
-      final Function<Transducer<T, R>, V> collectionBuilder) {
+  protected <V extends Transducible<T, R>> V take(final int n, final Function<Transducer<T, R>, V> collectionBuilder) {
     return collectionBuilder.apply(_transducer.take(n));
   }
 
@@ -78,8 +78,7 @@ public abstract class Transducible<T, R> {
     return collectionBuilder.apply(_transducer.takeWhile(predicate));
   }
 
-  protected <V extends Transducible<T, R>> V drop(final int n,
-      final Function<Transducer<T, R>, V> collectionBuilder) {
+  protected <V extends Transducible<T, R>> V drop(final int n, final Function<Transducer<T, R>, V> collectionBuilder) {
     return collectionBuilder.apply(_transducer.drop(n));
   }
 
@@ -97,18 +96,20 @@ public abstract class Transducible<T, R> {
   }
 
   protected <V> V first(final Foldable<Optional<R>, T, V> foldable) {
-    return foldable.fold("first", Optional.empty(), transduce((z, r) -> r.map(rValue -> Step.done(Optional.of(rValue)))));
+    return foldable.fold("first", Optional.empty(),
+        transduce((z, r) -> r.map(rValue -> Step.done(Optional.of(rValue)))));
   }
 
   protected <V> V last(final Foldable<Optional<R>, T, V> foldable) {
-    return foldable.fold("last", Optional.empty(), transduce((z, r) -> r.map(rValue -> Step.cont(Optional.of(rValue)))));
+    return foldable.fold("last", Optional.empty(),
+        transduce((z, r) -> r.map(rValue -> Step.cont(Optional.of(rValue)))));
   }
 
   protected <V> V toList(final Foldable<List<R>, T, V> foldable) {
     return foldable.fold("toList", new ArrayList<R>(), transduce((z, r) -> r.map(rValue -> {
       z.refGet().add(rValue);
       return Step.cont(z.refGet());
-    })));
+    } )));
   }
 
   protected <V> V reduce(final Function2<R, R, R> op, final Foldable<Optional<R>, T, V> foldable) {
@@ -118,7 +119,7 @@ public abstract class Transducible<T, R> {
       } else {
         return Step.cont(Optional.of(eValue));
       }
-    })));
+    } )));
   }
 
   protected <V> V find(final Predicate<R> predicate, final Foldable<Optional<R>, T, V> foldable) {
@@ -128,7 +129,7 @@ public abstract class Transducible<T, R> {
       } else {
         return Step.cont(z.refGet());
       }
-    })));
+    } )));
   }
 
 }

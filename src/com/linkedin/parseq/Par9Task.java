@@ -25,19 +25,16 @@ import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 
-public class Par9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> extends SystemHiddenTask<Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9>> implements Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9>
-{
+public class Par9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> extends SystemHiddenTask<Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9>> implements Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> {
   private final Tuple9<Task<T1>, Task<T2>, Task<T3>, Task<T4>, Task<T5>, Task<T6>, Task<T7>, Task<T8>, Task<T9>> _tasks;
 
-  public Par9Task(final String name, Task<T1> task1, Task<T2> task2, Task<T3> task3, Task<T4> task4, Task<T5> task5, Task<T6> task6, Task<T7> task7, Task<T8> task8, Task<T9> task9)
-  {
+  public Par9Task(final String name, Task<T1> task1, Task<T2> task2, Task<T3> task3, Task<T4> task4, Task<T5> task5, Task<T6> task6, Task<T7> task7, Task<T8> task8, Task<T9> task9) {
     super(name);
     _tasks = tuple(task1, task2, task3, task4, task5, task6, task7, task8, task9);
   }
 
   @Override
-  protected Promise<Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9>> run(final Context context) throws Exception
-  {
+  protected Promise<Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9>> run(final Context context) throws Exception {
     final SettablePromise<Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9>> result = Promises.settable();
 
     InternalUtil.fastFailAfter(p -> {

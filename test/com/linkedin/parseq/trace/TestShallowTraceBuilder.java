@@ -24,53 +24,44 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.fail;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class TestShallowTraceBuilder
-{
+public class TestShallowTraceBuilder {
   @Test
-  public void testEarlyFinishWithValue()
-  {
+  public void testEarlyFinishWithValue() {
     final ShallowTraceBuilder builder = new ShallowTraceBuilder(IdGenerator.getNextId());
     builder.setName("test");
     builder.setResultType(ResultType.EARLY_FINISH);
     builder.setValue("non-null-value");
 
-    try
-    {
+    try {
       builder.build();
       fail("Expected IllegalArgumentException");
-    }
-    catch (IllegalArgumentException e)
-    {
+    } catch (IllegalArgumentException e) {
       // Expected case
     }
   }
 
   @Test
-  public void testUninishedWithValue()
-  {
+  public void testUninishedWithValue() {
     final ShallowTraceBuilder builder = new ShallowTraceBuilder(IdGenerator.getNextId());
     builder.setName("test");
     builder.setResultType(ResultType.UNFINISHED);
     builder.setValue("non-null-value");
 
-    try
-    {
+    try {
       builder.build();
       fail("Expected IllegalArgumentException");
-    }
-    catch (IllegalArgumentException e)
-    {
+    } catch (IllegalArgumentException e) {
       // Expected case
     }
   }
 
   @Test
-  public void testEquals()
-  {
+  public void testEquals() {
     final ShallowTraceBuilder builder = new ShallowTraceBuilder(100L);
     builder.setName("test");
     builder.setResultType(ResultType.SUCCESS);
@@ -104,7 +95,6 @@ public class TestShallowTraceBuilder
     builderCopy.setPendingNanos(234L);
     builderCopy.setEndNanos(345L);
     assertFalse(builder.build().equals(builderCopy.build()));
-
 
     builderCopy = new ShallowTraceBuilder(100L);
     builderCopy.setName("no-test");

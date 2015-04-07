@@ -27,8 +27,7 @@ package com.linkedin.parseq.promise;
  * @see Promise#addListener(PromiseListener)
  */
 @FunctionalInterface
-public interface PromiseListener<P>
-{
+public interface PromiseListener<P> {
   /**
    * A callback method that is invoked when the promise completes. The code
    * in this method should not block.

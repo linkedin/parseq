@@ -1,6 +1,5 @@
 package com.linkedin.parseq.collection.async;
 
-
 public class CancellableSubscription implements Subscription {
 
   private boolean _cancelled = false;

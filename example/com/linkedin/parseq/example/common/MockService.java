@@ -23,32 +23,25 @@ import com.linkedin.parseq.promise.SettablePromise;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class MockService<RES>
-{
+public class MockService<RES> {
   private final ScheduledExecutorService _scheduler;
 
-  public MockService(ScheduledExecutorService scheduler)
-  {
+  public MockService(ScheduledExecutorService scheduler) {
     _scheduler = scheduler;
   }
 
-  public Promise<RES> call(final MockRequest<RES> request)
-  {
+  public Promise<RES> call(final MockRequest<RES> request) {
     final SettablePromise<RES> promise = Promises.settable();
-    _scheduler.schedule(new Runnable()
-    {
+    _scheduler.schedule(new Runnable() {
       @Override
-      public void run()
-      {
-        try
-        {
+      public void run() {
+        try {
           promise.done(request.getResult());
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
           promise.fail(e);
         }
       }

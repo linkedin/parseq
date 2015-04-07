@@ -18,70 +18,60 @@ package com.linkedin.parseq.promise;
 
 import java.util.concurrent.TimeUnit;
 
+
 /**
  * An abstract class that makes it easy to delegate {@link Promise} method
  * invocations to a delegate promise.
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class DelegatingPromise<T> implements Promise<T>
-{
+public class DelegatingPromise<T> implements Promise<T> {
   private final Promise<T> _delegate;
 
-  public DelegatingPromise(final Promise<T> delegate)
-  {
+  public DelegatingPromise(final Promise<T> delegate) {
     _delegate = delegate;
   }
 
   @Override
-  public T get() throws PromiseException
-  {
+  public T get() throws PromiseException {
     return _delegate.get();
   }
 
   @Override
-  public Throwable getError()
-  {
+  public Throwable getError() {
     return _delegate.getError();
   }
 
-  public T getOrDefault(final T defaultValue)
-  {
+  public T getOrDefault(final T defaultValue) {
     return _delegate.getOrDefault(defaultValue);
   }
 
   @Override
-  public void await() throws InterruptedException
-  {
+  public void await() throws InterruptedException {
     _delegate.await();
   }
 
   @Override
-  public boolean await(final long time, final TimeUnit unit) throws InterruptedException
-  {
+  public boolean await(final long time, final TimeUnit unit) throws InterruptedException {
     return _delegate.await(time, unit);
   }
 
   @Override
-  public void addListener(final PromiseListener<T> listener)
-  {
+  public void addListener(final PromiseListener<T> listener) {
     _delegate.addListener(listener);
   }
 
   @Override
-  public boolean isDone()
-  {
+  public boolean isDone() {
     return _delegate.isDone();
   }
 
   @Override
-  public boolean isFailed()
-  {
+  public boolean isFailed() {
     return _delegate.isFailed();
   }
 
-  protected Promise<T> getDelegate()
-  {
+  protected Promise<T> getDelegate() {
     return _delegate;
   }
 }

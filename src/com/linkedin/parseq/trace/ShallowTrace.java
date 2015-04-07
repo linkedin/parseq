@@ -2,6 +2,7 @@ package com.linkedin.parseq.trace;
 
 import java.util.Map;
 
+
 /**
  * A shallow trace is a trace without any relationship information. Use
  * {@link ShallowTraceBuilder} to construct new instances of this class.

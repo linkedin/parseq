@@ -25,38 +25,33 @@ import com.linkedin.parseq.trace.ShallowTrace;
 import com.linkedin.parseq.trace.Trace;
 import com.linkedin.parseq.trace.TraceRelationship;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Chi Chan (ckchan@linkedin.com)
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-class JsonTraceSerializer
-{
-  private JsonTraceSerializer() {}
+class JsonTraceSerializer {
+  private JsonTraceSerializer() {
+  }
 
-  public static void serialize(Trace trace, JsonGenerator generator) throws IOException
-  {
+  public static void serialize(Trace trace, JsonGenerator generator) throws IOException {
     generator.writeStartObject();
     writeTraces(trace, generator);
     writeRelationships(trace, generator);
     generator.writeEndObject();
   }
 
-  private static void writeTraces(final Trace trace,
-                                  final JsonGenerator generator) throws IOException
-  {
+  private static void writeTraces(final Trace trace, final JsonGenerator generator) throws IOException {
     generator.writeArrayFieldStart(JsonTraceCodec.TRACES);
-    for (Map.Entry<Long, ShallowTrace> entry : trace.getTraceMap().entrySet())
-    {
+    for (Map.Entry<Long, ShallowTrace> entry : trace.getTraceMap().entrySet()) {
       final ShallowTrace t = entry.getValue();
       writeTrace(t, generator);
     }
     generator.writeEndArray();
   }
 
-  private static void writeTrace(final ShallowTrace trace,
-                                 final JsonGenerator generator) throws IOException
-  {
+  private static void writeTrace(final ShallowTrace trace, final JsonGenerator generator) throws IOException {
     generator.writeStartObject();
     generator.writeNumberField(JsonTraceCodec.TRACE_ID, trace.getId());
     generator.writeStringField(JsonTraceCodec.TRACE_NAME, trace.getName());
@@ -64,31 +59,25 @@ class JsonTraceSerializer
     generator.writeBooleanField(JsonTraceCodec.TRACE_HIDDEN, trace.getHidden());
     generator.writeBooleanField(JsonTraceCodec.TRACE_SYSTEM_HIDDEN, trace.getSystemHidden());
 
-    if (trace.getValue() != null)
-    {
+    if (trace.getValue() != null) {
       generator.writeStringField(JsonTraceCodec.TRACE_VALUE, trace.getValue());
     }
 
-    if (trace.getStartNanos() != null)
-    {
+    if (trace.getStartNanos() != null) {
       generator.writeNumberField(JsonTraceCodec.TRACE_START_NANOS, trace.getStartNanos());
     }
 
-    if (trace.getPendingNanos() != null)
-    {
+    if (trace.getPendingNanos() != null) {
       generator.writeNumberField(JsonTraceCodec.TRACE_PENDING_NANOS, trace.getPendingNanos());
     }
 
-    if (trace.getEndNanos() != null)
-    {
+    if (trace.getEndNanos() != null) {
       generator.writeNumberField(JsonTraceCodec.TRACE_END_NANOS, trace.getEndNanos());
     }
 
-    if (trace.getAttributes() != null && trace.getAttributes().size() > 0)
-    {
+    if (trace.getAttributes() != null && trace.getAttributes().size() > 0) {
       generator.writeArrayFieldStart(JsonTraceCodec.TRACE_ATTRIBUTES);
-      for(Map.Entry<String, String> attribute :  trace.getAttributes().entrySet())
-      {
+      for (Map.Entry<String, String> attribute : trace.getAttributes().entrySet()) {
         generator.writeStartObject();
         generator.writeStringField(JsonTraceCodec.TRACE_ATTRIBUTE_KEY, attribute.getKey());
         generator.writeStringField(JsonTraceCodec.TRACE_ATTRIBUTE_VALUE, attribute.getValue());
@@ -100,17 +89,14 @@ class JsonTraceSerializer
     generator.writeEndObject();
   }
 
-  private static void writeRelationships(final Trace trace,
-                                         final JsonGenerator generator) throws IOException
-  {
+  private static void writeRelationships(final Trace trace, final JsonGenerator generator) throws IOException {
     generator.writeArrayFieldStart(JsonTraceCodec.RELATIONSHIPS);
-    for (TraceRelationship rel : trace.getRelationships())
-    {
-        generator.writeStartObject();
-        generator.writeStringField(JsonTraceCodec.RELATIONSHIP_RELATIONSHIP, rel.getRelationhsip().name());
-        generator.writeNumberField(JsonTraceCodec.RELATIONSHIP_FROM, rel.getFrom());
-        generator.writeNumberField(JsonTraceCodec.RELATIONSHIP_TO, rel.getTo());
-        generator.writeEndObject();
+    for (TraceRelationship rel : trace.getRelationships()) {
+      generator.writeStartObject();
+      generator.writeStringField(JsonTraceCodec.RELATIONSHIP_RELATIONSHIP, rel.getRelationhsip().name());
+      generator.writeNumberField(JsonTraceCodec.RELATIONSHIP_FROM, rel.getFrom());
+      generator.writeNumberField(JsonTraceCodec.RELATIONSHIP_TO, rel.getTo());
+      generator.writeEndObject();
     }
     generator.writeEndArray();
   }

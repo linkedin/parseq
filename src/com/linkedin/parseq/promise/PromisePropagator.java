@@ -2,6 +2,7 @@ package com.linkedin.parseq.promise;
 
 import java.util.function.BiConsumer;
 
+
 public interface PromisePropagator<S, T> extends BiConsumer<Promise<S>, Settable<T>> {
 
   default <R> PromisePropagator<S, R> compose(final PromisePropagator<T, R> propagator) {
@@ -12,6 +13,7 @@ public interface PromisePropagator<S, T> extends BiConsumer<Promise<S>, Settable
         public void done(T value) throws PromiseResolvedException {
           propagator.accept(Promises.value(value), dst);
         }
+
         @Override
         public void fail(Throwable error) throws PromiseResolvedException {
           propagator.accept(Promises.error(error), dst);

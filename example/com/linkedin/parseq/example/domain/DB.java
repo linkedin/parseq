@@ -6,10 +6,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 public class DB {
 
   public static final Map<Integer, Person> personDB = new HashMap<Integer, Person>() {
     private static final long serialVersionUID = 1L;
+
     {
       put(1, new Person(1, "Bob", "Shmidt", 1, Arrays.asList(2, 3)));
       put(2, new Person(2, "Garry", "Smith", 1, Arrays.asList(1)));
@@ -22,6 +24,7 @@ public class DB {
 
   public static final Map<Integer, Company> companyDB = new HashMap<Integer, Company>() {
     private static final long serialVersionUID = 1L;
+
     {
       put(1, new Company("LinkedIn"));
       put(2, new Company("Twitter"));
@@ -31,6 +34,7 @@ public class DB {
 
   public static final Map<Integer, Message> messageDB = new HashMap<Integer, Message>() {
     private static final long serialVersionUID = 1L;
+
     {
       put(1, new Message(1, 2, "Hi", "Hi, how are you?"));
       put(2, new Message(2, 1, "Re: Hi", "Hi, I'm great!"));
@@ -41,6 +45,7 @@ public class DB {
 
   public static final Map<Integer, List<Integer>> mailboxDB = new HashMap<Integer, List<Integer>>() {
     private static final long serialVersionUID = 1L;
+
     {
       put(1, Arrays.asList(1, 2, 3));
       put(2, Arrays.asList(2));

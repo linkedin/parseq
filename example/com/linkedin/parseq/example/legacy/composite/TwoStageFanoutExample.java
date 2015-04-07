@@ -33,27 +33,23 @@ import static com.linkedin.parseq.Tasks.seq;
 import static com.linkedin.parseq.example.common.ExampleUtil.fetchUrl;
 import static com.linkedin.parseq.example.common.ExampleUtil.printTracingResults;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class TwoStageFanoutExample extends AbstractExample
-{
-  public static void main(String[] args) throws Exception
-  {
+public class TwoStageFanoutExample extends AbstractExample {
+  public static void main(String[] args) throws Exception {
     new TwoStageFanoutExample().runExample();
   }
 
   @Override
-  protected void doRunExample(final Engine engine) throws Exception
-  {
+  protected void doRunExample(final Engine engine) throws Exception {
     final MockService<String> httpClient = getService();
 
     final FanoutTask fanout = new FanoutTask(httpClient);
-    final Task<?> printResults = action("printResults", new Runnable()
-    {
+    final Task<?> printResults = action("printResults", new Runnable() {
       @Override
-      public void run()
-      {
+      public void run() {
         System.out.println(fanout.get());
       }
     });
@@ -65,56 +61,42 @@ public class TwoStageFanoutExample extends AbstractExample
     printTracingResults(plan);
   }
 
-  private static class FanoutTask extends BaseTask<String>
-  {
+  private static class FanoutTask extends BaseTask<String> {
     private final MockService<String> _httpClient;
     private final StringBuilder _result = new StringBuilder();
 
-    private FanoutTask(final MockService<String> httpClient)
-    {
+    private FanoutTask(final MockService<String> httpClient) {
       super("TwoStageFanout");
       _httpClient = httpClient;
     }
 
     @Override
-    public Promise<String> run(final Context ctx)
-    {
-      final Task<String> twoStage =
-          seq(par(fetchAndLog("http://www.bing.com"),
-                  fetchAndLog("http://www.yahoo.com")),
-              par(fetchAndLog("http://www.google.com"),
-                  fetchAndLog("https://duckduckgo.com/")),
-              buildResult());
+    public Promise<String> run(final Context ctx) {
+      final Task<String> twoStage = seq(par(fetchAndLog("http://www.bing.com"), fetchAndLog("http://www.yahoo.com")),
+          par(fetchAndLog("http://www.google.com"), fetchAndLog("https://duckduckgo.com/")), buildResult());
       ctx.run(twoStage);
       return twoStage;
     }
 
-    private Task<String> buildResult()
-    {
-      return callable("buildResult", new Callable<String>()
-      {
+    private Task<String> buildResult() {
+      return callable("buildResult", new Callable<String>() {
         @Override
-        public String call()
-        {
+        public String call() {
           return _result.toString();
         }
       });
     }
 
-    private Task<?> fetchAndLog(final String url)
-    {
+    private Task<?> fetchAndLog(final String url) {
       final Task<String> fetch = fetchUrl(_httpClient, url);
       final Task<?> logResult = logResult(url, fetch);
       return seq(fetch, logResult);
     }
 
-    private Task<?> logResult(final String url, final Promise<String> promise)
-    {
-      return action("logResult[" + url + "]", new Runnable()
-      {
+    private Task<?> logResult(final String url, final Promise<String> promise) {
+      return action("logResult[" + url + "]", new Runnable() {
         @Override
-        public void run()
-        {
+        public void run() {
           _result.append(String.format("%10s => %s\n", url, promise.get()));
         }
       });

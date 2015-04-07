@@ -31,14 +31,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 
+
 /**
  * JSON implementation of {@link com.linkedin.parseq.trace.codec.TraceCodec}
  *
  * @author Chi Chan (ckchan@linkedin.com)
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class JsonTraceCodec implements TraceCodec
-{
+public class JsonTraceCodec implements TraceCodec {
   private static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
 
   // Top Level Fields
@@ -47,8 +47,8 @@ public class JsonTraceCodec implements TraceCodec
 
   // Trace Fields
   static final String TRACE_ID = "id";
-  static final String TRACE_HIDDEN="hidden";
-  static final String TRACE_SYSTEM_HIDDEN="systemHidden";
+  static final String TRACE_HIDDEN = "hidden";
+  static final String TRACE_SYSTEM_HIDDEN = "systemHidden";
   static final String TRACE_NAME = "name";
   static final String TRACE_VALUE = "value";
   static final String TRACE_RESULT_TYPE = "resultType";
@@ -67,31 +67,26 @@ public class JsonTraceCodec implements TraceCodec
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   @Override
-  public Trace decode(InputStream inputStream) throws IOException
-  {
+  public Trace decode(InputStream inputStream) throws IOException {
     final JsonParser parser = OBJECT_MAPPER.getJsonFactory().createJsonParser(inputStream);
     final JsonNode rootNode = OBJECT_MAPPER.readTree(parser);
     return JsonTraceDeserializer.deserialize(rootNode);
   }
 
   @Override
-  public Trace decode(final String traceStr) throws IOException
-  {
+  public Trace decode(final String traceStr) throws IOException {
     return decode(new ByteArrayInputStream(traceStr.getBytes(DEFAULT_CHARSET.name())));
   }
 
   @Override
-  public void encode(Trace trace, OutputStream outputStream) throws IOException
-  {
-    final JsonGenerator generator = OBJECT_MAPPER.getJsonFactory()
-                                                 .createJsonGenerator(outputStream, JsonEncoding.UTF8);
+  public void encode(Trace trace, OutputStream outputStream) throws IOException {
+    final JsonGenerator generator = OBJECT_MAPPER.getJsonFactory().createJsonGenerator(outputStream, JsonEncoding.UTF8);
     JsonTraceSerializer.serialize(trace, generator);
     generator.flush();
   }
 
   @Override
-  public String encode(final Trace trace) throws IOException
-  {
+  public String encode(final Trace trace) throws IOException {
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
     encode(trace, baos);
     return new String(baos.toByteArray(), DEFAULT_CHARSET);

@@ -31,8 +31,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
   }
 
   public void testFlatMap(int expectedNumberOfTasks) {
-    Task<String> task =
-        getSuccessTask().flatMap(str -> Task.callable("strlenstr", () -> String.valueOf(str.length())));
+    Task<String> task = getSuccessTask().flatMap(str -> Task.callable("strlenstr", () -> String.valueOf(str.length())));
 
     runAndWait("AbstractTaskTest.testFlatMap", task);
     assertEquals(task.get(), String.valueOf(TASK_VALUE.length()));
@@ -63,7 +62,6 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
     runAndWait("AbstractTaskTest.testRecoverSuccess", success);
     assertEquals((int) success.get(), TASK_VALUE.length());
     assertEquals(countTasks(success.getTrace()), expectedNumberOfTasks);
-
 
     Task<Integer> failure = getFailureTask().map("strlen", String::length).recover(e -> -1);
     runAndWait("AbstractTaskTest.testRecoverFailure", failure);
@@ -97,20 +95,18 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
   }
 
   public void testRecoverWithSuccess(int expectedNumberOfTasks) {
-    Task<String> success =
-        getSuccessTask().recoverWith(e -> Task.callable("recover failure", () -> {
-              throw new RuntimeException("recover failed!");
-            }));
+    Task<String> success = getSuccessTask().recoverWith(e -> Task.callable("recover failure", () -> {
+      throw new RuntimeException("recover failed!");
+    } ));
     runAndWait("AbstractTaskTest.testRecoverWithSuccess", success);
     assertEquals(success.get(), TASK_VALUE);
     assertEquals(countTasks(success.getTrace()), expectedNumberOfTasks);
   }
 
   public void testRecoverWithFailure(int expectedNumberOfTasks) {
-    Task<String> failure =
-        getFailureTask().recoverWith(e -> Task.callable("recover failure", () -> {
-              throw new RuntimeException("recover failed!");
-            }));
+    Task<String> failure = getFailureTask().recoverWith(e -> Task.callable("recover failure", () -> {
+      throw new RuntimeException("recover failed!");
+    } ));
     try {
       runAndWait("AbstractTaskTest.testRecoverWithFailure", failure);
       fail("should have failed");
@@ -122,8 +118,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
   }
 
   public void testRecoverWithRecoverd(int expectedNumberOfTasks) {
-    Task<String> recovered =
-        getFailureTask().recoverWith(e -> Task.callable("recover success", () -> "recovered"));
+    Task<String> recovered = getFailureTask().recoverWith(e -> Task.callable("recover success", () -> "recovered"));
     runAndWait("AbstractTaskTest.testRecoverWithRecoverd", recovered);
     assertEquals(recovered.get(), "recovered");
     assertEquals(countTasks(recovered.getTrace()), expectedNumberOfTasks);
@@ -140,10 +135,8 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
 
   @Test
   public void testWithTimeoutTwiceSuccess() {
-    Task<Integer> success =
-        getSuccessTask().andThen(delayedValue(0, 30, TimeUnit.MILLISECONDS))
-        .withTimeout(100, TimeUnit.MILLISECONDS)
-        .withTimeout(5000, TimeUnit.MILLISECONDS);
+    Task<Integer> success = getSuccessTask().andThen(delayedValue(0, 30, TimeUnit.MILLISECONDS))
+        .withTimeout(100, TimeUnit.MILLISECONDS).withTimeout(5000, TimeUnit.MILLISECONDS);
     runAndWait("AbstractTaskTest.testWithTimeoutTwiceSuccess", success);
     assertEquals((int) success.get(), 0);
     assertEquals(countTasks(success.getTrace()), 7);
@@ -152,8 +145,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
   @Test
   public void testWithTimeoutFailure() {
     Task<Integer> failure =
-        getSuccessTask().andThen(delayedValue(0, 110, TimeUnit.MILLISECONDS))
-        .withTimeout(100, TimeUnit.MILLISECONDS);
+        getSuccessTask().andThen(delayedValue(0, 110, TimeUnit.MILLISECONDS)).withTimeout(100, TimeUnit.MILLISECONDS);
     try {
       runAndWait("AbstractTaskTest.testWithTimeoutFailure", failure);
       fail("should have failed!");
@@ -165,10 +157,8 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
 
   @Test
   public void testWithTimeoutTwiceFailure() {
-    Task<Integer> failure =
-        getSuccessTask().andThen(delayedValue(0, 110, TimeUnit.MILLISECONDS))
-        .withTimeout(5000, TimeUnit.MILLISECONDS)
-        .withTimeout(100, TimeUnit.MILLISECONDS);
+    Task<Integer> failure = getSuccessTask().andThen(delayedValue(0, 110, TimeUnit.MILLISECONDS))
+        .withTimeout(5000, TimeUnit.MILLISECONDS).withTimeout(100, TimeUnit.MILLISECONDS);
     try {
       runAndWait("AbstractTaskTest.testWithTimeoutTwiceFailure", failure);
       fail("should have failed!");
@@ -195,7 +185,6 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
     Task<String> fastMain = getSuccessTask();
     Task<String> slowSideEffect = delayedValue("slow", 50, TimeUnit.MILLISECONDS);
     Task<String> full = fastMain.withSideEffect(s -> slowSideEffect);
-
 
     // ensure the side effect task will be run
     runAndWait("AbstractTaskTest.testWithSideEffectFullCompletion", full);

@@ -39,6 +39,7 @@ import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.Trace;
 import com.linkedin.parseq.trace.TraceBuilder;
 
+
 /**
  * An abstract base class that can be used to build implementations of
  * {@link Task}.
@@ -46,12 +47,10 @@ import com.linkedin.parseq.trace.TraceBuilder;
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Chi Chan (ckchan@linkedin.com)
  */
-public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T>
-{
+public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T> {
   static final Logger LOGGER = LoggerFactory.getLogger(BaseTask.class);
 
-  private static enum StateType
-  {
+  private static enum StateType {
     // The initial state of the task.
     //
     // A task in this state can be cancelled and have its priority changed.
@@ -92,8 +91,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
    * will be the {@link #toString} representation for this instance. It is
    * usually best to use {@link BaseTask#BaseTask(String)}.
    */
-  public BaseTask()
-  {
+  public BaseTask() {
     this(null);
   }
 
@@ -102,9 +100,8 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
    *
    * @param name the name for this task.
    */
-  public BaseTask(final String name)
-  {
-    super(Promises.<T>settable());
+  public BaseTask(final String name) {
+    super(Promises.<T> settable());
     _name = name;
     final State state = State.INIT;
     _shallowTraceBuilder = new ShallowTraceBuilder(_id);
@@ -119,32 +116,26 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
   }
 
   @Override
-  public int getPriority()
-  {
+  public int getPriority() {
     return _stateRef.get().getPriority();
   }
 
   @Override
-  public boolean setPriority(final int priority)
-  {
-    if (priority < Priority.MIN_PRIORITY || priority > Priority.MAX_PRIORITY)
-    {
+  public boolean setPriority(final int priority) {
+    if (priority < Priority.MIN_PRIORITY || priority > Priority.MAX_PRIORITY) {
       throw new IllegalArgumentException("Priority out of bounds: " + priority);
     }
 
     State state;
     State newState;
-    do
-    {
+    do {
       state = _stateRef.get();
-      if (state.getType() != StateType.INIT)
-      {
+      if (state.getType() != StateType.INIT) {
         return false;
       }
 
       newState = new State(state.getType(), priority);
-    }
-    while (!_stateRef.compareAndSet(state, newState));
+    } while (!_stateRef.compareAndSet(state, newState));
 
     return true;
   }
@@ -155,73 +146,58 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
   }
 
   @Override
-  public final void contextRun(final Context context,
-                               final Task<?> parent,
-                               final Collection<Task<?>> predecessors)
-  {
+  public final void contextRun(final Context context, final Task<?> parent, final Collection<Task<?>> predecessors) {
     final TaskLogger taskLogger = context.getTaskLogger();
     final TraceBuilder traceBuilder = context.getTraceBuilder();
-    if (transitionRun(traceBuilder))
-    {
+    if (transitionRun(traceBuilder)) {
       final Promise<T> promise;
-      try
-      {
-        if (parent != null)
-        {
-          traceBuilder.addRelationship(Relationship.CHILD_OF, getShallowTraceBuilder(), parent.getShallowTraceBuilder());
+      try {
+        if (parent != null) {
+          traceBuilder.addRelationship(Relationship.CHILD_OF, getShallowTraceBuilder(),
+              parent.getShallowTraceBuilder());
         }
-        for (Task<?> predecessor: predecessors) {
-          traceBuilder.addRelationship(Relationship.SUCCESSOR_OF, getShallowTraceBuilder(), predecessor.getShallowTraceBuilder());
+        for (Task<?> predecessor : predecessors) {
+          traceBuilder.addRelationship(Relationship.SUCCESSOR_OF, getShallowTraceBuilder(),
+              predecessor.getShallowTraceBuilder());
         }
 
         taskLogger.logTaskStart(this);
-        try
-        {
+        try {
           final Context wrapperContext = new WrappedContext(context);
           promise = doContextRun(wrapperContext);
-        }
-        finally
-        {
+        } finally {
           transitionPending();
         }
 
-        promise.addListener(resolvedPromise ->
-          {
-            if (resolvedPromise.isFailed())
-            {
-              fail(resolvedPromise.getError(), taskLogger);
-            }
-            else
-            {
-              done(resolvedPromise.get(), taskLogger);
-            }
-          });
-      }
-      catch (Throwable t)
-      {
+        promise.addListener(resolvedPromise -> {
+          if (resolvedPromise.isFailed()) {
+            fail(resolvedPromise.getError(), taskLogger);
+          } else {
+            done(resolvedPromise.get(), taskLogger);
+          }
+        } );
+      } catch (Throwable t) {
         fail(t, taskLogger);
       }
-    }
-    else
-    {
+    } else {
       //this is possible when task was cancelled or has been executed multiple times
       //e.g. task has multiple paths it can be executed with or has been completed by
       //a FusionTask
       if (parent != null) {
-        traceBuilder.addRelationship(Relationship.POTENTIAL_CHILD_OF, getShallowTraceBuilder(), parent.getShallowTraceBuilder());
+        traceBuilder.addRelationship(Relationship.POTENTIAL_CHILD_OF, getShallowTraceBuilder(),
+            parent.getShallowTraceBuilder());
       }
-      for (Task<?> predecessor: predecessors) {
-        traceBuilder.addRelationship(Relationship.POSSIBLE_SUCCESSOR_OF, getShallowTraceBuilder(), predecessor.getShallowTraceBuilder());
+      for (Task<?> predecessor : predecessors) {
+        traceBuilder.addRelationship(Relationship.POSSIBLE_SUCCESSOR_OF, getShallowTraceBuilder(),
+            predecessor.getShallowTraceBuilder());
       }
     }
   }
 
   @SuppressWarnings("unchecked")
-  private Promise<T> doContextRun(final Context context) throws Throwable
-  {
-    return (Promise<T>)run(context);
+  private Promise<T> doContextRun(final Context context) throws Throwable {
+    return (Promise<T>) run(context);
   }
-
 
   /**
    * Returns the name of this task. If no name was set during construction
@@ -231,16 +207,13 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
    * @return the name of this task
    */
   @Override
-  public String getName()
-  {
+  public String getName() {
     return _name == null ? toString() : _name;
   }
 
   @Override
-  public boolean cancel(final Exception rootReason)
-  {
-    if (transitionCancel(rootReason))
-    {
+  public boolean cancel(final Exception rootReason) {
+    if (transitionCancel(rootReason)) {
       final Exception reason = new CancellationException(rootReason);
       traceFailure(reason);
       getSettableDelegate().fail(reason);
@@ -264,8 +237,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
   }
 
   @Override
-  public ShallowTrace getShallowTrace()
-  {
+  public ShallowTrace getShallowTrace() {
     return _shallowTraceBuilder.build();
   }
 
@@ -298,49 +270,40 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     final Function<T, String> traceValueProvider = _traceValueProvider;
     if (traceValueProvider != null) {
       try {
-      _shallowTraceBuilder.setValue(traceValueProvider.apply(value));
+        _shallowTraceBuilder.setValue(traceValueProvider.apply(value));
       } catch (Exception e) {
         _shallowTraceBuilder.setValue(e.toString());
       }
     }
   }
 
-  private void done(final T value, final TaskLogger taskLogger)
-  {
-    if (transitionDone())
-    {
+  private void done(final T value, final TaskLogger taskLogger) {
+    if (transitionDone()) {
       traceDone(value);
       getSettableDelegate().done(value);
       taskLogger.logTaskEnd(BaseTask.this, _traceValueProvider);
     }
   }
 
-  private void fail(final Throwable error, final TaskLogger taskLogger)
-  {
-    if (transitionDone())
-    {
+  private void fail(final Throwable error, final TaskLogger taskLogger) {
+    if (transitionDone()) {
       traceFailure(error);
       getSettableDelegate().fail(error);
       taskLogger.logTaskEnd(BaseTask.this, _traceValueProvider);
     }
   }
 
-
-  protected boolean transitionRun(final TraceBuilder traceBuilder)
-  {
+  protected boolean transitionRun(final TraceBuilder traceBuilder) {
     State state;
     State newState;
     final long startNanos = System.nanoTime();
-    do
-    {
+    do {
       state = _stateRef.get();
-      if (state.getType() != StateType.INIT)
-      {
+      if (state.getType() != StateType.INIT) {
         return false;
       }
       newState = state.transitionRun();
-    }
-    while (!_stateRef.compareAndSet(state, newState));
+    } while (!_stateRef.compareAndSet(state, newState));
     _traceBuilder = traceBuilder;
     traceBuilder.addShallowTrace(_shallowTraceBuilder);
     _shallowTraceBuilder.setStartNanos(startNanos);
@@ -348,77 +311,60 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     return true;
   }
 
-  protected void transitionPending()
-  {
+  protected void transitionPending() {
     State state;
     State newState;
     final long pendingNanos = System.nanoTime();
-    do
-    {
+    do {
       state = _stateRef.get();
-      if (state.getType() != StateType.RUN)
-      {
+      if (state.getType() != StateType.RUN) {
         return;
       }
       newState = state.transitionPending();
-    }
-    while (!_stateRef.compareAndSet(state, newState));
+    } while (!_stateRef.compareAndSet(state, newState));
     _shallowTraceBuilder.setPendingNanos(pendingNanos);
   }
 
-  protected boolean transitionCancel(final Exception reason)
-  {
+  protected boolean transitionCancel(final Exception reason) {
     State state;
     State newState;
 
-    do
-    {
+    do {
       state = _stateRef.get();
       final StateType type = state.getType();
-      if (type == StateType.RUN || type == StateType.DONE)
-      {
+      if (type == StateType.RUN || type == StateType.DONE) {
         return false;
       }
 
       newState = state.transitionDone();
-    }
-    while (!_stateRef.compareAndSet(state, newState));
+    } while (!_stateRef.compareAndSet(state, newState));
 
     return true;
   }
 
-  protected boolean transitionDone()
-  {
+  protected boolean transitionDone() {
     State state;
     State newState;
-    do
-    {
+    do {
       state = _stateRef.get();
-      if (state.getType() == StateType.DONE)
-      {
+      if (state.getType() == StateType.DONE) {
         return false;
       }
 
       newState = state.transitionDone();
-    }
-    while (!_stateRef.compareAndSet(state, newState));
+    } while (!_stateRef.compareAndSet(state, newState));
     return true;
   }
 
-  protected SettablePromise<T> getSettableDelegate()
-  {
-    return (SettablePromise<T>)super.getDelegate();
+  protected SettablePromise<T> getSettableDelegate() {
+    return (SettablePromise<T>) super.getDelegate();
   }
 
-  protected static class State
-  {
+  protected static class State {
     private final StateType _type;
     private final int _priority;
 
-
-    private State(final StateType type,
-                  final int priority)
-    {
+    private State(final StateType type, final int priority) {
       _type = type;
       _priority = priority;
     }
@@ -512,50 +458,45 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     };
   }
 
-  private class WrappedContext implements Context
-  {
+  private class WrappedContext implements Context {
     private final Context _context;
 
-    public WrappedContext(final Context context)
-    {
+    public WrappedContext(final Context context) {
       _context = context;
     }
 
     @Override
-    public Cancellable createTimer(final long time, final TimeUnit unit,
-                                   final Task<?> task)
-    {
+    public Cancellable createTimer(final long time, final TimeUnit unit, final Task<?> task) {
       final Cancellable cancellable = _context.createTimer(time, unit, task);
-      getTraceBuilder().addRelationship(Relationship.POTENTIAL_PARENT_OF, getShallowTraceBuilder(), task.getShallowTraceBuilder());
+      getTraceBuilder().addRelationship(Relationship.POTENTIAL_PARENT_OF, getShallowTraceBuilder(),
+          task.getShallowTraceBuilder());
       return cancellable;
     }
 
     @Override
-    public void run(final Task<?>... tasks)
-    {
+    public void run(final Task<?>... tasks) {
       _context.run(tasks);
-      for(Task<?> task : tasks)
-      {
-        getTraceBuilder().addRelationship(Relationship.POTENTIAL_PARENT_OF, getShallowTraceBuilder(), task.getShallowTraceBuilder());
+      for (Task<?> task : tasks) {
+        getTraceBuilder().addRelationship(Relationship.POTENTIAL_PARENT_OF, getShallowTraceBuilder(),
+            task.getShallowTraceBuilder());
       }
     }
 
     @Override
-    public After after(final Promise<?>... promises)
-    {
+    public After after(final Promise<?>... promises) {
       return new WrappedAfter(_context.after(promises));
     }
 
     @Override
-    public Object getEngineProperty(String key)
-    {
+    public Object getEngineProperty(String key) {
       return _context.getEngineProperty(key);
     }
 
     @Override
     public void runSubTask(Task<?> task, Task<?> rootTask) {
       _context.runSubTask(task, rootTask);
-      getTraceBuilder().addRelationship(Relationship.POTENTIAL_PARENT_OF, getShallowTraceBuilder(), task.getShallowTraceBuilder());
+      getTraceBuilder().addRelationship(Relationship.POTENTIAL_PARENT_OF, getShallowTraceBuilder(),
+          task.getShallowTraceBuilder());
     }
 
     @Override
@@ -563,20 +504,18 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
       return _context.getTraceBuilder();
     }
 
-    private class WrappedAfter implements After
-    {
+    private class WrappedAfter implements After {
       private final After _after;
 
-      public WrappedAfter(final After after)
-      {
+      public WrappedAfter(final After after) {
         _after = after;
       }
 
       @Override
-      public void run(final Task<?> task)
-      {
+      public void run(final Task<?> task) {
         _after.run(task);
-        getTraceBuilder().addRelationship(Relationship.POTENTIAL_PARENT_OF, getShallowTraceBuilder(), task.getShallowTraceBuilder());
+        getTraceBuilder().addRelationship(Relationship.POTENTIAL_PARENT_OF, getShallowTraceBuilder(),
+            task.getShallowTraceBuilder());
       }
 
       @Override
@@ -584,17 +523,18 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
         _after.run(() -> {
           Optional<Task<?>> task = taskSupplier.get();
           if (task.isPresent()) {
-            getTraceBuilder().addRelationship(Relationship.POTENTIAL_PARENT_OF, getShallowTraceBuilder(), task.get().getShallowTraceBuilder());
+            getTraceBuilder().addRelationship(Relationship.POTENTIAL_PARENT_OF, getShallowTraceBuilder(),
+                task.get().getShallowTraceBuilder());
           }
           return task;
-        });
+        } );
       }
 
       @Override
-      public void runSideEffect(final Task<?> task)
-      {
+      public void runSideEffect(final Task<?> task) {
         _after.runSideEffect(task);
-        getTraceBuilder().addRelationship(Relationship.POTENTIAL_PARENT_OF, getShallowTraceBuilder(), task.getShallowTraceBuilder());
+        getTraceBuilder().addRelationship(Relationship.POTENTIAL_PARENT_OF, getShallowTraceBuilder(),
+            task.getShallowTraceBuilder());
       }
     }
 
@@ -621,9 +561,9 @@ public abstract class BaseTask<T> extends DelegatingPromise<T> implements Task<T
     @Override
     public void runSideEffect(Task<?>... tasks) {
       _context.runSideEffect(tasks);
-      for(Task<?> task : tasks)
-      {
-        getTraceBuilder().addRelationship(Relationship.POTENTIAL_PARENT_OF, getShallowTraceBuilder(), task.getShallowTraceBuilder());
+      for (Task<?> task : tasks) {
+        getTraceBuilder().addRelationship(Relationship.POTENTIAL_PARENT_OF, getShallowTraceBuilder(),
+            task.getShallowTraceBuilder());
       }
     }
   }

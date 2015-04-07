@@ -19,20 +19,16 @@ package com.linkedin.parseq.example.composite.classifier;
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class ConnectedClassifier implements Classifier
-{
+public class ConnectedClassifier implements Classifier {
   private final Network _subnet;
 
-  public ConnectedClassifier(final Network subnet)
-  {
+  public ConnectedClassifier(final Network subnet) {
     _subnet = subnet;
   }
 
   @Override
-  public Classification classify(final long vieweeId)
-  {
-    return _subnet != null && Network.Distance.D1.equals(_subnet.getDistance(vieweeId))
-        ? Classification.FULL_VISIBILITY
+  public Classification classify(final long vieweeId) {
+    return _subnet != null && Network.Distance.D1.equals(_subnet.getDistance(vieweeId)) ? Classification.FULL_VISIBILITY
         : null;
   }
 }

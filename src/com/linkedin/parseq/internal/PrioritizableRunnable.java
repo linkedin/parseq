@@ -19,6 +19,5 @@ package com.linkedin.parseq.internal;
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public interface PrioritizableRunnable extends Runnable, Prioritizable
-{
+public interface PrioritizableRunnable extends Runnable, Prioritizable {
 }

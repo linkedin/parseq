@@ -2,6 +2,7 @@ package com.linkedin.parseq.function;
 
 import java.util.NoSuchElementException;
 
+
 /**
  * The {@code Try interface represents result that may either be a
  * successful completion or a failure. It has two implementation: {@link Success}

@@ -18,10 +18,10 @@ package com.linkedin.parseq.example.composite.classifier.client;
 
 import com.linkedin.parseq.promise.Promise;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public interface Client
-{
+public interface Client {
   <T> Promise<T> sendRequest(final Request<T> request);
 }

@@ -22,14 +22,16 @@ import com.linkedin.parseq.collection.transducer.Reducer.Step;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.TaskOrValue;
 
-public class AsyncCollection<T, R> extends Transducible<T, R> implements ParSeqCollection<R> {
+
+public class AsyncCollection<T, R> extends Transducible<T, R>implements ParSeqCollection<R> {
 
   private final TaskOrValue<Step<Object>> CONTINUE = TaskOrValue.value(Step.cont(Optional.empty()));
 
   private final Publisher<TaskOrValue<T>> _source;
   private final Optional<Task<?>> _predecessor;
 
-  protected AsyncCollection(Publisher<TaskOrValue<T>> source, Transducer<T, R> transducer, Optional<Task<?>> predecessor) {
+  protected AsyncCollection(Publisher<TaskOrValue<T>> source, Transducer<T, R> transducer,
+      Optional<Task<?>> predecessor) {
     super(transducer);
     _source = source;
     _predecessor = predecessor;
@@ -39,7 +41,8 @@ public class AsyncCollection<T, R> extends Transducible<T, R> implements ParSeqC
     return new AsyncFoldable<Z, T>(_source, _predecessor);
   }
 
-  private <A, B> AsyncCollection<A, B> createStreamCollection(Publisher<TaskOrValue<A>> source, Transducer<A, B> transducer) {
+  private <A, B> AsyncCollection<A, B> createStreamCollection(Publisher<TaskOrValue<A>> source,
+      Transducer<A, B> transducer) {
     return new AsyncCollection<A, B>(source, transducer, _predecessor);
   }
 
@@ -120,7 +123,7 @@ public class AsyncCollection<T, R> extends Transducible<T, R> implements ParSeqC
   public Task<?> task() {
     return foldable().fold("task", Optional.empty(), transduce((z, r) -> r.map(rValue -> {
       return Step.cont(z);
-    })));
+    } )));
   }
 
   @Override
@@ -132,21 +135,22 @@ public class AsyncCollection<T, R> extends Transducible<T, R> implements ParSeqC
   public <A> ParSeqCollection<A> flatMap(Function1<R, ParSeqCollection<A>> f) {
 
     CancellableSubscription subscription = new CancellableSubscription();
-    final PushablePublisher<Publisher<TaskOrValue<A>>> publisher = new PushablePublisher<Publisher<TaskOrValue<A>>>(subscription);
+    final PushablePublisher<Publisher<TaskOrValue<A>>> publisher =
+        new PushablePublisher<Publisher<TaskOrValue<A>>>(subscription);
 
     @SuppressWarnings("unchecked")
     Task<?> publisherTask = mapTask(r -> {
       final PushablePublisher<TaskOrValue<A>> pushablePublisher = new PushablePublisher<TaskOrValue<A>>(subscription);
       publisher.next(pushablePublisher);
-      return ((AsyncCollection<?, A>)f.apply(r)).publisherTask(pushablePublisher, subscription);
-    }).task();
+      return ((AsyncCollection<?, A>) f.apply(r)).publisherTask(pushablePublisher, subscription);
+    } ).task();
     publisherTask.addListener(p -> {
       if (p.isFailed()) {
         publisher.error(p.getError());
       } else {
         publisher.complete();
       }
-    });
+    } );
 
     return new AsyncCollection<A, A>(Publisher.flatten(publisher), Transducer.identity(), Optional.of(publisherTask));
   }
@@ -160,89 +164,89 @@ public class AsyncCollection<T, R> extends Transducible<T, R> implements ParSeqC
         pushable.next(r);
         return CONTINUE;
       }
-    }));
+    } ));
     fold.addListener(p -> {
       if (p.isFailed()) {
         pushable.error(p.getError());
       } else {
         pushable.complete();
       }
-    });
+    } );
     return fold;
   }
 
   @Override
   public <K> ParSeqCollection<GroupedParSeqCollection<K, R>> groupBy(Function1<R, K> classifier) {
-//  final Publisher<R> that = this;
-//  return new Publisher<GroupedStreamCollection<A, R, R>>() {
-//    private int groupCount = 0;
-//
-//    @Override
-//    public void subscribe(final AckingSubscriber<GroupedStreamCollection<A, R, R>> subscriber) {
-//
-//      final Map<A, PushablePublisher<R>> publishers = new HashMap<A, PushablePublisher<R>>();
-//      final Set<A> calcelledGroups = new HashSet<A>();
-//
-//      that.subscribe(new AckingSubscriber<R>() {
-//
-//        @Override
-//        public void onNext(final AckValue<R> element) {
-//          /**
-//           * TODO
-//           * Update documentation about ack: it is not a mechanism for backpressure:
-//           * - is backpressure relevant problem for a processing finite streams?
-//           * - ack is used to provide Seq semantics
-//           *
-//           * add try/catch to all those methods
-//           */
-//          final A group = classifier.apply(element.get());
-//          if (calcelledGroups.contains(group)) {
-//            element.ack(FlowControl.cont);
-//          } else {
-//            PushablePublisher<R> pub = publishers.get(group);
-//            if (pub == null) {
-//              final CancellableSubscription subscription = new CancellableSubscription();
-//              pub = new PushablePublisher<R>(() -> {
-//                subscription.cancel();
-//                calcelledGroups.add(group);
-//              });
-//              publishers.put(group, pub);
-//              subscriber.onNext(new AckValue<>(new GroupedStreamCollection<A, R, R>(group, pub, Transducer.identity()), Ack.NO_OP));
-//              groupCount++;
-//            }
-//            //at this point subscription might have been already cancelled
-//            if (!calcelledGroups.contains(group)) {
-//              pub.next(element);
-//            }
-//          }
-//        }
-//
-//        @Override
-//        public void onComplete(final int totalTasks) {
-//          subscriber.onComplete(groupCount);
-//          for (PushablePublisher<R> pub: publishers.values()) {
-//            pub.complete();
-//          }
-//        }
-//
-//        @Override
-//        public void onError(Throwable cause) {
-//          subscriber.onError(cause);
-//          for (PushablePublisher<R> pub: publishers.values()) {
-//            pub.error(cause);
-//          }
-//        }
-//
-//        @Override
-//        public void onSubscribe(Subscription subscription) {
-//          //we would be able to cancel stream if all groups cancelled their streams
-//          //unfortunately we can't cancel stream because we don't know
-//          //what elements are coming in the stream so we don't know list of all groups
-//        }
-//
-//      });
-//    }
-//  }.collection();
+    //  final Publisher<R> that = this;
+    //  return new Publisher<GroupedStreamCollection<A, R, R>>() {
+    //    private int groupCount = 0;
+    //
+    //    @Override
+    //    public void subscribe(final AckingSubscriber<GroupedStreamCollection<A, R, R>> subscriber) {
+    //
+    //      final Map<A, PushablePublisher<R>> publishers = new HashMap<A, PushablePublisher<R>>();
+    //      final Set<A> calcelledGroups = new HashSet<A>();
+    //
+    //      that.subscribe(new AckingSubscriber<R>() {
+    //
+    //        @Override
+    //        public void onNext(final AckValue<R> element) {
+    //          /**
+    //           * TODO
+    //           * Update documentation about ack: it is not a mechanism for backpressure:
+    //           * - is backpressure relevant problem for a processing finite streams?
+    //           * - ack is used to provide Seq semantics
+    //           *
+    //           * add try/catch to all those methods
+    //           */
+    //          final A group = classifier.apply(element.get());
+    //          if (calcelledGroups.contains(group)) {
+    //            element.ack(FlowControl.cont);
+    //          } else {
+    //            PushablePublisher<R> pub = publishers.get(group);
+    //            if (pub == null) {
+    //              final CancellableSubscription subscription = new CancellableSubscription();
+    //              pub = new PushablePublisher<R>(() -> {
+    //                subscription.cancel();
+    //                calcelledGroups.add(group);
+    //              });
+    //              publishers.put(group, pub);
+    //              subscriber.onNext(new AckValue<>(new GroupedStreamCollection<A, R, R>(group, pub, Transducer.identity()), Ack.NO_OP));
+    //              groupCount++;
+    //            }
+    //            //at this point subscription might have been already cancelled
+    //            if (!calcelledGroups.contains(group)) {
+    //              pub.next(element);
+    //            }
+    //          }
+    //        }
+    //
+    //        @Override
+    //        public void onComplete(final int totalTasks) {
+    //          subscriber.onComplete(groupCount);
+    //          for (PushablePublisher<R> pub: publishers.values()) {
+    //            pub.complete();
+    //          }
+    //        }
+    //
+    //        @Override
+    //        public void onError(Throwable cause) {
+    //          subscriber.onError(cause);
+    //          for (PushablePublisher<R> pub: publishers.values()) {
+    //            pub.error(cause);
+    //          }
+    //        }
+    //
+    //        @Override
+    //        public void onSubscribe(Subscription subscription) {
+    //          //we would be able to cancel stream if all groups cancelled their streams
+    //          //unfortunately we can't cancel stream because we don't know
+    //          //what elements are coming in the stream so we don't know list of all groups
+    //        }
+    //
+    //      });
+    //    }
+    //  }.collection();
     return null;
   }
 
@@ -254,16 +258,14 @@ public class AsyncCollection<T, R> extends Transducible<T, R> implements ParSeqC
     IterablePublisher<A, A> publisher = new ValuesPublisher<A>(iterable);
     Task<?> task = Task.action("values", publisher::run);
     task.addListener(p -> publisher.complete(p));
-    return new AsyncCollection<>(publisher, Transducer.identity(),
-        Optional.of(task));
+    return new AsyncCollection<>(publisher, Transducer.identity(), Optional.of(task));
   }
 
   public static <A> ParSeqCollection<A> fromTasks(final Iterable<Task<A>> iterable) {
     IterablePublisher<Task<A>, A> publisher = new TasksPublisher<A>(iterable);
     Task<?> task = Task.action("tasks", publisher::run);
     task.addListener(p -> publisher.complete(p));
-    return new AsyncCollection<>(publisher, Transducer.identity(),
-        Optional.of(task));
+    return new AsyncCollection<>(publisher, Transducer.identity(), Optional.of(task));
   }
 
   @Override
@@ -274,10 +276,10 @@ public class AsyncCollection<T, R> extends Transducible<T, R> implements ParSeqC
   @Override
   public ParSeqCollection<R> within(long time, TimeUnit unit) {
     //TODO within on publisher task is not enough - need to wrap future folding task
-//    CancellableSubscription subscription = new CancellableSubscription();
-//    final PushablePublisher<TaskOrValue<R>> publisher = new PushablePublisher<TaskOrValue<R>>(subscription);
-//    Task<?> task = publisherTask(publisher, subscription).within(time, unit);
-//    return new AsyncCollection<>(publisher, Transducer.identity(), Optional.of(task));
+    //    CancellableSubscription subscription = new CancellableSubscription();
+    //    final PushablePublisher<TaskOrValue<R>> publisher = new PushablePublisher<TaskOrValue<R>>(subscription);
+    //    Task<?> task = publisherTask(publisher, subscription).within(time, unit);
+    //    return new AsyncCollection<>(publisher, Transducer.identity(), Optional.of(task));
     throw new java.lang.UnsupportedOperationException("not implemented yet");
   }
 
@@ -291,14 +293,14 @@ public class AsyncCollection<T, R> extends Transducible<T, R> implements ParSeqC
       } else {
         return Step.done(z);
       }
-    })));
+    } )));
     fold.addListener(p -> {
       if (p.isFailed()) {
         subscriber.onError(p.getError());
       } else {
         subscriber.onComplete();
       }
-    });
+    } );
     return Task.action("onSubscribe", () -> subscriber.onSubscribe(subscription)).andThen(fold);
   }
 
@@ -330,10 +332,9 @@ public class AsyncCollection<T, R> extends Transducible<T, R> implements ParSeqC
     Task<?> task = sortedList.andThen("sortedValues", l -> {
       Collections.sort(l, comparator);
       publisher.run();
-    });
+    } );
     task.addListener(p -> publisher.complete(p));
-    return new AsyncCollection<>(publisher, Transducer.identity(),
-        Optional.of(task));
+    return new AsyncCollection<>(publisher, Transducer.identity(), Optional.of(task));
   }
 
 }

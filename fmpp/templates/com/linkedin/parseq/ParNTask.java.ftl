@@ -29,19 +29,16 @@ import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 
-public class Par${i}Task<<@typeParameters i/>> extends SystemHiddenTask<Tuple${i}<<@typeParameters i/>>> implements Tuple${i}Task<<@typeParameters i/>>
-{
+public class Par${i}Task<<@typeParameters i/>> extends SystemHiddenTask<Tuple${i}<<@typeParameters i/>>> implements Tuple${i}Task<<@typeParameters i/>> {
   private final Tuple${i}<<@csv 1..i; j>Task<T${j}></@csv>> _tasks;
 
-  public Par${i}Task(final String name, <@csv 1..i; j>Task<T${j}> task${j}</@csv>)
-  {
+  public Par${i}Task(final String name, <@csv 1..i; j>Task<T${j}> task${j}</@csv>) {
     super(name);
     _tasks = tuple(<@csv 1..i; j>task${j}</@csv>);
   }
 
   @Override
-  protected Promise<Tuple${i}<<@typeParameters i/>>> run(final Context context) throws Exception
-  {
+  protected Promise<Tuple${i}<<@typeParameters i/>>> run(final Context context) throws Exception {
     final SettablePromise<Tuple${i}<<@typeParameters i/>>> result = Promises.settable();
 
     InternalUtil.fastFailAfter(p -> {

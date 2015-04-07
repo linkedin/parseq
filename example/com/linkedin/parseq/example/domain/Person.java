@@ -2,6 +2,7 @@ package com.linkedin.parseq.example.domain;
 
 import java.util.List;
 
+
 public class Person {
 
   final int _id;
@@ -43,6 +44,5 @@ public class Person {
     return "Person [_id=" + _id + ", _firstName=" + _firstName + ", _lastName=" + _lastName + ", _companyId="
         + _companyId + ", _connections=" + _connections + "]";
   }
-
 
 }

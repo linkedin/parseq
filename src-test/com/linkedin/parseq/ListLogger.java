@@ -24,14 +24,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+
 /**
  * Simple {@link org.slf4j.Logger} that allows test code to capture log
  * messages.
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class ListLogger extends MarkerIgnoringBase
-{
+public class ListLogger extends MarkerIgnoringBase {
   public static final int LEVEL_TRACE = 0;
   public static final int LEVEL_DEBUG = 1;
   public static final int LEVEL_INFO = 2;
@@ -43,275 +43,224 @@ public class ListLogger extends MarkerIgnoringBase
   private final ConcurrentLinkedQueue<Entry> _entries = new ConcurrentLinkedQueue<Entry>();
   private volatile int _logLevel;
 
-  public ListLogger(final String name)
-  {
+  public ListLogger(final String name) {
     this.name = name;
     reset();
   }
 
-  public List<Entry> getEntries()
-  {
+  public List<Entry> getEntries() {
     return Collections.unmodifiableList(new ArrayList<Entry>(_entries));
   }
 
-  public void setLogLevel(final int level)
-  {
+  public void setLogLevel(final int level) {
     assert level >= LEVEL_TRACE && level <= LEVEL_ERROR;
     _logLevel = level;
   }
 
-  public final void reset()
-  {
+  public final void reset() {
     _entries.clear();
     _logLevel = LEVEL_INFO;
   }
 
   @Override
-  public boolean isTraceEnabled()
-  {
+  public boolean isTraceEnabled() {
     return isLevelEnabled(LEVEL_TRACE);
   }
 
   @Override
-  public void trace(final String s)
-  {
+  public void trace(final String s) {
     log(LEVEL_TRACE, s);
   }
 
   @Override
-  public void trace(final String s, final Object o)
-  {
+  public void trace(final String s, final Object o) {
     log(LEVEL_TRACE, s, o);
   }
 
   @Override
-  public void trace(final String s, final Object o, final Object o1)
-  {
+  public void trace(final String s, final Object o, final Object o1) {
     log(LEVEL_TRACE, s, o, o1);
   }
 
   @Override
-  public void trace(final String s, final Object[] objects)
-  {
+  public void trace(final String s, final Object[] objects) {
     log(LEVEL_TRACE, s, objects);
   }
 
   @Override
-  public void trace(final String s, final Throwable throwable)
-  {
+  public void trace(final String s, final Throwable throwable) {
     log(LEVEL_TRACE, s, throwable);
   }
 
   @Override
-  public boolean isDebugEnabled()
-  {
+  public boolean isDebugEnabled() {
     return isLevelEnabled(LEVEL_DEBUG);
   }
 
   @Override
-  public void debug(final String s)
-  {
+  public void debug(final String s) {
     log(LEVEL_DEBUG, s);
   }
 
   @Override
-  public void debug(final String s, final Object o)
-  {
+  public void debug(final String s, final Object o) {
     log(LEVEL_DEBUG, s, o);
   }
 
   @Override
-  public void debug(final String s, final Object o, final Object o1)
-  {
+  public void debug(final String s, final Object o, final Object o1) {
     log(LEVEL_DEBUG, s, o, o1);
   }
 
   @Override
-  public void debug(final String s, final Object[] objects)
-  {
+  public void debug(final String s, final Object[] objects) {
     log(LEVEL_DEBUG, s, objects);
   }
 
   @Override
-  public void debug(final String s, final Throwable throwable)
-  {
+  public void debug(final String s, final Throwable throwable) {
     log(LEVEL_DEBUG, s, throwable);
   }
 
   @Override
-  public boolean isInfoEnabled()
-  {
+  public boolean isInfoEnabled() {
     return isLevelEnabled(LEVEL_INFO);
   }
 
   @Override
-  public void info(final String s)
-  {
+  public void info(final String s) {
     log(LEVEL_INFO, s);
   }
 
   @Override
-  public void info(final String s, final Object o)
-  {
+  public void info(final String s, final Object o) {
     log(LEVEL_INFO, s, o);
   }
 
   @Override
-  public void info(final String s, final Object o, final Object o1)
-  {
+  public void info(final String s, final Object o, final Object o1) {
     log(LEVEL_INFO, s, o, o1);
   }
 
   @Override
-  public void info(final String s, final Object[] objects)
-  {
+  public void info(final String s, final Object[] objects) {
     log(LEVEL_INFO, s, objects);
   }
 
   @Override
-  public void info(final String s, final Throwable throwable)
-  {
+  public void info(final String s, final Throwable throwable) {
     log(LEVEL_INFO, s, throwable);
   }
 
   @Override
-  public boolean isWarnEnabled()
-  {
+  public boolean isWarnEnabled() {
     return isLevelEnabled(LEVEL_WARN);
   }
 
   @Override
-  public void warn(final String s)
-  {
+  public void warn(final String s) {
     log(LEVEL_WARN, s);
   }
 
   @Override
-  public void warn(final String s, final Object o)
-  {
+  public void warn(final String s, final Object o) {
     log(LEVEL_WARN, s, o);
   }
 
   @Override
-  public void warn(final String s, final Object[] objects)
-  {
+  public void warn(final String s, final Object[] objects) {
     log(LEVEL_WARN, s, objects);
   }
 
   @Override
-  public void warn(final String s, final Object o, final Object o1)
-  {
+  public void warn(final String s, final Object o, final Object o1) {
     log(LEVEL_WARN, s, o, o1);
   }
 
   @Override
-  public void warn(final String s, final Throwable throwable)
-  {
+  public void warn(final String s, final Throwable throwable) {
     log(LEVEL_WARN, s, throwable);
   }
 
   @Override
-  public boolean isErrorEnabled()
-  {
+  public boolean isErrorEnabled() {
     return isLevelEnabled(LEVEL_ERROR);
   }
 
   @Override
-  public void error(final String s)
-  {
+  public void error(final String s) {
     log(LEVEL_ERROR, s);
   }
 
   @Override
-  public void error(final String s, final Object o)
-  {
+  public void error(final String s, final Object o) {
     log(LEVEL_ERROR, s, o);
   }
 
   @Override
-  public void error(final String s, final Object o, final Object o1)
-  {
+  public void error(final String s, final Object o, final Object o1) {
     log(LEVEL_ERROR, s, o, o1);
   }
 
   @Override
-  public void error(final String s, final Object[] objects)
-  {
+  public void error(final String s, final Object[] objects) {
     log(LEVEL_ERROR, s, objects);
   }
 
   @Override
-  public void error(final String s, final Throwable throwable)
-  {
+  public void error(final String s, final Throwable throwable) {
     log(LEVEL_ERROR, s, throwable);
   }
 
-  private void log(final int level, final String s)
-  {
+  private void log(final int level, final String s) {
     _entries.add(new Entry(level, s));
   }
 
-  private void log(final int level, final String s, final Object o)
-  {
-    if (isLevelEnabled(level))
-    {
+  private void log(final int level, final String s, final Object o) {
+    if (isLevelEnabled(level)) {
       final String msg = MessageFormatter.format(s, o).getMessage();
       _entries.add(new Entry(level, msg));
     }
   }
 
-  private void log(final int level, final String s, final Object o,
-                   final Object o1)
-  {
-    if (isLevelEnabled(level))
-    {
+  private void log(final int level, final String s, final Object o, final Object o1) {
+    if (isLevelEnabled(level)) {
       final String msg = MessageFormatter.format(s, o, o1).getMessage();
       _entries.add(new Entry(level, msg));
     }
   }
 
-  private void log(final int level, final String s, final Object[] objects)
-  {
-    if (isLevelEnabled(level))
-    {
+  private void log(final int level, final String s, final Object[] objects) {
+    if (isLevelEnabled(level)) {
       final String msg = MessageFormatter.arrayFormat(s, objects).getMessage();
       _entries.add(new Entry(level, msg));
     }
   }
 
-  private boolean isLevelEnabled(final int level)
-  {
+  private boolean isLevelEnabled(final int level) {
     return _logLevel <= level;
   }
 
-  public static class Entry
-  {
+  public static class Entry {
     private final int _level;
     private final String _message;
 
-    public Entry(final int level, final String message)
-    {
+    public Entry(final int level, final String message) {
       _level = level;
       _message = message;
     }
 
-    public int getLevel()
-    {
+    public int getLevel() {
       return _level;
     }
 
-    public String getMessage()
-    {
+    public String getMessage() {
       return _message;
     }
 
     @Override
-    public String toString()
-    {
-      return "Entry{" +
-          "_level=" + _level +
-          ", _message='" + _message + '\'' +
-          '}';
+    public String toString() {
+      return "Entry{" + "_level=" + _level + ", _message='" + _message + '\'' + '}';
     }
   }
 }

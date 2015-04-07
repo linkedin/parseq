@@ -13,30 +13,24 @@ import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.example.common.ExampleUtil;
 import com.linkedin.parseq.example.common.MockService;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class FanOutExample extends AbstractExample
-{
-  public static void main(String[] args) throws Exception
-  {
+public class FanOutExample extends AbstractExample {
+  public static void main(String[] args) throws Exception {
     new FanOutExample().runExample();
   }
 
   @Override
-  protected void doRunExample(final Engine engine) throws Exception
-  {
-    List<String> urls = Arrays.asList("http://www.bing.com",
-                                      "http://www.yahoo.com",
-                                      "http://www.google.com");
+  protected void doRunExample(final Engine engine) throws Exception {
+    List<String> urls = Arrays.asList("http://www.bing.com", "http://www.yahoo.com", "http://www.google.com");
 
     final MockService<String> httpClient = getService();
 
-    Task<?> parFetch = ParSeqCollection.fromValues(urls)
-        .mapTask(url -> fetchUrl(httpClient, url))
-        .forEach(System.out::println)
-        .task();
+    Task<?> parFetch =
+        ParSeqCollection.fromValues(urls).mapTask(url -> fetchUrl(httpClient, url)).forEach(System.out::println).task();
 
     engine.run(parFetch);
 

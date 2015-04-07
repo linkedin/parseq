@@ -23,11 +23,11 @@ import static org.testng.Assert.*;
 
 import org.testng.annotations.Test;
 
+
 /**
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class TestTaskReuse extends BaseEngineTest
-{
+public class TestTaskReuse extends BaseEngineTest {
 
   @Test
   public void testExecuteMultipleTimes() {
@@ -36,7 +36,7 @@ public class TestTaskReuse extends BaseEngineTest
     Task<String> task = Task.callable(() -> {
       counter.incrementAndGet();
       return "hello";
-    });
+    } );
     runAndWait("TestTaskReuse.testExecuteMultipleTimes-1", task);
     runAndWait("TestTaskReuse.testExecuteMultipleTimes-2", task);
     runAndWait("TestTaskReuse.testExecuteMultipleTimes-3", task);
@@ -59,7 +59,7 @@ public class TestTaskReuse extends BaseEngineTest
     Task<String> task = Task.callable("increaser", () -> {
       counter.incrementAndGet();
       return "hello";
-    });
+    } );
 
     Task<String> test1 = task.andThen(bob);
 
@@ -78,7 +78,7 @@ public class TestTaskReuse extends BaseEngineTest
     Task<String> task = Task.callable("increaser", () -> {
       counter.incrementAndGet();
       return "hello";
-    });
+    } );
 
     Task<String> test1 = task.andThen(bob.shareable());
 
@@ -94,7 +94,7 @@ public class TestTaskReuse extends BaseEngineTest
     Task<String> task = Task.callable("increaser", () -> {
       counter.incrementAndGet();
       return "hello";
-    });
+    } );
 
     Task<String> test =
         Task.par(task.shareable().map(x -> x + "1"), task.shareable().map(x -> x + "2")).map((a, b) -> a + b);
@@ -108,7 +108,7 @@ public class TestTaskReuse extends BaseEngineTest
   @Test
   public void testCancellationPar() {
 
-    Task<String> task = delayedValue("hello",50, TimeUnit.MILLISECONDS);
+    Task<String> task = delayedValue("hello", 50, TimeUnit.MILLISECONDS);
 
     Task<String> test1 =
         Task.par(task.map(x -> x + "1"), Task.failure(new RuntimeException("ups"))).map((a, b) -> a + b);
@@ -120,8 +120,7 @@ public class TestTaskReuse extends BaseEngineTest
       assertTrue(test1.isFailed());
     }
 
-    Task<String> test2 =
-        Task.par(task.map("1", x -> x + "1"), task.map("2", x -> x + "2")).map((a, b) -> a + b);
+    Task<String> test2 = Task.par(task.map("1", x -> x + "1"), task.map("2", x -> x + "2")).map((a, b) -> a + b);
 
     try {
       runAndWait("TestTaskReuse.testCancellationPar-test2", test2);
@@ -134,7 +133,7 @@ public class TestTaskReuse extends BaseEngineTest
   @Test
   public void testShareableCancellationPar() {
 
-    Task<String> task = delayedValue("hello",50, TimeUnit.MILLISECONDS);
+    Task<String> task = delayedValue("hello", 50, TimeUnit.MILLISECONDS);
 
     Task<String> test1 =
         Task.par(task.shareable().map(x -> x + "1"), Task.failure(new RuntimeException("ups"))).map((a, b) -> a + b);
@@ -160,7 +159,7 @@ public class TestTaskReuse extends BaseEngineTest
     Task<String> task = Task.callable(() -> {
       counter.incrementAndGet();
       return "hello";
-    });
+    } );
 
     Task<String> plan1 = task.map(s -> s + " on earth!");
     Task<String> plan2 = task.map(s -> s + " on moon!");
@@ -180,7 +179,7 @@ public class TestTaskReuse extends BaseEngineTest
     Task<String> task = Task.callable(() -> {
       counter.incrementAndGet();
       return "hello";
-    });
+    } );
 
     Task<String> plan1 = task.map(s -> s + " on earth!");
     Task<String> plan2 = task.map(s -> s + " on moon!");
@@ -207,7 +206,7 @@ public class TestTaskReuse extends BaseEngineTest
     Task<String> task = Task.callable(() -> {
       counter.incrementAndGet();
       return "hello";
-    });
+    } );
 
     Task<String> plan1 = task.flatMap("+earch", s -> Task.callable(() -> s + " on earth!"));
     Task<String> plan2 = task.flatMap("+moon", s -> Task.callable(() -> s + " on moon!"));
@@ -226,7 +225,5 @@ public class TestTaskReuse extends BaseEngineTest
     assertEquals(countTasks(plan1.getTrace()), 4);
     assertEquals(countTasks(plan2.getTrace()), 4);
   }
-
-
 
 }

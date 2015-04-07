@@ -36,41 +36,37 @@ import static com.linkedin.parseq.Tasks.seq;
 import static com.linkedin.parseq.example.common.ExampleUtil.callService;
 import static com.linkedin.parseq.example.common.ExampleUtil.printTracingResults;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class TimeBoundSearchExample extends AbstractExample
-{
+public class TimeBoundSearchExample extends AbstractExample {
   // How long it takes to get a response for each request
-  private static final long[] REQUEST_LATENCIES = new long[] {175, 67, 30, 20, 177, 350};
+  private static final long[] REQUEST_LATENCIES = new long[] { 175, 67, 30, 20, 177, 350 };
 
   // How long the engine will wait for index number of responses
-  private static final long[] WAIT_TIMES = new long[] {400, 300, 200, 100, 0};
+  private static final long[] WAIT_TIMES = new long[] { 400, 300, 200, 100, 0 };
 
-  public static void main(String[] args) throws Exception
-  {
+  public static void main(String[] args) throws Exception {
     new TimeBoundSearchExample().runExample();
   }
 
   @Override
-  protected void doRunExample(final Engine engine) throws Exception
-  {
+  protected void doRunExample(final Engine engine) throws Exception {
     final MockService<Integer> service = getService();
 
     final SearchTask example = new SearchTask(service);
 
     System.out.printf("This com.linkedin.asm.example will issue %d parallel requests\n", REQUEST_LATENCIES.length);
     System.out.println();
-    for (int i = 0; i < REQUEST_LATENCIES.length; i++)
-    {
+    for (int i = 0; i < REQUEST_LATENCIES.length; i++) {
       System.out.printf("Request %d will take %3dms to complete\n", i, REQUEST_LATENCIES[i]);
     }
 
     System.out.println();
     System.out.println("Latency rules:");
     System.out.println("--------------");
-    for (int i = 0; i < WAIT_TIMES.length; i++)
-    {
+    for (int i = 0; i < WAIT_TIMES.length; i++) {
       System.out.printf("Finish if received %d responses after %3dms\n", i, WAIT_TIMES[i]);
     }
 
@@ -88,45 +84,37 @@ public class TimeBoundSearchExample extends AbstractExample
     printTracingResults(example);
   }
 
-  private static class SearchTask extends BaseTask<List<Integer>>
-  {
+  private static class SearchTask extends BaseTask<List<Integer>> {
     private final MockService<Integer> _service;
     private final List<Integer> _responses = new ArrayList<Integer>();
     private final SettablePromise<List<Integer>> _result = Promises.settable();
 
     private long _startMillis;
 
-    public SearchTask(final MockService<Integer> service)
-    {
+    public SearchTask(final MockService<Integer> service) {
       super("search");
       _service = service;
     }
 
     @Override
-    public Promise<List<Integer>> run(final Context ctx)
-    {
+    public Promise<List<Integer>> run(final Context ctx) {
       // Save the start time so we can determine when to finish
       _startMillis = System.currentTimeMillis();
 
       // Set up timeouts for responses
       long lastWaitTime = Integer.MAX_VALUE;
-      for (final long waitTime : WAIT_TIMES)
-      {
-        if (waitTime < lastWaitTime && waitTime > 0)
-        {
+      for (final long waitTime : WAIT_TIMES) {
+        if (waitTime < lastWaitTime && waitTime > 0) {
           ctx.createTimer(waitTime, TimeUnit.MILLISECONDS, checkDone());
           lastWaitTime = waitTime;
         }
       }
 
       // Issue requests
-      for (int i = 0; i < REQUEST_LATENCIES.length; i++)
-      {
+      for (int i = 0; i < REQUEST_LATENCIES.length; i++) {
         final long requestLatency = REQUEST_LATENCIES[i];
         final Task<Integer> callSvc =
-            callService("subSearch[" + i + "]",
-                        _service,
-                        new SimpleMockRequest<Integer>(requestLatency, i));
+            callService("subSearch[" + i + "]", _service, new SimpleMockRequest<Integer>(requestLatency, i));
 
         ctx.run(seq(callSvc, addResponse(callSvc), checkDone()));
       }
@@ -134,29 +122,22 @@ public class TimeBoundSearchExample extends AbstractExample
       return _result;
     }
 
-    private Task<?> checkDone()
-    {
-      return action("checkDone", new Runnable()
-      {
+    private Task<?> checkDone() {
+      return action("checkDone", new Runnable() {
         @Override
-        public void run()
-        {
+        public void run() {
           final int index = Math.min(WAIT_TIMES.length - 1, _responses.size());
-          if (WAIT_TIMES[index] + _startMillis <= System.currentTimeMillis())
-          {
+          if (WAIT_TIMES[index] + _startMillis <= System.currentTimeMillis()) {
             _result.done(_responses);
           }
         }
       });
     }
 
-    private Task<?> addResponse(final Promise<Integer> response)
-    {
-      return action("addResponse", new Runnable()
-      {
+    private Task<?> addResponse(final Promise<Integer> response) {
+      return action("addResponse", new Runnable() {
         @Override
-        public void run()
-        {
+        public void run() {
           _responses.add(response.get());
         }
       });

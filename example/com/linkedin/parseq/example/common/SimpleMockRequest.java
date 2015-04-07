@@ -19,24 +19,20 @@ package com.linkedin.parseq.example.common;
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class SimpleMockRequest<RES> implements MockRequest<RES>
-{
+public class SimpleMockRequest<RES> implements MockRequest<RES> {
   private final long _latency;
   private final RES _result;
 
-  public SimpleMockRequest(final long latency, final RES result)
-  {
+  public SimpleMockRequest(final long latency, final RES result) {
     _latency = latency;
     _result = result;
   }
 
-  public long getLatency()
-  {
+  public long getLatency() {
     return _latency;
   }
 
-  public RES getResult()
-  {
+  public RES getResult() {
     return _result;
   }
 }

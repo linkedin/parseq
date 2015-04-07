@@ -2,6 +2,7 @@ package com.linkedin.parseq.promise;
 
 import java.util.concurrent.TimeUnit;
 
+
 public class ResolvedError<T> implements Promise<T> {
 
   private final Throwable _error;

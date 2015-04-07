@@ -19,6 +19,7 @@ package com.linkedin.parseq;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+
 /**
  * An object that invokes tasks after as set of
  * {@link com.linkedin.parseq.promise.Promise}s and {@link Task}s have completed.
@@ -26,8 +27,7 @@ import java.util.function.Supplier;
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public interface After
-{
+public interface After {
   /**
    * When all promises and tasks have been resolved then the given task is
    * run.

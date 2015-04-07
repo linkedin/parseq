@@ -18,29 +18,25 @@ import static com.linkedin.parseq.Tasks.callable;
 import static com.linkedin.parseq.example.common.ExampleUtil.callService;
 import static com.linkedin.parseq.example.common.ExampleUtil.printTracingResults;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class BranchSkippedExample extends AbstractExample
-{
-  public static void main(String[] args) throws Exception
-  {
+public class BranchSkippedExample extends AbstractExample {
+  public static void main(String[] args) throws Exception {
     new BranchSkippedExample().runExample();
   }
 
   @Override
-  protected void doRunExample(final Engine engine) throws Exception
-  {
+  protected void doRunExample(final Engine engine) throws Exception {
     final MockService<Integer> serviceX = getService();
 
     final Task<Integer> fetchX = fetchX(serviceX, 420);
     final Task<Integer> enlargeX = new BaseTask<Integer>("make x >= 42") {
       @Override
-      protected Promise<Integer> run(final Context context) throws Exception
-      {
+      protected Promise<Integer> run(final Context context) throws Exception {
         final int x = fetchX.get();
-        if (x < 42)
-        {
+        if (x < 42) {
           final int toAdd = 42 - x;
           final Task<Integer> addTo42 = add(x, toAdd);
           context.run(addTo42);
@@ -60,21 +56,16 @@ public class BranchSkippedExample extends AbstractExample
     printTracingResults(bigX);
   }
 
-  private static Task<Integer> add(final int x, final int toAdd)
-  {
-    return callable("add " + toAdd, new Callable<Integer>()
-    {
+  private static Task<Integer> add(final int x, final int toAdd) {
+    return callable("add " + toAdd, new Callable<Integer>() {
       @Override
-      public Integer call() throws Exception
-      {
+      public Integer call() throws Exception {
         return x + toAdd;
       }
     });
   }
 
-  private Task<Integer> fetchX(final MockService<Integer> serviceX,
-                                      final int x)
-  {
+  private Task<Integer> fetchX(final MockService<Integer> serviceX, final int x) {
     return callService("fetch x (x := " + x + ")", serviceX, new SimpleMockRequest<Integer>(10, x));
   }
 }

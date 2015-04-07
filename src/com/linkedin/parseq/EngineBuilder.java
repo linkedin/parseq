@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 
+
 /**
  * A configurable builder that makes {@link Engine}s.
  * <p>
@@ -37,15 +38,15 @@ import java.util.concurrent.ScheduledExecutorService;
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class EngineBuilder
-{
+public class EngineBuilder {
   private Executor _taskExecutor;
   private DelayedExecutor _timerScheduler;
   private ILoggerFactory _loggerFactory = null;
 
   private Map<String, Object> _properties = new HashMap<String, Object>();
 
-  public EngineBuilder() {}
+  public EngineBuilder() {
+  }
 
   /**
    * Sets the task executor for the engine.
@@ -55,8 +56,7 @@ public class EngineBuilder
    * @param taskExecutor the executor to use for the engine
    * @return this builder
    */
-  public EngineBuilder setTaskExecutor(final Executor taskExecutor)
-  {
+  public EngineBuilder setTaskExecutor(final Executor taskExecutor) {
     ArgumentUtil.requireNotNull(taskExecutor, "taskExecutor");
     _taskExecutor = taskExecutor;
     return this;
@@ -70,8 +70,7 @@ public class EngineBuilder
    * @param timerScheduler the scheduler to use for the engine
    * @return this builder
    */
-  public EngineBuilder setTimerScheduler(final DelayedExecutor timerScheduler)
-  {
+  public EngineBuilder setTimerScheduler(final DelayedExecutor timerScheduler) {
     ArgumentUtil.requireNotNull(timerScheduler, "timerScheduler");
     _timerScheduler = timerScheduler;
     return this;
@@ -85,8 +84,7 @@ public class EngineBuilder
    * @param timerScheduler the scheduler to use for the engine
    * @return this builder
    */
-  public EngineBuilder setTimerScheduler(final ScheduledExecutorService timerScheduler)
-  {
+  public EngineBuilder setTimerScheduler(final ScheduledExecutorService timerScheduler) {
     ArgumentUtil.requireNotNull(timerScheduler, "timerScheduler");
     setTimerScheduler(adaptTimerScheduler(timerScheduler));
     return this;
@@ -99,8 +97,7 @@ public class EngineBuilder
    * @param loggerFactory the logger factory to used by the engine.
    * @return this builder
    */
-  public EngineBuilder setLoggerFactory(final ILoggerFactory loggerFactory)
-  {
+  public EngineBuilder setLoggerFactory(final ILoggerFactory loggerFactory) {
     ArgumentUtil.requireNotNull(loggerFactory, "loggerFactory");
     _loggerFactory = loggerFactory;
     return this;
@@ -114,8 +111,7 @@ public class EngineBuilder
    * @param value
    * @return this builder
    */
-  public EngineBuilder setEngineProperty(String key, Object value)
-  {
+  public EngineBuilder setEngineProperty(String key, Object value) {
     _properties.put(key, value);
     return this;
   }
@@ -127,22 +123,16 @@ public class EngineBuilder
    * @return a new {@link Engine} using the configuration in this builder.
    * @throws IllegalStateException if the configuration in this builder is invalid.
    */
-  public Engine build()
-  {
-    if (_taskExecutor == null)
-    {
+  public Engine build() {
+    if (_taskExecutor == null) {
       throw new IllegalStateException("Task executor is required to create an Engine, but it is not set");
     }
-    if (_timerScheduler == null)
-    {
+    if (_timerScheduler == null) {
       throw new IllegalStateException("Timer scheduler is required to create an Engine, but it is not set");
     }
-    Engine engine =  new Engine(
-        _taskExecutor,
-        new IndirectDelayedExecutor(_timerScheduler),
+    Engine engine = new Engine(_taskExecutor, new IndirectDelayedExecutor(_timerScheduler),
         _loggerFactory != null ? _loggerFactory : new CachedLoggerFactory(LoggerFactory.getILoggerFactory()),
-        _properties
-        );
+        _properties);
     return engine;
   }
 
@@ -153,8 +143,7 @@ public class EngineBuilder
    * @param timerScheduler the scheduler to convert
    * @return the converted scheduler
    */
-  private static DelayedExecutor adaptTimerScheduler(final ScheduledExecutorService timerScheduler)
-  {
+  private static DelayedExecutor adaptTimerScheduler(final ScheduledExecutorService timerScheduler) {
     return new DelayedExecutorAdapter(timerScheduler);
   }
 }

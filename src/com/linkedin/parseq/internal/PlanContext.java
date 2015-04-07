@@ -11,8 +11,8 @@ import com.linkedin.parseq.DelayedExecutor;
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.trace.TraceBuilder;
 
-public class PlanContext
-{
+
+public class PlanContext {
   /** Unique identifier for this plan. */
   private final Long _id;
 
@@ -48,28 +48,23 @@ public class PlanContext
     _taskLogger = new TaskLogger(_id, rootId, allLogger, rootLogger, planLogger);
   }
 
-  public Long getId()
-  {
+  public Long getId() {
     return _id;
   }
 
-  public void execute(Runnable runnable)
-  {
+  public void execute(Runnable runnable) {
     _taskExecutor.execute(runnable);
   }
 
-  public Cancellable schedule(long time, TimeUnit unit, Runnable runnable)
-  {
+  public Cancellable schedule(long time, TimeUnit unit, Runnable runnable) {
     return _timerScheduler.schedule(time, unit, runnable);
   }
 
-  public Object getEngineProperty(String key)
-  {
+  public Object getEngineProperty(String key) {
     return _engine.getProperty(key);
   }
 
-  public TaskLogger getTaskLogger()
-  {
+  public TaskLogger getTaskLogger() {
     return _taskLogger;
   }
 

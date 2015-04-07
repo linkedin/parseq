@@ -18,23 +18,21 @@ package com.linkedin.parseq.example.legacy.composite.classifier.client.impl;
 
 import com.linkedin.parseq.example.legacy.composite.classifier.client.Request;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public abstract class AbstractRequest<T> implements Request<T>
-{
+public abstract class AbstractRequest<T> implements Request<T> {
   private static final int DEFAULT_LATENCY_MEAN = 100;
   private static final int DEFAULT_LATENCY_STDDEV = 50;
 
   @Override
-  public int getLatencyMean()
-  {
+  public int getLatencyMean() {
     return DEFAULT_LATENCY_MEAN;
   }
 
   @Override
-  public int getLatencyStdDev()
-  {
+  public int getLatencyStdDev() {
     return DEFAULT_LATENCY_STDDEV;
   }
 }

@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
+
 public class Trace {
 
   private final Map<Long, ShallowTrace> _traceMap;
@@ -61,6 +62,5 @@ public class Trace {
   public String toString() {
     return "Trace [traceMap=" + _traceMap + ", relationships=" + _relationships + "]";
   }
-
 
 }

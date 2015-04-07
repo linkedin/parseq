@@ -2,7 +2,8 @@ package com.linkedin.parseq.function;
 
 import java.util.Objects;
 
-public class Success<T> implements Try<T>{
+
+public class Success<T> implements Try<T> {
 
   private final T _value;
 
@@ -36,22 +37,22 @@ public class Success<T> implements Try<T>{
 
   @Override
   public int hashCode() {
-      return Objects.hash(_value);
+    return Objects.hash(_value);
   }
 
   @Override
   public boolean equals(Object other) {
-      if(other instanceof Success) {
-          Success<?> that = (Success<?>) other;
-          return Objects.equals(this._value, that._value);
-      } else {
-          return false;
-      }
+    if (other instanceof Success) {
+      Success<?> that = (Success<?>) other;
+      return Objects.equals(this._value, that._value);
+    } else {
+      return false;
+    }
   }
 
   @Override
   public String toString() {
-      return "success(" + _value + ")";
+    return "success(" + _value + ")";
   }
 
 }

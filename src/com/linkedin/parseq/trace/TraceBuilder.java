@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+
 /**
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
@@ -52,7 +53,8 @@ public class TraceBuilder {
     _traceBuilders.putIfAbsent(shallowTrace.getId(), new RefCounted<>(0, shallowTrace));
   }
 
-  public synchronized void addRelationship(final Relationship relationship, final ShallowTraceBuilder from, final ShallowTraceBuilder to) {
+  public synchronized void addRelationship(final Relationship relationship, final ShallowTraceBuilder from,
+      final ShallowTraceBuilder to) {
     if (_relationships.size() == _maxRelationshipsPerTrace) {
       TraceRelationship r = _relationships.iterator().next();
       _relationships.remove(r);
@@ -88,14 +90,13 @@ public class TraceBuilder {
     final Map<Long, ShallowTrace> traceMap = new HashMap<>();
     final Set<TraceRelationship> relationships = new HashSet<>();
 
-    for (Entry<Long, RefCounted<ShallowTraceBuilder>> entry: _traceBuilders.entrySet()) {
+    for (Entry<Long, RefCounted<ShallowTraceBuilder>> entry : _traceBuilders.entrySet()) {
       traceMap.put(entry.getKey(), entry.getValue()._value.build());
     }
 
-    for (TraceRelationship rel: _relationships) {
+    for (TraceRelationship rel : _relationships) {
 
-      switch(rel.getRelationhsip())
-      {
+      switch (rel.getRelationhsip()) {
         case SUCCESSOR_OF:
           relationships.remove(new TraceRelationship(rel.getFrom(), rel.getTo(), Relationship.POSSIBLE_SUCCESSOR_OF));
           relationships.add(rel);

@@ -19,10 +19,8 @@ package com.linkedin.parseq.example.composite.classifier;
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class Network
-{
-  public static enum Distance
-  {
+public class Network {
+  public static enum Distance {
     NOT_IN_NETWORK,
     SELF,
     D1,
@@ -32,19 +30,16 @@ public class Network
 
   private final long memberId;
 
-  public Network(long memberId)
-  {
+  public Network(long memberId) {
     this.memberId = memberId;
   }
 
-  public Distance getDistance(final long memberId)
-  {
+  public Distance getDistance(final long memberId) {
     if (memberId == this.memberId)
       return Distance.SELF;
 
     final long group = memberId % 10;
-    switch ((int) group)
-    {
+    switch ((int) group) {
       case 10:
         return Distance.D3;
       case 9:

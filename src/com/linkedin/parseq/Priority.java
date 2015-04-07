@@ -23,9 +23,9 @@ package com.linkedin.parseq;
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @see BaseTask#setPriority(int)
  */
-public class Priority
-{
-  private Priority() {}
+public class Priority {
+  private Priority() {
+  }
 
   /**
    * Tasks with minimum priority will only be executed after all other tasks
