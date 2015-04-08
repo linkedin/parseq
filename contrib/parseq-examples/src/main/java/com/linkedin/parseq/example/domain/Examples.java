@@ -1,15 +1,11 @@
 /* $Id$ */
 package com.linkedin.parseq.example.domain;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.Task;
-import com.linkedin.parseq.collection.ParSeqCollection;
-import com.linkedin.parseq.example.common.AbstractDomainExample;
 import com.linkedin.parseq.example.common.ExampleUtil;
-import com.linkedin.parseq.function.Tuples;
 
 
 /**
@@ -73,43 +69,9 @@ public class Examples extends AbstractDomainExample {
 
   //---------------------------------------------------------------
 
-  //create summary of connections
-  //<first name> <last name> working at <company name>
-  //<first name> <last name> working at <company name>
-  //(...)
-  Task<String> createSummariesOfConnections(Integer id) {
-    return fetchPerson(id).flatMap(person -> createSummaries(person.getConnections()));
-  }
-
-  Task<String> createSummaries(List<Integer> ids) {
-    return ParSeqCollection.fromValues(ids).mapTask(id -> createExtendedSummary(id)).within(200, TimeUnit.MILLISECONDS)
-        .reduce((a, b) -> a + "\n" + b);
-  }
-
-  //---------------------------------------------------------------
-
-  //Find a message which contains given word
-  Task<String> findMessageWithWord(String word) {
-    return ParSeqCollection.fromValues(DB.personIds).mapTask(id -> fetchMailbox(id))
-        .flatMap(list -> ParSeqCollection.fromValues(list)).mapTask(msgId -> fetchMessage(msgId))
-        .map(msg -> msg.getContents()).find(s -> s.contains(word));
-  }
-
-  //---------------------------------------------------------------
-
-  //given list of their ids, get list of N People working at LinkedIn who have at least 2 connections and 1 message
-  Task<List<Person>> getNPeopleWorkingAtLinkedIn(List<Integer> ids, int N) {
-    return ParSeqCollection.fromValues(ids).mapTask(id -> fetchPerson(id))
-        .filter(person -> person.getConnections().size() > 2)
-        .mapTask(person -> Task.par(fetchMailbox(person.getId()), fetchCompany(person.getCompanyId()))
-            .map(tuple -> Tuples.tuple(person, tuple)))
-        .filter(tuple -> tuple._2()._1().size() >= 1 && tuple._2()._2().getName().equals("LinkedIn"))
-        .map(tuple -> tuple._1()).take(N).toList();
-  }
-
   @Override
   protected void doRunExample(final Engine engine) throws Exception {
-    Task<String> task = createSummariesOfConnections(1);
+    Task<String> task = createSummary(1);
 
     runTaskAndPrintResults(engine, task);
   }

@@ -3,12 +3,8 @@ package com.linkedin.parseq.example.simple;
 
 import static com.linkedin.parseq.example.common.ExampleUtil.fetchUrl;
 
-import java.util.Arrays;
-import java.util.List;
-
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.Task;
-import com.linkedin.parseq.collection.ParSeqCollection;
 import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.example.common.ExampleUtil;
 import com.linkedin.parseq.example.common.MockService;
@@ -25,16 +21,19 @@ public class FanOutExample extends AbstractExample {
 
   @Override
   protected void doRunExample(final Engine engine) throws Exception {
-    List<String> urls = Arrays.asList("http://www.bing.com", "http://www.yahoo.com", "http://www.google.com");
-
     final MockService<String> httpClient = getService();
+    final Task<String> fetchBing = fetchUrl(httpClient, "http://www.bing.com");
+    final Task<String> fetchYahoo = fetchUrl(httpClient, "http://www.yahoo.com");
+    final Task<String> fetchGoogle = fetchUrl(httpClient, "http://www.google.com");
 
-    Task<?> parFetch =
-        ParSeqCollection.fromValues(urls).mapTask(url -> fetchUrl(httpClient, url)).forEach(System.out::println).task();
-
+    final Task<?> parFetch = Task.par(fetchBing, fetchGoogle, fetchYahoo);
     engine.run(parFetch);
 
     parFetch.await();
+
+    System.out.println("Bing   => " + fetchBing.get());
+    System.out.println("Yahoo  => " + fetchYahoo.get());
+    System.out.println("Google => " + fetchGoogle.get());
 
     ExampleUtil.printTracingResults(parFetch);
   }

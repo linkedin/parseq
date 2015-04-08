@@ -14,15 +14,14 @@
  * the License.
  */
 
-package com.linkedin.parseq.example.common;
+package com.linkedin.parseq.example.domain;
 
 import java.util.List;
 
 import com.linkedin.parseq.Task;
-import com.linkedin.parseq.example.domain.Company;
-import com.linkedin.parseq.example.domain.DB;
-import com.linkedin.parseq.example.domain.Message;
-import com.linkedin.parseq.example.domain.Person;
+import com.linkedin.parseq.example.common.AbstractExample;
+import com.linkedin.parseq.example.common.ExampleUtil;
+import com.linkedin.parseq.example.common.MockService;
 
 
 public abstract class AbstractDomainExample extends AbstractExample {

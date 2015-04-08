@@ -18,16 +18,11 @@ package com.linkedin.parseq.example.composite;
 
 import static com.linkedin.parseq.example.common.ExampleUtil.fetchUrl;
 import static com.linkedin.parseq.example.common.ExampleUtil.printTracingResults;
-import static com.linkedin.parseq.function.Tuples.tuple;
-
-import java.util.Arrays;
-import java.util.List;
 
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.Task;
-import com.linkedin.parseq.collection.ParSeqCollection;
 import com.linkedin.parseq.example.common.AbstractExample;
-import com.linkedin.parseq.function.Tuple2;
+import com.linkedin.parseq.example.common.MockService;
 
 
 /**
@@ -42,15 +37,17 @@ public class TwoStageFanoutExample extends AbstractExample {
   @Override
   protected void doRunExample(final Engine engine) throws Exception {
 
-    //TODO early finish???
+    final MockService<String> httpClient = getService();
 
-    List<String> first = Arrays.asList("http://www.bing.com", "http://www.yahoo.com");
-    List<String> second = Arrays.asList("http://www.google.com", "https://duckduckgo.com/");
+    Task<String> stage1 = Task.par(fetchAndMap("http://www.bing.com", httpClient),
+                                   fetchAndMap("http://www.yahoo.com", httpClient))
+                                 .map((a, b) -> a + b);
 
-    Task<String> fanout = stage(first, new StringBuilder()).flatMap(resultBuilder -> stage(second, resultBuilder))
-        .map(builder -> builder.toString());
+    Task<String> stage2 = Task.par(fetchAndMap("http://www.google.com", httpClient),
+                                   fetchAndMap("https://duckduckgo.com", httpClient))
+                                 .map((a, b) -> a + b);
 
-    final Task<?> plan = fanout.andThen(System.out::println);
+    Task<String> plan = stage1.flatMap("combine", s1 -> stage2.map(s2 -> s1 + s2));
 
     engine.run(plan);
 
@@ -58,9 +55,8 @@ public class TwoStageFanoutExample extends AbstractExample {
     printTracingResults(plan);
   }
 
-  private Task<StringBuilder> stage(final List<String> input, final StringBuilder resultBuilder) {
-    return ParSeqCollection.fromValues(input)
-        .mapTask(url -> (Task<Tuple2<String, String>>) fetchUrl(getService(), url).map(s -> tuple(url, s)))
-        .fold(resultBuilder, (z, r) -> z.append(String.format("%10s => %s\n", r._1(), r._2())));
+  private Task<String> fetchAndMap(final String url, final MockService<String> httpClient) {
+    return fetchUrl(httpClient, url).map(s -> String.format("%10s => %s\n", url, s));
   }
+
 }
