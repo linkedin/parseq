@@ -16,7 +16,6 @@
 
 package com.linkedin.parseq;
 
-import java.util.Optional;
 import java.util.function.Supplier;
 
 
@@ -43,7 +42,7 @@ public interface After {
    *
    * @param taskSupplier the supplier of a task to run
    */
-  void run(Supplier<Optional<Task<?>>> taskSupplier);
+  void run(Supplier<Task<?>> taskSupplier);
 
   /**
    * When all promises and tasks have been resolved successfully, the given

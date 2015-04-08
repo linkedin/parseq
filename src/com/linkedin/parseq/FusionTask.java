@@ -1,6 +1,5 @@
 package com.linkedin.parseq;
 
-import java.util.Optional;
 import java.util.function.Function;
 
 import org.slf4j.Logger;
@@ -43,11 +42,11 @@ public class FusionTask<S, T> extends BaseTask<T> {
   private final Task<S> _task;
   private final Promise<S> _source;
 
-  private final Optional<ShallowTraceBuilder> _predecessor;
+  private final ShallowTraceBuilder _predecessor;
 
   private FusionTask(final String desc, final Task<S> task, final Promise<S> source,
       final Consumer3<FusionTraceContext, Promise<S>, Settable<T>> propagator, final boolean systemHidden,
-      final Optional<ShallowTraceBuilder> predecessor) {
+      final ShallowTraceBuilder predecessor) {
     super(desc);
     _propagator = completing(propagator);
     _task = task;
@@ -67,16 +66,16 @@ public class FusionTask<S, T> extends BaseTask<T> {
     if (traceContext.getParent() != null && !traceContext.getParent().getId().equals(getId())) {
       builder.addRelationship(Relationship.PARENT_OF, traceContext.getParent(), _shallowTraceBuilder);
     }
-    if (_predecessor.isPresent()
+    if (_predecessor != null
         && (traceContext.getParent() == null || !traceContext.getParent().getId().equals(getId()))) {
-      builder.addRelationship(Relationship.SUCCESSOR_OF, _shallowTraceBuilder, _predecessor.get());
+      builder.addRelationship(Relationship.SUCCESSOR_OF, _shallowTraceBuilder, _predecessor);
     } else if (traceContext.getSource() != null
         && (traceContext.getParent() == null || !traceContext.getParent().getId().equals(getId()))) {
       builder.addRelationship(Relationship.SUCCESSOR_OF, _shallowTraceBuilder, traceContext.getSource());
-    } else if (_predecessor.isPresent() && (traceContext.getParent() == null
+    } else if (_predecessor != null && (traceContext.getParent() == null
         || (traceContext.getParent().getId().equals(getId()) && !builder.containsRelationship(
-            new TraceRelationship(getId(), _predecessor.get().getId(), Relationship.PARENT_OF))))) {
-      builder.addRelationship(Relationship.SUCCESSOR_OF, _shallowTraceBuilder, _predecessor.get());
+            new TraceRelationship(getId(), _predecessor.getId(), Relationship.PARENT_OF))))) {
+      builder.addRelationship(Relationship.SUCCESSOR_OF, _shallowTraceBuilder, _predecessor);
     }
   }
 
@@ -84,19 +83,19 @@ public class FusionTask<S, T> extends BaseTask<T> {
     if (traceContext.getParent() != null && !traceContext.getParent().getId().equals(getId())) {
       builder.addRelationship(Relationship.POTENTIAL_CHILD_OF, _shallowTraceBuilder, traceContext.getParent());
     }
-    if (_predecessor.isPresent()
+    if (_predecessor != null
         && (traceContext.getParent() == null || !traceContext.getParent().getId().equals(getId()))) {
-      builder.addRelationship(Relationship.POSSIBLE_SUCCESSOR_OF, _shallowTraceBuilder, _predecessor.get());
+      builder.addRelationship(Relationship.POSSIBLE_SUCCESSOR_OF, _shallowTraceBuilder, _predecessor);
     } else if (traceContext.getSource() != null
         && (traceContext.getParent() == null || !traceContext.getParent().getId().equals(getId()))) {
       builder.addRelationship(Relationship.POSSIBLE_SUCCESSOR_OF, _shallowTraceBuilder, traceContext.getSource());
-    } else if (_predecessor.isPresent()
+    } else if (_predecessor != null
         && (traceContext.getParent() == null || (traceContext.getParent().getId().equals(getId())
             && !builder.containsRelationship(
-                new TraceRelationship(getId(), _predecessor.get().getId(), Relationship.PARENT_OF))
+                new TraceRelationship(getId(), _predecessor.getId(), Relationship.PARENT_OF))
         && !builder.containsRelationship(
-            new TraceRelationship(_predecessor.get().getId(), getId(), Relationship.POTENTIAL_CHILD_OF))))) {
-      builder.addRelationship(Relationship.POSSIBLE_SUCCESSOR_OF, _shallowTraceBuilder, _predecessor.get());
+            new TraceRelationship(_predecessor.getId(), getId(), Relationship.POTENTIAL_CHILD_OF))))) {
+      builder.addRelationship(Relationship.POSSIBLE_SUCCESSOR_OF, _shallowTraceBuilder, _predecessor);
     }
   }
 
@@ -180,7 +179,7 @@ public class FusionTask<S, T> extends BaseTask<T> {
   @SuppressWarnings("unchecked")
   public static <S, T> FusionTask<?, T> fuse(final String name, final Task<S> task,
       final Consumer3<FusionTraceContext, Promise<S>, Settable<T>> propagator,
-      final Optional<ShallowTraceBuilder> predecessor) {
+      final ShallowTraceBuilder predecessor) {
     if (task instanceof FusionTask) {
       return ((FusionTask<?, S>) task).apply(name, propagator);
     } else {
@@ -190,7 +189,7 @@ public class FusionTask<S, T> extends BaseTask<T> {
 
   public static <S, T> FusionTask<?, T> create(final String name, final Promise<S> source,
       final PromisePropagator<S, T> propagator) {
-    return new FusionTask<S, T>(name, null, source, withFusionTraceContext(propagator), false, Optional.empty());
+    return new FusionTask<S, T>(name, null, source, withFusionTraceContext(propagator), false, null);
   }
 
   private <R> Consumer3<FusionTraceContext, Promise<S>, Settable<R>> compose(
@@ -224,7 +223,7 @@ public class FusionTask<S, T> extends BaseTask<T> {
   }
 
   public <R> FusionTask<?, R> apply(String desc, Consumer3<FusionTraceContext, Promise<T>, Settable<R>> propagator) {
-    return fuse(desc, _task, compose(propagator), Optional.of(_shallowTraceBuilder));
+    return fuse(desc, _task, compose(propagator), _shallowTraceBuilder);
   };
 
   @Override
@@ -238,14 +237,14 @@ public class FusionTask<S, T> extends BaseTask<T> {
           try {
             Task<T> r = func.apply(that.getError());
             Promises.propagateResult(r, result);
-            return Optional.of(r);
+            return r;
           } catch (Throwable t) {
             result.fail(t);
-            return Optional.empty();
+            return null;
           }
         } else {
           result.done(that.get());
-          return Optional.empty();
+          return null;
         }
       } );
       context.run(that);
@@ -272,9 +271,9 @@ public class FusionTask<S, T> extends BaseTask<T> {
       final Task<T> propagationTask = Task.async(getName(), ctx -> {
         FusionTraceContext traceContext = new FusionTraceContext(ctx.getTraceBuilder(), _task.getShallowTraceBuilder(),
             FusionTask.this.getShallowTraceBuilder(), ctx.getTaskLogger());
-        if (_predecessor.isPresent()) {
+        if (_predecessor != null) {
           ctx.getTraceBuilder().addRelationship(Relationship.SUCCESSOR_OF, ctx.getShallowTraceBuilder(),
-              _predecessor.get());
+              _predecessor);
         }
         propagate(traceContext, result);
         return result;
@@ -286,7 +285,7 @@ public class FusionTask<S, T> extends BaseTask<T> {
   }
 
   public static <S, T> FusionTask<?, T> fuse(final String name, final Task<S> task,
-      final PromisePropagator<S, T> propagator, final Optional<ShallowTraceBuilder> predecessor) {
+      final PromisePropagator<S, T> propagator, final ShallowTraceBuilder predecessor) {
     return fuse(name, task, withFusionTraceContext(propagator), predecessor);
   }
 }

@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -174,13 +173,13 @@ public class ContextImpl implements Context, Cancellable {
       }
 
       @Override
-      public void run(final Supplier<Optional<Task<?>>> taskSupplier) {
+      public void run(final Supplier<Task<?>> taskSupplier) {
         InternalUtil.after(new PromiseListener<Object>() {
           @Override
           public void onResolved(Promise<Object> resolvedPromise) {
-            Optional<Task<?>> task = taskSupplier.get();
-            if (task.isPresent()) {
-              runSubTask(task.get(), predecessorTasks);
+            Task<?> task = taskSupplier.get();
+            if (task != null) {
+              runSubTask(task, predecessorTasks);
             }
           }
         }, promises);

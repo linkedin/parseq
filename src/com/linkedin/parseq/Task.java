@@ -17,7 +17,6 @@
 package com.linkedin.parseq;
 
 import java.util.Collection;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -149,7 +148,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
   //------------------- default methods -------------------
 
   default <R> Task<R> apply(final String desc, final PromisePropagator<T, R> propagator) {
-    return FusionTask.fuse(desc, this, propagator, Optional.empty());
+    return FusionTask.fuse(desc, this, propagator, null);
   }
 
   /**
@@ -714,10 +713,10 @@ public interface Task<T> extends Promise<T>, Cancellable {
         try {
           Task<R> t = task.get();
           Promises.propagateResult(t, result);
-          return Optional.of(t);
+          return t;
         } catch (Throwable t) {
           result.fail(t);
-          return Optional.empty();
+          return null;
         }
       } );
       context.run(task);
