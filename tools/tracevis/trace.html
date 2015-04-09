@@ -60,14 +60,14 @@ textarea.error {
           </ul>
         </div>
         <div class="span10">
-          <textarea id="jsonText" rows=3 placeholder="Insert JSON trace here" onkeyup="refreshView();"></textarea>
+          <textarea id="jsonText" rows=3 placeholder="Insert JSON trace here"></textarea>
         </div>
         <div class="span10">
           <label class="checkbox inline">
             <input id="checkboxExcludeUser" type="checkbox" checked="checked" onclick="refreshView();"><em>User</em> hidden tasks
           </label>
           <label class="checkbox inline">
-            <input id="checkboxExcludeSystem" type="checkbox" checked="checked" onclick="refreshView();"<em>System</em> hidden tasks
+            <input id="checkboxExcludeSystem" type="checkbox" checked="checked" onclick="refreshView();"><em>System</em> hidden tasks
           </label>
           <label class="checkbox inline">
             <input id="checkboxExcludeParent" type="checkbox" checked="checked" onclick="refreshView();">Parent tasks
@@ -163,6 +163,8 @@ function refreshView() {
   }
   view(d3.select("#resultView").attr('class', 'row-fluid'), g);
 }
+
+inputJSON.node().addEventListener('input', refreshView, false);
 
 /**
  * This is a utility that abstracts the details of how to programmatically load

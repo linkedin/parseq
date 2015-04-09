@@ -1,39 +1,29 @@
 package com.linkedin.parseq;
 
-import com.linkedin.parseq.internal.TaskLogger;
 import com.linkedin.parseq.trace.ShallowTraceBuilder;
-import com.linkedin.parseq.trace.TraceBuilder;
 
 
 public class FusionTraceContext {
 
-  private final ShallowTraceBuilder _parent;
+  private final ShallowTraceBuilder _trigger;
   private final ShallowTraceBuilder _source;
-  private final TraceBuilder _traceBuilder;
-  private final TaskLogger _taskLogger;
+  private final Context _context;
 
-  public FusionTraceContext(TraceBuilder traceBuilder, ShallowTraceBuilder source, ShallowTraceBuilder parent,
-      TaskLogger taskLogger) {
-    _traceBuilder = traceBuilder;
+  public FusionTraceContext(Context context, ShallowTraceBuilder source, ShallowTraceBuilder trigger) {
+    _context = context;
     _source = source;
-    _parent = parent;
-    _taskLogger = taskLogger;
+    _trigger = trigger;
   }
 
-  public ShallowTraceBuilder getParent() {
-    return _parent;
+  public ShallowTraceBuilder getTrigger() {
+    return _trigger;
   }
 
   public ShallowTraceBuilder getSource() {
     return _source;
   }
 
-  public TraceBuilder getTraceBuilder() {
-    return _traceBuilder;
+  public Context getContext() {
+    return _context;
   }
-
-  public TaskLogger getTaskLogger() {
-    return _taskLogger;
-  }
-
 }

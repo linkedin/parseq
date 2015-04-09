@@ -24,12 +24,11 @@ import static com.linkedin.parseq.function.Tuples.tuple;
 
 import com.linkedin.parseq.function.Tuple${i};
 import com.linkedin.parseq.internal.InternalUtil;
-import com.linkedin.parseq.internal.SystemHiddenTask;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 
-public class Par${i}Task<<@typeParameters i/>> extends SystemHiddenTask<Tuple${i}<<@typeParameters i/>>> implements Tuple${i}Task<<@typeParameters i/>> {
+public class Par${i}Task<<@typeParameters i/>> extends BaseTask<Tuple${i}<<@typeParameters i/>>> implements Tuple${i}Task<<@typeParameters i/>> {
   private final Tuple${i}<<@csv 1..i; j>Task<T${j}></@csv>> _tasks;
 
   public Par${i}Task(final String name, <@csv 1..i; j>Task<T${j}> task${j}</@csv>) {

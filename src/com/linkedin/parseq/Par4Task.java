@@ -20,12 +20,11 @@ import static com.linkedin.parseq.function.Tuples.tuple;
 
 import com.linkedin.parseq.function.Tuple4;
 import com.linkedin.parseq.internal.InternalUtil;
-import com.linkedin.parseq.internal.SystemHiddenTask;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 
-public class Par4Task<T1, T2, T3, T4> extends SystemHiddenTask<Tuple4<T1, T2, T3, T4>> implements Tuple4Task<T1, T2, T3, T4> {
+public class Par4Task<T1, T2, T3, T4> extends BaseTask<Tuple4<T1, T2, T3, T4>> implements Tuple4Task<T1, T2, T3, T4> {
   private final Tuple4<Task<T1>, Task<T2>, Task<T3>, Task<T4>> _tasks;
 
   public Par4Task(final String name, Task<T1> task1, Task<T2> task2, Task<T3> task3, Task<T4> task4) {

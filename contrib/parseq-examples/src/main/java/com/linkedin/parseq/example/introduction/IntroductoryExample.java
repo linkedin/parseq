@@ -46,5 +46,7 @@ public class IntroductoryExample extends AbstractExample {
     sumLengths.await();
 
     ExampleUtil.printTracingResults(sumLengths);
+
+    HttpClient.close();
   }
 }

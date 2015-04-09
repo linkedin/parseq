@@ -20,12 +20,11 @@ import static com.linkedin.parseq.function.Tuples.tuple;
 
 import com.linkedin.parseq.function.Tuple6;
 import com.linkedin.parseq.internal.InternalUtil;
-import com.linkedin.parseq.internal.SystemHiddenTask;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 
-public class Par6Task<T1, T2, T3, T4, T5, T6> extends SystemHiddenTask<Tuple6<T1, T2, T3, T4, T5, T6>> implements Tuple6Task<T1, T2, T3, T4, T5, T6> {
+public class Par6Task<T1, T2, T3, T4, T5, T6> extends BaseTask<Tuple6<T1, T2, T3, T4, T5, T6>> implements Tuple6Task<T1, T2, T3, T4, T5, T6> {
   private final Tuple6<Task<T1>, Task<T2>, Task<T3>, Task<T4>, Task<T5>, Task<T6>> _tasks;
 
   public Par6Task(final String name, Task<T1> task1, Task<T2> task2, Task<T3> task3, Task<T4> task4, Task<T5> task5, Task<T6> task6) {
