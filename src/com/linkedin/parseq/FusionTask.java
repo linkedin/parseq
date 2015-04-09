@@ -234,7 +234,7 @@ public class FusionTask<S, T> extends BaseTask<T> {
       } );
       context.run(that);
       return result;
-    } , true);
+    });
   }
 
   protected void propagate(final FusionTraceContext traceContext, final SettablePromise<T> result) {
@@ -258,7 +258,8 @@ public class FusionTask<S, T> extends BaseTask<T> {
             FusionTask.this.getShallowTraceBuilder());
         propagate(traceContext, result);
         return result;
-      } , true);
+      });
+      propagationTask.getShallowTraceBuilder().setSystemHidden(true);
       context.after(_task).run(propagationTask);
       context.run(_task);
     }

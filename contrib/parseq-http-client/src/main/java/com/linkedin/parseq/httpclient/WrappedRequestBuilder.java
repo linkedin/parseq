@@ -269,7 +269,7 @@ public class WrappedRequestBuilder {
 
       });
       return result;
-    }, false);
+    });
   }
 
   public Task<Response> task() {

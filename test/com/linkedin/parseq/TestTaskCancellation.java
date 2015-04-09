@@ -40,7 +40,7 @@ public class TestTaskCancellation extends BaseEngineTest {
     Task<?> uncompleted = Task.async(() -> {
       runLatch.countDown();
       return Promises.settable();
-    } , false);
+    });
     uncompleted.addListener(p -> {
       if (p.isFailed() && Exceptions.isCancellation(p.getError())) {
         cancelActionValue.set(p.getError().getCause());
@@ -59,7 +59,7 @@ public class TestTaskCancellation extends BaseEngineTest {
   @Test
   public void testTaskCancellationBeforeRun() throws InterruptedException {
     final AtomicReference<Throwable> cancelActionValue = new AtomicReference<>();
-    Task<?> uncompleted = Task.async(() -> Promises.settable(), false);
+    Task<?> uncompleted = Task.async(() -> Promises.settable());
     uncompleted.addListener(p -> {
       if (p.isFailed() && Exceptions.isCancellation(p.getError())) {
         cancelActionValue.set(p.getError().getCause());
@@ -97,7 +97,7 @@ public class TestTaskCancellation extends BaseEngineTest {
     Task<Integer> uncompleted = Task.async(() -> {
       runLatch.countDown();
       return Promises.settable();
-    } , false);
+    });
     uncompleted.addListener(p -> {
       if (p.isFailed() && Exceptions.isCancellation(p.getError())) {
         cancelActionValue.set(p.getError().getCause());
@@ -120,7 +120,7 @@ public class TestTaskCancellation extends BaseEngineTest {
     Task<Integer> uncompleted = Task.async(() -> {
       runLatch.countDown();
       return Promises.settable();
-    } , false);
+    });
     uncompleted.addListener(p -> {
       if (p.isFailed() && Exceptions.isCancellation(p.getError())) {
         cancelActionValue.set(p.getError().getCause());

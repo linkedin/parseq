@@ -66,7 +66,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
   @Test
   public void testAsync() {
     final SettablePromise<String> promise = Promises.settable();
-    Task<String> task = Task.async(() -> promise, false);
+    Task<String> task = Task.async(() -> promise);
     getScheduler().schedule(() -> promise.done("done"), 10, TimeUnit.MILLISECONDS);
     String value = runAndWait("TestTaskFactoryMethods.testAsync", task);
     assertEquals(value, "done");
@@ -80,7 +80,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     Task<String> task = Task.async(ctx -> {
       ctx.run(t);
       return t;
-    } , false);
+    });
     String value = runAndWait("TestTaskFactoryMethods.testAsyncWithContext", task);
     assertEquals(value, "done");
 

@@ -47,8 +47,6 @@ import com.linkedin.parseq.trace.TraceBuilder;
 
 
 /**
- * TODO add extensive documentations
- *
  * A task represents a deferred execution that also contains its resulting
  * value. In addition, tasks include tracing information that can be
  * used with various trace printers.
@@ -218,7 +216,9 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   default <R> Task<R> flatMap(final String desc, final Function1<? super T, Task<R>> func) {
     ArgumentUtil.requireNotNull(func, "function");
-    return flatten(desc, map("flatMap", func));
+    final Task<Task<R>> nested = map(func);
+    nested.getShallowTraceBuilder().setSystemHidden(true);
+    return flatten(desc, nested);
   }
 
   /**
@@ -266,11 +266,11 @@ public interface Task<T> extends Promise<T>, Cancellable {
         Task<?> sideEffect = func.apply(that.get());
         ctx.run(sideEffect);
         return sideEffect;
-      } , true);
+      });
       context.after(that).runSideEffect(sideEffectWrapper);
       context.run(that);
       return that;
-    } , true);
+    });
   }
 
   /**
@@ -288,7 +288,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
       context.runSideEffect(that);
       Promises.propagateResult(that, result);
       return result;
-    } , true);
+    });
   }
 
   /**
@@ -369,7 +369,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
       Promises.propagateResult(task, result);
       context.run(that);
       return result;
-    } , true);
+    });
   }
 
   /**
@@ -632,7 +632,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
     final Task<T> that = this;
     return async(desc, context -> {
       final SettablePromise<T> result = Promises.settable();
-      final Task<T> recovery = async(desc, ctx -> {
+      final Task<T> recovery = async("revovery", ctx -> {
         if (that.isFailed() && !(Exceptions.isCancellation(that.getError()))) {
           try {
             Task<T> r = func.apply(that.getError());
@@ -645,11 +645,12 @@ public interface Task<T> extends Promise<T>, Cancellable {
           result.done(that.get());
         }
         return result;
-      } , true);
+      });
+      recovery.getShallowTraceBuilder().setSystemHidden(true);
       context.after(that).run(recovery);
       context.run(that);
       return result;
-    } , true);
+    });
   }
 
   /**
@@ -694,7 +695,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
       that.setPriority(Priority.MAX_PRIORITY);
       ctx.run(that);
       return result;
-    } , false);
+    });
     withTimeout.setPriority(getPriority());
     return withTimeout;
   }
@@ -721,7 +722,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
       } );
       context.run(task);
       return result;
-    } , true);
+    });
   }
 
   /**
@@ -762,7 +763,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
     return async(desc, () -> {
       action.run();
       return Promises.VOID;
-    } , false);
+    });
   }
 
   /**
@@ -920,29 +921,26 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @param name a name that describes the task, it will show up in a trace
    * @param callable a callable to execute when this task is run, it must return
    * a {@code Promise<T>}
-   * @param systemHidden flag that specifies whether trace of this task will have
-   * a system-hidden flag set
    * @return a new task that will invoke the callable and complete with result
    * returned by a {@code Promise} returned by it
    * @see Promise
    */
-  public static <T> Task<T> async(final String name, final Callable<Promise<? extends T>> callable,
-      final boolean systemHidden) {
+  public static <T> Task<T> async(final String name, final Callable<Promise<? extends T>> callable) {
     return async(name, context -> {
       try {
         return callable.call();
       } catch (Throwable e) {
         return Promises.error(e);
       }
-    } , systemHidden);
+    });
   }
 
   /**
-   * Equivalent to {@code async("async", callable, systemHidden)}.
-   * @see #async(String, Callable, boolean)
+   * Equivalent to {@code async("async", callable)}.
+   * @see #async(String, Callable)
    */
-  public static <T> Task<T> async(final Callable<Promise<? extends T>> callable, final boolean systemHidden) {
-    return async("async", callable, systemHidden);
+  public static <T> Task<T> async(final Callable<Promise<? extends T>> callable) {
+    return async("async", callable);
   }
 
   /**
@@ -957,15 +955,12 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @param name a name that describes the task, it will show up in a trace
    * @param func a function to execute when this task is run, it must return
    * a {@code Promise<T>}
-   * @param systemHidden flag that specifies whether trace of this task will have
-   * a system-hidden flag set
    * @return a new task that will invoke the function and complete with result
    * returned by a {@code Promise} returned by it
    * @see Context
    * @see Promise
    */
-  public static <T> Task<T> async(final String name, final Function1<Context, Promise<? extends T>> func,
-      final boolean systemHidden) {
+  public static <T> Task<T> async(final String name, final Function1<Context, Promise<? extends T>> func) {
     ArgumentUtil.requireNotNull(func, "function");
 
     Task<T> task = new BaseTask<T>(name) {
@@ -975,17 +970,15 @@ public interface Task<T> extends Promise<T>, Cancellable {
       }
     };
 
-    task.getShallowTraceBuilder().setSystemHidden(systemHidden);
-
     return task;
   }
 
   /**
-   * Equivalent to {@code async("async", func, systemHidden)}.
+   * Equivalent to {@code async("async", func)}.
    * @see #async(String, Function1, boolean)
    */
-  public static <T> Task<T> async(final Function1<Context, Promise<? extends T>> func, final boolean systemHidden) {
-    return async("async", func, systemHidden);
+  public static <T> Task<T> async(final Function1<Context, Promise<? extends T>> func) {
+    return async("async", func);
   }
 
   /**
@@ -1016,7 +1009,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
         }
       } );
       return promise;
-    } , false);
+    });
   }
 
   /**

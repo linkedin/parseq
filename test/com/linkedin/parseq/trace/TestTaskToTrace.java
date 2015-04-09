@@ -90,23 +90,6 @@ public class TestTaskToTrace extends BaseEngineTest {
   }
 
   @Test
-  public void testSeqSystemHiddenTrace() throws InterruptedException {
-    final Task<String> task1 = value("taskName1", "value");
-    final Task<String> task2 = value("taskName2", "value2");
-
-    final Task<?> seq1 = task1.andThen(task2);
-    runAndWait("TestTaskToTrace.testSeqSystemHiddenTrace", seq1);
-
-    assertTrue(seq1.getShallowTrace().getSystemHidden());
-
-    final Task<String> task3 = value("taskName3", "value3");
-    final Task<String> task4 = value("taskName4", "value4");
-    final Task<?> seq2 = task3.andThen(task4);
-
-    assertTrue(seq2.getShallowTrace().getSystemHidden());
-  }
-
-  @Test
   public void testParSystemHiddenTrace() throws InterruptedException {
     final Task<String> task1 = value("taskName1", "value");
     final Task<String> task2 = value("taskName2", "value2");

@@ -161,7 +161,7 @@ public class Exec {
         _processQueueSize.incrementAndGet();
         return result;
       }
-    }, false);
+    });
     task.addListener(p -> {
       if (p.isFailed() && Exceptions.isCancellation(p.getError())) {
         //best effort to try to kill process in case task was cancelled

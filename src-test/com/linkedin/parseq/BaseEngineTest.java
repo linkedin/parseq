@@ -155,7 +155,7 @@ public class BaseEngineTest {
       final SettablePromise<T> promise = Promises.settable();
       _scheduler.schedule(() -> promise.done(value), time, timeUnit);
       return promise;
-    } , false);
+    });
   }
 
   /**
@@ -167,7 +167,7 @@ public class BaseEngineTest {
       final SettablePromise<T> promise = Promises.settable();
       _scheduler.schedule(() -> promise.fail(error), time, timeUnit);
       return promise;
-    } , false);
+    });
   }
 
   protected int countTasks(Trace trace) {

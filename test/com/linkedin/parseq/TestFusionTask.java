@@ -46,7 +46,7 @@ public class TestFusionTask extends AbstractTaskTest {
 
   @Test
   public void testTry() {
-    testTry(3);
+    testToTry(3);
   }
 
   @Test

@@ -43,7 +43,7 @@ public class TestTask extends AbstractTaskTest {
 
   @Test
   public void testTry() {
-    testTry(4);
+    testToTry(4);
   }
 
   @Test
@@ -78,13 +78,13 @@ public class TestTask extends AbstractTaskTest {
 
   @Override
   Task<String> getSuccessTask() {
-    return Task.async("success", () -> Promises.value(TASK_VALUE), false);
+    return Task.async("success", () -> Promises.value(TASK_VALUE));
   }
 
   @Override
   Task<String> getFailureTask() {
     return Task.async("failure", () -> {
       throw new RuntimeException(TASK_ERROR_MESSAGE);
-    } , false);
+    });
   }
 }
