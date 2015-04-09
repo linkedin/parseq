@@ -70,6 +70,9 @@ function render(root, graph) {
                 var timing = timings[id];
                 var scale = (value - timing.start)
                     / (timing.end - timing.start);
+                if (isNaN(scale)) {
+                  scale = 1;
+                }
                 if (scale < 0) {
                   scale = 0;
                 }
