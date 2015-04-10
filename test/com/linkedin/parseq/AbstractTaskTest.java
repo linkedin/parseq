@@ -94,6 +94,20 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
     assertEquals(countTasks(failure.getTrace()), expectedNumberOfTasks);
   }
 
+  @Test
+  public void testToTryCancelled() throws InterruptedException {
+    Task<String> cancelMain = delayedValue("value", 6000, TimeUnit.MILLISECONDS);
+    Task<Try<String>> task = cancelMain.toTry();
+
+    run(task);
+    assertTrue(cancelMain.cancel(new Exception("canceled")));
+    task.await();
+    assertTrue(task.isDone());
+    assertTrue(task.isFailed());
+    assertTrue(Exceptions.isCancellation(task.getError()));
+    logTracingResults("AbstractTaskTest.testToTryCancelled", task);
+  }
+
   public void testRecoverWithSuccess(int expectedNumberOfTasks) {
     Task<String> success = getSuccessTask().recoverWith(e -> Task.callable("recover failure", () -> {
       throw new RuntimeException("recover failed!");

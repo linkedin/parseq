@@ -90,35 +90,6 @@ public class TestTaskToTrace extends BaseEngineTest {
   }
 
   @Test
-  public void testParSystemHiddenTrace() throws InterruptedException {
-    final Task<String> task1 = value("taskName1", "value");
-    final Task<String> task2 = value("taskName2", "value2");
-
-    final Task<?> par1 = Task.par(task1, task2);
-
-    runAndWait("TestTaskToTrace.testParSystemHiddenTrace", par1);
-
-    assertTrue(par1.getShallowTrace().getSystemHidden());
-
-    final Task<String> task3 = value("taskName3", "value3");
-    final Task<String> task4 = value("taskName4", "value4");
-    final Task<?> par2 = Task.par(task3, task4);
-
-    assertTrue(par2.getShallowTrace().getSystemHidden());
-  }
-
-  @Test
-  public void testSideEffectSystemTrace() throws InterruptedException {
-    final Task<String> task1 = value("taskName1", "value1");
-    final Task<String> task2 = value("taskName2", "value2");
-
-    final Task<String> withSideEffects = task1.withSideEffect(x -> task2);
-    runAndWait("TestTaskToTrace.testSideEffectSystemTrace", withSideEffects);
-
-    assertTrue(withSideEffects.getShallowTrace().getSystemHidden());
-  }
-
-  @Test
   public void testNotHiddenTrace() throws InterruptedException {
     final Task<String> task1 = new BaseTask<String>() {
       @Override

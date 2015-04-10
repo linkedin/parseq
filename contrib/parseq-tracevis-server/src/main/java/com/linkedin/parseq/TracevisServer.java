@@ -235,7 +235,7 @@ public class TracevisServer {
         _exec.command("graphviz", _timeoutMs, TimeUnit.MILLISECONDS,
             _dotLocation,
             "-T" + Constants.OUTPUT_TYPE,
-            "-Grankdir=LR", "-Gnewrank=true",
+            "-Grankdir=LR", "-Gnewrank=true", "-Gbgcolor=transparent",
             pathToCacheFile(hash, "dot").toString(),
             "-o", pathToCacheFile(hash, Constants.OUTPUT_TYPE).toString());
 

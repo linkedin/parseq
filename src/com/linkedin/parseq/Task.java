@@ -156,9 +156,10 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * Task{@code <String>} hello = Task.value("Hello World");
    *
    * // this task will complete with value 11
-   * Task{@code <Integer>} length = hello.map(s {@code ->} s.length());
+   * Task{@code <Integer>} length = hello.map("length", s {@code ->} s.length());
    * </pre></blockquote>
-   *
+   * <img src="doc-files/map-1.svg" type="image/svg+xml" height="90px"/>
+   * <p>
    * If this task is completed with an exception then the new task will also complete
    * with that exception.
    * <blockquote><pre>
@@ -169,6 +170,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *  // this task will fail with java.lang.StringIndexOutOfBoundsException
    *  Task{@code <Integer>} length = failing.map("length", s {@code ->} s.length());
    * </pre></blockquote>
+   * <img src="doc-files/map-2.svg" type="image/svg+xml" height="90px"/>
+   *
    * @param <R> return type of function <code>func</code>
    * @param desc description of a mapping function, it will show up in a trace
    * @param func function to be applied to successful result of this task.
@@ -198,6 +201,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *  // assuming fetch(u) fetches contents given by a URI
    *  Task{@code <String>} homepage = url.flatMap("fetch", u {@code ->} fetch(u));
    * </pre></blockquote>
+   * <img src="doc-files/flatMap-1.svg" type="image/svg+xml" height="90px"/>
+   * <p>
    *
    * If this task is completed with an exception then the new task will also contain
    * that exception.
@@ -207,6 +212,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *  // this task will fail with java.lang.IllegalArgumentException
    *  Task{@code <String>} homepage = url.flatMap("fetch", u {@code ->} fetch(u));
    * </pre></blockquote>
+   * <img src="doc-files/flatMap-2.svg" type="image/svg+xml" height="90px"/>
    * @param <R> return type of function <code>func</code>
    * @param desc description of a mapping function, it will show up in a trace
    * @param func function to be applied to successful result of this task which returns new task
@@ -244,13 +250,14 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * in the background but it's execution is not required for the main computation. An example might
    * be updating cache once data has been retrieved from the main source.
    * <blockquote><pre>
-   *  Task{@code <Long>} id = Task.value(1223L);
+   *  Task{@code <Long>} id = Task.value("id", 1223L);
    *
    *  // this task will be completed as soon as user name is fetched
    *  // by fetch() method and will not fail even if updateMemcache() fails
    *  Task{@code <String>} userName = id.flatMap("fetch", u {@code ->} fetch(u))
    *      .withSideEffect("update memcache", u {@code ->} updateMemcache(u));
    * </pre></blockquote>
+   * <img src="doc-files/withSideEffect-1.svg" type="image/svg+xml" height="120px"/>
    *
    * @param desc description of a side effect, it will show up in a trace
    * @param func function to be applied on result of successful completion of this task
@@ -281,6 +288,48 @@ public interface Task<T> extends Promise<T>, Cancellable {
     return withSideEffect("sideEffect", func);
   }
 
+  /**
+   * Creates a new task that can be safely shared within a plan or between multiple
+   * plans. Cancellation of returned task will not cause cancellation of the original task.
+   * <p>
+   * Sharing tasks within a plan or among different plans is generally not safe because task can
+   * be cancelled if it's parent has been resolved. Imagine situation where <code>fetch</code>
+   * task that fetches data from a remote server is shared among few plans. If one of those
+   * plans times out then all started tasks that belong to it will be automatically cancelled.
+   * This means that <code>fetch</code> may also be cancelled and this can affect other plans that
+   * are still running. Similar situation can happen even within one plan if task is used multiple
+   * times.
+   * <p>
+   * In example below <code>google</code> task has timeout 10ms what causes entire plan to fail and as a consequence
+   * all tasks that belong to it that have been started - in this case <code>bing</code> task. This may
+   * be problematic if <code>bing</code> task is used somewhere else.
+   * <blockquote><pre>
+   * final Task{@code<Response>} google = HttpClient.get("http://google.com").task();
+   * final Task{@code<Response>} bing = HttpClient.get("http://bing.com").task();
+   *
+   * // this task will fail because google task will timeout after 10ms
+   * // as a consequence bing task will be cancelled
+   * final Task<?> both = Task.par(google.withTimeout(10, TimeUnit.MILLISECONDS), bing);
+   * </pre></blockquote>
+   * <img src="doc-files/shareable-1.svg" type="image/svg+xml" height="250px"/>
+   * <p>
+   * <code>shareable</code> method solves above problem. Task returned by <code>shareable()</code> can be
+   * can be cancelled without affecting original task.
+   *<p>
+   * <blockquote><pre>
+   * final Task{@code<Response>} google = HttpClient.get("http://google.com").task();
+   * final Task{@code<Response>} bing = HttpClient.get("http://bing.com").task();
+   *
+   * // this task will fail because wrapped google task will timeout after 10ms
+   * // notice however that original googel and bing tasks were not cancelled
+   *   final Task<?> both =
+   *       Task.par(google.shareable().withTimeout(10, TimeUnit.MILLISECONDS), bing.shareable());
+   * </pre></blockquote>
+   * <img src="doc-files/shareable-2.svg" type="image/svg+xml" height="290px"/>
+   *
+   * @return new task that can be safely shared within a plan or between multiple
+   * plans. Cancellation of returned task will not cause cancellation of the original task.
+   */
   default Task<T> shareable() {
     final Task<T> that = this;
     return async("shareable", context -> {
@@ -297,22 +346,24 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * in situations where consumer needs to be called after successful
    * completion of this task.
    * <blockquote><pre>
-   *  Task{@code <String>} hello = Task.value("Hello World");
+   *  Task{@code <String>} hello = Task.value("greeting", "Hello World");
    *
    *  // this task will print "Hello World"
-   *  Task{@code <String>} sayHello = hello.andThen(System.out::println);
+   *  Task{@code <String>} sayHello = hello.andThen("say", System.out::println);
    * </pre></blockquote>
-   *
+   * <img src="doc-files/andThen-1.svg" type="image/svg+xml" height="90px"/>
+   * <p>
    * If this task fails then consumer will not be called and failure
    * will be propagated to task returned by this method.
    * <blockquote><pre>
-   *  Task{@code <String>} failing = Task.callable("hello", () {@code ->} {
+   *  Task{@code <String>} failing = Task.callable("greeting", () {@code ->} {
    *    return "Hello World".substring(100);
    *  });
    *
    *  // this task will fail with java.lang.StringIndexOutOfBoundsException
-   *  Task{@code <String>} sayHello = failing.andThen(System.out::println);
+   *  Task{@code <String>} sayHello = failing.andThen("say", System.out::println);
    * </pre></blockquote>
+   * <img src="doc-files/andThen-2.svg" type="image/svg+xml" height="90px"/>
    *
    * @param desc description of a consumer, it will show up in a trace
    * @param consumer consumer of a value returned by this task
@@ -354,6 +405,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *  Task{@code <ShipmentInfo>} shipAfterPayment =
    *      processPayment.andThen("shipProductAterPayment", shipProduct);
    * </pre></blockquote>
+   * <img src="doc-files/andThen-3.svg" type="image/svg+xml" height="90px"/>
    *
    * @param <R> return type of the <code>task</code>
    * @param desc description of a task, it will show up in a trace
@@ -394,9 +446,10 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * // this task will fetch Person object and transform it into {@code "<first name> <last name>"}
    * // if fetching Person failed then form {@code "Member <id>"} will be return
    * Task{@code <String>} userName = fetchPerson(id)
-   *      .map(p {@code ->} p.getFirstName() + " " + p.getLastName())
+   *      .map("toSignature", p {@code ->} p.getFirstName() + " " + p.getLastName())
    *      .recover(e {@code ->} "Member " + id);
    * </pre></blockquote>
+   * <img src="doc-files/recover-1.svg" type="image/svg+xml" height="90px"/>
    * <p>
    * Note that task cancellation is not considered to be a failure.
    * If this task has been cancelled then task returned by this method will also
@@ -436,23 +489,25 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * to be called after failure of this task. Result of task returned by
    * this method will be exactly the same as result of this task.
    * <blockquote><pre>
-   *  Task{@code <String>} failing = Task.callable("hello", () {@code ->} {
+   *  Task{@code <String>} failing = Task.callable("greeting", () {@code ->} {
    *    return "Hello World".substring(100);
    *  });
    *
    *  // this task will print out java.lang.StringIndexOutOfBoundsException
    *  // and complete with that exception as a reason for failure
-   *  Task{@code <String>} sayHello = failing.onFailure(System.out::println);
+   *  Task{@code <String>} sayHello = failing.onFailure("printFailure", System.out::println);
    * </pre></blockquote>
-   *
+   * <img src="doc-files/onFailure-1.svg" type="image/svg+xml" height="90px"/>
+   * <p>
    * If this task completes successfully then consumer will not be called.
    * <blockquote><pre>
-   *  Task{@code <String>} hello = Task.value("Hello World");
+   *  Task{@code <String>} hello = Task.value("greeting", "Hello World");
    *
-   *  // this task will print "Hello World"
+   *  // this task will return "Hello World"
    *  Task{@code <String>} sayHello = hello.onFailure(System.out::println);
    * </pre></blockquote>
-   *
+   * <img src="doc-files/onFailure-2.svg" type="image/svg+xml" height="90px"/>
+   * <p>
    * Exceptions thrown by a consumer will be ignored.
    * <p>
    * Note that task cancellation is not considered to be a failure.
@@ -492,38 +547,52 @@ public interface Task<T> extends Promise<T>, Cancellable {
   /**
    * This method transforms {@code Task<T>} into {@code Task<Try<T>>}.
    * It allows explicit handling of failures by returning potential exceptions as a result of
-   * task execution. Task returned by this method will always complete successfully.
+   * task execution. Task returned by this method will always complete successfully
+   * unless it has been cancelled.
    * If this task completes successfully then return task will be
    * completed with result value wrapped with {@link Success}.
    * <blockquote><pre>
-   *  Task{@code <String>} hello = Task.value("Hello World");
+   *  Task{@code <String>} hello = Task.value("greeting", "Hello World");
    *
    *  // this task will complete with Success("Hello World")
    *  Task{@code <Try<String>>} helloTry = hello.toTry("try");
    * </pre></blockquote>
-   *
+   * <img src="doc-files/toTry-1.svg" type="image/svg+xml" height="90px"/>
+   * <p>
    * If this task is completed with an exception then the returned task will be
    * completed with an exception wrapped with {@link Failure}.
    * <blockquote><pre>
-   *  Task{@code <String>} failing = Task.callable("hello", () {@code ->} {
+   *  Task{@code <String>} failing = Task.callable("greeting", () {@code ->} {
    *      return "Hello World".substring(100);
    *  });
    *
    *  // this task will complete successfully with Failure(java.lang.StringIndexOutOfBoundsException)
    *  Task{@code <Try<String>>} failingTry = failing.toTry("try");
    * </pre></blockquote>
-   * Note that all failures are automatically propagated and usually it is enough to use
+   * <img src="doc-files/toTry-2.svg" type="image/svg+xml" height="90px"/>
+   * <p>
+   * All failures are automatically propagated and it is usually enough to use
    * {@link #recover(String, Function1) recover} or {@link #recoverWith(String, Function1) recoverWith}.
    * <p>
+   * Note that task cancellation is not considered to be a failure.
+   * If this task has been cancelled then task returned by this method will also
+   * be cancelled.
+   *
    * @param desc description of a consumer, it will show up in a trace
    * @return a new task that will complete successfully with the result of this task
    * @see Try
    * @see #recover(String, Function1) recover
    * @see #recoverWith(String, Function1) recoverWith
+   * @see CancellationException
    */
   default Task<Try<T>> toTry(final String desc) {
     return apply(desc, (src, dst) -> {
-      dst.done(Promises.toTry(src));
+      final Try<T> tryT = Promises.toTry(src);
+      if (tryT.isFailed() && Exceptions.isCancellation(tryT.getError())) {
+        dst.fail(src.getError());
+      } else {
+        dst.done(Promises.toTry(src));
+      }
     } );
   }
 
@@ -552,6 +621,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *   }
    * });
    * </pre></blockquote>
+   * <img src="doc-files/transform-1.svg" type="image/svg+xml" height="90px"/>
    * <p>
    * Note that task cancellation is not considered to be a failure.
    * If this task has been cancelled then task returned by this method will also
@@ -608,14 +678,12 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * (...)
    * }
    *
-   * // this task will fetch Person object and transform it into {@code "<first name> <last name>"}
-   * // it will first try to fetch from cache and when it fails for any reason it will
-   * // attempt to fetch from DB
-   * Task{@code <String>} userName = fetchFromCache(id)
-   *      .recoverWith(e {@code ->} fetchFromDB(id))
-   *      .map(p {@code ->} p.getFirstName() + " " + p.getLastName());
+   * // this task will try to fetch Person from cache and
+   * // if it fails for any reason it will attempt to fetch from DB
+   * Task{@code <Person>} user = fetchFromCache(id).recoverWith(e {@code ->} fetchFromDB(id));
    * </pre></blockquote>
-   *
+   * <img src="doc-files/recoverWith-1.svg" type="image/svg+xml" height="90px"/>
+   * <p>
    * If recovery task fails then returned task is completed with that failure.
    * <p>
    * Note that task cancellation is not considered to be a failure.
@@ -666,6 +734,11 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * before the timeout occurs then returned task will be completed with the value of this task.
    * If this task does not complete in the given time then returned task will
    * fail with a {@link TimeoutException} as a reason of failure and this task will be cancelled.
+   * <blockquote><pre>
+   * final Task<Response> google = HttpClient.get("http://google.com").task()
+   *     .withTimeout(10, TimeUnit.MILLISECONDS);
+   * </pre></blockquote>
+   * <img src="doc-files/withTimeout-1.svg" type="image/svg+xml" height="150px"/>
    *
    * @param time the time to wait before timing out
    * @param unit the units for the time
@@ -1040,9 +1113,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @return task that will run given tasks in parallel
    */
   public static <T1, T2> Tuple2Task<T1, T2> par(final Task<T1> task1, final Task<T2> task2) {
-    Tuple2Task<T1, T2> par = new Par2Task<T1, T2>("par2", task1, task2);
-    par.getShallowTraceBuilder().setSystemHidden(true);
-    return par;
+    return new Par2Task<T1, T2>("par2", task1, task2);
   }
 
   /**
@@ -1066,9 +1137,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   public static <T1, T2, T3> Tuple3Task<T1, T2, T3> par(final Task<T1> task1, final Task<T2> task2,
       final Task<T3> task3) {
-    Tuple3Task<T1, T2, T3> par = new Par3Task<T1, T2, T3>("par3", task1, task2, task3);
-    par.getShallowTraceBuilder().setSystemHidden(true);
-    return par;
+    return new Par3Task<T1, T2, T3>("par3", task1, task2, task3);
   }
 
   /**
@@ -1092,9 +1161,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   public static <T1, T2, T3, T4> Tuple4Task<T1, T2, T3, T4> par(final Task<T1> task1, final Task<T2> task2,
       final Task<T3> task3, final Task<T4> task4) {
-    Tuple4Task<T1, T2, T3, T4> par = new Par4Task<T1, T2, T3, T4>("par4", task1, task2, task3, task4);
-    par.getShallowTraceBuilder().setSystemHidden(true);
-    return par;
+    return new Par4Task<T1, T2, T3, T4>("par4", task1, task2, task3, task4);
   }
 
   /**
@@ -1118,9 +1185,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   public static <T1, T2, T3, T4, T5> Tuple5Task<T1, T2, T3, T4, T5> par(final Task<T1> task1, final Task<T2> task2,
       final Task<T3> task3, final Task<T4> task4, final Task<T5> task5) {
-    Tuple5Task<T1, T2, T3, T4, T5> par = new Par5Task<T1, T2, T3, T4, T5>("par5", task1, task2, task3, task4, task5);
-    par.getShallowTraceBuilder().setSystemHidden(true);
-    return par;
+    return new Par5Task<T1, T2, T3, T4, T5>("par5", task1, task2, task3, task4, task5);
   }
 
   /**
@@ -1144,9 +1209,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   public static <T1, T2, T3, T4, T5, T6> Tuple6Task<T1, T2, T3, T4, T5, T6> par(final Task<T1> task1,
       final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5, final Task<T6> task6) {
-    Tuple6Task<T1, T2, T3, T4, T5, T6> par = new Par6Task<T1, T2, T3, T4, T5, T6>("par6", task1, task2, task3, task4, task5, task6);
-    par.getShallowTraceBuilder().setSystemHidden(true);
-    return par;
+    return new Par6Task<T1, T2, T3, T4, T5, T6>("par6", task1, task2, task3, task4, task5, task6);
   }
 
   /**
@@ -1171,9 +1234,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
   public static <T1, T2, T3, T4, T5, T6, T7> Tuple7Task<T1, T2, T3, T4, T5, T6, T7> par(final Task<T1> task1,
       final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5, final Task<T6> task6,
       final Task<T7> task7) {
-    Tuple7Task<T1, T2, T3, T4, T5, T6, T7> par = new Par7Task<T1, T2, T3, T4, T5, T6, T7>("par7", task1, task2, task3, task4, task5, task6, task7);
-    par.getShallowTraceBuilder().setSystemHidden(true);
-    return par;
+    return new Par7Task<T1, T2, T3, T4, T5, T6, T7>("par7", task1, task2, task3, task4, task5, task6, task7);
   }
 
   /**
@@ -1198,9 +1259,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
   public static <T1, T2, T3, T4, T5, T6, T7, T8> Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> par(final Task<T1> task1,
       final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5, final Task<T6> task6,
       final Task<T7> task7, final Task<T8> task8) {
-    Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> par = new Par8Task<T1, T2, T3, T4, T5, T6, T7, T8>("par8", task1, task2, task3, task4, task5, task6, task7, task8);
-    par.getShallowTraceBuilder().setSystemHidden(true);
-    return par;
+    return new Par8Task<T1, T2, T3, T4, T5, T6, T7, T8>("par8", task1, task2, task3, task4, task5, task6, task7, task8);
   }
 
   /**
@@ -1225,10 +1284,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
   public static <T1, T2, T3, T4, T5, T6, T7, T8, T9> Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> par(
       final Task<T1> task1, final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5,
       final Task<T6> task6, final Task<T7> task7, final Task<T8> task8, final Task<T9> task9) {
-    Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> par = new Par9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9>("par9", task1, task2, task3, task4, task5, task6, task7,
+    return new Par9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9>("par9", task1, task2, task3, task4, task5, task6, task7,
         task8, task9);
-    par.getShallowTraceBuilder().setSystemHidden(true);
-    return par;
   }
 
 }
