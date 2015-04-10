@@ -372,11 +372,6 @@ public class TestTaskStates {
     }
 
     @Override
-    public void runSubTask(Task<?> task, Task<?> rootTask) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public TraceBuilder getTraceBuilder() {
       return new TraceBuilder(1024);
     }

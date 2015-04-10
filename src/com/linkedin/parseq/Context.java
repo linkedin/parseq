@@ -57,13 +57,6 @@ public interface Context {
   void runSideEffect(Task<?>... tasks);
 
   /**
-   * TODO
-   * @param task
-   * @param rootTask
-   */
-  void runSubTask(Task<?> task, Task<?> rootTask);
-
-  /**
    * Provides a mechanism of ordering the execution of some child tasks after
    * the resolution of the given promises (which may also be tasks).
    *

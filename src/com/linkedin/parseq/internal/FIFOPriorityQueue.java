@@ -24,8 +24,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 
 /**
- * TODO extend BlockingQueue
- *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
 public class FIFOPriorityQueue<T> {

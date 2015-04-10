@@ -12,9 +12,8 @@ import com.linkedin.parseq.httpclient.HttpClient;
  */
 public class IntroductoryExample extends AbstractExample {
   public static void main(String[] args) throws Exception {
-    for (int i = 0; i < 100; i++) {
-      new IntroductoryExample().runExample();
-    }
+    new IntroductoryExample().runExample();
+    HttpClient.close();
   }
 
   private Task<String> fetchBody(String url) {
@@ -46,7 +45,5 @@ public class IntroductoryExample extends AbstractExample {
     sumLengths.await();
 
     ExampleUtil.printTracingResults(sumLengths);
-
-    HttpClient.close();
   }
 }

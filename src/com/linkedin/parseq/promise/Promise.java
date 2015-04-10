@@ -103,7 +103,7 @@ public interface Promise<P> {
    * resolved. If the promise has already been resolved then the listener is
    * notified immediately.
    * <p>
-   * Listener will be called on a thread which completed this promise.
+   * Listener will be called on a thread that completed this promise.
    *
    * @param listener the listener to add to this promise
    */

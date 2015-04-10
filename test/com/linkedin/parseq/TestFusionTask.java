@@ -80,16 +80,6 @@ public class TestFusionTask extends AbstractTaskTest {
   }
 
   @Test
-  public void testUsedTwice() {
-    //TODO
-    Task<String> source = getSuccessTask().andThen(System.out::println);
-    Task<?> task = Task.par(source.map("map1", s -> s + "-1"), source.map("map2", s -> s + "-2"));
-
-    runAndWait("TestFusionTask.testUsedTwice", task);
-
-  }
-
-  @Test
   public void testWithTimeoutAsLastOperation() {
     Task<String> task = delayedValue("value", 110, TimeUnit.MILLISECONDS).map(x -> x + 1).map(x -> TASK_VALUE)
         .withTimeout(5, TimeUnit.MILLISECONDS);

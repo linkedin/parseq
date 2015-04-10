@@ -492,13 +492,6 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
     }
 
     @Override
-    public void runSubTask(Task<?> task, Task<?> rootTask) {
-      _context.runSubTask(task, rootTask);
-      getTraceBuilder().addRelationship(Relationship.POTENTIAL_PARENT_OF, getShallowTraceBuilder(),
-          task.getShallowTraceBuilder());
-    }
-
-    @Override
     public TraceBuilder getTraceBuilder() {
       return _context.getTraceBuilder();
     }
