@@ -12,6 +12,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.testng.annotations.Test;
 
+import com.linkedin.parseq.function.Failure;
+import com.linkedin.parseq.function.Success;
 import com.linkedin.parseq.function.Try;
 
 
@@ -260,6 +262,71 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
     }
     assertEquals(variable.get().getMessage(), TASK_ERROR_MESSAGE);
     assertEquals(countTasks(failure.getTrace()), expectedNumberOfTasks);
+  }
+
+  @Test
+  public void testTransformSuccessToSuccess() {
+    Task<String> success = getSuccessTask();
+    Task<String> transformed = success.transform(tryT -> Success.of(tryT.get() + "transformed"));
+    runAndWait("AbstractTaskTest.testTransformSuccessToSuccess", transformed);
+    assertEquals(transformed.get(), success.get() + "transformed");
+  }
+
+  @Test
+  public void testTransformSuccessToFailure() {
+    Task<String> success = getSuccessTask();
+    final Exception failureReason = new Exception();
+    Task<String> transformed = success.transform(tryT -> Failure.of(failureReason));
+    try {
+      runAndWait("AbstractTaskTest.testTransformSuccessToSuccess", transformed);
+      fail("should have failed");
+    } catch (Exception ex) {
+      assertTrue(transformed.isFailed());
+    }
+    assertSame(transformed.getError(), failureReason);
+  }
+
+  @Test
+  public void testTransformFailureToSuccess() {
+    Task<String> failure = getFailureTask();
+    Task<String> transformed = failure.transform(tryT -> Success.of(tryT.getError().toString() + "transformed"));
+    runAndWait("AbstractTaskTest.testTransformFailureToSuccess", transformed);
+    assertEquals(transformed.get(), failure.getError().toString() + "transformed");
+  }
+
+  @Test
+  public void testTransformFailureToFailure() {
+    Task<String> failure = getFailureTask();
+    final Exception failureReason = new Exception();
+    Task<String> transformed = failure.transform(tryT -> Failure.of(failureReason));
+    try {
+      runAndWait("AbstractTaskTest.testTransformFailureToFailure", transformed);
+      fail("should have failed");
+    } catch (Exception ex) {
+      assertTrue(transformed.isFailed());
+    }
+    assertSame(transformed.getError(), failureReason);
+  }
+
+  @Test
+  public void testFlatten() {
+    Task<Task<String>> nested = Task.callable(() -> getSuccessTask());
+    Task<String> flat = Task.flatten(nested);
+    runAndWait("AbstractTaskTest.testFlatten", flat);
+    assertEquals(flat.get(), TASK_VALUE);
+  }
+
+  @Test
+  public void testFlattenFailure() {
+    Task<Task<String>> nested = Task.callable(() -> getFailureTask());
+    Task<String> flat = Task.flatten(nested);
+    try {
+      runAndWait("AbstractTaskTest.testFlattenFailure", flat);
+      fail("should have failed");
+    } catch (Exception ex) {
+      assertTrue(flat.isFailed());
+    }
+    assertEquals(flat.getError().getMessage(), TASK_ERROR_MESSAGE);
   }
 
   protected static final String TASK_VALUE = "value";

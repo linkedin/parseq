@@ -7,7 +7,6 @@ import static org.testng.Assert.fail;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.testng.annotations.Test;
@@ -105,96 +104,90 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
 
   @Test
   public void testPar2() {
-    final AtomicInteger sum = new AtomicInteger();
-    Task<?> task = Task.par(Task.value(1), Task.value(2)).andThen(t -> t.forEach(i -> sum.addAndGet((int) i)));
+    Task<?> task = Task.par(Task.value(1), Task.value(2)).map((a, b) -> a + b);
 
     runAndWait("TestTaskFactoryMethods.testPar2", task);
-    assertEquals(sum.get(), 1 + 2);
+    assertEquals((int)task.get(), 1 + 2);
 
     assertEquals(countTasks(task.getTrace()), 2 + 1 + 2);
   }
 
   @Test
   public void testPar3() {
-    final AtomicInteger sum = new AtomicInteger();
-    Task<?> task =
-        Task.par(Task.value(1), Task.value(2), Task.value(3)).andThen(t -> t.forEach(i -> sum.addAndGet((int) i)));
+    Task<Integer> task =
+        Task.par(Task.value(1), Task.value(2), Task.value(3)).map((a, b, c) -> a + b + c);
 
     runAndWait("TestTaskFactoryMethods.testPar3", task);
-    assertEquals(sum.get(), 1 + 2 + 3);
+    assertEquals((int)task.get(), 1 + 2 + 3);
 
     assertEquals(countTasks(task.getTrace()), 2 + 1 + 3);
   }
 
   @Test
   public void testPar4() {
-    final AtomicInteger sum = new AtomicInteger();
-    Task<?> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4))
-        .andThen(t -> t.forEach(i -> sum.addAndGet((int) i)));
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4))
+        .map((a, b, c, d) -> a + b + c + d);
 
     runAndWait("TestTaskFactoryMethods.testPar4", task);
-    assertEquals(sum.get(), 1 + 2 + 3 + 4);
+    assertEquals((int)task.get(), 1 + 2 + 3 + 4);
 
     assertEquals(countTasks(task.getTrace()), 2 + 1 + 4);
   }
 
   @Test
   public void testPar5() {
-    final AtomicInteger sum = new AtomicInteger();
-    Task<?> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5))
-        .andThen(t -> t.forEach(i -> sum.addAndGet((int) i)));
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5))
+        .map((a, b, c, d, e) -> a + b + c + d + e);
 
     runAndWait("TestTaskFactoryMethods.testPar5", task);
-    assertEquals(sum.get(), 1 + 2 + 3 + 4 + 5);
+    assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5);
 
     assertEquals(countTasks(task.getTrace()), 2 + 1 + 5);
   }
 
   @Test
   public void testPar6() {
-    final AtomicInteger sum = new AtomicInteger();
-    Task<?> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6))
-        .andThen(t -> t.forEach(i -> sum.addAndGet((int) i)));
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6))
+        .map((a, b, c, d, e, f) -> a + b + c + d + e + f);
 
     runAndWait("TestTaskFactoryMethods.testPar6", task);
-    assertEquals(sum.get(), 1 + 2 + 3 + 4 + 5 + 6);
+    assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6);
 
     assertEquals(countTasks(task.getTrace()), 2 + 1 + 6);
   }
 
   @Test
   public void testPar7() {
-    final AtomicInteger sum = new AtomicInteger();
-    Task<?> task = Task
+    Task<Integer> task = Task
         .par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6), Task.value(7))
-        .andThen(t -> t.forEach(i -> sum.addAndGet((int) i)));
+          .map((a, b, c, d, e, f, g) -> a + b + c + d + e + f + g);
 
     runAndWait("TestTaskFactoryMethods.testPar7", task);
-    assertEquals(sum.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7);
+    assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7);
 
     assertEquals(countTasks(task.getTrace()), 2 + 1 + 7);
   }
 
   @Test
   public void testPar8() {
-    final AtomicInteger sum = new AtomicInteger();
-    Task<?> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6),
-        Task.value(7), Task.value(8)).andThen(t -> t.forEach(i -> sum.addAndGet((int) i)));
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6),
+        Task.value(7), Task.value(8))
+        .map((a, b, c, d, e, f, g, h) -> a + b + c + d + e + f + g + h);
 
     runAndWait("TestTaskFactoryMethods.testPar8", task);
-    assertEquals(sum.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8);
+    assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8);
 
     assertEquals(countTasks(task.getTrace()), 2 + 1 + 8);
   }
 
   @Test
   public void testPar9() {
-    final AtomicInteger sum = new AtomicInteger();
-    Task<?> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6),
-        Task.value(7), Task.value(8), Task.value(9)).andThen(t -> t.forEach(i -> sum.addAndGet((int) i)));
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6),
+        Task.value(7), Task.value(8), Task.value(9))
+          .map((a, b, c, d, e, f, g, h, i) -> a + b + c + d + e + f + g + h + i);
 
     runAndWait("TestTaskFactoryMethods.testPar9", task);
-    assertEquals(sum.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9);
+    assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9);
 
     assertEquals(countTasks(task.getTrace()), 2 + 1 + 9);
   }

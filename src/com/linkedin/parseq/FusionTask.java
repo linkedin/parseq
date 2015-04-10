@@ -249,13 +249,12 @@ public class FusionTask<S, T> extends BaseTask<T> {
   protected Promise<? extends T> run(final Context context) throws Throwable {
     final SettablePromise<T> result = Promises.settable();
     if (_task == null) {
-      FusionTraceContext traceContext = new FusionTraceContext(context, null,
+      FusionTraceContext traceContext = new FusionTraceContext(context,
           FusionTask.this.getShallowTraceBuilder());
       propagate(traceContext, result);
     } else {
       final Task<T> propagationTask = Task.async("fusion", ctx -> {
-        FusionTraceContext traceContext = new FusionTraceContext(ctx, _task.getShallowTraceBuilder(),
-            FusionTask.this.getShallowTraceBuilder());
+        FusionTraceContext traceContext = new FusionTraceContext(ctx, FusionTask.this.getShallowTraceBuilder());
         propagate(traceContext, result);
         return result;
       });

@@ -393,7 +393,7 @@ public class Tasks {
    */
   @Deprecated
   public static <T> Task<T> timeoutWithError(final long time, final TimeUnit unit, final Task<T> task) {
-    return timeoutWithError("timeoutWithError", time, unit, task);
+    return task.withTimeout(time, unit);
   }
 
   /**
@@ -412,7 +412,7 @@ public class Tasks {
   @Deprecated
   public static <T> Task<T> timeoutWithError(final String name, final long time, final TimeUnit unit,
       final Task<T> task) {
-    return new TimeoutWithErrorTask<T>(name, time, unit, task);
+    return task.withTimeout(time, unit);
   }
 
   /**
