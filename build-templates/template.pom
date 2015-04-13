@@ -40,12 +40,4 @@ ${ivy.pom.header}
             <email>jodzga@linkedin.com</email>
         </developer>
     </developers>
-    <dependencies>
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>6.4</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
 </project>
