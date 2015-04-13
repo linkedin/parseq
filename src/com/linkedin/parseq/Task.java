@@ -394,10 +394,10 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * not be scheduled for execution and failure
    * will be propagated to task returned by this method.
    * <blockquote><pre>
-   *  // task which processes payment
+   *  // task that processes payment
    *  Task{@code <PaymentStatus>} processPayment = processPayment(...);
    *
-   *  // task which ships product
+   *  // task that ships product
    *  Task{@code <ShipmentInfo>} shipProduct = shipProduct(...);
    *
    *  // this task will ship product only if payment was
