@@ -24,7 +24,9 @@ public class ErrorRecoveryExample extends AbstractExample {
     final MockService<String> httpClient = getService();
 
     final Task<Integer> fetchAndLength =
-        fetch404Url(httpClient, "http://www.google.com").recover("default", t -> "").map("length", s -> s.length());
+        fetch404Url(httpClient, "http://www.google.com")
+          .recover("default", t -> "")
+          .map("length", s -> s.length());
 
     engine.run(fetchAndLength);
 

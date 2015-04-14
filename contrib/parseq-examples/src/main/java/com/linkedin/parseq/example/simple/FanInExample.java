@@ -27,11 +27,12 @@ public class FanInExample extends AbstractExample {
     final Task<String> fetchYahoo = fetchUrl(httpClient, "http://www.yahoo.com");
     final Task<String> fetchGoogle = fetchUrl(httpClient, "http://www.google.com");
 
-    final Task<?> fanIn = Task.par(fetchBing, fetchGoogle, fetchYahoo).andThen((bing, google, yahoo) -> {
-      System.out.println("Bing   => " + bing);
-      System.out.println("Yahoo  => " + yahoo);
-      System.out.println("Google => " + google);
-    } );
+    final Task<?> fanIn = Task.par(fetchBing, fetchGoogle, fetchYahoo)
+        .andThen((bing, google, yahoo) -> {
+          System.out.println("Bing   => " + bing);
+          System.out.println("Yahoo  => " + yahoo);
+          System.out.println("Google => " + google);
+        });
     engine.run(fanIn);
 
     fanIn.await();

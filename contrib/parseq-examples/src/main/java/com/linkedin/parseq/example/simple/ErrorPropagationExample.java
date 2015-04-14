@@ -24,7 +24,8 @@ public class ErrorPropagationExample extends AbstractExample {
     final MockService<String> httpClient = getService();
 
     final Task<Integer> fetchAndLength =
-        fetch404Url(httpClient, "http://www.google.com").map("length", x -> x.length());
+        fetch404Url(httpClient, "http://www.google.com")
+          .map("length", x -> x.length());
 
     engine.run(fetchAndLength);
 

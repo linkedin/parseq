@@ -30,7 +30,7 @@ public class BranchSkippedExample extends AbstractExample {
         final int toAdd = 42 - x;
         return add(x, toAdd);
       } else {
-        return fetchX;
+        return Task.value("x", x);
       }
     } );
 

@@ -26,7 +26,8 @@ public class TimeoutWithErrorExample extends AbstractExample {
     final MockService<String> httpClient = getService();
 
     final Task<String> fetchWithTimeout =
-        fetchUrl(httpClient, "http://www.google.com").withTimeout(50, TimeUnit.MILLISECONDS);
+        fetchUrl(httpClient, "http://www.google.com")
+          .withTimeout(50, TimeUnit.MILLISECONDS);
 
     engine.run(fetchWithTimeout);
 

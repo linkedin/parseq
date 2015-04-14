@@ -25,8 +25,11 @@ public class CalcellationExample extends AbstractExample {
     final MockService<String> httpClient = getService();
 
     final Task<Integer> fetchAndLength =
-        fetchUrl(httpClient, "http://www.google.com", 10000).withTimeout(5000, TimeUnit.MILLISECONDS)
-            .recover("default", t -> "").map("length", s -> s.length()).andThen("big bang", x -> System.exit(1));
+        fetchUrl(httpClient, "http://www.google.com", 10000)
+          .withTimeout(5000, TimeUnit.MILLISECONDS)
+          .recover("default", t -> "")
+          .map("length", s -> s.length())
+          .andThen("big bang", x -> System.exit(1));
 
     engine.run(fetchAndLength);
     Thread.sleep(20);

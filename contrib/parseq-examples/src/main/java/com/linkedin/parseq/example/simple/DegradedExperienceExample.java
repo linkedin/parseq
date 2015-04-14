@@ -24,8 +24,11 @@ public class DegradedExperienceExample extends AbstractExample {
   protected void doRunExample(final Engine engine) throws Exception {
     final MockService<String> httpClient = getService();
 
-    final Task<Integer> fetchAndLength = fetchUrl(httpClient, "http://www.google.com", 100)
-        .withTimeout(50, TimeUnit.MILLISECONDS).recover("default", t -> "").map("length", s -> s.length());
+    final Task<Integer> fetchAndLength =
+        fetchUrl(httpClient, "http://www.google.com", 100)
+          .withTimeout(50, TimeUnit.MILLISECONDS)
+          .recover("default", t -> "")
+          .map("length", s -> s.length());
 
     engine.run(fetchAndLength);
 
