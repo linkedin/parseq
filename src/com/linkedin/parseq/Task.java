@@ -317,8 +317,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * can be cancelled without affecting original task.
    *<p>
    * <blockquote><pre>
-   * final Task{@code<Response>} google = HttpClient.get("http://google.com").task();
-   * final Task{@code<Response>} bing = HttpClient.get("http://bing.com").task();
+   * final Task{@code <Response>} google = HttpClient.get("http://google.com").task();
+   * final Task{@code <Response>} bing = HttpClient.get("http://bing.com").task();
    *
    * // this task will fail because wrapped google task will timeout after 10ms
    * // notice however that original googel and bing tasks were not cancelled
@@ -1048,7 +1048,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
 
   /**
    * Equivalent to {@code async("async", func)}.
-   * @see #async(String, Function1, boolean)
+   * @see #async(String, Function1)
    */
   public static <T> Task<T> async(final Function1<Context, Promise<? extends T>> func) {
     return async("async", func);
