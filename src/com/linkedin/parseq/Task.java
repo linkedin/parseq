@@ -304,8 +304,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * all tasks that belong to it that have been started - in this case <code>bing</code> task. This may
    * be problematic if <code>bing</code> task is used somewhere else.
    * <blockquote><pre>
-   * final Task{@code<Response>} google = HttpClient.get("http://google.com").task();
-   * final Task{@code<Response>} bing = HttpClient.get("http://bing.com").task();
+   * final Task{@code <Response>} google = HttpClient.get("http://google.com").task();
+   * final Task{@code <Response>} bing = HttpClient.get("http://bing.com").task();
    *
    * // this task will fail because google task will timeout after 10ms
    * // as a consequence bing task will be cancelled
