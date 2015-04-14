@@ -1,7 +1,9 @@
 package com.linkedin.parseq;
 
-import com.linkedin.parseq.function.Function1;
+import java.util.concurrent.TimeUnit;
 
+import com.linkedin.parseq.function.Function1;
+import com.linkedin.parseq.function.Consumer1;
 import com.linkedin.parseq.function.Consumer5;
 import com.linkedin.parseq.function.Function5;
 import com.linkedin.parseq.function.Tuple5;
@@ -62,6 +64,46 @@ public interface Tuple5Task<T1, T2, T3, T4, T5> extends Task<Tuple5<T1, T2, T3, 
   @Override
   default Tuple5Task<T1, T2, T3, T4, T5> recoverWith(final String desc, final Function1<Throwable, Task<Tuple5<T1, T2, T3, T4, T5>>> f) {
     return cast(Task.super.recoverWith(desc, f));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public default Tuple5Task<T1, T2, T3, T4, T5> onFailure(final Consumer1<Throwable> consumer) {
+    return cast(Task.super.onFailure(consumer));
+  };
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public default Tuple5Task<T1, T2, T3, T4, T5> onFailure(final String desc, final Consumer1<Throwable> consumer) {
+    return cast(Task.super.onFailure(desc, consumer));
+  };
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public default Tuple5Task<T1, T2, T3, T4, T5> shareable() {
+    return cast(Task.super.shareable());
+  };
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public default Tuple5Task<T1, T2, T3, T4, T5> withTimeout(final long time, final TimeUnit unit) {
+    return cast(Task.super.withTimeout(time, unit));
+  };
+
+  default Tuple5Task<T1, T2, T3, T4, T5> withSideEffect(Function5<T1, T2, T3, T4, T5, Task<?>> func) {
+    return cast(Task.super.withSideEffect(tuple -> func.apply(tuple._1(), tuple._2(), tuple._3(), tuple._4(), tuple._5())));
+  }
+
+  default Tuple5Task<T1, T2, T3, T4, T5> withSideEffect(final String desc, Function5<T1, T2, T3, T4, T5, Task<?>> func) {
+    return cast(Task.super.withSideEffect(desc, tuple -> func.apply(tuple._1(), tuple._2(), tuple._3(), tuple._4(), tuple._5())));
   }
 
   public static <T1, T2, T3, T4, T5> Tuple5Task<T1, T2, T3, T4, T5> cast(final Task<Tuple5<T1, T2, T3, T4, T5>> task) {

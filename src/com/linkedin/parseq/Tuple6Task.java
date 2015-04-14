@@ -1,7 +1,9 @@
 package com.linkedin.parseq;
 
-import com.linkedin.parseq.function.Function1;
+import java.util.concurrent.TimeUnit;
 
+import com.linkedin.parseq.function.Function1;
+import com.linkedin.parseq.function.Consumer1;
 import com.linkedin.parseq.function.Consumer6;
 import com.linkedin.parseq.function.Function6;
 import com.linkedin.parseq.function.Tuple6;
@@ -62,6 +64,46 @@ public interface Tuple6Task<T1, T2, T3, T4, T5, T6> extends Task<Tuple6<T1, T2, 
   @Override
   default Tuple6Task<T1, T2, T3, T4, T5, T6> recoverWith(final String desc, final Function1<Throwable, Task<Tuple6<T1, T2, T3, T4, T5, T6>>> f) {
     return cast(Task.super.recoverWith(desc, f));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public default Tuple6Task<T1, T2, T3, T4, T5, T6> onFailure(final Consumer1<Throwable> consumer) {
+    return cast(Task.super.onFailure(consumer));
+  };
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public default Tuple6Task<T1, T2, T3, T4, T5, T6> onFailure(final String desc, final Consumer1<Throwable> consumer) {
+    return cast(Task.super.onFailure(desc, consumer));
+  };
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public default Tuple6Task<T1, T2, T3, T4, T5, T6> shareable() {
+    return cast(Task.super.shareable());
+  };
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public default Tuple6Task<T1, T2, T3, T4, T5, T6> withTimeout(final long time, final TimeUnit unit) {
+    return cast(Task.super.withTimeout(time, unit));
+  };
+
+  default Tuple6Task<T1, T2, T3, T4, T5, T6> withSideEffect(Function6<T1, T2, T3, T4, T5, T6, Task<?>> func) {
+    return cast(Task.super.withSideEffect(tuple -> func.apply(tuple._1(), tuple._2(), tuple._3(), tuple._4(), tuple._5(), tuple._6())));
+  }
+
+  default Tuple6Task<T1, T2, T3, T4, T5, T6> withSideEffect(final String desc, Function6<T1, T2, T3, T4, T5, T6, Task<?>> func) {
+    return cast(Task.super.withSideEffect(desc, tuple -> func.apply(tuple._1(), tuple._2(), tuple._3(), tuple._4(), tuple._5(), tuple._6())));
   }
 
   public static <T1, T2, T3, T4, T5, T6> Tuple6Task<T1, T2, T3, T4, T5, T6> cast(final Task<Tuple6<T1, T2, T3, T4, T5, T6>> task) {

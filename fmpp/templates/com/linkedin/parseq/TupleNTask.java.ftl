@@ -4,8 +4,10 @@
 <@pp.changeOutputFile name="Tuple" + i + "Task.java" />
 package com.linkedin.parseq;
 
-import com.linkedin.parseq.function.Function1;
+import java.util.concurrent.TimeUnit;
 
+import com.linkedin.parseq.function.Function1;
+import com.linkedin.parseq.function.Consumer1;
 import com.linkedin.parseq.function.Consumer${i};
 import com.linkedin.parseq.function.Function${i};
 import com.linkedin.parseq.function.Tuple${i};
@@ -66,6 +68,46 @@ public interface Tuple${i}Task<<@typeParameters i/>> extends Task<Tuple${i}<<@ty
   @Override
   default Tuple${i}Task<<@typeParameters i/>> recoverWith(final String desc, final Function1<Throwable, Task<Tuple${i}<<@typeParameters i/>>>> f) {
     return cast(Task.super.recoverWith(desc, f));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public default Tuple${i}Task<<@typeParameters i/>> onFailure(final Consumer1<Throwable> consumer) {
+    return cast(Task.super.onFailure(consumer));
+  };
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public default Tuple${i}Task<<@typeParameters i/>> onFailure(final String desc, final Consumer1<Throwable> consumer) {
+    return cast(Task.super.onFailure(desc, consumer));
+  };
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public default Tuple${i}Task<<@typeParameters i/>> shareable() {
+    return cast(Task.super.shareable());
+  };
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public default Tuple${i}Task<<@typeParameters i/>> withTimeout(final long time, final TimeUnit unit) {
+    return cast(Task.super.withTimeout(time, unit));
+  };
+
+  default Tuple${i}Task<<@typeParameters i/>> withSideEffect(Function${i}<<@typeParameters i/>, Task<?>> func) {
+    return cast(Task.super.withSideEffect(tuple -> func.apply(<@tupleArgs i/>)));
+  }
+
+  default Tuple${i}Task<<@typeParameters i/>> withSideEffect(final String desc, Function${i}<<@typeParameters i/>, Task<?>> func) {
+    return cast(Task.super.withSideEffect(desc, tuple -> func.apply(<@tupleArgs i/>)));
   }
 
   public static <<@typeParameters i/>> Tuple${i}Task<<@typeParameters i/>> cast(final Task<Tuple${i}<<@typeParameters i/>>> task) {
