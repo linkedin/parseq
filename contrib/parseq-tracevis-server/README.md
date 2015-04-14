@@ -14,7 +14,7 @@ To build the trace visualization server, use `mvn package`. This creates a runna
 Downloading
 ===========
 
-You can download latest version of `parseq-tracevis-server-jar-with-dependencies.jar` from maven central repository.
+You can download latest version of `parseq-tracevis-server-jar-with-dependencies.jar` from [maven central repository](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.linkedin.parseq%22%20AND%20a%3A%22parseq-tracevis-server%22).
 
 
 Running the Trace Visualization Server
