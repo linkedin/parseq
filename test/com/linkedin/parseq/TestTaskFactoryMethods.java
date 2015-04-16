@@ -43,7 +43,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
   @Test
   public void testFailure() {
     Exception e = new Exception("ups!");
-    Task<?> task = Task.failure(e);
+    Task<Integer> task = Task.failure(e);
     try {
       runAndWait("TestTaskFactoryMethods.testFailure", task);
       fail("should have failed");
@@ -289,7 +289,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
 
   @Test
   public void testPar2() {
-    Task<?> task = Task.par(Task.value(1), Task.value(2)).map((a, b) -> a + b);
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2)).map((a, b) -> a + b);
 
     runAndWait("TestTaskFactoryMethods.testPar2", task);
     assertEquals((int)task.get(), 1 + 2);
@@ -379,7 +379,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
 
   @Test
   public void testPar2Dsc() {
-    Task<?> task = Task.par(Task.value(1), Task.value(2)).map("test", (a, b) -> a + b);
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2)).map("test", (a, b) -> a + b);
 
     runAndWait("TestTaskFactoryMethods.testPar2Dsc", task);
     assertEquals((int)task.get(), 1 + 2);
@@ -469,7 +469,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
 
   @Test
   public void testPar2FlatMap() {
-    Task<?> task = Task.par(Task.value(1), Task.value(2)).flatMap((a, b) -> Task.value(a + b));
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2)).flatMap((a, b) -> Task.value(a + b));
 
     runAndWait("TestTaskFactoryMethods.testPar2FlatMap", task);
     assertEquals((int)task.get(), 1 + 2);
@@ -479,7 +479,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
 
   @Test
   public void testPar3FlatMap() {
-    Task<?> task = Task.par(Task.value(1), Task.value(2), Task.value(3)).flatMap((a, b, c) -> Task.value(a + b + c));
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3)).flatMap((a, b, c) -> Task.value(a + b + c));
 
     runAndWait("TestTaskFactoryMethods.testPar3FlatMap", task);
     assertEquals((int)task.get(), 1 + 2 + 3);
@@ -489,7 +489,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
 
   @Test
   public void testPar4FlatMap() {
-    Task<?> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4)).flatMap((a, b, c, d) -> Task.value(a + b + c + d));
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4)).flatMap((a, b, c, d) -> Task.value(a + b + c + d));
 
     runAndWait("TestTaskFactoryMethods.testPar4FlatMap", task);
     assertEquals((int)task.get(), 1 + 2 + 3 + 4);
@@ -499,7 +499,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
 
   @Test
   public void testPar5FlatMap() {
-    Task<?> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5))
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5))
         .flatMap((a, b, c, d, e) -> Task.value(a + b + c + d + e));
 
     runAndWait("TestTaskFactoryMethods.testPar5FlatMap", task);
@@ -510,7 +510,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
 
   @Test
   public void testPar6FlatMap() {
-    Task<?> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6))
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6))
         .flatMap((a, b, c, d, e, f) -> Task.value(a + b + c + d + e + f));
 
     runAndWait("TestTaskFactoryMethods.testPar6FlatMap", task);
@@ -521,7 +521,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
 
   @Test
   public void testPar7FlatMap() {
-    Task<?> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6), Task.value(7))
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6), Task.value(7))
         .flatMap((a, b, c, d, e, f, g) -> Task.value(a + b + c + d + e + f + g));
 
     runAndWait("TestTaskFactoryMethods.testPar7FlatMap", task);
@@ -532,7 +532,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
 
   @Test
   public void testPar8FlatMap() {
-    Task<?> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6), Task.value(7), Task.value(8))
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6), Task.value(7), Task.value(8))
         .flatMap((a, b, c, d, e, f, g, h) -> Task.value(a + b + c + d + e + f + g + h));
 
     runAndWait("TestTaskFactoryMethods.testPar8FlatMap", task);
@@ -543,7 +543,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
 
   @Test
   public void testPar9FlatMap() {
-    Task<?> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6), Task.value(7), Task.value(8), Task.value(9))
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6), Task.value(7), Task.value(8), Task.value(9))
         .flatMap((a, b, c, d, e, f, g, h, i) -> Task.value(a + b + c + d + e + f + g + h + i));
 
     runAndWait("TestTaskFactoryMethods.testPar9FlatMap", task);
@@ -554,7 +554,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
 
   @Test
   public void testPar2FlatMapDsc() {
-    Task<?> task = Task.par(Task.value(1), Task.value(2)).flatMap("test", (a, b) -> Task.value(a + b));
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2)).flatMap("test", (a, b) -> Task.value(a + b));
 
     runAndWait("TestTaskFactoryMethods.testPar2FlatMapDsc", task);
     assertEquals((int)task.get(), 1 + 2);
@@ -564,7 +564,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
 
   @Test
   public void testPar3FlatMapDsc() {
-    Task<?> task = Task.par(Task.value(1), Task.value(2), Task.value(3)).flatMap("test", (a, b, c) -> Task.value(a + b + c));
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3)).flatMap("test", (a, b, c) -> Task.value(a + b + c));
 
     runAndWait("TestTaskFactoryMethods.testPar3FlatMapDsc", task);
     assertEquals((int)task.get(), 1 + 2 + 3);
@@ -574,7 +574,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
 
   @Test
   public void testPar4FlatMapDsc() {
-    Task<?> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4)).flatMap("test", (a, b, c, d) -> Task.value(a + b + c + d));
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4)).flatMap("test", (a, b, c, d) -> Task.value(a + b + c + d));
 
     runAndWait("TestTaskFactoryMethods.testPar4FlatMapDsc", task);
     assertEquals((int)task.get(), 1 + 2 + 3 + 4);
@@ -584,7 +584,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
 
   @Test
   public void testPar5FlatMapDsc() {
-    Task<?> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5))
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5))
         .flatMap("test", (a, b, c, d, e) -> Task.value(a + b + c + d + e));
 
     runAndWait("TestTaskFactoryMethods.testPar5FlatMapDsc", task);
@@ -595,7 +595,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
 
   @Test
   public void testPar6FlatMapDsc() {
-    Task<?> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6))
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6))
         .flatMap("test", (a, b, c, d, e, f) -> Task.value(a + b + c + d + e + f));
 
     runAndWait("TestTaskFactoryMethods.testPar6FlatMapDsc", task);
@@ -606,7 +606,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
 
   @Test
   public void testPar7FlatMapDsc() {
-    Task<?> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6), Task.value(7))
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6), Task.value(7))
         .flatMap("test", (a, b, c, d, e, f, g) -> Task.value(a + b + c + d + e + f + g));
 
     runAndWait("TestTaskFactoryMethods.testPar7FlatMapDsc", task);
@@ -617,7 +617,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
 
   @Test
   public void testPar8FlatMapDsc() {
-    Task<?> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6), Task.value(7), Task.value(8))
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6), Task.value(7), Task.value(8))
         .flatMap("test", (a, b, c, d, e, f, g, h) -> Task.value(a + b + c + d + e + f + g + h));
 
     runAndWait("TestTaskFactoryMethods.testPar8FlatMapDsc", task);
@@ -628,7 +628,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
 
   @Test
   public void testPar9FlatMapDsc() {
-    Task<?> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6), Task.value(7), Task.value(8), Task.value(9))
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6), Task.value(7), Task.value(8), Task.value(9))
         .flatMap("test", (a, b, c, d, e, f, g, h, i) -> Task.value(a + b + c + d + e + f + g + h + i));
 
     runAndWait("TestTaskFactoryMethods.testPar9FlatMapDsc", task);
