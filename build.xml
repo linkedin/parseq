@@ -215,6 +215,9 @@
         <sign file="${dist.dir}/parseq-${version}.jar"/>
         <sign file="${dist.dir}/parseq-${version}-sources.jar"/>
         <sign file="${dist.dir}/parseq-${version}-javadoc.jar"/>
+        <sign file="${dist.dir}/parseq-${version}-test.jar"/>
+        <sign file="${dist.dir}/parseq-${version}-test-sources.jar"/>
+        <sign file="${dist.dir}/parseq-${version}-test-javadoc.jar"/>
         <jar destfile="${dist.dir}/parseq-${version}-bundle.jar" basedir="${dist.dir}">
             <include name="parseq-${version}.pom"/>
             <include name="parseq-${version}.pom.asc"/>
@@ -224,6 +227,12 @@
             <include name="parseq-${version}-sources.jar.asc"/>
             <include name="parseq-${version}-javadoc.jar"/>
             <include name="parseq-${version}-javadoc.jar.asc"/>
+            <include name="parseq-${version}-test.jar"/>
+            <include name="parseq-${version}-test.jar.asc"/>
+            <include name="parseq-${version}-test-sources.jar"/>
+            <include name="parseq-${version}-test-sources.jar.asc"/>
+            <include name="parseq-${version}-test-javadoc.jar"/>
+            <include name="parseq-${version}-test-javadoc.jar.asc"/>
         </jar>
     </target>
 
