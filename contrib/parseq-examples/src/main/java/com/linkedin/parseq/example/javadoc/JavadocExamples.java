@@ -1,13 +1,18 @@
 package com.linkedin.parseq.example.javadoc;
 
 import java.net.URI;
+import java.util.concurrent.TimeUnit;
 
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.example.common.ExampleUtil;
 import com.linkedin.parseq.example.domain.Person;
+import com.linkedin.parseq.function.Failure;
+import com.linkedin.parseq.function.Success;
+import com.linkedin.parseq.function.Try;
 import com.linkedin.parseq.httpclient.HttpClient;
+import com.ning.http.client.Response;
 
 
 /**
@@ -29,8 +34,8 @@ public class JavadocExamples extends AbstractExample {
   protected void doRunExample(final Engine engine) throws Exception {
 
 // map-1.svg
-//    Task<String> hello = Task.value("Hello World");
-//    Task<Integer> length = hello.map("length", s -> s.length());
+//      Task<String> hello = Task.value("Hello World");
+//      Task<Integer> length = hello.map("length", s -> s.length());
 
 // map-2.svg
 //    Task<String> failing = Task.callable("hello", () -> {
@@ -47,9 +52,9 @@ public class JavadocExamples extends AbstractExample {
 //    Task<String> homepage = url.flatMap("fetch", u -> fetch(u));
 
 // withSideEffect-1
-    Task<Long> id = Task.value("id", 1223L);
-    Task<String> userName = id.flatMap("fetch", u -> fetch(u))
-        .withSideEffect("update memcache", u -> updateMemcache(u));
+//    Task<Long> id = Task.value("id", 1223L);
+//    Task<String> userName = id.flatMap("fetch", u -> fetch(u))
+//        .withSideEffect("update memcache", u -> updateMemcache(u));
 
 
 // shareable-1
@@ -155,15 +160,14 @@ public class JavadocExamples extends AbstractExample {
 //         .recoverWith(e -> fetchFromDB(id));
 
 //withtimeout-1
-//    final Task<Response> google = HttpClient.get("http://google.com").task()
-//        .withTimeout(10, TimeUnit.MILLISECONDS);
+    final Task<Response> google = HttpClient.get("http://google.com").task()
+        .withTimeout(10, TimeUnit.MILLISECONDS);
 
-    engine.run(userName);
+    engine.run(google);
 
-    userName.await();
+    google.await();
 
-
-    ExampleUtil.printTracingResults(userName);
+    ExampleUtil.printTracingResults(google);
   }
 
   Task<Person> fetchFromCache(Long id) {
