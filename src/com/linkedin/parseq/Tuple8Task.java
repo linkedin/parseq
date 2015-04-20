@@ -11,7 +11,7 @@ import com.linkedin.parseq.function.Tuple8;
 public interface Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> extends Task<Tuple8<T1, T2, T3, T4, T5, T6, T7, T8>> {
 
   /**
-   * Equivalent to {@code map("map", func)}.
+   * Equivalent to {@code map("map", f)}.
    * @see #map(String, Function8)
    */
   default <R> Task<R> map(final Function8<T1, T2, T3, T4, T5, T6, T7, T8, R> f) {
@@ -43,7 +43,7 @@ public interface Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> extends Task<Tuple8<
    *
    * @param <R> return type of function <code>func</code>
    * @param desc description of a mapping function, it will show up in a trace
-   * @param func function to be applied to successful result of this task.
+   * @param f function to be applied to successful result of this task.
    * @return a new task which will apply given function on result of successful completion of this task
    */
   default <R> Task<R> map(final String desc, final Function8<T1, T2, T3, T4, T5, T6, T7, T8, R> f) {
@@ -51,7 +51,7 @@ public interface Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> extends Task<Tuple8<
   }
 
   /**
-   * Equivalent to {@code flatMap("flatMap", func)}.
+   * Equivalent to {@code flatMap("flatMap", f)}.
    * @see #flatMap(String, Function8)
    */
   default <R> Task<R> flatMap(final Function8<T1, T2, T3, T4, T5, T6, T7, T8, Task<R>> f) {
@@ -83,7 +83,7 @@ public interface Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> extends Task<Tuple8<
    * <img src="doc-files/flatMap-2.svg" type="image/svg+xml" height="90px"/>
    * @param <R> return type of function <code>func</code>
    * @param desc description of a mapping function, it will show up in a trace
-   * @param func function to be applied to successful result of this task which returns new task
+   * @param f function to be applied to successful result of this task which returns new task
    * to be executed
    * @return a new task which will apply given function on result of successful completion of this task
    * to get instance of a task which will be executed next

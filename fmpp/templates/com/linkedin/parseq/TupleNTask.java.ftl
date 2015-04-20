@@ -15,7 +15,7 @@ import com.linkedin.parseq.function.Tuple${i};
 public interface Tuple${i}Task<<@typeParameters i/>> extends Task<Tuple${i}<<@typeParameters i/>>> {
 
   /**
-   * Equivalent to {@code map("map", func)}.
+   * Equivalent to {@code map("map", f)}.
    * @see #map(String, Function${i})
    */
   default <R> Task<R> map(final Function${i}<<@typeParameters i/>, R> f) {
@@ -47,7 +47,7 @@ public interface Tuple${i}Task<<@typeParameters i/>> extends Task<Tuple${i}<<@ty
    *
    * @param <R> return type of function <code>func</code>
    * @param desc description of a mapping function, it will show up in a trace
-   * @param func function to be applied to successful result of this task.
+   * @param f function to be applied to successful result of this task.
    * @return a new task which will apply given function on result of successful completion of this task
    */
   default <R> Task<R> map(final String desc, final Function${i}<<@typeParameters i/>, R> f) {
@@ -55,7 +55,7 @@ public interface Tuple${i}Task<<@typeParameters i/>> extends Task<Tuple${i}<<@ty
   }
 
   /**
-   * Equivalent to {@code flatMap("flatMap", func)}.
+   * Equivalent to {@code flatMap("flatMap", f)}.
    * @see #flatMap(String, Function${i})
    */
   default <R> Task<R> flatMap(final Function${i}<<@typeParameters i/>, Task<R>> f) {
@@ -87,7 +87,7 @@ public interface Tuple${i}Task<<@typeParameters i/>> extends Task<Tuple${i}<<@ty
    * <img src="doc-files/flatMap-2.svg" type="image/svg+xml" height="90px"/>
    * @param <R> return type of function <code>func</code>
    * @param desc description of a mapping function, it will show up in a trace
-   * @param func function to be applied to successful result of this task which returns new task
+   * @param f function to be applied to successful result of this task which returns new task
    * to be executed
    * @return a new task which will apply given function on result of successful completion of this task
    * to get instance of a task which will be executed next

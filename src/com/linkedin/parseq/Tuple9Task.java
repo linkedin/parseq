@@ -11,7 +11,7 @@ import com.linkedin.parseq.function.Tuple9;
 public interface Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> extends Task<Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9>> {
 
   /**
-   * Equivalent to {@code map("map", func)}.
+   * Equivalent to {@code map("map", f)}.
    * @see #map(String, Function9)
    */
   default <R> Task<R> map(final Function9<T1, T2, T3, T4, T5, T6, T7, T8, T9, R> f) {
@@ -43,7 +43,7 @@ public interface Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> extends Task<Tup
    *
    * @param <R> return type of function <code>func</code>
    * @param desc description of a mapping function, it will show up in a trace
-   * @param func function to be applied to successful result of this task.
+   * @param f function to be applied to successful result of this task.
    * @return a new task which will apply given function on result of successful completion of this task
    */
   default <R> Task<R> map(final String desc, final Function9<T1, T2, T3, T4, T5, T6, T7, T8, T9, R> f) {
@@ -51,7 +51,7 @@ public interface Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> extends Task<Tup
   }
 
   /**
-   * Equivalent to {@code flatMap("flatMap", func)}.
+   * Equivalent to {@code flatMap("flatMap", f)}.
    * @see #flatMap(String, Function9)
    */
   default <R> Task<R> flatMap(final Function9<T1, T2, T3, T4, T5, T6, T7, T8, T9, Task<R>> f) {
@@ -83,7 +83,7 @@ public interface Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> extends Task<Tup
    * <img src="doc-files/flatMap-2.svg" type="image/svg+xml" height="90px"/>
    * @param <R> return type of function <code>func</code>
    * @param desc description of a mapping function, it will show up in a trace
-   * @param func function to be applied to successful result of this task which returns new task
+   * @param f function to be applied to successful result of this task which returns new task
    * to be executed
    * @return a new task which will apply given function on result of successful completion of this task
    * to get instance of a task which will be executed next
