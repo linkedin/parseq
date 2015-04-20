@@ -6,15 +6,17 @@ v2.0.0
   - parseq-examples with v2.0 API examples
   - parseq-legacy-exampels with v1.x API examples
   - parseq-http-client that provides integration with Async Http Client library
-  - parseq-exec that provides integration with Java's Process API
+  - parseq-exec that provides integration with Java Process API
   - parseq-tracevis-server that serves tracevis tool and is capable of rendering graphviz diagrams
 * Refactored tracing mechanism:
   - each task has unique id
   - added configurable limit on number of relationships that are part of a trace
     this allows tracing large plans (millions of tasks)
   - gracefully handle cycles in generated trace
-  - traces of tasks belonging to the same plan are the same
-  - task's trace is a trace of a plan that executed it
+  - traces of all tasks belonging to the same plan are equal
+  - tasks trace is a trace of a plan that executed it
+  - tasks value is not included by default it (see Task.setTraceValueSerializer()) 
+* Changed logging API so that it is possible to pass planClass to Engine.run()
 * Improved reliability of promise propagation to avoid stack overflow in large plans (millions of tasks)
 * Introduced blocking() method which allows integration of blocking APIs using multiple dedicated Executors
 * Tracevis improvements:
@@ -22,9 +24,7 @@ v2.0.0
   - added zooming/panning in graphviz-view
   - added "time slider" to graphviz-view
 * Added shareable() method to allow sharing tasks among plans (avoid automatic cancellation)
-* Introduced FusionTask that improves performance of non-blocking synchronous transformations.
-  Plan consisting of main task and 4 consecutive map operations runs ~2x faster using FusionTask
-  than equivalent plan built using seq().
+* Introduced FusionTask that improves performance of non-blocking synchronous transformations
 
 v1.4.2
 ------
