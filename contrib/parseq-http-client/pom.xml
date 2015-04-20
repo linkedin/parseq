@@ -89,4 +89,22 @@
     	<url>https://github.com/linkedin/parseq</url>
     	<connection>scm:git:git://github.com/linkedin/parseq.git</connection>
     </scm>
+    <description>
+      Integrates ParSeq with Async Http Client library
+    </description>    
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <id>jodzga</id>
+            <name>Jaroslaw Odzga</name>
+            <email>jodzga@linkedin.com</email>
+        </developer>
+    </developers>    
+
 </project>
