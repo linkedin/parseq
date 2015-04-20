@@ -13,7 +13,7 @@ public class HttpClient {
   /**
    * Returns raw http client. If client has not been initialized yet
    * then new client is created with default configuration.
-   * @return
+   * @return raw http client
    */
   public static synchronized AsyncHttpClient getNingClient() {
     if (_client.get() == null) {
