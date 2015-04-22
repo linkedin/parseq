@@ -1,3 +1,8 @@
+v2.0.1
+------
+
+Fixes bug which caused errors propagated by flatMap to be nested in PromiseException
+
 v2.0.0
 ------
 
