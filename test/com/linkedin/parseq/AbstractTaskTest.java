@@ -317,6 +317,29 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
   }
 
   @Test
+  public void testFailureInNestedFlatMap() {
+    final Exception failureReason = new Exception();
+
+    Task<String> failing = getSuccessTask()
+        .flatMap(Task::value)
+        .flatMap(Task::value)
+        .flatMap(i -> Task.failure(failureReason));
+
+    Task<String> nested = failing
+        .flatMap(Task::value)
+        .flatMap(Task::value);
+
+    try {
+      runAndWait("AbstractTaskTest.testFailureInNestedFlatMap", nested);
+      fail("should have failed");
+    } catch (Exception ex) {
+      assertTrue(nested.isFailed());
+    }
+    assertSame(nested.getError(), failureReason);
+  }
+
+
+  @Test
   public void testFlattenFailure() {
     Task<Task<String>> nested = Task.callable(() -> getFailureTask());
     Task<String> flat = Task.flatten(nested);

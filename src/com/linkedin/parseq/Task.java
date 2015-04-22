@@ -785,13 +785,17 @@ public interface Task<T> extends Promise<T>, Cancellable {
       final SettablePromise<R> result = Promises.settable();
       context.after(task).run(() -> {
         try {
-          Task<R> t = task.get();
-          Promises.propagateResult(t, result);
-          return t;
+          if (!task.isFailed()) {
+            Task<R> t = task.get();
+            Promises.propagateResult(t, result);
+            return t;
+          } else {
+            result.fail(task.getError());
+          }
         } catch (Throwable t) {
           result.fail(t);
-          return null;
         }
+        return null;
       } );
       context.run(task);
       return result;
