@@ -114,7 +114,8 @@ import com.linkedin.parseq.internal.Continuations;
 
   private void doFinish(final T value, final Throwable error) throws PromiseResolvedException {
     final List<PromiseListener<T>> listsners = finalizeResult(value, error);
-    CONTINUATIONS.submit(() -> notifyListeners(listsners), _awaitLatch::countDown);
+    CONTINUATIONS.submit(() -> notifyListeners(listsners));
+    CONTINUATIONS.submit(_awaitLatch::countDown);
   }
 
   private List<PromiseListener<T>> finalizeResult(T value, Throwable error) {

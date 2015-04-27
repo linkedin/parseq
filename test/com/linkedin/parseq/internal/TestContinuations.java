@@ -18,7 +18,7 @@ public class TestContinuations {
     Continuations CONT = new Continuations();
     CONT.submit(() -> {
       action.set(true);
-    } , null);
+    });
     assertTrue(action.get());
   }
 
@@ -30,9 +30,10 @@ public class TestContinuations {
     Continuations CONT = new Continuations();
     CONT.submit(() -> {
       action.set(sequence.incrementAndGet());
-    } , () -> {
+    });
+    CONT.submit(() -> {
       onSuccess.set(sequence.incrementAndGet());
-    } );
+    });
     assertEquals(action.get(), 1);
     assertEquals(onSuccess.get(), 2);
   }
@@ -45,9 +46,10 @@ public class TestContinuations {
     try {
       CONT.submit(() -> {
         throw new RuntimeException("test");
-      } , () -> {
+      });
+      CONT.submit(() -> {
         onSuccess.set(sequence.incrementAndGet());
-      } );
+      });
       fail("should have thrown exception");
     } catch (Exception e) {
       assertEquals(e.getMessage(), "test");
@@ -62,9 +64,10 @@ public class TestContinuations {
     CONT.submit(() -> {
       result.append("BEGIN{");
       recursivePostOrder(CONT, result, "root", 0);
-    } , () -> {
+    });
+    CONT.submit(() -> {
       result.append("}END");
-    } );
+    });
     assertEquals(result.toString(),
         "BEGIN{[done(rootLL:2)][done(rootLR:2)][done(rootL:1)][done(rootRL:2)][done(rootRR:2)][done(rootR:1)][done(root:0)]}END");
   }
@@ -76,9 +79,10 @@ public class TestContinuations {
         recursivePostOrder(CONT, result, branch + "L", depth + 1);
         recursivePostOrder(CONT, result, branch + "R", depth + 1);
       }
-    } , () -> {
+    });
+    CONT.submit(() -> {
       result.append("[done(" + branch + ":" + depth + ")]");
-    } );
+    });
   }
 
   @Test
@@ -89,9 +93,10 @@ public class TestContinuations {
       CONT.submit(() -> {
         result.append("BEGIN{");
         recursivePostOrderWithException(CONT, result, "root", 0);
-      } , () -> {
+      });
+      CONT.submit(() -> {
         result.append("}END");
-      } );
+      });
       fail("should have thrown exception");
     } catch (Exception e) {
       assertEquals(e.getMessage(), "nested");
@@ -110,9 +115,10 @@ public class TestContinuations {
           throw new RuntimeException("nested");
         }
       }
-    } , () -> {
+    });
+    CONT.submit(() -> {
       result.append("[done(" + branch + ":" + depth + ")]");
-    } );
+    });
   }
 
   @Test
@@ -121,7 +127,7 @@ public class TestContinuations {
     final AtomicInteger result = new AtomicInteger();
     CONT.submit(() -> {
       deepRecursion(CONT, result, 0);
-    } , null);
+    });
     assertEquals(result.get(), 1000001);
   }
 
@@ -130,9 +136,10 @@ public class TestContinuations {
       if (depth < 1000000) {
         deepRecursion(CONT, result, depth + 1);
       }
-    } , () -> {
+    });
+    CONT.submit(() -> {
       result.incrementAndGet();
-    } );
+    });
   }
 
 }

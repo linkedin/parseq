@@ -124,9 +124,9 @@ public class FusionTask<S, T> extends BaseTask<T> {
                   }
                   settable.done(value);
                   traceContext.getContext().getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);
-                  CONTINUATIONS.submit(() -> dest.done(value), null);
+                  CONTINUATIONS.submit(() -> dest.done(value));
                 } catch (Exception e) {
-                  CONTINUATIONS.submit(() -> dest.fail(e), null);
+                  CONTINUATIONS.submit(() -> dest.fail(e));
                 }
               }
 
@@ -137,9 +137,9 @@ public class FusionTask<S, T> extends BaseTask<T> {
                   traceFailure(error);
                   settable.fail(error);
                   traceContext.getContext().getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);
-                  CONTINUATIONS.submit(() -> dest.fail(error), null);
+                  CONTINUATIONS.submit(() -> dest.fail(error));
                 } catch (Exception e) {
-                  CONTINUATIONS.submit(() -> dest.fail(e), null);
+                  CONTINUATIONS.submit(() -> dest.fail(e));
                 }
               }
             });
@@ -147,7 +147,7 @@ public class FusionTask<S, T> extends BaseTask<T> {
             LOGGER.error("An exception was thrown by propagator", e);
           }
         };
-        CONTINUATIONS.submit(complete, null);
+        CONTINUATIONS.submit(complete);
       } else {
         //non-parent tasks subsequent executions
         addPotentialRelationships(traceContext, traceContext.getContext().getTraceBuilder());
