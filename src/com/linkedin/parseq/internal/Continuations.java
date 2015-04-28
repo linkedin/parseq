@@ -29,47 +29,66 @@ import java.util.Deque;
  */
 public class Continuations {
 
-  private final ThreadLocal<Continuations> CONTINUATIONS = new ThreadLocal<Continuations>() {
+  private final ThreadLocal<Continuation> CONTINUATION = new ThreadLocal<Continuation>() {
     @Override
-    protected Continuations initialValue() {
-      Continuations conts = new Continuations();
-      conts._inactive = new ArrayDeque<>();
-      conts._scheduled = new ArrayDeque<>();
-      return conts;
+    protected Continuation initialValue() {
+      Continuation cont = new Continuation();
+      cont._inactive = new ArrayDeque<>();
+      cont._scheduled = new ArrayDeque<>();
+      return cont;
     }
   };
 
-  Deque<Runnable> _active;
-  Deque<Runnable> _inactive;
-  Deque<Runnable> _scheduled;
-
-  public final Continuations get() {
-    return CONTINUATIONS.get();
+  public void submit(final Runnable action) {
+    CONTINUATION.get().submit(action);
   }
 
-  public void submit(final Runnable action) {
-    final Continuations conts = get();
-    if (conts._active == null) {
-      //invariants: _scheduled and _inactive are empty
-      conts._active = conts._inactive;
-      conts._scheduled.add(action);
-      try {
-        while (!conts._scheduled.isEmpty()) {
-          final Runnable next = conts._scheduled.pollFirst();
-          next.run();
-          while (!conts._active.isEmpty()) {
-            conts._scheduled.addFirst(conts._active.pollLast());
-          }
-        }
-      } finally {
-        //maintain invariants
-        conts._scheduled.clear();
-        conts._active.clear();
-        conts._inactive = conts._active;
-        conts._active = null;
+  private static final class Continuation {
+    // contains actions scheduled in the current recurrence level
+    private Deque<Runnable> _active;
+
+    // variable to cache empty deque instance
+    private Deque<Runnable> _inactive;
+
+    // contains actions scheduled for execution
+    private Deque<Runnable> _scheduled;
+
+    private void submit(final Runnable action) {
+      if (_active == null) {
+        // we are at the root level of a call tree
+        // this branch contains main loop responsible for
+        // executing all actions
+        _active = _inactive;
+        _scheduled.add(action);
+        loop();
+      } else {
+        // not a root level, just schedule an action
+        _active.add(action);
       }
-    } else {
-      conts._active.add(action);
+    }
+
+    private void loop() {
+      //  Entering state:
+      //  - _active is empty
+      //  - _scheduled has one action
+      try {
+        do {
+          final Runnable next = _scheduled.pollFirst();
+          next.run();
+          while (!_active.isEmpty()) {
+            _scheduled.addFirst(_active.pollLast());
+          }
+        } while (!_scheduled.isEmpty());
+      } finally {
+        // maintain invariants
+        _scheduled.clear();
+        _active.clear();
+        _inactive = _active;
+        _active = null;
+      }
+      //  Exiting state (even when exception is thrown):
+      //  - _active is null
+      //  - _scheduled and _inactive is empty
     }
   }
 }
