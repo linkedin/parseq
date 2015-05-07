@@ -25,6 +25,7 @@ import com.linkedin.parseq.Context;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.trace.Trace;
+import com.linkedin.parseq.trace.TraceUtil;
 import com.linkedin.parseq.trace.codec.json.JsonTraceCodec;
 
 
@@ -81,14 +82,12 @@ public class ExampleUtil {
   }
 
   public static void printTracingResults(final Task<?> task) {
-    final Trace trace = task.getTrace();
-
     System.out.println();
     System.out.println();
     System.out.println("JSON Trace:");
 
     try {
-      System.out.println(new JsonTraceCodec().encode(trace));
+      System.out.println(TraceUtil.getJsonTrace(task));
     } catch (IOException e) {
       System.err.println("Failed to encode JSON");
     }

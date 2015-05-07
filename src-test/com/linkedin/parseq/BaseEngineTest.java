@@ -34,6 +34,7 @@ import com.linkedin.parseq.internal.TimeUnitHelper;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 import com.linkedin.parseq.trace.Trace;
+import com.linkedin.parseq.trace.TraceUtil;
 import com.linkedin.parseq.trace.codec.json.JsonTraceCodec;
 
 
@@ -125,10 +126,8 @@ public class BaseEngineTest {
   }
 
   protected void logTracingResults(final String test, final Task<?> task) {
-    final Trace trace = task.getTrace();
-
     try {
-      LOG.info("Trace [" + test + "]: " + new JsonTraceCodec().encode(trace));
+      LOG.info("Trace [" + test + "]: " + TraceUtil.getJsonTrace(task));
     } catch (IOException e) {
       LOG.error("Failed to encode JSON");
     }
