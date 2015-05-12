@@ -271,7 +271,7 @@ function render(root, graph) {
         var textarea = root.append('textarea').style('width', '100%').style(
             'height', '600px');
         textarea.text(dot.write(graph));
-        alert('Contacting TracevisServer failed, status: ' + xhr.status + '\n'
+        console.log('Contacting TracevisServer failed, status: ' + xhr.status + '\n'
             + xhr.responseText);
       }
     }
