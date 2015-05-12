@@ -1,3 +1,13 @@
+v2.0.2
+------
+
+* Added version number to tracevis (issue #56).
+* Degrade gracefully instead of showing error pop-up when tracevis-server is not accessible (issue #57).
+* Added spellcheck="false" to textarea where JSON trace is pasted (issue #36).
+* Added TraceUtil class to simplify generating JSON trace for a task.
+* Fixed Javadoc to display better in Intellij IDEA. 
+* Internal implementation changes: simplified continuations implementation. 
+
 v2.0.1
 ------
 
