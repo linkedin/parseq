@@ -105,7 +105,7 @@ public class TestTaskCancellation extends BaseEngineTest {
       listenerLatch.countDown();
     } );
     Task<?> task =
-        Task.par(completed, uncompleted).map((x, y) -> x + y).withTimeout(10, TimeUnit.MILLISECONDS).recover(e -> 0);
+        Task.par(completed, uncompleted).map((x, y) -> x + y).withTimeout(100, TimeUnit.MILLISECONDS).recover(e -> 0);
     runAndWait("TestTaskCancellation.testTaskCancellationPar", task);
     listenerLatch.await(5, TimeUnit.SECONDS);
 
