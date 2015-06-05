@@ -61,6 +61,20 @@ public class TestShallowTraceBuilder {
   }
 
   @Test
+  public void testCopyconstructor() {
+    final ShallowTraceBuilder builder = new ShallowTraceBuilder(IdGenerator.getNextId());
+    builder.setName("test");
+    builder.setResultType(ResultType.SUCCESS);
+    builder.setValue("value");
+    builder.setStartNanos(123L);
+    builder.setPendingNanos(234L);
+    builder.setEndNanos(345L);
+    builder.addAttribute("test", "value");
+    final ShallowTraceBuilder copied = new ShallowTraceBuilder(builder.build());
+    assertEquals(builder.build(), copied.build());
+  }
+
+  @Test
   public void testEquals() {
     final ShallowTraceBuilder builder = new ShallowTraceBuilder(100L);
     builder.setName("test");

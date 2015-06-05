@@ -59,7 +59,11 @@ public class ShallowTraceBuilder {
     setEndNanos(shallowTrace.getEndNanos());
     setHidden(shallowTrace.getHidden());
     setSystemHidden(shallowTrace.getSystemHidden());
-    _attributes.putAll(shallowTrace.getAttributes());
+    Map<String, String> attributes = shallowTrace.getAttributes();
+    if (!attributes.isEmpty()) {
+      _attributes = new HashMap<String, String>();
+      _attributes.putAll(attributes);
+    }
   }
 
   public boolean getHidden() {
