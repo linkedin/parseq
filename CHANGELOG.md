@@ -1,3 +1,8 @@
+v2.0.3
+------
+
+* Fix NPE in ShallowTraceBuilder copy constructor.
+
 v2.0.2
 ------
 
