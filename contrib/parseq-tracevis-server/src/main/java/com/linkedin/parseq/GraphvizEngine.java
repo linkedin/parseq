@@ -2,7 +2,6 @@ package com.linkedin.parseq;
 
 import com.linkedin.parseq.exec.Exec;
 import com.linkedin.parseq.function.Success;
-import com.linkedin.parseq.function.Tuple2;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,29 +47,29 @@ public class GraphvizEngine {
   /**
    * Return task that has general HTTP status and body information based on the build task's result.
    */
-  public Task<Tuple2<Integer, String>> build(final String hash, final InputStream body)
+  public Task<GraphvizResponse> build(final String hash, final InputStream body)
       throws IOException {
     if (hash == null) {
       // Missing hash
       String content = "Missing hash.";
       LOG.info(content);
-      return Task.value(new Tuple2<>(HttpServletResponse.SC_BAD_REQUEST, content));
+      return Task.value(new GraphvizResponse(HttpServletResponse.SC_BAD_REQUEST, content));
     } else {
       // Have cache
       if (_hashManager.contains(hash)) {
         LOG.info("hash found in cache: " + hash);
-        return Task.value(new Tuple2<>(HttpServletResponse.SC_OK, ""));
+        return Task.value(new GraphvizResponse(HttpServletResponse.SC_OK, ""));
       } else {
         if (body == null) {
           // Missing body
           String content = "Missing body.";
           LOG.info(content);
-          return Task.value(new Tuple2<>(HttpServletResponse.SC_BAD_REQUEST, content));
+          return Task.value(new GraphvizResponse(HttpServletResponse.SC_BAD_REQUEST, content));
         } else if (_dotLocation == null) {
           // Missing dot
           String content = "Missing dot.";
           LOG.info(content);
-          return Task.value(new Tuple2<>(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, content));
+          return Task.value(new GraphvizResponse(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, content));
         } else {
           // Build task
           final Task<Exec.Result> buildTask = getBuildTask(hash, body);
@@ -104,7 +103,7 @@ public class GraphvizEngine {
             }
             // Clean up cache
             _inFlightBuildTasks.remove(hash, buildTask);
-            return Success.of(new Tuple2<>(status, content));
+            return Success.of(new GraphvizResponse(status, content));
           });
         }
       }

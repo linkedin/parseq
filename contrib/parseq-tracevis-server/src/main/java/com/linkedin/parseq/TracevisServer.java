@@ -84,12 +84,12 @@ public class TracevisServer {
           final AsyncContext ctx = request.startAsync();
           // Generate response
           final Task responseTask = _graphvizEngine.build(request.getParameter("hash"), request.getInputStream())
-              .andThen("response", tuple -> {
+              .andThen("response", graphvizResponse -> {
                 // Set status
-                response.setStatus(tuple._1());
+                response.setStatus(graphvizResponse.getStatus());
                 // Write body
                 PrintWriter writer = response.getWriter();
-                writer.write(tuple._2());
+                writer.write(graphvizResponse.getBody());
                 // Complete async mode
                 ctx.complete();
               });
