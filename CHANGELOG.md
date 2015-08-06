@@ -1,3 +1,12 @@
+v2.0.4
+------
+
+* Fixed invalid svg url in Graphviz view when html has base tag
+* Fixed Content-type of POST to dot: application/json replaced with text/plain
+* Fixed layout of zoom control in Graphviz view
+* Fixed typos
+* Generalized TracevisServer into a separate GraphvisEngine which can be used by many frameworks e.g. jetty or play
+
 v2.0.3
 ------
 
