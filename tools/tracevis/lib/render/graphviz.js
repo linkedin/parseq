@@ -170,7 +170,8 @@ function render(root, graph) {
               root
                   .append('div')
                   .attr('id', 'graphviz-footer')
-                  .attr('class', 'navbar navbar-fixed-bottom row-fluid')
+                  .attr('class', 'navbar navbar-fixed-bottom')
+                  .attr('style', 'margin-right: 80px;')
                   .append('div')
                   .attr('id', 'graphviz-footer-left')
                   .attr('class', 'span3')
@@ -218,7 +219,7 @@ function render(root, graph) {
                                 "fill",
                                 progressColorsMap[d3.rgb(ellipse.style('fill'))
                                     .toString()]).attr('clip-path',
-                                'url(#pb-' + id + ')');
+                                'url('+ window.location + '#pb-' + id + ')');
                           } else {
                             // normal nodes
                             var id = title;
@@ -243,7 +244,7 @@ function render(root, graph) {
                                 "fill",
                                 progressColorsMap[d3.rgb(path.style('fill'))
                                     .toString()]).attr('clip-path',
-                                'url(#pb-' + id + ')');
+                                'url(' + window.location + '#pb-' + id + ')');
                           }
                         }
 
@@ -278,6 +279,6 @@ function render(root, graph) {
   }
 
   xhr.open("POST", "dot?hash=" + hash, true);
-  xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+  xhr.setRequestHeader('Content-Type', 'text/plain; charset=UTF-8');
   xhr.send(dotFormat);
 }
