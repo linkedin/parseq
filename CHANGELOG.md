@@ -1,3 +1,8 @@
+v2.0.5
+------
+
+* Updated dependencies of contrib projects
+
 v2.0.4
 ------
 
