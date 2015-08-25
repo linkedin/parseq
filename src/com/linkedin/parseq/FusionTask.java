@@ -119,7 +119,7 @@ public class FusionTask<S, T> extends BaseTask<T> {
                     try {
                       _shallowTraceBuilder.setValue(traceValueProvider.apply(value));
                     } catch (Exception e) {
-                      _shallowTraceBuilder.setValue(e.toString());
+                      _shallowTraceBuilder.setValue(Exceptions.failureToString(e));
                     }
                   }
                   settable.done(value);

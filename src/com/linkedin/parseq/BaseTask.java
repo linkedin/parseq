@@ -271,7 +271,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
       try {
         _shallowTraceBuilder.setValue(traceValueProvider.apply(value));
       } catch (Exception e) {
-        _shallowTraceBuilder.setValue(e.toString());
+        _shallowTraceBuilder.setValue(Exceptions.failureToString(e));
       }
     }
   }

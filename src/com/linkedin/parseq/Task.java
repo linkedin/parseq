@@ -781,6 +781,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @return flattened task
    */
   public static <R> Task<R> flatten(final String desc, final Task<Task<R>> task) {
+    ArgumentUtil.requireNotNull(task, "task");
     return async(desc, context -> {
       final SettablePromise<R> result = Promises.settable();
       context.after(task).run(() -> {
@@ -884,6 +885,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * executed
    */
   public static <T> Task<T> failure(final String desc, final Throwable failure) {
+    ArgumentUtil.requireNotNull(failure, "failure");
     return FusionTask.create(desc, Promises.value(null), (src, dst) -> {
       dst.fail(failure);
     } );
@@ -922,6 +924,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @return the new task that will invoke the callable and complete with it's result
    */
   public static <T> Task<T> callable(final String name, final Callable<? extends T> callable) {
+    ArgumentUtil.requireNotNull(callable, "callable");
     return FusionTask.create(name, Promises.value(null), (src, dst) -> {
       try {
         dst.done(callable.call());
@@ -1003,6 +1006,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see Promise
    */
   public static <T> Task<T> async(final String name, final Callable<Promise<? extends T>> callable) {
+    ArgumentUtil.requireNotNull(callable, "callable");
     return async(name, context -> {
       try {
         return callable.call();
@@ -1039,7 +1043,6 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   public static <T> Task<T> async(final String name, final Function1<Context, Promise<? extends T>> func) {
     ArgumentUtil.requireNotNull(func, "function");
-
     Task<T> task = new BaseTask<T>(name) {
       @Override
       protected Promise<? extends T> run(Context context) throws Throwable {
@@ -1076,6 +1079,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   public static <T> Task<T> blocking(final String name, final Callable<? extends T> callable, final Executor executor) {
     ArgumentUtil.requireNotNull(callable, "callable");
+    ArgumentUtil.requireNotNull(callable, "executor");
     return async(name, () -> {
       final SettablePromise<T> promise = Promises.settable();
       executor.execute(() -> {
@@ -1117,6 +1121,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @return task that will run given tasks in parallel
    */
   public static <T1, T2> Tuple2Task<T1, T2> par(final Task<T1> task1, final Task<T2> task2) {
+    ArgumentUtil.requireNotNull(task1, "task1");
+    ArgumentUtil.requireNotNull(task2, "task2");
     return new Par2Task<T1, T2>("par2", task1, task2);
   }
 
@@ -1141,6 +1147,9 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   public static <T1, T2, T3> Tuple3Task<T1, T2, T3> par(final Task<T1> task1, final Task<T2> task2,
       final Task<T3> task3) {
+    ArgumentUtil.requireNotNull(task1, "task1");
+    ArgumentUtil.requireNotNull(task2, "task2");
+    ArgumentUtil.requireNotNull(task3, "task3");
     return new Par3Task<T1, T2, T3>("par3", task1, task2, task3);
   }
 
@@ -1165,6 +1174,10 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   public static <T1, T2, T3, T4> Tuple4Task<T1, T2, T3, T4> par(final Task<T1> task1, final Task<T2> task2,
       final Task<T3> task3, final Task<T4> task4) {
+    ArgumentUtil.requireNotNull(task1, "task1");
+    ArgumentUtil.requireNotNull(task2, "task2");
+    ArgumentUtil.requireNotNull(task3, "task3");
+    ArgumentUtil.requireNotNull(task4, "task4");
     return new Par4Task<T1, T2, T3, T4>("par4", task1, task2, task3, task4);
   }
 
@@ -1189,6 +1202,11 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   public static <T1, T2, T3, T4, T5> Tuple5Task<T1, T2, T3, T4, T5> par(final Task<T1> task1, final Task<T2> task2,
       final Task<T3> task3, final Task<T4> task4, final Task<T5> task5) {
+    ArgumentUtil.requireNotNull(task1, "task1");
+    ArgumentUtil.requireNotNull(task2, "task2");
+    ArgumentUtil.requireNotNull(task3, "task3");
+    ArgumentUtil.requireNotNull(task4, "task4");
+    ArgumentUtil.requireNotNull(task5, "task5");
     return new Par5Task<T1, T2, T3, T4, T5>("par5", task1, task2, task3, task4, task5);
   }
 
@@ -1213,6 +1231,12 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   public static <T1, T2, T3, T4, T5, T6> Tuple6Task<T1, T2, T3, T4, T5, T6> par(final Task<T1> task1,
       final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5, final Task<T6> task6) {
+    ArgumentUtil.requireNotNull(task1, "task1");
+    ArgumentUtil.requireNotNull(task2, "task2");
+    ArgumentUtil.requireNotNull(task3, "task3");
+    ArgumentUtil.requireNotNull(task4, "task4");
+    ArgumentUtil.requireNotNull(task5, "task5");
+    ArgumentUtil.requireNotNull(task6, "task6");
     return new Par6Task<T1, T2, T3, T4, T5, T6>("par6", task1, task2, task3, task4, task5, task6);
   }
 
@@ -1238,6 +1262,13 @@ public interface Task<T> extends Promise<T>, Cancellable {
   public static <T1, T2, T3, T4, T5, T6, T7> Tuple7Task<T1, T2, T3, T4, T5, T6, T7> par(final Task<T1> task1,
       final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5, final Task<T6> task6,
       final Task<T7> task7) {
+    ArgumentUtil.requireNotNull(task1, "task1");
+    ArgumentUtil.requireNotNull(task2, "task2");
+    ArgumentUtil.requireNotNull(task3, "task3");
+    ArgumentUtil.requireNotNull(task4, "task4");
+    ArgumentUtil.requireNotNull(task5, "task5");
+    ArgumentUtil.requireNotNull(task6, "task6");
+    ArgumentUtil.requireNotNull(task7, "task7");
     return new Par7Task<T1, T2, T3, T4, T5, T6, T7>("par7", task1, task2, task3, task4, task5, task6, task7);
   }
 
@@ -1263,6 +1294,14 @@ public interface Task<T> extends Promise<T>, Cancellable {
   public static <T1, T2, T3, T4, T5, T6, T7, T8> Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> par(final Task<T1> task1,
       final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5, final Task<T6> task6,
       final Task<T7> task7, final Task<T8> task8) {
+    ArgumentUtil.requireNotNull(task1, "task1");
+    ArgumentUtil.requireNotNull(task2, "task2");
+    ArgumentUtil.requireNotNull(task3, "task3");
+    ArgumentUtil.requireNotNull(task4, "task4");
+    ArgumentUtil.requireNotNull(task5, "task5");
+    ArgumentUtil.requireNotNull(task6, "task6");
+    ArgumentUtil.requireNotNull(task7, "task7");
+    ArgumentUtil.requireNotNull(task8, "task8");
     return new Par8Task<T1, T2, T3, T4, T5, T6, T7, T8>("par8", task1, task2, task3, task4, task5, task6, task7, task8);
   }
 
@@ -1288,6 +1327,15 @@ public interface Task<T> extends Promise<T>, Cancellable {
   public static <T1, T2, T3, T4, T5, T6, T7, T8, T9> Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> par(
       final Task<T1> task1, final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5,
       final Task<T6> task6, final Task<T7> task7, final Task<T8> task8, final Task<T9> task9) {
+    ArgumentUtil.requireNotNull(task1, "task1");
+    ArgumentUtil.requireNotNull(task2, "task2");
+    ArgumentUtil.requireNotNull(task3, "task3");
+    ArgumentUtil.requireNotNull(task4, "task4");
+    ArgumentUtil.requireNotNull(task5, "task5");
+    ArgumentUtil.requireNotNull(task6, "task6");
+    ArgumentUtil.requireNotNull(task7, "task7");
+    ArgumentUtil.requireNotNull(task8, "task8");
+    ArgumentUtil.requireNotNull(task9, "task9");
     return new Par9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9>("par9", task1, task2, task3, task4, task5, task6, task7,
         task8, task9);
   }

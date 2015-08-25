@@ -1,5 +1,7 @@
 package com.linkedin.parseq;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
@@ -44,15 +46,21 @@ public class Exceptions {
     return isCancellation(e) && e.getCause() instanceof EarlyFinishException;
   }
 
+  private static String toString(final Throwable t) {
+    final StringWriter sw = new StringWriter();
+    t.printStackTrace(new PrintWriter(sw));
+    return sw.toString();
+  }
+
   public static String failureToString(final Throwable e) {
     if (isCancellation(e)) {
       if (isEarlyFinish(e)) {
         return "";
       } else {
-        return "cancelled because: " + e.getCause().toString();
+        return "cancelled because: " + toString(e.getCause());
       }
     } else {
-      return e.toString();
+      return toString(e);
     }
   }
 
