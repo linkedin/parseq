@@ -1,3 +1,9 @@
+v2.0.6
+------
+
+* Include stack trace in the trace's value for failed tasks.
+* Add checking for null values in various methods of Task.
+
 v2.0.5
 ------
 
