@@ -2,11 +2,17 @@ package com.linkedin.parseq;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.testng.annotations.Test;
+
+import com.linkedin.parseq.trace.ResultType;
+import com.linkedin.parseq.trace.Trace;
 
 
 /**
@@ -105,6 +111,23 @@ public class TestFusionTask extends AbstractTaskTest {
       assertSame(ex.getCause(), Exceptions.TIMEOUT_EXCEPTION);
     }
     assertEquals(countTasks(task.getTrace()), 7);
+  }
+
+
+  @Test
+  public void testTraceCompletness() throws InterruptedException {
+    final Task<String> task = delayedValue("value", 10, TimeUnit.MILLISECONDS).map("duplicate", x -> x + x);
+    final CountDownLatch latch = new CountDownLatch(1);
+    final AtomicReference<Trace> trace = new AtomicReference<>();
+    task.addListener(s -> {
+      trace.set(task.getTrace());
+      latch.countDown();
+      });
+    runAndWait("TestFusionTask.testTraceCompletness", task);
+    assertTrue(latch.await(100, TimeUnit.MILLISECONDS), "trace was not abtained in time");
+    assertTrue(trace.get().getTraceMap().values().stream()
+        .allMatch(shallowTrace -> shallowTrace.getResultType().equals(ResultType.SUCCESS)),
+        "all tasks in the trace should have ResultType=SUCCESS");
   }
 
   @Override
