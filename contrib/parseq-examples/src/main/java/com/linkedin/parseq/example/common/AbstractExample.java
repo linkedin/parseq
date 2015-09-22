@@ -25,6 +25,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
+ * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
 public abstract class AbstractExample {
   private volatile ScheduledExecutorService _serviceScheduler;
@@ -33,7 +34,9 @@ public abstract class AbstractExample {
     _serviceScheduler = Executors.newScheduledThreadPool(2);
     final int numCores = Runtime.getRuntime().availableProcessors();
     final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(numCores + 1);
-    final Engine engine = new EngineBuilder().setTaskExecutor(scheduler).setTimerScheduler(scheduler).build();
+    final EngineBuilder builder = new EngineBuilder().setTaskExecutor(scheduler).setTimerScheduler(scheduler);
+    customizeEngine(builder);
+    final Engine engine = builder.build();
     try {
       doRunExample(engine);
     } finally {
@@ -45,6 +48,10 @@ public abstract class AbstractExample {
   }
 
   protected abstract void doRunExample(Engine engine) throws Exception;
+
+  protected void customizeEngine(EngineBuilder engineBuilder) {
+
+  }
 
   protected <T> MockService<T> getService() {
     return new MockService<T>(_serviceScheduler);

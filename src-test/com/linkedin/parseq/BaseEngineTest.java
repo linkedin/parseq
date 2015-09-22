@@ -35,7 +35,6 @@ import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 import com.linkedin.parseq.trace.Trace;
 import com.linkedin.parseq.trace.TraceUtil;
-import com.linkedin.parseq.trace.codec.json.JsonTraceCodec;
 
 
 /**

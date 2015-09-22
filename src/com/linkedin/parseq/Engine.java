@@ -24,15 +24,11 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.internal.ContextImpl;
 import com.linkedin.parseq.internal.InternalUtil;
 import com.linkedin.parseq.internal.PlanContext;
-import com.linkedin.parseq.internal.RejectedSerialExecutionHandler;
-import com.linkedin.parseq.internal.SerialExecutionException;
-import com.linkedin.parseq.internal.SerialExecutor;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
 
@@ -45,7 +41,6 @@ import com.linkedin.parseq.promise.PromiseListener;
  */
 public class Engine {
   public static final String LOGGER_BASE = Engine.class.getName();
-  private static final Logger LOG = LoggerFactory.getLogger(LOGGER_BASE);
 
   public static final String MAX_RELATIONSHIPS_PER_TRACE = "_MaxRelationshipsPerTrace_";
   private static final int DEFUALT_MAX_RELATIONSHIPS_PER_TRACE = 4096;
@@ -70,6 +65,8 @@ public class Engine {
 
   private final int _maxRelationshipsPerTrace;
 
+  final PlanActivityListener _planActivityListener;
+
   private final PromiseListener<Object> _taskDoneListener = new PromiseListener<Object>() {
     @Override
     public void onResolved(Promise<Object> resolvedPromise) {
@@ -93,11 +90,13 @@ public class Engine {
   private final Logger _rootLogger;
 
   /* package private */ Engine(final Executor taskExecutor, final DelayedExecutor timerExecutor,
-      final ILoggerFactory loggerFactory, final Map<String, Object> properties) {
+      final ILoggerFactory loggerFactory, final Map<String, Object> properties,
+      final PlanActivityListener planActivityListener) {
     _taskExecutor = taskExecutor;
     _timerExecutor = timerExecutor;
     _loggerFactory = loggerFactory;
     _properties = properties;
+    _planActivityListener = planActivityListener;
 
     _allLogger = loggerFactory.getLogger(LOGGER_BASE + ":all");
     _rootLogger = loggerFactory.getLogger(LOGGER_BASE + ":root");
@@ -142,9 +141,8 @@ public class Engine {
       newState = new State(StateName.RUN, currState._pendingCount + 1);
     } while (!_stateRef.compareAndSet(currState, newState));
 
-    final Executor taskExecutor = new SerialExecutor(_taskExecutor, new CancelPlanRejectionHandler(task));
-    PlanContext planContext = new PlanContext(this, taskExecutor, _timerExecutor, _loggerFactory, _allLogger,
-        _rootLogger, planClass, task.getId(), _maxRelationshipsPerTrace);
+    PlanContext planContext = new PlanContext(this, _taskExecutor, _timerExecutor, _loggerFactory, _allLogger,
+        _rootLogger, planClass, task, _maxRelationshipsPerTrace, _planActivityListener);
     new ContextImpl(planContext, task).runTask();
 
     InternalUtil.unwildcardTask(task).addListener(_taskDoneListener);
@@ -235,22 +233,6 @@ public class Engine {
     private State(final StateName stateName, final long pendingCount) {
       _pendingCount = pendingCount;
       _stateName = stateName;
-    }
-  }
-
-  private static class CancelPlanRejectionHandler implements RejectedSerialExecutionHandler {
-    private final Task<?> _task;
-
-    private CancelPlanRejectionHandler(Task<?> task) {
-      _task = task;
-    }
-
-    @Override
-    public void rejectedExecution(Throwable error) {
-      final String msg = "Serial executor loop failed for plan: " + _task.getName();
-      final SerialExecutionException ex = new SerialExecutionException(msg, error);
-      final boolean wasCancelled = _task.cancel(ex);
-      LOG.error(msg + ". The plan was " + (wasCancelled ? "" : "not ") + "cancelled.", ex);
     }
   }
 }

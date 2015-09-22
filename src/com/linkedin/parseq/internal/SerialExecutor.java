@@ -44,13 +44,18 @@ public class SerialExecutor implements Executor {
   private final ExecutorLoop _executorLoop = new ExecutorLoop();
   private final FIFOPriorityQueue<Runnable> _queue = new FIFOPriorityQueue<Runnable>();
   private final AtomicInteger _pendingCount = new AtomicInteger();
+  private final ActivityListener _activityHandler;
 
-  public SerialExecutor(final Executor executor, final RejectedSerialExecutionHandler rejectionHandler) {
-    assert executor != null;
-    assert rejectionHandler != null;
+  public SerialExecutor(final Executor executor,
+      final RejectedSerialExecutionHandler rejectionHandler,
+      final ActivityListener activityHandler) {
+    ArgumentUtil.requireNotNull(executor, "executor");
+    ArgumentUtil.requireNotNull(rejectionHandler, "rejectionHandler" );
+    ArgumentUtil.requireNotNull(activityHandler, "activityHandler" );
 
     _executor = executor;
     _rejectionHandler = rejectionHandler;
+    _activityHandler = activityHandler;
   }
 
   public void execute(final Runnable runnable) {
@@ -69,8 +74,15 @@ public class SerialExecutor implements Executor {
   }
 
   private class ExecutorLoop implements Runnable {
+
+    private boolean _active = false;
+
     @Override
     public void run() {
+      if (!_active) {
+        _active = true;
+        _activityHandler.activated();
+      }
       // This runnable is only scheduled when the queue is non-empty.
       final Runnable runnable = _queue.poll();
 
@@ -85,6 +97,10 @@ public class SerialExecutor implements Executor {
       try {
         runnable.run();
       } finally {
+        if (_pendingCount.get() == 1) {
+          _active = false;
+          _activityHandler.deactivated();
+        }
         // In addition to its obvious use, this CAS operation acts like an
         // exit from a monitor for memory consistency purposes. See the note
         // above for more details.
@@ -93,5 +109,13 @@ public class SerialExecutor implements Executor {
         }
       }
     }
+  }
+
+  public static interface ActivityListener {
+
+    void activated();
+
+    void deactivated();
+
   }
 }

@@ -42,10 +42,36 @@ public class EngineBuilder {
   private Executor _taskExecutor;
   private DelayedExecutor _timerScheduler;
   private ILoggerFactory _loggerFactory = null;
+  private PlanActivityListener _planActivityListener;
 
   private Map<String, Object> _properties = new HashMap<String, Object>();
 
   public EngineBuilder() {
+  }
+
+  /**
+   * Sets plan activity listener for the engine. The listener will be notified
+   * when plan becomes activated and deactivated.
+   * <p>
+   * Plan becomes activated when task belonging to it gets scheduled for execution
+   * by the engine. It remains activated as long as there are other tasks belonging
+   * to this plan that can be executed.
+   * <p>
+   * Plan becomes deactivated when there are no tasks that can be executed e.g.
+   * asynchronous operations are in progress and subsequent tasks depend on their results.
+   * <p>
+   *
+   * For given plan id methods on {@link PlanActivityListener} are always called sequentially
+   * in the following order: {@code onPlanActivated(id), onPlanDeactivated(id),  (...),
+   * onPlanActivated(id), onPlanDeactivated(id)}. For arbitrary plan ids methods on
+   * {@code PlanActivityListener} can be called in parallel.
+   *
+   * @param planActivityListener the listener that will be notified when plan
+   * is being activated and deactivated
+   */
+  public void setPlanActivityListener(PlanActivityListener planActivityListener) {
+    ArgumentUtil.requireNotNull(planActivityListener, "planActivityListener");
+    _planActivityListener = planActivityListener;
   }
 
   /**
@@ -132,7 +158,15 @@ public class EngineBuilder {
     }
     Engine engine = new Engine(_taskExecutor, new IndirectDelayedExecutor(_timerScheduler),
         _loggerFactory != null ? _loggerFactory : new CachedLoggerFactory(LoggerFactory.getILoggerFactory()),
-        _properties);
+        _properties,
+        _planActivityListener != null ? _planActivityListener : new PlanActivityListener() {
+          @Override
+          public void onPlanDeactivated(Long planId) {
+          }
+          @Override
+          public void onPlanActivated(Long planId) {
+          }
+        });
     return engine;
   }
 
