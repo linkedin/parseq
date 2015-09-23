@@ -48,10 +48,10 @@ public class TestTaskCancellation extends BaseEngineTest {
       listenerLatch.countDown();
     } );
     getEngine().run(uncompleted);
-    runLatch.await(5, TimeUnit.SECONDS);
+    assertTrue(runLatch.await(5, TimeUnit.SECONDS));
     Exception cancelReason = new Exception();
     assertTrue(uncompleted.cancel(cancelReason));
-    listenerLatch.await(5, TimeUnit.SECONDS);
+    assertTrue(listenerLatch.await(5, TimeUnit.SECONDS));
     logTracingResults("TestTaskCancellation.testTaskCancellationAfterRun", uncompleted);
     assertEquals(cancelActionValue.get(), cancelReason);
   }
@@ -107,7 +107,7 @@ public class TestTaskCancellation extends BaseEngineTest {
     Task<?> task =
         Task.par(completed, uncompleted).map((x, y) -> x + y).withTimeout(100, TimeUnit.MILLISECONDS).recover(e -> 0);
     runAndWait("TestTaskCancellation.testTaskCancellationPar", task);
-    listenerLatch.await(5, TimeUnit.SECONDS);
+    assertTrue(listenerLatch.await(5, TimeUnit.SECONDS));
 
     assertTrue(cancelActionValue.get() instanceof EarlyFinishException);
   }
@@ -130,7 +130,7 @@ public class TestTaskCancellation extends BaseEngineTest {
 
     Task<?> task = uncompleted.withTimeout(10, TimeUnit.MILLISECONDS).recover(e -> 0);
     runAndWait("TestTaskCancellation.testTaskCancellationTimeout", task);
-    listenerLatch.await(5, TimeUnit.SECONDS);
+    assertTrue(listenerLatch.await(5, TimeUnit.SECONDS));
 
     assertTrue(cancelActionValue.get() instanceof EarlyFinishException);
   }

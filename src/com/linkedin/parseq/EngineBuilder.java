@@ -37,6 +37,7 @@ import java.util.concurrent.ScheduledExecutorService;
  * </ul>
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
+ * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
 public class EngineBuilder {
   private Executor _taskExecutor;

@@ -10,6 +10,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -140,25 +141,25 @@ public class TestSerialExecutor {
 
   private static class CapturingActivityListener implements ActivityListener {
 
-    private volatile int _activatedCount = 0;
-    private volatile int _deactivatedCount = 0;
+    private AtomicInteger _activatedCount = new AtomicInteger();
+    private AtomicInteger _deactivatedCount = new AtomicInteger();
 
     @Override
     public void activated() {
-      _activatedCount++;
+      _activatedCount.incrementAndGet();
     }
 
     @Override
     public void deactivated() {
-      _deactivatedCount++;
+      _deactivatedCount.incrementAndGet();
     }
 
     public int getActivatedCount() {
-      return _activatedCount;
+      return _activatedCount.get();
     }
 
     public int getDeactivatedCount() {
-      return _deactivatedCount;
+      return _deactivatedCount.get();
     }
 
   }

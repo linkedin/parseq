@@ -74,9 +74,9 @@ public class BatchingClientExample extends AbstractExample {
 
   @Override
   protected void doRunExample(final Engine engine) throws Exception {
-    final Task<String> a = batchableTask(1L).flatMap(x -> batchableTask(2L)).flatMap(x -> batchableTask(3L));
-    final Task<String> b = batchableTask(4L).flatMap(x -> batchableTask(5L)).flatMap(x -> batchableTask(6L));
-    final Task<String> c = batchableTask(7L).flatMap(x -> batchableTask(8L)).flatMap(x -> batchableTask(9L));
+    final Task<String> a = batchableTask(1L).flatMap(x -> Task.par(batchableTask(21L), batchableTask(22L))).flatMap(x -> batchableTask(3L));
+    final Task<String> b = batchableTask(4L).flatMap(x -> Task.par(batchableTask(51L), batchableTask(52L))).flatMap(x -> batchableTask(6L));
+    final Task<String> c = batchableTask(7L).flatMap(x -> Task.par(batchableTask(81L), batchableTask(82L))).flatMap(x -> batchableTask(9L));
 
     final Task<?> parFetch = Task.par(a, b, c);
     engine.run(parFetch);
