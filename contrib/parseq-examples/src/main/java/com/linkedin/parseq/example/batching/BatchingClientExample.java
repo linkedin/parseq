@@ -1,19 +1,16 @@
 /* $Id$ */
 package com.linkedin.parseq.example.batching;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 import com.linkedin.parseq.Engine;
-import com.linkedin.parseq.PlanActivityListener;
 import com.linkedin.parseq.Task;
+import com.linkedin.parseq.batching.BatchEntry;
+import com.linkedin.parseq.batching.BatchingStrategy;
+import com.linkedin.parseq.batching.BatchingSupport;
 import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.example.common.ExampleUtil;
-import com.linkedin.parseq.function.Tuple2;
-import com.linkedin.parseq.function.Tuples;
 import com.linkedin.parseq.promise.Promises;
-import com.linkedin.parseq.promise.SettablePromise;
 
 
 /**
@@ -21,52 +18,37 @@ import com.linkedin.parseq.promise.SettablePromise;
  */
 public class BatchingClientExample extends AbstractExample {
 
-  ConcurrentHashMap<Long, List<Tuple2<Long, SettablePromise<String>>>> batches = new ConcurrentHashMap<>();
+  public static class ExampleBatchingStrategy extends BatchingStrategy<Long, Long> {
 
-  // simple implementation of a 'batchable' task
+    @Override
+    public Long groupForKey(Long key) {
+      //lets say all tasks can be grouped into one batch
+      return 0L;
+    }
+
+    @Override
+    public Task<?> taskForBatch(final Long group, final List<? extends BatchEntry<Long, Object>> batch) {
+      return Task.action("batchExecute", () -> {
+        System.out.println("batch: " + batch);
+        batch.forEach(entry -> entry.getPromise().done("value for id + " + entry.getKey()));
+      });
+    }
+  }
+
+  final ExampleBatchingStrategy batchingStrategy = new ExampleBatchingStrategy();
+
   Task<String> batchableTask(final Long id) {
-    return Task.async("fetch id: " + id, ctx -> {
-
-      // get plan id of the context in which task is being executed
-      Long planId = ctx.getPlanId();
-
-      // aggregate all ids and promises and return immediately
-      batches.putIfAbsent(planId, new ArrayList<>());
-      SettablePromise<String> p = Promises.settable();
-      batches.get(planId).add(Tuples.tuple(id, p));
-
-      return p;
+    return batchingStrategy.batchable("fetch id: " + id, () -> {
+      return new BatchEntry<Long, String>(id, Promises.settable());
     });
   }
 
-  // plan activity listener will run computation for batch of ids
-  // when plan gets deactivated and (in real world asynchronously,
-  // but here for simplicity synchronously) complete adequate promises
-  PlanActivityListener planListener = new PlanActivityListener() {
-
-    @Override
-    public void onPlanDeactivated(Long planId) {
-      List<Tuple2<Long, SettablePromise<String>>> batch = batches.remove(planId);
-      if (batch != null) {
-        //execute batch
-        System.out.println("batch: " + batch);
-
-        // asynchronously complete associated promises
-        // here, do it synchronously for simplicity
-        batch.forEach(t -> t._2().done("value for id + " + t._1()));
-      }
-    }
-
-    @Override
-    public void onPlanActivated(Long planId) {
-    }
-  };
-
   @Override
   protected void customizeEngine(com.linkedin.parseq.EngineBuilder engineBuilder) {
-    engineBuilder.setPlanActivityListener(planListener);
+    BatchingSupport batchingSupport = new BatchingSupport();
+    batchingSupport.registerStrategy(batchingStrategy);
+    engineBuilder.setPlanActivityListener(batchingSupport);
   };
-
 
   public static void main(String[] args) throws Exception {
     new BatchingClientExample().runExample();

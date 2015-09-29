@@ -1,4 +1,6 @@
-package com.linkedin.parseq;
+package com.linkedin.parseq.internal;
+
+import com.linkedin.parseq.EngineBuilder;
 
 /**
  * This listener interface allows notification about plan activation
@@ -12,8 +14,8 @@ package com.linkedin.parseq;
  */
 public interface PlanActivityListener {
 
-  void onPlanActivated(Long planId);
+  void onPlanActivated(PlanContext plaContext);
 
-  void onPlanDeactivated(Long planId);
+  void onPlanDeactivated(PlanContext plaContext);
 
 }

@@ -18,6 +18,9 @@ package com.linkedin.parseq;
 
 import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.internal.CachedLoggerFactory;
+import com.linkedin.parseq.internal.PlanActivityListener;
+import com.linkedin.parseq.internal.PlanContext;
+
 import org.slf4j.ILoggerFactory;
 import org.slf4j.LoggerFactory;
 
@@ -162,10 +165,10 @@ public class EngineBuilder {
         _properties,
         _planActivityListener != null ? _planActivityListener : new PlanActivityListener() {
           @Override
-          public void onPlanDeactivated(Long planId) {
+          public void onPlanDeactivated(PlanContext plaContext) {
           }
           @Override
-          public void onPlanActivated(Long planId) {
+          public void onPlanActivated(PlanContext plaContext) {
           }
         });
     return engine;

@@ -21,6 +21,11 @@
             <artifactId>parseq-http-client</artifactId>
             <version>2.1.2</version>
         </dependency>
+        <dependency>
+            <groupId>com.linkedin.parseq</groupId>
+            <artifactId>parseq-batching</artifactId>
+            <version>2.0.6</version>
+        </dependency>
     </dependencies>
 
     <build>

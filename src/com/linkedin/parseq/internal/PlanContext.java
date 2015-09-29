@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import com.linkedin.parseq.Cancellable;
 import com.linkedin.parseq.DelayedExecutor;
 import com.linkedin.parseq.Engine;
-import com.linkedin.parseq.PlanActivityListener;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.internal.SerialExecutor.ActivityListener;
 import com.linkedin.parseq.trace.TraceBuilder;
@@ -53,11 +52,11 @@ public class PlanContext {
     _taskExecutor = new SerialExecutor(taskExecutor, new CancelPlanRejectionHandler(root), new ActivityListener() {
       @Override
       public void deactivated() {
-        planActivityListener.onPlanDeactivated(_id);
+        planActivityListener.onPlanDeactivated(PlanContext.this);
       }
       @Override
       public void activated() {
-        planActivityListener.onPlanActivated(_id);
+        planActivityListener.onPlanActivated(PlanContext.this);
       }
     });
     _timerScheduler = timerExecutor;

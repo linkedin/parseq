@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.internal.ContextImpl;
 import com.linkedin.parseq.internal.InternalUtil;
+import com.linkedin.parseq.internal.PlanActivityListener;
 import com.linkedin.parseq.internal.PlanContext;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
