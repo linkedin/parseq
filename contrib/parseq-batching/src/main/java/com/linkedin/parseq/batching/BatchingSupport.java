@@ -16,12 +16,12 @@ public class BatchingSupport implements PlanActivityListener {
   }
 
   @Override
-  public void onPlanActivated(final PlanContext plaContext) {
+  public void onPlanActivated(final PlanContext planContext) {
   }
 
   @Override
-  public void onPlanDeactivated(final PlanContext plaContext) {
-    _strategies.forEach(strategy -> strategy.handleBatch(plaContext));
+  public void onPlanDeactivated(final PlanContext planContext) {
+    _strategies.forEach(strategy -> strategy.handleBatch(planContext));
   }
 
 }
