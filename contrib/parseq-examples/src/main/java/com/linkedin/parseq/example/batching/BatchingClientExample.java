@@ -1,16 +1,13 @@
 /* $Id$ */
 package com.linkedin.parseq.example.batching;
 
-import java.util.List;
-
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.Task;
-import com.linkedin.parseq.batching.BatchEntry;
+import com.linkedin.parseq.batching.Batch;
 import com.linkedin.parseq.batching.BatchingStrategy;
 import com.linkedin.parseq.batching.BatchingSupport;
 import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.example.common.ExampleUtil;
-import com.linkedin.parseq.promise.Promises;
 
 
 /**
@@ -18,29 +15,21 @@ import com.linkedin.parseq.promise.Promises;
  */
 public class BatchingClientExample extends AbstractExample {
 
-  public static class ExampleBatchingStrategy extends BatchingStrategy<Long, Long> {
+  public static class ExampleBatchingStrategy extends BatchingStrategy<Long, String> {
 
     @Override
-    public Long groupForKey(Long key) {
-      //lets say all tasks can be grouped into one batch
-      return 0L;
+    public void executeBatch(Batch<Long, String> batch) {
+      System.out.println("batch: " + batch);
+      batch.foreach((key, promise) -> promise.done("value for id + " + key));
     }
 
-    @Override
-    public Task<?> taskForBatch(final Long group, final List<? extends BatchEntry<Long, Object>> batch) {
-      return Task.action("batchExecute", () -> {
-        System.out.println("batch: " + batch);
-        batch.forEach(entry -> entry.getPromise().done("value for id + " + entry.getKey()));
-      });
-    }
   }
+
 
   final ExampleBatchingStrategy batchingStrategy = new ExampleBatchingStrategy();
 
   Task<String> batchableTask(final Long id) {
-    return batchingStrategy.batchable("fetch id: " + id, () -> {
-      return new BatchEntry<Long, String>(id, Promises.settable());
-    });
+    return batchingStrategy.batchable("fetch id: " + id, id);
   }
 
   @Override

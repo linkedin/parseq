@@ -1,95 +1,97 @@
 package com.linkedin.parseq.batching;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import com.linkedin.parseq.Task;
+import com.linkedin.parseq.Tasks;
+import com.linkedin.parseq.batching.BatchImpl.BatchBuilder;
+import com.linkedin.parseq.batching.BatchImpl.BatchEntry;
 import com.linkedin.parseq.internal.ContextImpl;
 import com.linkedin.parseq.internal.PlanContext;
+import com.linkedin.parseq.promise.CountDownPromiseListener;
+import com.linkedin.parseq.promise.PromiseListener;
+import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 import com.linkedin.parseq.trace.Relationship;
-import com.linkedin.parseq.trace.ShallowTraceBuilder;
+import com.linkedin.parseq.trace.TraceBuilder;
 
-public abstract class BatchingStrategy<K, G> {
+public abstract class BatchingStrategy<K, T> {
 
-  private final ConcurrentHashMap<Long, List<InternalBatchEntry<K, Object>>> batches =
+  private final ConcurrentHashMap<Long, BatchBuilder<K, T>> _batches =
       new ConcurrentHashMap<>();
 
-  @SuppressWarnings("unchecked")
-  public <T> Task<T> batchable(final String desc, final Callable<BatchEntry<K, T>> callable) {
-    return Task.async("batchable: " + desc, ctx -> {
-      BatchEntry<K, T> batchEntry = callable.call();
-
+  public Task<T> batchable(final String desc, final K key) {
+    return Task.async(desc, ctx -> {
+      final SettablePromise<T> result = Promises.settable();
       Long planId = ctx.getPlanId();
-      List<InternalBatchEntry<K, Object>> list = batches.get(planId);
-      if (list == null) {
-        list = new ArrayList<>();
-        List<InternalBatchEntry<K, Object>> existing = batches.putIfAbsent(planId, list);
-        if (existing != null) {
-          list = existing;
+      BatchBuilder<K, T> builder = _batches.get(planId);
+      if (builder == null) {
+        builder = Batch.builder();
+        BatchBuilder<K, T> existingBuilder = _batches.putIfAbsent(planId, builder);
+        if (existingBuilder != null) {
+          builder = existingBuilder;
         }
       }
-      list.add((InternalBatchEntry<K, Object>) new InternalBatchEntry<>(ctx.getShallowTraceBuilder(),
-          batchEntry.getKey(), batchEntry.getPromise()));
-
-      return batchEntry.getPromise();
+      builder.add(key, ctx.getShallowTraceBuilder(), result);
+      return result;
     });
   }
 
-  void handleBatch(final PlanContext planContext) {
-    final List<InternalBatchEntry<K, Object>> list = batches.remove(planContext.getId());
-    if (list != null) {
-      try {
-        list.stream().collect(Collectors.groupingBy(entry -> groupForKey(entry.getKey())))
-          .forEach((group, batch) -> handleGroupBatch(group, batch, planContext));
-      } catch (Throwable t) {
-        failAll(list, t);
-      }
-    }
-  }
+  private Task<?> taskForBatch(final Batch<K, T> batch) {
+    return Task.async("batch", ctx -> {
+      final SettablePromise<T> result = Promises.settable();
+      final PromiseListener<T> countDownListener =
+          new CountDownPromiseListener<T>(batch.size(), result, null);
 
-  private void failAll(final List<InternalBatchEntry<K, Object>> list, final Throwable t) {
-    for (InternalBatchEntry<K, Object> entry: list) {
-      entry.getPromise().fail(t);
-    }
-  }
-
-  void handleGroupBatch(final G group, final List<InternalBatchEntry<K, Object>> batch, final PlanContext planContext) {
-    try {
-      Task<?> task = taskForBatch(group, batch);
       //one of the batchable tasks becomes a parent of batch task
       //all other tasks become potential parents
+      final TraceBuilder traceBuilder = ctx.getTraceBuilder();
       Relationship rel = Relationship.PARENT_OF;
-      for (InternalBatchEntry<K, ?> entry : batch) {
-        planContext.getRelationshipsBuilder().addRelationship(rel,
-            entry.getShallowTraceBuilder(), task.getShallowTraceBuilder());
+      for (BatchEntry<T> entry : batch.entries()) {
+        traceBuilder.addRelationship(rel,
+            entry.getShallowTraceBuilder(), ctx.getShallowTraceBuilder());
         rel = Relationship.POTENTIAL_PARENT_OF;
+        entry.getPromise().addListener(countDownListener);
       }
-      new ContextImpl(planContext, task).runTask();
-    } catch (Throwable t) {
-      failAll(batch, t);
+
+      executeBatch(batch);
+
+      return result;
+    });
+  }
+
+  private Task<?> taskForBatches(Collection<Batch<K, T>> batches) {
+    if (batches.size() == 1) {
+      return taskForBatch(batches.iterator().next());
+    } else {
+      return Tasks.par(batches.stream().map(this::taskForBatch).collect(Collectors.toList()));
     }
   }
 
-  public abstract G groupForKey(K key);
-
-  public abstract Task<?> taskForBatch(G group, List<? extends BatchEntry<K, Object>> batch);
-
-  private static class InternalBatchEntry<K, T> extends BatchEntry<K, T> {
-
-    private final ShallowTraceBuilder _shallowTraceBuilder;
-
-    public InternalBatchEntry(ShallowTraceBuilder shallowTraceBuilder, K key, SettablePromise<T> promise) {
-      super(key, promise);
-      _shallowTraceBuilder = shallowTraceBuilder;
+  void handleBatch(final PlanContext planContext) {
+    final Batch<K, T> batch = _batches.remove(planContext.getId()).build();
+    if (batch.size() > 0) {
+      try {
+        final Collection<Batch<K, T>> batches = split(batch);
+        if (batches.size() > 0) {
+          final Task<?> task = taskForBatches(batches);
+          new ContextImpl(planContext, task).runTask();
+        }
+      } catch (Throwable t) {
+        //we don't care if some of promises have already been completed
+        //all we care is that all remaining promises have been failed
+        batch.failAllRemaining(t);
+      }
     }
-
-    public ShallowTraceBuilder getShallowTraceBuilder() {
-      return _shallowTraceBuilder;
-    }
-
   }
+
+  public abstract void executeBatch(Batch<K, T> batch);
+
+  public Collection<Batch<K, T>> split(Batch<K, T> batch) {
+    return Collections.singleton(batch);
+  }
+
 }
