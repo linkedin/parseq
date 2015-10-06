@@ -50,7 +50,7 @@ public abstract class BatchingStrategy<K, T> {
       //all other tasks become potential parents
       final TraceBuilder traceBuilder = ctx.getTraceBuilder();
       Relationship rel = Relationship.PARENT_OF;
-      for (BatchEntry<T> entry : batch.entries()) {
+      for (BatchEntry<T> entry : batch.values()) {
         traceBuilder.addRelationship(rel,
             entry.getShallowTraceBuilder(), ctx.getShallowTraceBuilder());
         rel = Relationship.POTENTIAL_PARENT_OF;
@@ -72,18 +72,21 @@ public abstract class BatchingStrategy<K, T> {
   }
 
   void handleBatch(final PlanContext planContext) {
-    final Batch<K, T> batch = _batches.remove(planContext.getId()).build();
-    if (batch.size() > 0) {
-      try {
-        final Collection<Batch<K, T>> batches = split(batch);
-        if (batches.size() > 0) {
-          final Task<?> task = taskForBatches(batches);
-          new ContextImpl(planContext, task).runTask();
+    final BatchBuilder<K, T> batchBuilder = _batches.remove(planContext.getId());
+    if (batchBuilder != null) {
+      final Batch<K, T> batch = batchBuilder.build();
+      if (batch.size() > 0) {
+        try {
+          final Collection<Batch<K, T>> batches = split(batch);
+          if (batches.size() > 0) {
+            final Task<?> task = taskForBatches(batches);
+            new ContextImpl(planContext, task).runTask();
+          }
+        } catch (Throwable t) {
+          //we don't care if some of promises have already been completed
+          //all we care is that all remaining promises have been failed
+          batch.failAllRemaining(t);
         }
-      } catch (Throwable t) {
-        //we don't care if some of promises have already been completed
-        //all we care is that all remaining promises have been failed
-        batch.failAllRemaining(t);
       }
     }
   }

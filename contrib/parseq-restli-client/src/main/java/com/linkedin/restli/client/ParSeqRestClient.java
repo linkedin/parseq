@@ -16,8 +16,15 @@
 
 package com.linkedin.restli.client;
 
+import java.util.Collection;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import com.linkedin.common.callback.Callback;
 import com.linkedin.parseq.Task;
+import com.linkedin.parseq.batching.Batch;
+import com.linkedin.parseq.batching.BatchImpl.BatchEntry;
+import com.linkedin.parseq.batching.BatchingStrategy;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
@@ -25,7 +32,7 @@ import com.linkedin.r2.message.RequestContext;
 import com.linkedin.restli.common.OperationNameGenerator;
 
 
-public class ParSeqRestClient
+public class ParSeqRestClient extends BatchingStrategy<ParSeqRestClient.RestRequestBatchEntry, Response<Object>>
 {
   private final RestClient            _wrappedClient;
 
@@ -150,12 +157,80 @@ public class ParSeqRestClient
     return Task.async(name, () -> {
       final SettablePromise<Response<T>> promise = Promises.settable();
 
-      // wrapper around the callback interface
-      // when the request finishes, the callback updates the promise with the corresponding
-      // result
+      // when the request finishes, the callback updates the promise with the corresponding result
       _wrappedClient.sendRequest(request, requestContext, new PromiseCallbackAdapter<T>(promise));
       return promise;
     });
+  }
+
+  public static class RestRequestBatchEntry {
+    private final Request<Object> _request;
+    private final RequestContext _requestContext;
+
+    public RestRequestBatchEntry(Request<Object> request, RequestContext requestContext) {
+      _request = request;
+      _requestContext = requestContext;
+    }
+
+    public Request<Object> getRequest() {
+      return _request;
+    }
+
+    public RequestContext getRequestContext() {
+      return _requestContext;
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + ((_request == null) ? 0 : _request.hashCode());
+      result = prime * result + ((_requestContext == null) ? 0 : _requestContext.hashCode());
+      return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (getClass() != obj.getClass())
+        return false;
+      RestRequestBatchEntry other = (RestRequestBatchEntry) obj;
+      if (_request == null) {
+        if (other._request != null)
+          return false;
+      } else if (!_request.equals(other._request))
+        return false;
+      if (_requestContext == null) {
+        if (other._requestContext != null)
+          return false;
+      } else if (!_requestContext.equals(other._requestContext))
+        return false;
+      return true;
+    }
+
+  }
+
+  @Override
+  public Collection<Batch<RestRequestBatchEntry, Response<Object>>> split(final Batch<RestRequestBatchEntry, Response<Object>> batch) {
+    //split batch into collection of singletons
+    return batch.entires().stream().map(entry -> Batch.<RestRequestBatchEntry, Response<Object>> builder()
+        .add(entry.getKey(), entry.getValue()).build()).collect(Collectors.toList());
+  }
+
+  @Override
+  public void executeBatch(Batch<RestRequestBatchEntry, Response<Object>> batch) {
+    if (batch.size() > 0) {
+      if (batch.size() == 1) {
+        Map.Entry<RestRequestBatchEntry, BatchEntry<Response<Object>>> req = batch.entires().iterator().next();
+        _wrappedClient.sendRequest(req.getKey().getRequest(), req.getKey().getRequestContext(),
+            new PromiseCallbackAdapter<Object>(req.getValue().getPromise()));
+      } else {
+        throw new UnsupportedOperationException("batch size: " + batch.size());
+      }
+    }
   }
 
 }

@@ -36,7 +36,7 @@ public class BatchingClientExample extends AbstractExample {
   protected void customizeEngine(com.linkedin.parseq.EngineBuilder engineBuilder) {
     BatchingSupport batchingSupport = new BatchingSupport();
     batchingSupport.registerStrategy(batchingStrategy);
-    engineBuilder.setPlanActivityListener(batchingSupport);
+    engineBuilder.addPlanActivityListener(batchingSupport);
   };
 
   public static void main(String[] args) throws Exception {

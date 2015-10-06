@@ -16,7 +16,9 @@
 
 package com.linkedin.parseq;
 
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -66,7 +68,7 @@ public class Engine {
 
   private final int _maxRelationshipsPerTrace;
 
-  final PlanActivityListener _planActivityListener;
+  final CopyOnWriteArrayList<PlanActivityListener> _planActivityListeners;
 
   private final PromiseListener<Object> _taskDoneListener = new PromiseListener<Object>() {
     @Override
@@ -92,12 +94,12 @@ public class Engine {
 
   /* package private */ Engine(final Executor taskExecutor, final DelayedExecutor timerExecutor,
       final ILoggerFactory loggerFactory, final Map<String, Object> properties,
-      final PlanActivityListener planActivityListener) {
+      final List<PlanActivityListener> planActivityListeners) {
     _taskExecutor = taskExecutor;
     _timerExecutor = timerExecutor;
     _loggerFactory = loggerFactory;
     _properties = properties;
-    _planActivityListener = planActivityListener;
+    _planActivityListeners = new CopyOnWriteArrayList<>(planActivityListeners);
 
     _allLogger = loggerFactory.getLogger(LOGGER_BASE + ":all");
     _rootLogger = loggerFactory.getLogger(LOGGER_BASE + ":root");
@@ -143,7 +145,7 @@ public class Engine {
     } while (!_stateRef.compareAndSet(currState, newState));
 
     PlanContext planContext = new PlanContext(this, _taskExecutor, _timerExecutor, _loggerFactory, _allLogger,
-        _rootLogger, planClass, task, _maxRelationshipsPerTrace, _planActivityListener);
+        _rootLogger, planClass, task, _maxRelationshipsPerTrace, _planActivityListeners);
     new ContextImpl(planContext, task).runTask();
 
     InternalUtil.unwildcardTask(task).addListener(_taskDoneListener);
@@ -201,6 +203,14 @@ public class Engine {
    */
   public boolean awaitTermination(final int time, final TimeUnit unit) throws InterruptedException {
     return _terminated.await(time, unit);
+  }
+
+  public boolean addPlanActivityListener(final PlanActivityListener planActivityListener) {
+    return _planActivityListeners.add(planActivityListener);
+  }
+
+  public boolean removePlanActivityListener(final PlanActivityListener planActivityListener) {
+    return _planActivityListeners.remove(planActivityListener);
   }
 
   private boolean tryTransitionShutdown() {

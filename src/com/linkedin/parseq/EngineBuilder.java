@@ -16,19 +16,19 @@
 
 package com.linkedin.parseq;
 
-import com.linkedin.parseq.internal.ArgumentUtil;
-import com.linkedin.parseq.internal.CachedLoggerFactory;
-import com.linkedin.parseq.internal.PlanActivityListener;
-import com.linkedin.parseq.internal.PlanContext;
-
-import org.slf4j.ILoggerFactory;
-import org.slf4j.LoggerFactory;
-
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 
+import org.slf4j.ILoggerFactory;
+import org.slf4j.LoggerFactory;
+
+import com.linkedin.parseq.internal.ArgumentUtil;
+import com.linkedin.parseq.internal.CachedLoggerFactory;
+import com.linkedin.parseq.internal.PlanActivityListener;
 
 /**
  * A configurable builder that makes {@link Engine}s.
@@ -46,7 +46,8 @@ public class EngineBuilder {
   private Executor _taskExecutor;
   private DelayedExecutor _timerScheduler;
   private ILoggerFactory _loggerFactory = null;
-  private PlanActivityListener _planActivityListener;
+  private List<PlanActivityListener> _planActivityListeners =
+      new ArrayList<>();
 
   private Map<String, Object> _properties = new HashMap<String, Object>();
 
@@ -54,7 +55,7 @@ public class EngineBuilder {
   }
 
   /**
-   * Sets plan activity listener for the engine. The listener will be notified
+   * Adds plan activity listener to the engine. The listener will be notified
    * when plan becomes activated and deactivated.
    * <p>
    * Plan becomes activated when task belonging to it gets scheduled for execution
@@ -73,9 +74,9 @@ public class EngineBuilder {
    * @param planActivityListener the listener that will be notified when plan
    * is being activated and deactivated
    */
-  public void setPlanActivityListener(PlanActivityListener planActivityListener) {
+  public void addPlanActivityListener(PlanActivityListener planActivityListener) {
     ArgumentUtil.requireNotNull(planActivityListener, "planActivityListener");
-    _planActivityListener = planActivityListener;
+    _planActivityListeners.add(planActivityListener);
   }
 
   /**
@@ -162,15 +163,7 @@ public class EngineBuilder {
     }
     Engine engine = new Engine(_taskExecutor, new IndirectDelayedExecutor(_timerScheduler),
         _loggerFactory != null ? _loggerFactory : new CachedLoggerFactory(LoggerFactory.getILoggerFactory()),
-        _properties,
-        _planActivityListener != null ? _planActivityListener : new PlanActivityListener() {
-          @Override
-          public void onPlanDeactivated(PlanContext plaContext) {
-          }
-          @Override
-          public void onPlanActivated(PlanContext plaContext) {
-          }
-        });
+        _properties, _planActivityListeners);
     return engine;
   }
 

@@ -3,6 +3,7 @@ package com.linkedin.parseq.batching;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
@@ -11,7 +12,7 @@ import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 import com.linkedin.parseq.trace.ShallowTraceBuilder;
 
-class BatchImpl<K, T> implements Batch<K, T> {
+public class BatchImpl<K, T> implements Batch<K, T> {
 
   private final Map<K, BatchEntry<T>> _map;
 
@@ -94,7 +95,7 @@ class BatchImpl<K, T> implements Batch<K, T> {
 
   }
 
-  static class BatchBuilder<K, T> {
+  public static class BatchBuilder<K, T> {
 
     private final Map<K, BatchEntry<T>> _map = new HashMap<>();
 
@@ -117,8 +118,13 @@ class BatchImpl<K, T> implements Batch<K, T> {
   }
 
   @Override
-  public Collection<BatchEntry<T>> entries() {
+  public Collection<BatchEntry<T>> values() {
     return _map.values();
+  }
+
+  @Override
+  public Set<Entry<K, BatchEntry<T>>> entires() {
+    return _map.entrySet();
   }
 
 }

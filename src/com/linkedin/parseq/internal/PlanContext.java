@@ -1,5 +1,6 @@
 package com.linkedin.parseq.internal;
 
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
@@ -45,18 +46,32 @@ public class PlanContext {
 
   public PlanContext(final Engine engine, final Executor taskExecutor, final DelayedExecutor timerExecutor,
       final ILoggerFactory loggerFactory, final Logger allLogger, final Logger rootLogger, final String planClass,
-      Task<?> root, final int maxRelationshipsPerTrace, final PlanActivityListener planActivityListener) {
+      Task<?> root, final int maxRelationshipsPerTrace, final List<PlanActivityListener> planActivityListeners) {
     _id = IdGenerator.getNextId();
     _relationshipsBuilder = new TraceBuilder(maxRelationshipsPerTrace);
     _engine = engine;
     _taskExecutor = new SerialExecutor(taskExecutor, new CancelPlanRejectionHandler(root), new ActivityListener() {
       @Override
       public void deactivated() {
-        planActivityListener.onPlanDeactivated(PlanContext.this);
+        planActivityListeners.stream().forEach(listener -> {
+          try {
+            listener.onPlanDeactivated(PlanContext.this);
+          } catch (Throwable t) {
+            LOG.error("Failed to notify listener " + listener +
+                " about plan deactivation", t);
+          }
+        });
       }
       @Override
       public void activated() {
-        planActivityListener.onPlanActivated(PlanContext.this);
+        planActivityListeners.stream().forEach(listener -> {
+          try {
+            listener.onPlanActivated(PlanContext.this);
+          } catch (Throwable t) {
+            LOG.error("Failed to notify listener " + listener +
+                " about plan activation", t);
+          }
+        });
       }
     });
     _timerScheduler = timerExecutor;
