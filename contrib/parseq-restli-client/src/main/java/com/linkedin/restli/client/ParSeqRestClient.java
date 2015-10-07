@@ -150,17 +150,17 @@ public class ParSeqRestClient extends BatchingStrategy<ParSeqRestClient.RestRequ
    * @param name the name of the tasks
    * @return response task
    */
+  @SuppressWarnings("unchecked")
   public <T> Task<Response<T>> createTask(final String name,
                                           final Request<T> request,
                                           final RequestContext requestContext)
   {
-    return Task.async(name, () -> {
-      final SettablePromise<Response<T>> promise = Promises.settable();
+    return cast(batchable(name, new RestRequestBatchEntry((Request<Object>) request, requestContext)));
+  }
 
-      // when the request finishes, the callback updates the promise with the corresponding result
-      _wrappedClient.sendRequest(request, requestContext, new PromiseCallbackAdapter<T>(promise));
-      return promise;
-    });
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  private static <X> Task<X> cast(Task t) {
+    return (Task<X>)t;
   }
 
   public static class RestRequestBatchEntry {
