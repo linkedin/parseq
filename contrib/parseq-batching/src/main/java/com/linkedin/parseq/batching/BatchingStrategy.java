@@ -42,7 +42,7 @@ public abstract class BatchingStrategy<K, T> {
 
   private Task<?> taskForBatch(final Batch<K, T> batch) {
     final String batchTaskName = batch.getName();
-    return Task.async(batchTaskName != null ? batchTaskName : "batch of " + batch.size(), ctx -> {
+    return Task.async(batchTaskName != null ? batchTaskName : "batchTask", ctx -> {
       final SettablePromise<T> result = Promises.settable();
       final PromiseListener<T> countDownListener =
           new CountDownPromiseListener<T>(batch.size(), result, null);
