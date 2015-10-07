@@ -63,12 +63,8 @@ public abstract class BatchingStrategy<K, T> {
     });
   }
 
-  private Task<?> taskForBatches(Collection<Batch<K, T>> batches) {
-    if (batches.size() == 1) {
-      return taskForBatch(batches.iterator().next());
-    } else {
-      return Tasks.par(batches.stream().map(this::taskForBatch).collect(Collectors.toList()));
-    }
+  private Collection<Task<?>> taskForBatches(Collection<Batch<K, T>> batches) {
+    return batches.stream().map(this::taskForBatch).collect(Collectors.toList());
   }
 
   void handleBatch(final PlanContext planContext) {
@@ -79,8 +75,7 @@ public abstract class BatchingStrategy<K, T> {
         try {
           final Collection<Batch<K, T>> batches = split(batch);
           if (batches.size() > 0) {
-            final Task<?> task = taskForBatches(batches);
-            new ContextImpl(planContext, task).runTask();
+            taskForBatches(batches).forEach(task -> new ContextImpl(planContext, task).runTask());
           }
         } catch (Throwable t) {
           //we don't care if some of promises have already been completed
