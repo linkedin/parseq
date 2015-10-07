@@ -1,7 +1,9 @@
 package com.linkedin.parseq.batching;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -78,19 +80,27 @@ public class BatchImpl<K, T> implements Batch<K, T> {
   public static class BatchEntry<T> {
 
     private final SettablePromise<T> _promise;
-    private final ShallowTraceBuilder _shallowTraceBuilder;
+    private final List<ShallowTraceBuilder> _shallowTraceBuilders = new ArrayList<>();
 
     public BatchEntry(ShallowTraceBuilder shallowTraceBuilder, SettablePromise<T> promise) {
       _promise = promise;
-      _shallowTraceBuilder = shallowTraceBuilder;
+      _shallowTraceBuilders.add(shallowTraceBuilder);
     }
 
     public SettablePromise<T> getPromise() {
       return _promise;
     }
 
-    public ShallowTraceBuilder getShallowTraceBuilder() {
-      return _shallowTraceBuilder;
+    public List<ShallowTraceBuilder> getShallowTraceBuilders() {
+      return _shallowTraceBuilders;
+    }
+
+    public void addShallowTraceBuilder(final ShallowTraceBuilder shallowTraceBuilder) {
+      _shallowTraceBuilders.add(shallowTraceBuilder);
+    }
+
+    public void addShallowTraceBuilders(final List<ShallowTraceBuilder> shallowTraceBuilders) {
+      _shallowTraceBuilders.addAll(shallowTraceBuilders);
     }
 
   }
@@ -101,9 +111,12 @@ public class BatchImpl<K, T> implements Batch<K, T> {
 
     public BatchBuilder<K, T> add(K key, BatchEntry<T> entry) {
       //deduplication
-      BatchEntry<T> duplicate = _map.put(key, entry);
+      BatchEntry<T> duplicate = _map.get(key);
       if (duplicate != null) {
-        Promises.propagateResult(entry.getPromise(), duplicate.getPromise());
+        Promises.propagateResult(duplicate.getPromise(), entry.getPromise());
+        duplicate.addShallowTraceBuilders(entry.getShallowTraceBuilders());
+      } else {
+        _map.put(key, entry);
       }
       return this;
     }

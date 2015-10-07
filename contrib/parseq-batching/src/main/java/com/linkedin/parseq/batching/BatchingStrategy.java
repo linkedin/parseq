@@ -6,7 +6,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import com.linkedin.parseq.Task;
-import com.linkedin.parseq.Tasks;
 import com.linkedin.parseq.batching.BatchImpl.BatchBuilder;
 import com.linkedin.parseq.batching.BatchImpl.BatchEntry;
 import com.linkedin.parseq.internal.ContextImpl;
@@ -16,6 +15,7 @@ import com.linkedin.parseq.promise.PromiseListener;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 import com.linkedin.parseq.trace.Relationship;
+import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.TraceBuilder;
 
 public abstract class BatchingStrategy<K, T> {
@@ -51,9 +51,10 @@ public abstract class BatchingStrategy<K, T> {
       final TraceBuilder traceBuilder = ctx.getTraceBuilder();
       Relationship rel = Relationship.PARENT_OF;
       for (BatchEntry<T> entry : batch.values()) {
-        traceBuilder.addRelationship(rel,
-            entry.getShallowTraceBuilder(), ctx.getShallowTraceBuilder());
-        rel = Relationship.POTENTIAL_PARENT_OF;
+        for (ShallowTraceBuilder shallowTraceBuilder: entry.getShallowTraceBuilders()) {
+          traceBuilder.addRelationship(rel, shallowTraceBuilder, ctx.getShallowTraceBuilder());
+          rel = Relationship.POTENTIAL_PARENT_OF;
+        }
         entry.getPromise().addListener(countDownListener);
       }
 
