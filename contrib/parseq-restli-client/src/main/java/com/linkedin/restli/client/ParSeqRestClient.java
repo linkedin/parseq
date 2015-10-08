@@ -44,7 +44,8 @@ public class ParSeqRestClient extends BatchingStrategy<ParSeqRestClient.RestRequ
   /**
    * Sends a type-bound REST request, returning a promise.
    *
-   * @deprecated Use higher level API that returns Task instance.
+   * @deprecated Use higher level API that returns Task instance. This method is
+   * left for backwards compatibility.
    * @param request to send
    * @return response promise
    */
@@ -57,7 +58,8 @@ public class ParSeqRestClient extends BatchingStrategy<ParSeqRestClient.RestRequ
   /**
    * Sends a type-bound REST request, returning a promise.
    *
-   * @deprecated Use higher level API that returns Task instance.
+   * @deprecated Use higher level API that returns Task instance. This method is
+   * left for backwards compatibility.
    * @param request to send
    * @param requestContext context for the request
    * @return response promise
@@ -163,6 +165,10 @@ public class ParSeqRestClient extends BatchingStrategy<ParSeqRestClient.RestRequ
     return (Task<X>)t;
   }
 
+  /**
+   * Class used for deduplication. Two requests are considered equal
+   * when Request and RequestContext objects are equal.
+   */
   public static class RestRequestBatchEntry {
     private final Request<Object> _request;
     private final RequestContext _requestContext;
@@ -215,6 +221,13 @@ public class ParSeqRestClient extends BatchingStrategy<ParSeqRestClient.RestRequ
 
   @Override
   public Collection<Batch<RestRequestBatchEntry, Response<Object>>> split(final Batch<RestRequestBatchEntry, Response<Object>> batch) {
+    // This is where the logic of grouping individual requests into batches happens.
+    // The input is a batch that contains all individual requests.
+    // The output is collection of batches, where each batch will be completed by one physical restli request.
+    // TODO This dummy implementation simply creates a batch for every individual request from the input batch.
+    // TODO Type system could help here - input batch represents something else than output batch. Perhaps
+    // split should not be part of a batching strategy but ParSeqRestClient.
+
     //split batch into collection of singletons
     return batch.entires().stream().map(entry -> Batch.<RestRequestBatchEntry, Response<Object>> builder()
         .add(entry.getKey(), entry.getValue()).build()).collect(Collectors.toList());
@@ -222,6 +235,8 @@ public class ParSeqRestClient extends BatchingStrategy<ParSeqRestClient.RestRequ
 
   @Override
   public void executeBatch(Batch<RestRequestBatchEntry, Response<Object>> batch) {
+    // Executes batch as returned by split() method.
+    // TODO this simple implementation can only handle case where a batch contains one request.
     if (batch.size() > 0) {
       if (batch.size() == 1) {
         Map.Entry<RestRequestBatchEntry, BatchEntry<Response<Object>>> req = batch.entires().iterator().next();
