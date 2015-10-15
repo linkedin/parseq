@@ -21,19 +21,23 @@ public class GetRequestEquivalenceClass extends RequestEquivalenceClass {
     super(baseUriTemplate, method, headers, false);
   }
 
+  <RT extends RecordTemplate> List<BatchGetRequest<RT>> toTypedList(List l) {
+    return (List<BatchGetRequest<RT>>)l;
+  }
+
   @Override
   <RT extends RecordTemplate> void executeBatch(final RestClient restClient, final Batch<RestRequestBatchKey, Response<Object>> batch) {
 
     //TODO this needs better API from rest.li team
 
-    List<BatchGetRequest<RT>> listOfBatchGets = batch.entires().stream()
+    List<BatchGetRequest> listOfBatchGets = batch.entires().stream()
       .map(Entry::getKey)
       .map(RestRequestBatchKey::getRequest)
       .map(GetRequestEquivalenceClass::toGetRequest)
       .map(GetRequestEquivalenceClass::toBatchGet)
       .collect(Collectors.toList());
 
-    BatchGetRequest<RT> batchGet = BatchGetRequestBuilder.batch(listOfBatchGets);
+    BatchGetRequest<RT> batchGet = BatchGetRequestBuilder.batch(toTypedList(listOfBatchGets));
 
     restClient.sendRequest(batchGet, new Callback<Response<BatchResponse<RT>>>() {
 
