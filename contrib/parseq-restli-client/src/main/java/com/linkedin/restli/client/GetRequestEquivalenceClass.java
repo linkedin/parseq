@@ -13,12 +13,15 @@ import com.linkedin.r2.RemoteInvocationException;
 import com.linkedin.restli.client.ParSeqRestClient.PromiseCallbackAdapter;
 import com.linkedin.restli.client.ParSeqRestClient.RestRequestBatchKey;
 import com.linkedin.restli.common.BatchResponse;
-import com.linkedin.restli.common.ResourceMethod;
 
-public class GetRequestEquivalenceClass extends RequestEquivalenceClass {
+public class GetRequestEquivalenceClass implements RequestEquivalenceClass {
 
-  public GetRequestEquivalenceClass(String baseUriTemplate, ResourceMethod method, Map<String, String> headers) {
-    super(baseUriTemplate, method, headers, false);
+  private final String _baseUriTemplate;
+  private final Map<String, String> _headers;
+
+  public GetRequestEquivalenceClass(String baseUriTemplate, Map<String, String> headers) {
+    _baseUriTemplate = baseUriTemplate;
+    _headers = headers;
   }
 
   <RT extends RecordTemplate> List<BatchGetRequest<RT>> toTypedList(List l) {
@@ -26,7 +29,7 @@ public class GetRequestEquivalenceClass extends RequestEquivalenceClass {
   }
 
   @Override
-  <RT extends RecordTemplate> void executeBatch(final RestClient restClient, final Batch<RestRequestBatchKey, Response<Object>> batch) {
+  public <RT extends RecordTemplate> void executeBatch(final RestClient restClient, final Batch<RestRequestBatchKey, Response<Object>> batch) {
 
     //TODO this needs better API from rest.li team
 
@@ -72,9 +75,53 @@ public class GetRequestEquivalenceClass extends RequestEquivalenceClass {
   }
 
   @Override
-  <RT extends RecordTemplate> void executeSingleton(RestClient restClient, RestRequestBatchKey key, BatchEntry<Response<Object>> entry) {
+  public <RT extends RecordTemplate> void executeSingleton(RestClient restClient, RestRequestBatchKey key, BatchEntry<Response<Object>> entry) {
     restClient.sendRequest(key.getRequest(), key.getRequestContext(),
         new PromiseCallbackAdapter<Object>(entry.getPromise()));
+  }
+
+  public String getBaseUriTemplate() {
+    return _baseUriTemplate;
+  }
+
+  public Map<String, String> getHeaders() {
+    return _headers;
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((_baseUriTemplate == null) ? 0 : _baseUriTemplate.hashCode());
+    result = prime * result + ((_headers == null) ? 0 : _headers.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    GetRequestEquivalenceClass other = (GetRequestEquivalenceClass) obj;
+    if (_baseUriTemplate == null) {
+      if (other._baseUriTemplate != null)
+        return false;
+    } else if (!_baseUriTemplate.equals(other._baseUriTemplate))
+      return false;
+    if (_headers == null) {
+      if (other._headers != null)
+        return false;
+    } else if (!_headers.equals(other._headers))
+      return false;
+    return true;
+  }
+
+  @Override
+  public String toString() {
+    return "GetRequestEquivalenceClass [_baseUriTemplate=" + _baseUriTemplate + ", _headers=" + _headers + "]";
   }
 
 }
