@@ -46,7 +46,7 @@ public class GetRequestEquivalenceClass extends RequestEquivalenceClass {
         batch.entires().stream()
           .forEach(entry -> {
             try {
-              Object id = toGetRequest(entry.getKey().getRequest()).getObjectId();
+              String id = toGetRequest(entry.getKey().getRequest()).getObjectId().toString();
               Response rsp = BatchGetRequestUtil.unbatchResponse(batchGet, responseToBatch, id);
               entry.getValue().getPromise().done(rsp);
             } catch (RemoteInvocationException e) {
