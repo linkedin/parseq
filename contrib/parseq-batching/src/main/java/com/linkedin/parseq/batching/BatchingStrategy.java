@@ -67,11 +67,15 @@ public abstract class BatchingStrategy<G, K, T> {
         entry.getPromise().addListener(countDownListener);
       }
 
-      if (batch.size() == 1) {
-        Entry<K, BatchEntry<T>> entry = batch.entires().iterator().next();
-        executeSingleton(group, entry.getKey(), entry.getValue());
-      } else {
-        executeBatch(group, batch);
+      try {
+        if (batch.size() == 1) {
+          Entry<K, BatchEntry<T>> entry = batch.entires().iterator().next();
+          executeSingleton(group, entry.getKey(), entry.getValue());
+        } else {
+          executeBatch(group, batch);
+        }
+      } catch (Throwable t) {
+        batch.failAllRemaining(t);
       }
 
       return result;
