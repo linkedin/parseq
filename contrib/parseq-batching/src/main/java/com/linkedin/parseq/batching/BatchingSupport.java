@@ -8,10 +8,10 @@ import com.linkedin.parseq.internal.PlanContext;
 
 public class BatchingSupport implements PlanActivityListener {
 
-  private final List<BatchingStrategy<?, ?>> _strategies =
+  private final List<BatchingStrategy<?, ?, ?>> _strategies =
       new CopyOnWriteArrayList<>();
 
-  public void registerStrategy(BatchingStrategy<?, ?> strategy) {
+  public void registerStrategy(BatchingStrategy<?, ?, ?> strategy) {
     _strategies.add(strategy);
   }
 

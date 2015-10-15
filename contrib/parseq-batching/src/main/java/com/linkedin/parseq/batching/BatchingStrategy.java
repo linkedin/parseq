@@ -2,7 +2,15 @@ package com.linkedin.parseq.batching;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import com.linkedin.parseq.Task;
@@ -18,7 +26,7 @@ import com.linkedin.parseq.trace.Relationship;
 import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.TraceBuilder;
 
-public abstract class BatchingStrategy<K, T> {
+public abstract class BatchingStrategy<G, K, T> {
 
   private final ConcurrentHashMap<Long, BatchBuilder<K, T>> _batches =
       new ConcurrentHashMap<>();
@@ -40,7 +48,7 @@ public abstract class BatchingStrategy<K, T> {
     });
   }
 
-  private Task<?> taskForBatch(final Batch<K, T> batch) {
+  private Task<?> taskForBatch(final G group, Batch<K, T> batch) {
     final String batchTaskName = batch.getName();
     return Task.async(batchTaskName != null ? batchTaskName : "batchTask", ctx -> {
       final SettablePromise<T> result = Promises.settable();
@@ -59,14 +67,19 @@ public abstract class BatchingStrategy<K, T> {
         entry.getPromise().addListener(countDownListener);
       }
 
-      executeBatch(batch);
+      if (batch.size() == 1) {
+        Entry<K, BatchEntry<T>> entry = batch.entires().iterator().next();
+        executeSingleton(group, entry.getKey(), entry.getValue());
+      } else {
+        executeBatch(group, batch);
+      }
 
       return result;
     });
   }
 
-  private Collection<Task<?>> taskForBatches(Collection<Batch<K, T>> batches) {
-    return batches.stream().map(this::taskForBatch).collect(Collectors.toList());
+  private Collection<Task<?>> taskForBatches(Collection<Entry<G, Batch<K, T>>> batches) {
+    return batches.stream().map(entry -> taskForBatch(entry.getKey(), entry.getValue())).collect(Collectors.toList());
   }
 
   void handleBatch(final PlanContext planContext) {
@@ -75,9 +88,9 @@ public abstract class BatchingStrategy<K, T> {
       final Batch<K, T> batch = batchBuilder.build();
       if (batch.size() > 0) {
         try {
-          final Collection<Batch<K, T>> batches = split(batch);
+          final Map<G, Batch<K, T>> batches = split(batch);
           if (batches.size() > 0) {
-            taskForBatches(batches).forEach(task -> new ContextImpl(planContext, task).runTask());
+            taskForBatches(batches.entrySet()).forEach(task -> new ContextImpl(planContext, task).runTask());
           }
         } catch (Throwable t) {
           //we don't care if some of promises have already been completed
@@ -88,10 +101,55 @@ public abstract class BatchingStrategy<K, T> {
     }
   }
 
-  public abstract void executeBatch(Batch<K, T> batch);
+  public abstract void executeBatch(G group, Batch<K, T> batch);
 
-  public Collection<Batch<K, T>> split(Batch<K, T> batch) {
-    return Collections.singleton(batch);
+  public abstract void executeSingleton(G group, K key, BatchEntry<T> entry);
+
+  public abstract G classify(K entry);
+
+  public Map<G, Batch<K, T>> split(Batch<K, T> batch) {
+    return batch.entires().stream()
+        .collect(Collectors.groupingBy(entry -> classify(entry.getKey()), batchCollector()));
+  }
+
+  private Collector<Entry<K, BatchEntry<T>>, BatchBuilder<K, T>, Batch<K, T>> batchCollector() {
+    return new Collector<Entry<K,BatchEntry<T>>, BatchBuilder<K,T>, Batch<K,T>>() {
+
+      @Override
+      public Supplier<BatchBuilder<K, T>> supplier() {
+        return Batch::<K, T>builder;
+      }
+
+      @Override
+      public BiConsumer<BatchBuilder<K, T>, Entry<K, BatchEntry<T>>> accumulator() {
+        return (builder, entry) -> builder.add(entry.getKey(), entry.getValue());
+      }
+
+      private BatchBuilder<K, T> combine(BatchBuilder<K, T> larger, BatchBuilder<K, T> smaller) {
+        return null;
+      }
+
+      @Override
+      public BinaryOperator<BatchBuilder<K, T>> combiner() {
+        return (a, b) -> {
+          if (a.size() > b.size()) {
+            return combine(a, b);
+          } else {
+            return combine(b, a);
+          }
+        };
+      }
+
+      @Override
+      public Function<BatchBuilder<K, T>, Batch<K, T>> finisher() {
+        return builder -> builder.build();
+      }
+
+      @Override
+      public Set<Collector.Characteristics> characteristics() {
+        return Collections.emptySet();
+      }
+    };
   }
 
 }

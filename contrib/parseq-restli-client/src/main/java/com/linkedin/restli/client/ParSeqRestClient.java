@@ -16,10 +16,6 @@
 
 package com.linkedin.restli.client;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import com.linkedin.common.callback.Callback;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.batching.Batch;
@@ -32,13 +28,13 @@ import com.linkedin.r2.message.RequestContext;
 import com.linkedin.restli.common.OperationNameGenerator;
 
 
-public class ParSeqRestClient extends BatchingStrategy<ParSeqRestClient.RestRequestBatchEntry, Response<Object>>
+public class ParSeqRestClient extends BatchingStrategy<RequestEquivalenceClass, ParSeqRestClient.RestRequestBatchKey, Response<Object>>
 {
-  private final RestClient            _wrappedClient;
+  private final RestClient            _restClient;
 
-  public ParSeqRestClient(final RestClient wrappedClient)
+  public ParSeqRestClient(final RestClient restClient)
   {
-    _wrappedClient = wrappedClient;
+    _restClient = restClient;
   }
 
   /**
@@ -73,11 +69,11 @@ public class ParSeqRestClient extends BatchingStrategy<ParSeqRestClient.RestRequ
     // wrapper around the callback interface
     // when the request finishes, the callback updates the promise with the corresponding
     // result
-    _wrappedClient.sendRequest(request, requestContext, new PromiseCallbackAdapter<T>(promise));
+    _restClient.sendRequest(request, requestContext, new PromiseCallbackAdapter<T>(promise));
     return promise;
   }
 
-  private static class PromiseCallbackAdapter<T> implements Callback<Response<T>>
+  static class PromiseCallbackAdapter<T> implements Callback<Response<T>>
   {
     private final SettablePromise<Response<T>> _promise;
 
@@ -157,7 +153,7 @@ public class ParSeqRestClient extends BatchingStrategy<ParSeqRestClient.RestRequ
                                           final Request<T> request,
                                           final RequestContext requestContext)
   {
-    return cast(batchable(name, new RestRequestBatchEntry((Request<Object>) request, requestContext)));
+    return cast(batchable(name, new RestRequestBatchKey((Request<Object>) request, requestContext)));
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -169,11 +165,11 @@ public class ParSeqRestClient extends BatchingStrategy<ParSeqRestClient.RestRequ
    * Class used for deduplication. Two requests are considered equal
    * when Request and RequestContext objects are equal.
    */
-  public static class RestRequestBatchEntry {
+  public static class RestRequestBatchKey {
     private final Request<Object> _request;
     private final RequestContext _requestContext;
 
-    public RestRequestBatchEntry(Request<Object> request, RequestContext requestContext) {
+    public RestRequestBatchKey(Request<Object> request, RequestContext requestContext) {
       _request = request;
       _requestContext = requestContext;
     }
@@ -203,7 +199,7 @@ public class ParSeqRestClient extends BatchingStrategy<ParSeqRestClient.RestRequ
         return false;
       if (getClass() != obj.getClass())
         return false;
-      RestRequestBatchEntry other = (RestRequestBatchEntry) obj;
+      RestRequestBatchKey other = (RestRequestBatchKey) obj;
       if (_request == null) {
         if (other._request != null)
           return false;
@@ -220,32 +216,19 @@ public class ParSeqRestClient extends BatchingStrategy<ParSeqRestClient.RestRequ
   }
 
   @Override
-  public Collection<Batch<RestRequestBatchEntry, Response<Object>>> split(final Batch<RestRequestBatchEntry, Response<Object>> batch) {
-    // This is where the logic of grouping individual requests into batches happens.
-    // The input is a batch that contains all individual requests.
-    // The output is collection of batches, where each batch will be completed by one physical restli request.
-    // TODO This dummy implementation simply creates a batch for every individual request from the input batch.
-    // TODO Type system could help here - input batch represents something else than output batch. Perhaps
-    // split should not be part of a batching strategy but ParSeqRestClient.
-
-    //split batch into collection of singletons
-    return batch.entires().stream().map(entry -> Batch.<RestRequestBatchEntry, Response<Object>> builder()
-        .add(entry.getKey(), entry.getValue()).build()).collect(Collectors.toList());
+  public void executeBatch(RequestEquivalenceClass group, Batch<RestRequestBatchKey, Response<Object>> batch) {
+    group.executeBatch(_restClient, batch);
   }
 
   @Override
-  public void executeBatch(Batch<RestRequestBatchEntry, Response<Object>> batch) {
-    // Executes batch as returned by split() method.
-    // TODO this simple implementation can only handle case where a batch contains one request.
-    if (batch.size() > 0) {
-      if (batch.size() == 1) {
-        Map.Entry<RestRequestBatchEntry, BatchEntry<Response<Object>>> req = batch.entires().iterator().next();
-        _wrappedClient.sendRequest(req.getKey().getRequest(), req.getKey().getRequestContext(),
-            new PromiseCallbackAdapter<Object>(req.getValue().getPromise()));
-      } else {
-        throw new UnsupportedOperationException("batch size: " + batch.size());
-      }
-    }
+  public void executeSingleton(RequestEquivalenceClass group, RestRequestBatchKey key,
+      BatchEntry<Response<Object>> entry) {
+    group.executeSingleton(_restClient, key, entry);
+  }
+
+  @Override
+  public RequestEquivalenceClass classify(RestRequestBatchKey key) {
+    return RequestEquivalenceClass.fromRequest(key.getRequest());
   }
 
 }

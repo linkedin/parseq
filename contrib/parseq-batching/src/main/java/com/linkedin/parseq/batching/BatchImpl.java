@@ -135,6 +135,10 @@ public class BatchImpl<K, T> implements Batch<K, T> {
     public Batch<K, T> build() {
       return new BatchImpl<>(_map, _name);
     }
+
+    public int size() {
+      return _map.size();
+    }
   }
 
   @Override
