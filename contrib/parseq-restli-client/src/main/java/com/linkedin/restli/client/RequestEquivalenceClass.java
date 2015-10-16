@@ -7,10 +7,10 @@ import com.linkedin.restli.client.ParSeqRestClient.RestRequestBatchKey;
 
 interface RequestEquivalenceClass {
 
-  public static RequestEquivalenceClass fromRequest(final Request<?> request) {
+  public static RequestEquivalenceClass fromRequest(final Request request) {
     switch (request.getMethod()) {
       case GET:
-        return new GetRequestEquivalenceClass(request.getBaseUriTemplate(), request.getHeaders());
+        return new GetRequestEquivalenceClass(request);
       default:
         return new UniqueRequestEquivalenceClass();
     }

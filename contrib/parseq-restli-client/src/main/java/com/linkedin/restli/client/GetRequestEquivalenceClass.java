@@ -1,5 +1,6 @@
 package com.linkedin.restli.client;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -17,17 +18,29 @@ import com.linkedin.restli.common.BatchResponse;
 import com.linkedin.restli.common.ComplexResourceKey;
 import com.linkedin.restli.common.CompoundKey;
 import com.linkedin.restli.common.ErrorResponse;
+import com.linkedin.restli.common.RestConstants;
 import com.linkedin.restli.internal.client.ResponseImpl;
 
 public class GetRequestEquivalenceClass implements RequestEquivalenceClass {
 
   private final String _baseUriTemplate;
   private final Map<String, String> _headers;
+  private final Map<String, Object> _queryParams;
 
-  public GetRequestEquivalenceClass(String baseUriTemplate, Map<String, String> headers) {
-    _baseUriTemplate = baseUriTemplate;
-    _headers = headers;
+  public GetRequestEquivalenceClass(Request request) {
+    _baseUriTemplate = request.getBaseUriTemplate();
+    _headers = request.getHeaders();
+    _queryParams = getQueryParamsForBatchingKey(request);
   }
+
+  private static Map<String, Object> getQueryParamsForBatchingKey(Request<?> request)
+  {
+    final Map<String, Object> params = new HashMap<String, Object>(request.getQueryParamsObjects());
+    params.remove(RestConstants.QUERY_BATCH_IDS_PARAM);
+    params.remove(RestConstants.FIELDS_PARAM);
+    return params;
+  }
+
 
   <RT extends RecordTemplate> List<BatchGetRequest<RT>> toTypedList(List l) {
     return (List<BatchGetRequest<RT>>)l;
@@ -173,12 +186,17 @@ public class GetRequestEquivalenceClass implements RequestEquivalenceClass {
     return _headers;
   }
 
+  public Map<String, Object> getQueryParams() {
+    return _queryParams;
+  }
+
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
     result = prime * result + ((_baseUriTemplate == null) ? 0 : _baseUriTemplate.hashCode());
     result = prime * result + ((_headers == null) ? 0 : _headers.hashCode());
+    result = prime * result + ((_queryParams == null) ? 0 : _queryParams.hashCode());
     return result;
   }
 
@@ -201,12 +219,18 @@ public class GetRequestEquivalenceClass implements RequestEquivalenceClass {
         return false;
     } else if (!_headers.equals(other._headers))
       return false;
+    if (_queryParams == null) {
+      if (other._queryParams != null)
+        return false;
+    } else if (!_queryParams.equals(other._queryParams))
+      return false;
     return true;
   }
 
   @Override
   public String toString() {
-    return "GetRequestEquivalenceClass [_baseUriTemplate=" + _baseUriTemplate + ", _headers=" + _headers + "]";
+    return "GetRequestEquivalenceClass [_baseUriTemplate=" + _baseUriTemplate + ", _headers=" + _headers
+        + ", _queryParams=" + _queryParams + "]";
   }
 
 }
