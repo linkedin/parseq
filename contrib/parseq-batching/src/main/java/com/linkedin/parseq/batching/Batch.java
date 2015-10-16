@@ -30,8 +30,6 @@ public interface Batch<K, T> {
 
   Set<Map.Entry<K, BatchEntry<T>>> entires();
 
-  String getName();
-
   static <K, T> BatchBuilder<K, T> builder() {
     return new BatchBuilder<>();
   }

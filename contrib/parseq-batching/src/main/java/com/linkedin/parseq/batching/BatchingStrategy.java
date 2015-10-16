@@ -49,8 +49,7 @@ public abstract class BatchingStrategy<G extends Group, K, T> {
   }
 
   private Task<?> taskForBatch(final G group, Batch<K, T> batch) {
-    final String batchTaskName = batch.getName();
-    return Task.async(batchTaskName != null ? batchTaskName : "batchTask", ctx -> {
+    return Task.async(group.getName(), ctx -> {
       final SettablePromise<T> result = Promises.settable();
       final PromiseListener<T> countDownListener =
           new CountDownPromiseListener<T>(batch.size(), result, null);

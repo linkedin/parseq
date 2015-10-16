@@ -17,11 +17,9 @@ import com.linkedin.parseq.trace.ShallowTraceBuilder;
 public class BatchImpl<K, T> implements Batch<K, T> {
 
   private final Map<K, BatchEntry<T>> _map;
-  private final String _name;
 
-  private BatchImpl(Map<K, BatchEntry<T>> map, String name) {
+  private BatchImpl(Map<K, BatchEntry<T>> map) {
     _map = map;
-    _name = name;
   }
 
   @Override
@@ -110,7 +108,6 @@ public class BatchImpl<K, T> implements Batch<K, T> {
   public static class BatchBuilder<K, T> {
 
     private final Map<K, BatchEntry<T>> _map = new HashMap<>();
-    private String _name;
 
     public BatchBuilder<K, T> add(K key, BatchEntry<T> entry) {
       //deduplication
@@ -128,12 +125,9 @@ public class BatchImpl<K, T> implements Batch<K, T> {
       return add(key, new BatchEntry<>(traceBuilder, promise));
     }
 
-    public void setName(String name) {
-      _name = name;
-    }
 
     public Batch<K, T> build() {
-      return new BatchImpl<>(_map, _name);
+      return new BatchImpl<>(_map);
     }
 
     public int size() {
@@ -149,11 +143,6 @@ public class BatchImpl<K, T> implements Batch<K, T> {
   @Override
   public Set<Entry<K, BatchEntry<T>>> entires() {
     return _map.entrySet();
-  }
-
-  @Override
-  public String getName() {
-    return _name;
   }
 
 }
