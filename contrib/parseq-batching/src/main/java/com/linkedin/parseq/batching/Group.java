@@ -1,7 +1,7 @@
 package com.linkedin.parseq.batching;
 
 public interface Group {
-  default String getName(Batch batch) {
+  default <K, V> String getName(Batch<K, V> batch) {
     return "batch(" + batch.size() + ")";
   }
 }

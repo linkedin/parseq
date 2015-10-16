@@ -8,7 +8,7 @@ import com.linkedin.restli.client.ParSeqRestClient.RestRequestBatchKey;
 
 interface RequestGroup extends Group {
 
-  public static RequestGroup fromRequest(final Request request) {
+  public static RequestGroup fromRequest(final Request<?> request) {
     switch (request.getMethod()) {
       case GET:
         return new GetRequestGroup(request);
