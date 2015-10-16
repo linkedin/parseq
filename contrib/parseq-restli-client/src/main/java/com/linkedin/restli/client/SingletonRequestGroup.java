@@ -27,7 +27,7 @@ public class SingletonRequestGroup implements RequestGroup {
   }
 
   @Override
-  public String getName() {
+  public String getName(final Batch batch) {
     return _name;
   }
 

@@ -243,8 +243,9 @@ public class GetRequestGroup implements RequestGroup {
   }
 
   @Override
-  public String getName() {
-    return _baseUriTemplate + " " + ResourceMethod.BATCH_GET;
+  public String getName(final Batch batch) {
+    return _baseUriTemplate + " " + (batch.size() == 1 ? ResourceMethod.GET : (ResourceMethod.BATCH_GET +
+        "(" + batch.size() + ")"));
   }
 
 }
