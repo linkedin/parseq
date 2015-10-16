@@ -26,7 +26,7 @@ import com.linkedin.parseq.trace.Relationship;
 import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.TraceBuilder;
 
-public abstract class BatchingStrategy<G, K, T> {
+public abstract class BatchingStrategy<G extends Group, K, T> {
 
   private final ConcurrentHashMap<Long, BatchBuilder<K, T>> _batches =
       new ConcurrentHashMap<>();

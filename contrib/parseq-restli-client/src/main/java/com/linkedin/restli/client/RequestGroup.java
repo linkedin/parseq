@@ -3,16 +3,17 @@ package com.linkedin.restli.client;
 import com.linkedin.data.template.RecordTemplate;
 import com.linkedin.parseq.batching.Batch;
 import com.linkedin.parseq.batching.BatchImpl.BatchEntry;
+import com.linkedin.parseq.batching.Group;
 import com.linkedin.restli.client.ParSeqRestClient.RestRequestBatchKey;
 
-interface RequestEquivalenceClass {
+interface RequestGroup extends Group {
 
-  public static RequestEquivalenceClass fromRequest(final Request request) {
+  public static RequestGroup fromRequest(final Request request) {
     switch (request.getMethod()) {
       case GET:
-        return new GetRequestEquivalenceClass(request);
+        return new GetRequestGroup(request);
       default:
-        return new UniqueRequestEquivalenceClass();
+        return new SingletonRequestGroup(ParSeqRestClient.generateTaskName(request));
     }
   }
 

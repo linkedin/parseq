@@ -28,12 +28,11 @@ import com.linkedin.r2.message.RequestContext;
 import com.linkedin.restli.common.OperationNameGenerator;
 
 
-public class ParSeqRestClient extends BatchingStrategy<RequestEquivalenceClass, ParSeqRestClient.RestRequestBatchKey, Response<Object>>
-{
-  private final RestClient            _restClient;
+public class ParSeqRestClient
+    extends BatchingStrategy<RequestGroup, ParSeqRestClient.RestRequestBatchKey, Response<Object>> {
+  private final RestClient _restClient;
 
-  public ParSeqRestClient(final RestClient restClient)
-  {
+  public ParSeqRestClient(final RestClient restClient) {
     _restClient = restClient;
   }
 
@@ -46,8 +45,7 @@ public class ParSeqRestClient extends BatchingStrategy<RequestEquivalenceClass, 
    * @return response promise
    */
   @Deprecated
-  public <T> Promise<Response<T>> sendRequest(final Request<T> request)
-  {
+  public <T> Promise<Response<T>> sendRequest(final Request<T> request) {
     return sendRequest(request, new RequestContext());
   }
 
@@ -61,9 +59,7 @@ public class ParSeqRestClient extends BatchingStrategy<RequestEquivalenceClass, 
    * @return response promise
    */
   @Deprecated
-  public <T> Promise<Response<T>> sendRequest(final Request<T> request,
-                                              final RequestContext requestContext)
-  {
+  public <T> Promise<Response<T>> sendRequest(final Request<T> request, final RequestContext requestContext) {
     final SettablePromise<Response<T>> promise = Promises.settable();
 
     // wrapper around the callback interface
@@ -73,31 +69,24 @@ public class ParSeqRestClient extends BatchingStrategy<RequestEquivalenceClass, 
     return promise;
   }
 
-  static class PromiseCallbackAdapter<T> implements Callback<Response<T>>
-  {
+  static class PromiseCallbackAdapter<T> implements Callback<Response<T>> {
     private final SettablePromise<Response<T>> _promise;
 
-    public PromiseCallbackAdapter(final SettablePromise<Response<T>> promise)
-    {
+    public PromiseCallbackAdapter(final SettablePromise<Response<T>> promise) {
       this._promise = promise;
     }
 
     @Override
-    public void onSuccess(final Response<T> result)
-    {
-      try
-      {
+    public void onSuccess(final Response<T> result) {
+      try {
         _promise.done(result);
-      }
-      catch (Exception e)
-      {
+      } catch (Exception e) {
         onError(e);
       }
     }
 
     @Override
-    public void onError(final Throwable e)
-    {
+    public void onError(final Throwable e) {
       _promise.fail(e);
     }
   }
@@ -108,8 +97,7 @@ public class ParSeqRestClient extends BatchingStrategy<RequestEquivalenceClass, 
    * @param request to send
    * @return response task
    */
-  public <T> Task<Response<T>> createTask(final Request<T> request)
-  {
+  public <T> Task<Response<T>> createTask(final Request<T> request) {
     return createTask(request, new RequestContext());
   }
 
@@ -121,9 +109,7 @@ public class ParSeqRestClient extends BatchingStrategy<RequestEquivalenceClass, 
    * @param requestContext context for the request
    * @return response task
    */
-  public <T> Task<Response<T>> createTask(final Request<T> request,
-                                          final RequestContext requestContext)
-  {
+  public <T> Task<Response<T>> createTask(final Request<T> request, final RequestContext requestContext) {
     return createTask(generateTaskName(request), request, requestContext);
   }
 
@@ -132,12 +118,9 @@ public class ParSeqRestClient extends BatchingStrategy<RequestEquivalenceClass, 
    * @param request the outgoing request
    * @return a task name
    */
-  private String generateTaskName(final Request<?> request)
-  {
-    StringBuilder sb = new StringBuilder(request.getBaseUriTemplate());
-    sb.append(" ");
-    sb.append(OperationNameGenerator.generate(request.getMethod(), request.getMethodName()));
-    return sb.toString();
+  static String generateTaskName(final Request<?> request) {
+    return request.getBaseUriTemplate() + " "
+        + OperationNameGenerator.generate(request.getMethod(), request.getMethodName());
   }
 
   /**
@@ -149,16 +132,14 @@ public class ParSeqRestClient extends BatchingStrategy<RequestEquivalenceClass, 
    * @return response task
    */
   @SuppressWarnings("unchecked")
-  public <T> Task<Response<T>> createTask(final String name,
-                                          final Request<T> request,
-                                          final RequestContext requestContext)
-  {
+  public <T> Task<Response<T>> createTask(final String name, final Request<T> request,
+      final RequestContext requestContext) {
     return cast(batchable(name, new RestRequestBatchKey((Request<Object>) request, requestContext)));
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
   private static <X> Task<X> cast(Task t) {
-    return (Task<X>)t;
+    return (Task<X>) t;
   }
 
   /**
@@ -216,19 +197,18 @@ public class ParSeqRestClient extends BatchingStrategy<RequestEquivalenceClass, 
   }
 
   @Override
-  public void executeBatch(RequestEquivalenceClass group, Batch<RestRequestBatchKey, Response<Object>> batch) {
+  public void executeBatch(RequestGroup group, Batch<RestRequestBatchKey, Response<Object>> batch) {
     group.executeBatch(_restClient, batch);
   }
 
   @Override
-  public void executeSingleton(RequestEquivalenceClass group, RestRequestBatchKey key,
-      BatchEntry<Response<Object>> entry) {
+  public void executeSingleton(RequestGroup group, RestRequestBatchKey key, BatchEntry<Response<Object>> entry) {
     group.executeSingleton(_restClient, key, entry);
   }
 
   @Override
-  public RequestEquivalenceClass classify(RestRequestBatchKey key) {
-    return RequestEquivalenceClass.fromRequest(key.getRequest());
+  public RequestGroup classify(RestRequestBatchKey key) {
+    return RequestGroup.fromRequest(key.getRequest());
   }
 
 }

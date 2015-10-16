@@ -19,18 +19,19 @@ import com.linkedin.restli.common.ComplexResourceKey;
 import com.linkedin.restli.common.CompoundKey;
 import com.linkedin.restli.common.ErrorResponse;
 import com.linkedin.restli.common.ProtocolVersion;
+import com.linkedin.restli.common.ResourceMethod;
 import com.linkedin.restli.common.RestConstants;
 import com.linkedin.restli.internal.client.ResponseImpl;
 import com.linkedin.restli.internal.common.ProtocolVersionUtil;
 import com.linkedin.restli.internal.common.ResponseUtils;
 
-public class GetRequestEquivalenceClass implements RequestEquivalenceClass {
+public class GetRequestGroup implements RequestGroup {
 
   private final String _baseUriTemplate;
   private final Map<String, String> _headers;
   private final Map<String, Object> _queryParams;
 
-  public GetRequestEquivalenceClass(Request request) {
+  public GetRequestGroup(Request request) {
     _baseUriTemplate = request.getBaseUriTemplate();
     _headers = request.getHeaders();
     _queryParams = getQueryParamsForBatchingKey(request);
@@ -86,8 +87,8 @@ public class GetRequestEquivalenceClass implements RequestEquivalenceClass {
     List<BatchGetKVRequest> listOfBatchGets = batch.entires().stream()
         .map(Entry::getKey)
         .map(RestRequestBatchKey::getRequest)
-        .map(GetRequestEquivalenceClass::toGetRequest)
-        .map(GetRequestEquivalenceClass::toBatchGetKV)
+        .map(GetRequestGroup::toGetRequest)
+        .map(GetRequestGroup::toBatchGetKV)
         .collect(Collectors.toList());
 
     BatchGetKVRequest<K, RT> batchGet = BatchGetRequestBuilder.batchKV(toTypedKVList(listOfBatchGets));
@@ -126,8 +127,8 @@ public class GetRequestEquivalenceClass implements RequestEquivalenceClass {
     List<BatchGetRequest> listOfBatchGets = batch.entires().stream()
         .map(Entry::getKey)
         .map(RestRequestBatchKey::getRequest)
-        .map(GetRequestEquivalenceClass::toGetRequest)
-        .map(GetRequestEquivalenceClass::toBatchGet)
+        .map(GetRequestGroup::toGetRequest)
+        .map(GetRequestGroup::toBatchGet)
         .collect(Collectors.toList());
 
       BatchGetRequest<RT> batchGet = BatchGetRequestBuilder.batch(toTypedList(listOfBatchGets));
@@ -216,7 +217,7 @@ public class GetRequestEquivalenceClass implements RequestEquivalenceClass {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    GetRequestEquivalenceClass other = (GetRequestEquivalenceClass) obj;
+    GetRequestGroup other = (GetRequestGroup) obj;
     if (_baseUriTemplate == null) {
       if (other._baseUriTemplate != null)
         return false;
@@ -239,6 +240,11 @@ public class GetRequestEquivalenceClass implements RequestEquivalenceClass {
   public String toString() {
     return "GetRequestEquivalenceClass [_baseUriTemplate=" + _baseUriTemplate + ", _headers=" + _headers
         + ", _queryParams=" + _queryParams + "]";
+  }
+
+  @Override
+  public String getName() {
+    return _baseUriTemplate + " " + ResourceMethod.BATCH_GET;
   }
 
 }
