@@ -18,8 +18,11 @@ import com.linkedin.restli.common.BatchResponse;
 import com.linkedin.restli.common.ComplexResourceKey;
 import com.linkedin.restli.common.CompoundKey;
 import com.linkedin.restli.common.ErrorResponse;
+import com.linkedin.restli.common.ProtocolVersion;
 import com.linkedin.restli.common.RestConstants;
 import com.linkedin.restli.internal.client.ResponseImpl;
+import com.linkedin.restli.internal.common.ProtocolVersionUtil;
+import com.linkedin.restli.internal.common.ResponseUtils;
 
 public class GetRequestEquivalenceClass implements RequestEquivalenceClass {
 
@@ -93,10 +96,15 @@ public class GetRequestEquivalenceClass implements RequestEquivalenceClass {
 
       @Override
       public void onSuccess(Response<BatchKVResponse<K, RT>> responseToBatch) {
+        final ProtocolVersion version = ProtocolVersionUtil.extractProtocolVersion(responseToBatch.getHeaders());
         batch.entires().stream()
         .forEach(entry -> {
           try {
-            String id = toGetRequest(entry.getKey().getRequest()).getObjectId().toString();
+            Request request = entry.getKey().getRequest();
+            String idString = toGetRequest(request).getObjectId().toString();
+            Object id = ResponseUtils.convertKey(idString, request.getResourceSpec().getKeyType(),
+                request.getResourceSpec().getKeyParts(), request.getResourceSpec().getComplexKeyType(),
+                version);
             Response rsp = unbatchKVResponse(batchGet, responseToBatch, id);
             entry.getValue().getPromise().done(rsp);
           } catch (RemoteInvocationException e) {
