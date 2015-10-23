@@ -114,8 +114,8 @@ public class Engine {
   }
 
   /**
-   * Runs the given task with its own context. Use {@code Tasks.seq} and
-   * {@code Tasks.par} to create and run composite tasks.
+   * Runs the given task. This method starts new Plan. All tasks created and started as a consequence
+   * of this task will belong to that plan and will share a Trace.
    *
    * @param task the task to run
    */
@@ -125,10 +125,11 @@ public class Engine {
   }
 
   /**
-   * Runs the given task with its own context. Use {@code Tasks.seq} and
-   * {@code Tasks.par} to create and run composite tasks.
+   * Runs the given task. This method starts new Plan. All tasks created and started as a consequence
+   * of this task will belong to that plan and will share a Trace.
    *
    * @param task the task to run
+   * @param planClass class of the plan that is used in ParSeq logging
    */
   public void run(final Task<?> task, final String planClass) {
     State currState, newState;
