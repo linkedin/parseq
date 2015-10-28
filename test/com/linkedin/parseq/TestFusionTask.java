@@ -37,7 +37,12 @@ public class TestFusionTask extends AbstractTaskTest {
 
   @Test
   public void testAndThenTask() {
-    testAndThenTask(3);
+    testAndThenTask(4);
+  }
+
+  @Test
+  public void testAndThenTaskWithFailure() {
+    testAndThenTaskWithFailure(3);
   }
 
   @Test
@@ -128,6 +133,26 @@ public class TestFusionTask extends AbstractTaskTest {
     assertTrue(trace.get().getTraceMap().values().stream()
         .allMatch(shallowTrace -> shallowTrace.getResultType().equals(ResultType.SUCCESS)),
         "all tasks in the trace should have ResultType=SUCCESS");
+  }
+
+  @Test
+  public void testWithTimeoutFailure() {
+    testWithTimeoutFailure(6);
+  }
+
+  @Test
+  public void testWithTimeoutSuccess() {
+    testWithTimeoutSuccess(6);
+  }
+
+  @Test
+  public void testWithTimeoutTwiceFailure() {
+    testWithTimeoutTwiceFailure(8);
+  }
+
+  @Test
+  public void testWithTimeoutTwiceSuccess() {
+    testWithTimeoutTwiceSuccess(8);
   }
 
   @Override

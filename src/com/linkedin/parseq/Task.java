@@ -222,7 +222,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   default <R> Task<R> flatMap(final String desc, final Function1<? super T, Task<R>> func) {
     ArgumentUtil.requireNotNull(func, "function");
-    final Task<Task<R>> nested = map(func);
+    final Task<Task<R>> nested = map("flatMap.map", func);
     nested.getShallowTraceBuilder().setSystemHidden(true);
     return flatten(desc, nested);
   }
@@ -414,14 +414,9 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   default <R> Task<R> andThen(final String desc, final Task<R> task) {
     ArgumentUtil.requireNotNull(task, "task");
-    final Task<T> that = this;
-    return async(desc, context -> {
-      final SettablePromise<R> result = Promises.settable();
-      context.after(that).run(task);
-      Promises.propagateResult(task, result);
-      context.run(that);
-      return result;
-    });
+    final Task<Task<R>> nested = map("andThen.map", x -> task);
+    nested.getShallowTraceBuilder().setSystemHidden(true);
+    return flatten(desc, nested);
   }
 
   /**

@@ -200,10 +200,10 @@ public class TestTaskToTrace extends BaseEngineTest {
 
     assertEquals(predecessor.getTrace(), successor.getTrace());
 
-    //expected relationship: PARENT_OF and SUCCESSOR_OF
+    //expected relationships: 3xPARENT_OF and SUCCESSOR_OF
     assertEquals(2, getRelationships(successor.getTrace(), successor.getId()).size());
-    assertTrue(successor.getTrace().getRelationships()
-        .contains(new TraceRelationship(successor.getId(), predecessor.getId(), Relationship.SUCCESSOR_OF)));
+    assertEquals(1, getRelationships(successor.getTrace(), predecessor.getId()).size());
+    assertEquals(4, successor.getTrace().getRelationships().size());
   }
 
   @Test
@@ -347,7 +347,7 @@ public class TestTaskToTrace extends BaseEngineTest {
       }
     };
 
-    final Task<String> task3 = new BaseTask<String>("task2") {
+    final Task<String> task3 = new BaseTask<String>("task3") {
       @Override
       protected Promise<? extends String> run(Context context) throws Exception {
         context.run(innerTask);
@@ -362,7 +362,7 @@ public class TestTaskToTrace extends BaseEngineTest {
     Map<Long, Integer> tasksWithPotentialParent = new HashMap<>();
     assertAndFindParent(seq.getTrace(), tasksWithParent, tasksWithPotentialParent);
 
-    assertEquals(4, tasksWithParent.size());
+    assertEquals(8, tasksWithParent.size());
     assertEquals((Integer) 3, tasksWithPotentialParent.get(innerTask.getId()));
     assertEquals(1, tasksWithPotentialParent.size());
     assertTrue(tasksWithParent.contains(task1.getId()));

@@ -28,7 +28,12 @@ public class TestTask extends AbstractTaskTest {
 
   @Test
   public void testAndThenTask() {
-    testAndThenTask(3);
+    testAndThenTask(5);
+  }
+
+  @Test
+  public void testAndThenTaskWithFailure() {
+    testAndThenTaskWithFailure(4);
   }
 
   @Test
@@ -74,6 +79,26 @@ public class TestTask extends AbstractTaskTest {
   @Test
   public void testOnFailure() {
     testOnFailure(3);
+  }
+
+  @Test
+  public void testWithTimeoutFailure() {
+    testWithTimeoutFailure(7);
+  }
+
+  @Test
+  public void testWithTimeoutSuccess() {
+    testWithTimeoutSuccess(7);
+  }
+
+  @Test
+  public void testWithTimeoutTwiceFailure() {
+    testWithTimeoutTwiceFailure(9);
+  }
+
+  @Test
+  public void testWithTimeoutTwiceSuccess() {
+    testWithTimeoutTwiceSuccess(9);
   }
 
   @Override
