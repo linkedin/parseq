@@ -1,3 +1,8 @@
+v2.0.7
+------
+
+* Fix bug which caused that in expression first.andThen(second) second was executed even if first task failed.
+
 v2.0.6
 ------
 
