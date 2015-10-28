@@ -46,9 +46,6 @@ import com.linkedin.parseq.internal.ArgumentUtil;
  */
 public class BlockingEngine {
 
-  public static final int DEFAULT_MAX_CONCURRENCY = 128;
-  public static final int DEFAULT_QUEUE_SIZE = 1024;
-
   private final Engine _engine;
   private final Semaphore _demand;
   private final Queue<Task<?>> _queue = new ConcurrentLinkedQueue<>();
