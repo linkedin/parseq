@@ -92,7 +92,7 @@ public class TestFusionTask extends AbstractTaskTest {
 
   @Test
   public void testWithTimeoutAsLastOperation() {
-    Task<String> task = delayedValue("value", 110, TimeUnit.MILLISECONDS).map(x -> x + 1).map(x -> TASK_VALUE)
+    Task<String> task = delayedValue("value", 250, TimeUnit.MILLISECONDS).map(x -> x + 1).map(x -> TASK_VALUE)
         .withTimeout(5, TimeUnit.MILLISECONDS);
 
     try {
@@ -106,7 +106,7 @@ public class TestFusionTask extends AbstractTaskTest {
 
   @Test
   public void testWithTimeoutAsMiddleOperation() {
-    Task<String> task = delayedValue("value", 110, TimeUnit.MILLISECONDS).map("first", x -> x + 3)
+    Task<String> task = delayedValue("value", 250, TimeUnit.MILLISECONDS).map("first", x -> x + 3)
         .withTimeout(5, TimeUnit.MILLISECONDS).map("second", x -> TASK_VALUE);
 
     try {
