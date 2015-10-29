@@ -1,3 +1,9 @@
+v2.0.8
+------
+
+* Revert behavior of Task.andThen(Task) to pre-2.0.7 because fix implemented in 2.0.7 is a backwards incompatible change. Change of semantics of Task.andThen(Task) will be revisited on next major version upgrade.
+
+
 v2.0.7
 ------
 
