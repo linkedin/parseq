@@ -187,7 +187,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #map(String, Function1)
    */
   default <R> Task<R> map(final Function1<? super T, ? extends R> func) {
-    return map("map", func);
+    return map("map: " + func.getClass().getName(), func);
   }
 
   /**
@@ -232,7 +232,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #flatMap(String, Function1)
    */
   default <R> Task<R> flatMap(final Function1<? super T, Task<R>> func) {
-    return flatMap("flatMap", func);
+    return flatMap("flatMap: " + func.getClass().getName(), func);
   }
 
   /**
@@ -285,7 +285,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #withSideEffect(String, Function1)
    */
   default Task<T> withSideEffect(final Function1<? super T, Task<?>> func) {
-    return withSideEffect("sideEffect", func);
+    return withSideEffect("sideEffect: " + func.getClass().getName(), func);
   }
 
   /**
@@ -382,7 +382,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #andThen(String, Consumer1)
    */
   default Task<T> andThen(final Consumer1<? super T> consumer) {
-    return andThen("andThen", consumer);
+    return andThen("andThen: " + consumer.getClass().getName(), consumer);
   }
 
   /**
@@ -424,7 +424,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #andThen(String, Task)
    */
   default <R> Task<R> andThen(final Task<R> task) {
-    return andThen("andThen", task);
+    return andThen("andThen: " + task.getClass().getName(), task);
   }
 
   /**
@@ -475,7 +475,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #recover(String, Function1)
    */
   default Task<T> recover(final Function1<Throwable, T> func) {
-    return recover("recover", func);
+    return recover("recover: " + func.getClass().getName(), func);
   }
 
   /**
@@ -536,7 +536,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #onFailure(String, Consumer1)
    */
   default Task<T> onFailure(final Consumer1<Throwable> consumer) {
-    return onFailure("onFailure", consumer);
+    return onFailure("onFailure: " + consumer.getClass().getName(), consumer);
   }
 
   /**
@@ -654,7 +654,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #transform(String, Function1)
    */
   default <R> Task<R> transform(final Function1<Try<T>, Try<R>> func) {
-    return transform("transform", func);
+    return transform("transform: " + func.getClass().getName(), func);
   }
 
   /**
@@ -721,7 +721,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #recoverWith(String, Function1)
    */
   default Task<T> recoverWith(final Function1<Throwable, Task<T>> func) {
-    return recoverWith("recoverWith", func);
+    return recoverWith("recoverWith: " + func.getClass().getName(), func);
   }
 
   /**
@@ -844,7 +844,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #action(String, Action)
    */
   public static Task<Void> action(final Action action) {
-    return action("action", action);
+    return action("action: " + action.getClass().getName(), action);
   }
 
   /**
@@ -934,7 +934,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #callable(String, Callable)
    */
   public static <T> Task<T> callable(final Callable<? extends T> callable) {
-    return callable("callable", callable);
+    return callable("callable: " + callable.getClass().getName(), callable);
   }
 
   /**
@@ -1016,7 +1016,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #async(String, Callable)
    */
   public static <T> Task<T> async(final Callable<Promise<? extends T>> callable) {
-    return async("async", callable);
+    return async("async: " + callable.getClass().getName(), callable);
   }
 
   /**
@@ -1053,7 +1053,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #async(String, Function1)
    */
   public static <T> Task<T> async(final Function1<Context, Promise<? extends T>> func) {
-    return async("async", func);
+    return async("async: " + func.getClass().getName(), func);
   }
 
   /**
@@ -1093,7 +1093,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #blocking(String, Callable, Executor)
    */
   public static <T> Task<T> blocking(final Callable<? extends T> callable, final Executor executor) {
-    return blocking("blocking", callable, executor);
+    return blocking("blocking: " + callable.getClass().getName(), callable, executor);
   }
 
   /**
