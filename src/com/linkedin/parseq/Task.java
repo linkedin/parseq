@@ -386,13 +386,10 @@ public interface Task<T> extends Promise<T>, Cancellable {
   }
 
   /**
-   * Creates a new task which runs given task after successful
+   * Creates a new task which runs given task after
    * completion of this task and completes with a result of
-   * that task. Task passed in as a parameter will run only
-   * if this task completes successfully.
-   * If this task fails then task passed in as a parameter will
-   * not be scheduled for execution and failure
-   * will be propagated to task returned by this method.
+   * that task. Task passed in as a parameter will run even if
+   * this task completes fails.
    * <blockquote><pre>
    *  // task that processes payment
    *  Task{@code <PaymentStatus>} processPayment = processPayment(...);
@@ -400,8 +397,6 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *  // task that ships product
    *  Task{@code <ShipmentInfo>} shipProduct = shipProduct(...);
    *
-   *  // this task will ship product only if payment was
-   *  // successfully processed
    *  Task{@code <ShipmentInfo>} shipAfterPayment =
    *      processPayment.andThen("shipProductAterPayment", shipProduct);
    * </pre></blockquote>
@@ -409,8 +404,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *
    * @param <R> return type of the <code>task</code>
    * @param desc description of a task, it will show up in a trace
-   * @param task task which will be executed after successful completion of this task
-   * @return a new task which will run given task after successful completion of this task
+   * @param task task which will be executed after completion of this task
+   * @return a new task which will run given task after completion of this task
    */
   default <R> Task<R> andThen(final String desc, final Task<R> task) {
     ArgumentUtil.requireNotNull(task, "task");
