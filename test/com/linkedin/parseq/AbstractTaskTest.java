@@ -59,17 +59,6 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
     assertEquals(countTasks(task.getTrace()), expectedNumberOfTasks);
   }
 
-  public void testAndThenTaskWithFailure(int expectedNumberOfTasks) {
-    Task<Integer> task = getFailureTask().andThen(Task.callable("life", () -> 42));
-    try {
-      runAndWait("AbstractTaskTest.testAndThenTaskWithFailure", task);
-      fail("should have failed");
-    } catch (Exception ex) {
-      assertEquals(ex.getCause().getMessage(), TASK_ERROR_MESSAGE);
-    }
-    assertEquals(countTasks(task.getTrace()), expectedNumberOfTasks);
-  }
-
   public void testRecover(int expectedNumberOfTasks) {
     Task<Integer> success = getSuccessTask().map("strlen", String::length).recover(e -> -1);
     runAndWait("AbstractTaskTest.testRecoverSuccess", success);
@@ -151,23 +140,26 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
     assertEquals(countTasks(recovered.getTrace()), expectedNumberOfTasks);
   }
 
-  public void testWithTimeoutSuccess(int expectedNumberOfTasks) {
+  @Test
+  public void testWithTimeoutSuccess() {
     Task<Integer> success =
         getSuccessTask().andThen(delayedValue(0, 30, TimeUnit.MILLISECONDS)).withTimeout(100, TimeUnit.MILLISECONDS);
     runAndWait("AbstractTaskTest.testWithTimeoutSuccess", success);
     assertEquals((int) success.get(), 0);
-    assertEquals(countTasks(success.getTrace()), expectedNumberOfTasks);
+    assertEquals(countTasks(success.getTrace()), 5);
   }
 
-  public void testWithTimeoutTwiceSuccess(int expectedNumberOfTasks) {
+  @Test
+  public void testWithTimeoutTwiceSuccess() {
     Task<Integer> success = getSuccessTask().andThen(delayedValue(0, 30, TimeUnit.MILLISECONDS))
         .withTimeout(100, TimeUnit.MILLISECONDS).withTimeout(5000, TimeUnit.MILLISECONDS);
     runAndWait("AbstractTaskTest.testWithTimeoutTwiceSuccess", success);
     assertEquals((int) success.get(), 0);
-    assertEquals(countTasks(success.getTrace()), expectedNumberOfTasks);
+    assertEquals(countTasks(success.getTrace()), 7);
   }
 
-  public void testWithTimeoutFailure(int expectedNumberOfTasks) {
+  @Test
+  public void testWithTimeoutFailure() {
     Task<Integer> failure =
         getSuccessTask().andThen(delayedValue(0, 110, TimeUnit.MILLISECONDS)).withTimeout(100, TimeUnit.MILLISECONDS);
     try {
@@ -176,10 +168,11 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
     } catch (Exception ex) {
       assertSame(ex.getCause(), Exceptions.TIMEOUT_EXCEPTION);
     }
-    assertEquals(countTasks(failure.getTrace()), expectedNumberOfTasks);
+    assertEquals(countTasks(failure.getTrace()), 5);
   }
 
-  public void testWithTimeoutTwiceFailure(int expectedNumberOfTasks) {
+  @Test
+  public void testWithTimeoutTwiceFailure() {
     Task<Integer> failure = getSuccessTask().andThen(delayedValue(0, 110, TimeUnit.MILLISECONDS))
         .withTimeout(5000, TimeUnit.MILLISECONDS).withTimeout(100, TimeUnit.MILLISECONDS);
     try {
@@ -188,7 +181,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
     } catch (Exception ex) {
       assertSame(ex.getCause(), Exceptions.TIMEOUT_EXCEPTION);
     }
-    assertEquals(countTasks(failure.getTrace()), expectedNumberOfTasks);
+    assertEquals(countTasks(failure.getTrace()), 7);
   }
 
   @Test

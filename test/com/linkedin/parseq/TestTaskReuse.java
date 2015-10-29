@@ -65,7 +65,7 @@ public class TestTaskReuse extends BaseEngineTest {
 
     runAndWait("TestTaskReuse.testLastTaskResolved", test1);
 
-    assertEquals(counter.get(), 1);
+    assertEquals(counter.get(), 0);
   }
 
   @Test
