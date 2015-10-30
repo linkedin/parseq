@@ -17,7 +17,6 @@
 package com.linkedin.parseq;
 
 import com.linkedin.parseq.internal.InternalUtil;
-import com.linkedin.parseq.internal.SystemHiddenTask;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
 import com.linkedin.parseq.promise.Promises;
@@ -39,7 +38,7 @@ import java.util.List;
  * @author Chi Chan (ckchan@linkedin.com)
  * @see Task#par(Task, Task) Task.par
  */
-/* package private */ class ParTaskImpl<T> extends SystemHiddenTask<List<T>>implements ParTask<T> {
+/* package private */ class ParTaskImpl<T> extends BaseTask<List<T>>implements ParTask<T> {
   private final List<Task<T>> _tasks;
 
   public ParTaskImpl(final String name, final Iterable<? extends Task<? extends T>> tasks) {
