@@ -14,65 +14,65 @@ public class TestFusionTaskTrace extends BaseEngineTest {
 
   @Test
   public void testMap() {
-    Task<Integer> task = Task.value(1).map(x -> x);
+    Task<Integer> task = Task.value("value", 1).map("m1", x -> x);
     runAndWait("FusionTaskTraceTest.testMap", task);
   }
 
   @Test
   public void testMap2() {
-    Task<Integer> task = Task.value(1).map(x -> x).map(x -> x);
+    Task<Integer> task = Task.value("value", 1).map("m1", x -> x).map("m2", x -> x);
     runAndWait("FusionTaskTraceTest.testMap2", task);
   }
 
   @Test
   public void testMap3() {
-    Task<Integer> task = Task.value(1).map(x -> x).map(x -> x).map(x -> x);
+    Task<Integer> task = Task.value("value", 1).map("m1", x -> x).map("m2", x -> x).map("m3", x -> x);
     runAndWait("FusionTaskTraceTest.testMap3", task);
   }
 
   @Test
   public void testMap4() {
-    Task<Integer> task = Task.value(1).map(x -> x).map(x -> x).map(x -> x).map(x -> x);
+    Task<Integer> task = Task.value("value", 1).map("m1", x -> x).map("m2", x -> x).map("m3", x -> x).map("m4", x -> x);
     runAndWait("FusionTaskTraceTest.testMap4", task);
   }
 
   @Test
   public void testAsyncMap() {
-    Task<Integer> task = Task.async(() -> {
+    Task<Integer> task = Task.async("value", () -> {
       SettablePromise<Integer> p = Promises.settable();
       p.done(1);
       return p;
-    }).map(x -> x);
+    }).map("m1", x -> x);
     runAndWait("FusionTaskTraceTest.testAsyncMap", task);
   }
 
   @Test
   public void testAsync2() {
-    Task<Integer> task = Task.async(() -> {
+    Task<Integer> task = Task.async("value", () -> {
       SettablePromise<Integer> p = Promises.settable();
       p.done(1);
       return p;
-    }).map(x -> x).map(x -> x);
+    }).map("m1", x -> x).map("m2", x -> x);
     runAndWait("FusionTaskTraceTest.testAsyncMap2", task);
   }
 
   @Test
   public void testAsync3() {
-    Task<Integer> task = Task.async(() -> {
+    Task<Integer> task = Task.async("value", () -> {
       SettablePromise<Integer> p = Promises.settable();
       p.done(1);
       return p;
-    }).map(x -> x).map(x -> x).map(x -> x);
+    }).map("m1", x -> x).map("m2", x -> x).map("m3", x -> x);
     runAndWait("FusionTaskTraceTest.testAsyncMap3", task);
   }
 
   @Test
   public void testAsync4() {
-    Task<Integer> task = Task.async(() -> {
+    Task<Integer> task = Task.async("value", () -> {
       SettablePromise<Integer> p = Promises.settable();
       p.done(1);
       return p;
-    }).map(x -> x).map(x -> x).map(x -> x).map(x -> x);
+    }).map("m1", x -> x).map("m2", x -> x).map("m3", x -> x).map("m4", x -> x);
     runAndWait("FusionTaskTraceTest.testAsyncMap4", task);
   }
 

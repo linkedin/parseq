@@ -146,7 +146,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
   //------------------- default methods -------------------
 
   default <R> Task<R> apply(final String desc, final PromisePropagator<T, R> propagator) {
-    return FusionTask.fuse(desc, this, propagator, null);
+    return FusionTask.create(desc, this, propagator);
   }
 
   /**
@@ -858,7 +858,9 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * executed
    */
   public static <T> Task<T> value(final String desc, final T value) {
-    return callable(desc, () -> value);
+    return FusionTask.create(desc, (src, dst) -> {
+      dst.done(value);
+    } );
   }
 
   /**
@@ -881,7 +883,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   public static <T> Task<T> failure(final String desc, final Throwable failure) {
     ArgumentUtil.requireNotNull(failure, "failure");
-    return FusionTask.create(desc, Promises.value(null), (src, dst) -> {
+    return FusionTask.create(desc, (src, dst) -> {
       dst.fail(failure);
     } );
   }
@@ -920,7 +922,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   public static <T> Task<T> callable(final String name, final Callable<? extends T> callable) {
     ArgumentUtil.requireNotNull(callable, "callable");
-    return FusionTask.create(name, Promises.value(null), (src, dst) -> {
+    return FusionTask.create(name, (src, dst) -> {
       try {
         dst.done(callable.call());
       } catch (Throwable t) {
