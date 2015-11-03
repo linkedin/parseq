@@ -193,7 +193,7 @@ public class TestTaskReuse extends BaseEngineTest {
     runAndWait("TestTaskReuse.testTaskReusedByTwoPlansAndMerged-merged", merged);
 
     assertEquals(counter.get(), 1);
-    assertEquals(countTasks(merged.getTrace()), 13);
+    assertEquals(countTasks(merged.getTrace()), 10);
 
     assertEquals(countTasks(plan1.getTrace()), 3);
     assertEquals(countTasks(plan2.getTrace()), 3);
@@ -220,10 +220,10 @@ public class TestTaskReuse extends BaseEngineTest {
     runAndWait("TestTaskReuse.testTaskReusedByTwoPlansAndMergedWithFlatMap-merged", merged);
 
     assertEquals(counter.get(), 1);
-    assertEquals(countTasks(merged.getTrace()), 12);
+    assertEquals(countTasks(merged.getTrace()), 9);
 
-    assertEquals(countTasks(plan1.getTrace()), 6);
-    assertEquals(countTasks(plan2.getTrace()), 6);
+    assertEquals(countTasks(plan1.getTrace()), 5);
+    assertEquals(countTasks(plan2.getTrace()), 5);
   }
 
 }

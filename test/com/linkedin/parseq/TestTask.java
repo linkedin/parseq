@@ -23,7 +23,7 @@ public class TestTask extends AbstractTaskTest {
 
   @Test
   public void testAndThenConsumer() {
-    testAndThenConsumer(4);
+    testAndThenConsumer(3);
   }
 
   @Test
@@ -38,12 +38,12 @@ public class TestTask extends AbstractTaskTest {
 
   @Test
   public void testNoRecover() {
-    testNoRecover(4);
+    testNoRecover(3);
   }
 
   @Test
   public void testTry() {
-    testToTry(4);
+    testToTry(5);
   }
 
   @Test
@@ -53,12 +53,12 @@ public class TestTask extends AbstractTaskTest {
 
   @Test
   public void testRecoverWithFailure() {
-    testRecoverWithFailure(5);
+    testRecoverWithFailure(4);
   }
 
   @Test
   public void testRecoverWithRecoverd() {
-    testRecoverWithRecoverd(5);
+    testRecoverWithRecoverd(4);
   }
 
   @Test
@@ -73,7 +73,7 @@ public class TestTask extends AbstractTaskTest {
 
   @Test
   public void testOnFailure() {
-    testOnFailure(4);
+    testOnFailure(3);
   }
 
   @Override

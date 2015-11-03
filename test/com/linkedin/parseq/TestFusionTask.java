@@ -22,17 +22,17 @@ public class TestFusionTask extends AbstractTaskTest {
 
   @Test
   public void testMap() {
-    testMap(2);
+    testMap(3);
   }
 
   @Test
   public void testFlatMap() {
-    testFlatMap(4);
+    testFlatMap(5);
   }
 
   @Test
   public void testAndThenConsumer() {
-    testAndThenConsumer(2);
+    testAndThenConsumer(3);
   }
 
   @Test
@@ -42,17 +42,17 @@ public class TestFusionTask extends AbstractTaskTest {
 
   @Test
   public void testRecover() {
-    testRecover(3);
+    testRecover(4);
   }
 
   @Test
   public void testNoRecover() {
-    testNoRecover(2);
+    testNoRecover(3);
   }
 
   @Test
   public void testTry() {
-    testToTry(3);
+    testToTry(4);
   }
 
   @Test
@@ -82,7 +82,7 @@ public class TestFusionTask extends AbstractTaskTest {
 
   @Test
   public void testOnFailure() {
-    testOnFailure(2);
+    testOnFailure(3);
   }
 
   @Test

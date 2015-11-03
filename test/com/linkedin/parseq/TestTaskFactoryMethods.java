@@ -37,7 +37,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testValue", task);
     assertEquals(task.get(), "value");
 
-    assertEquals(countTasks(task.getTrace()), 2);
+    assertEquals(countTasks(task.getTrace()), 1);
   }
 
   @Test
@@ -51,7 +51,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
       assertEquals(task.getError(), e);
     }
 
-    assertEquals(countTasks(task.getTrace()), 2);
+    assertEquals(countTasks(task.getTrace()), 1);
   }
 
   @Test
@@ -60,7 +60,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testCallable", task);
     assertNotNull(task.get());
 
-    assertEquals(countTasks(task.getTrace()), 2);
+    assertEquals(countTasks(task.getTrace()), 1);
   }
 
   @Test
@@ -76,7 +76,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
 
   @Test
   public void testAsyncWithContext() {
-    final Task<String> t = Task.value("done");
+    final Task<String> t = Task.callable(() -> "done");
     Task<String> task = Task.async(ctx -> {
       ctx.run(t);
       return t;
@@ -84,7 +84,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     String value = runAndWait("TestTaskFactoryMethods.testAsyncWithContext", task);
     assertEquals(value, "done");
 
-    assertEquals(countTasks(task.getTrace()), 3);
+    assertEquals(countTasks(task.getTrace()), 2);
   }
 
   @Test
@@ -111,7 +111,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar2AndThen", task);
     assertEquals(value.get(), 1 + 2);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 2 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 2);
   }
 
   @Test
@@ -122,7 +122,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar3AndThen", task);
     assertEquals(value.get(), 1 + 2 + 3);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 3 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 3);
   }
 
   @Test
@@ -133,7 +133,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar4AndThen", task);
     assertEquals(value.get(), 1 + 2 + 3 + 4);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 4 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 4);
   }
 
   @Test
@@ -144,7 +144,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar5AndThen", task);
     assertEquals(value.get(), 1 + 2 + 3 + 4 + 5);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 5 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 5);
   }
 
   @Test
@@ -156,7 +156,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar6AndThen", task);
     assertEquals(value.get(), 1 + 2 + 3 + 4 + 5 + 6);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 6 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 6);
   }
 
   @Test
@@ -168,7 +168,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar7AndThen", task);
     assertEquals(value.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 7 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 7);
   }
 
   @Test
@@ -180,7 +180,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar8AndThen", task);
     assertEquals(value.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 8 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 8);
   }
 
   @Test
@@ -192,7 +192,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar9AndThen", task);
     assertEquals(value.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 9 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 9);
   }
 
   @Test
@@ -203,7 +203,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar2AndThenDsc", task);
     assertEquals(value.get(), 1 + 2);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 2 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 2);
   }
 
   @Test
@@ -214,7 +214,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar3AndThenDsc", task);
     assertEquals(value.get(), 1 + 2 + 3);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 3 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 3);
   }
 
   @Test
@@ -225,7 +225,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar4AndThenDsc", task);
     assertEquals(value.get(), 1 + 2 + 3 + 4);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 4 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 4);
   }
 
   @Test
@@ -236,7 +236,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar5AndThenDsc", task);
     assertEquals(value.get(), 1 + 2 + 3 + 4 + 5);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 5 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 5);
   }
 
   @Test
@@ -248,7 +248,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar6AndThenDsc", task);
     assertEquals(value.get(), 1 + 2 + 3 + 4 + 5 + 6);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 6 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 6);
   }
 
   @Test
@@ -260,7 +260,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar7AndThenDsc", task);
     assertEquals(value.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 7 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 7);
   }
 
   @Test
@@ -272,7 +272,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar8AndThenDsc", task);
     assertEquals(value.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 8 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 8);
   }
 
   @Test
@@ -284,7 +284,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar9AndThenDsc", task);
     assertEquals(value.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 9 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 9);
   }
 
   @Test
@@ -294,7 +294,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar2", task);
     assertEquals((int)task.get(), 1 + 2);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 2 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 2);
   }
 
   @Test
@@ -305,7 +305,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar3", task);
     assertEquals((int)task.get(), 1 + 2 + 3);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 3 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 3);
   }
 
   @Test
@@ -316,7 +316,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar4", task);
     assertEquals((int)task.get(), 1 + 2 + 3 + 4);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 4 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 4);
   }
 
   @Test
@@ -327,7 +327,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar5", task);
     assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 5 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 5);
   }
 
   @Test
@@ -338,7 +338,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar6", task);
     assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 6 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 6);
   }
 
   @Test
@@ -350,7 +350,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar7", task);
     assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 7 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 7);
   }
 
   @Test
@@ -362,7 +362,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar8", task);
     assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 8 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 8);
   }
 
   @Test
@@ -374,7 +374,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar9", task);
     assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 9 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 9);
   }
 
   @Test
@@ -384,7 +384,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar2Dsc", task);
     assertEquals((int)task.get(), 1 + 2);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 2 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 2);
   }
 
   @Test
@@ -395,7 +395,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar3Dsc", task);
     assertEquals((int)task.get(), 1 + 2 + 3);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 3 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 3);
   }
 
   @Test
@@ -406,7 +406,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar4Dsc", task);
     assertEquals((int)task.get(), 1 + 2 + 3 + 4);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 4 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 4);
   }
 
   @Test
@@ -417,7 +417,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar5Dsc", task);
     assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 5 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 5);
   }
 
   @Test
@@ -428,7 +428,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar6Dsc", task);
     assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 6 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 6);
   }
 
   @Test
@@ -440,7 +440,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar7Dsc", task);
     assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 7 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 7);
   }
 
   @Test
@@ -452,7 +452,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar8Dsc", task);
     assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 8 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 8);
   }
 
   @Test
@@ -464,7 +464,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar9Dsc", task);
     assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9);
 
-    assertEquals(countTasks(task.getTrace()), 2 + 2 + 9 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 9);
   }
 
   @Test
@@ -474,7 +474,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar2FlatMap", task);
     assertEquals((int)task.get(), 1 + 2);
 
-    assertEquals(countTasks(task.getTrace()), 2 * 2 + 3 + 2 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 3 + 2);
   }
 
   @Test
@@ -484,7 +484,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar3FlatMap", task);
     assertEquals((int)task.get(), 1 + 2 + 3);
 
-    assertEquals(countTasks(task.getTrace()), 2 * 2 + 3 + 3 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 3 + 3);
   }
 
   @Test
@@ -494,7 +494,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar4FlatMap", task);
     assertEquals((int)task.get(), 1 + 2 + 3 + 4);
 
-    assertEquals(countTasks(task.getTrace()), 2 * 2 + 3 + 4 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 3 + 4);
   }
 
   @Test
@@ -505,7 +505,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar5FlatMap", task);
     assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5);
 
-    assertEquals(countTasks(task.getTrace()), 2 * 2 + 3 + 5 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 3 + 5);
   }
 
   @Test
@@ -516,7 +516,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar6FlatMap", task);
     assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6);
 
-    assertEquals(countTasks(task.getTrace()), 2 * 2 + 3 + 6 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 3 + 6);
   }
 
   @Test
@@ -527,7 +527,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar7FlatMap", task);
     assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7);
 
-    assertEquals(countTasks(task.getTrace()), 2 * 2 + 3 + 7 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 3 + 7);
   }
 
   @Test
@@ -538,7 +538,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar8FlatMap", task);
     assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8);
 
-    assertEquals(countTasks(task.getTrace()), 2 * 2 + 3 + 8 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 3 + 8);
   }
 
   @Test
@@ -549,7 +549,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar9FlatMap", task);
     assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9);
 
-    assertEquals(countTasks(task.getTrace()), 2 * 2 + 3 + 9 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 3 + 9);
   }
 
   @Test
@@ -559,7 +559,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar2FlatMapDsc", task);
     assertEquals((int)task.get(), 1 + 2);
 
-    assertEquals(countTasks(task.getTrace()), 2 * 2 + 3 + 2 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 3 + 2);
   }
 
   @Test
@@ -569,7 +569,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar3FlatMapDsc", task);
     assertEquals((int)task.get(), 1 + 2 + 3);
 
-    assertEquals(countTasks(task.getTrace()), 2 * 2 + 3 + 3 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 3 + 3);
   }
 
   @Test
@@ -579,7 +579,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar4FlatMapDsc", task);
     assertEquals((int)task.get(), 1 + 2 + 3 + 4);
 
-    assertEquals(countTasks(task.getTrace()), 2 * 2 + 3 + 4 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 3 + 4);
   }
 
   @Test
@@ -590,7 +590,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar5FlatMapDsc", task);
     assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5);
 
-    assertEquals(countTasks(task.getTrace()), 2 * 2 + 3 + 5 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 3 + 5);
   }
 
   @Test
@@ -601,7 +601,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar6FlatMapDsc", task);
     assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6);
 
-    assertEquals(countTasks(task.getTrace()), 2 * 2 + 3 + 6 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 3 + 6);
   }
 
   @Test
@@ -612,7 +612,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar7FlatMapDsc", task);
     assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7);
 
-    assertEquals(countTasks(task.getTrace()), 2 * 2 + 3 + 7 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 3 + 7);
   }
 
   @Test
@@ -623,7 +623,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar8FlatMapDsc", task);
     assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8);
 
-    assertEquals(countTasks(task.getTrace()), 2 * 2 + 3 + 8 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 3 + 8);
   }
 
   @Test
@@ -634,6 +634,6 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     runAndWait("TestTaskFactoryMethods.testPar9FlatMapDsc", task);
     assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9);
 
-    assertEquals(countTasks(task.getTrace()), 2 * 2 + 3 + 9 * 2);
+    assertEquals(countTasks(task.getTrace()), 2 + 3 + 9);
   }
 }

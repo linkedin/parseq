@@ -8,13 +8,13 @@ public class FusionTraceContext {
 
   private final ShallowTraceBuilder _propagationInitiator;
   private final Context _parent;
-  private final ShallowTraceBuilder _surrogate;
+  private ShallowTraceBuilder _surrogate;
+  private final String _desc;
 
   public FusionTraceContext(Context parent, ShallowTraceBuilder propagationInitiator, String desc) {
     _parent = parent;
     _propagationInitiator = propagationInitiator;
-    _surrogate = new ShallowTraceBuilder(IdGenerator.getNextId());
-    _surrogate.setName(desc);
+    _desc = desc;
   }
 
   public ShallowTraceBuilder getPropagationInitiator() {
@@ -27,5 +27,13 @@ public class FusionTraceContext {
 
   public ShallowTraceBuilder getSurrogate() {
     return _surrogate;
+  }
+
+  public void createSurrogate() {
+    if (_surrogate == null) {
+      _surrogate = new ShallowTraceBuilder(IdGenerator.getNextId());
+      _surrogate.setName(_desc);
+      _parent.getShallowTraceBuilder().setName("fused").setSystemHidden(true);
+    }
   }
 }

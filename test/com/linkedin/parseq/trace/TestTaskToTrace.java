@@ -201,8 +201,8 @@ public class TestTaskToTrace extends BaseEngineTest {
 
     assertEquals(predecessor.getTrace(), successor.getTrace());
 
-    //expected relationship: CHILD_OF, PARENT_OF and SUCCESSOR_OF
-    assertEquals(3, getRelationships(successor.getTrace(), successor.getId()).size());
+    //expected relationship: PARENT_OF and SUCCESSOR_OF
+    assertEquals(2, getRelationships(successor.getTrace(), successor.getId()).size());
     assertTrue(successor.getTrace().getRelationships()
         .contains(new TraceRelationship(successor.getId(), predecessor.getId(), Relationship.SUCCESSOR_OF)));
   }

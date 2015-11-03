@@ -101,6 +101,9 @@ class FusionTask<S, T> extends BaseTask<T> {
       final Consumer3<FusionTraceContext, Promise<S>, Settable<R>> predecessor,
       final Consumer3<FusionTraceContext, Promise<R>, Settable<T>> propagator) {
     return (traceContext, src, dst) -> {
+
+      traceContext.createSurrogate();
+
       predecessor.accept(traceContext, src, new Settable<R>() {
 
         @Override
@@ -134,23 +137,23 @@ class FusionTask<S, T> extends BaseTask<T> {
       if (isPropagationInitiator(traceContext)) {
         //BaseTask's code handles completing the parent task
         //we need to handle tracing of a surrogate task here
-        final ShallowTraceBuilder shallowTraceBuilder = traceContext.getSurrogate();
-        final long startNanos = System.nanoTime();
-        shallowTraceBuilder.setStartNanos(startNanos);
         propagator.accept(traceContext, src, new Settable<T>() {
           @Override
           public void done(T value) throws PromiseResolvedException {
-            addRelationships(traceContext);
-            final long endNanos = System.nanoTime();
-            shallowTraceBuilder.setPendingNanos(endNanos);
-            shallowTraceBuilder.setEndNanos(endNanos);
-            final Function<T, String> traceValueProvider = _traceValueProvider;
-            shallowTraceBuilder.setResultType(ResultType.SUCCESS);
-            if (traceValueProvider != null) {
-              try {
-                shallowTraceBuilder.setValue(traceValueProvider.apply(value));
-              } catch (Exception e) {
-                shallowTraceBuilder.setValue(Exceptions.failureToString(e));
+            final ShallowTraceBuilder shallowTraceBuilder = traceContext.getSurrogate();
+            if (shallowTraceBuilder != null) {
+              addRelationships(traceContext);
+              final long endNanos = System.nanoTime();
+              shallowTraceBuilder.setPendingNanos(endNanos);
+              shallowTraceBuilder.setEndNanos(endNanos);
+              final Function<T, String> traceValueProvider = _traceValueProvider;
+              shallowTraceBuilder.setResultType(ResultType.SUCCESS);
+              if (traceValueProvider != null) {
+                try {
+                  shallowTraceBuilder.setValue(traceValueProvider.apply(value));
+                } catch (Exception e) {
+                  shallowTraceBuilder.setValue(Exceptions.failureToString(e));
+                }
               }
             }
             dest.done(value);
@@ -158,15 +161,18 @@ class FusionTask<S, T> extends BaseTask<T> {
 
           @Override
           public void fail(Throwable error) throws PromiseResolvedException {
-            addRelationships(traceContext);
-            final long endNanos = System.nanoTime();
-            shallowTraceBuilder.setPendingNanos(endNanos);
-            shallowTraceBuilder.setEndNanos(endNanos);
-            if (Exceptions.isEarlyFinish(error)) {
-              shallowTraceBuilder.setResultType(ResultType.EARLY_FINISH);
-            } else {
-              shallowTraceBuilder.setResultType(ResultType.ERROR);
-              shallowTraceBuilder.setValue(Exceptions.failureToString(error));
+            final ShallowTraceBuilder shallowTraceBuilder = traceContext.getSurrogate();
+            if (shallowTraceBuilder != null) {
+              addRelationships(traceContext);
+              final long endNanos = System.nanoTime();
+              shallowTraceBuilder.setPendingNanos(endNanos);
+              shallowTraceBuilder.setEndNanos(endNanos);
+              if (Exceptions.isEarlyFinish(error)) {
+                shallowTraceBuilder.setResultType(ResultType.EARLY_FINISH);
+              } else {
+                shallowTraceBuilder.setResultType(ResultType.ERROR);
+                shallowTraceBuilder.setValue(Exceptions.failureToString(error));
+              }
             }
             dest.fail(error);
           }
@@ -281,21 +287,19 @@ class FusionTask<S, T> extends BaseTask<T> {
   protected Promise<? extends T> run(final Context context) throws Throwable {
     final SettablePromise<T> result = Promises.settable();
     String baseName = getName();
-    _shallowTraceBuilder.setSystemHidden(true);
     if (_asyncTask == null) {
-      _shallowTraceBuilder.setName("fused");
       FusionTraceContext traceContext = new FusionTraceContext(context,
           FusionTask.this.getShallowTraceBuilder(), baseName);
       propagate(traceContext, result);
     } else {
       _shallowTraceBuilder.setName("async fused");
-      final Task<T> propagationTask = Task.async("fused", ctx -> {
+      _shallowTraceBuilder.setSystemHidden(true);
+      final Task<T> propagationTask = Task.async(baseName, ctx -> {
         final SettablePromise<T> fusionResult = Promises.settable();
         FusionTraceContext traceContext = new FusionTraceContext(ctx, FusionTask.this.getShallowTraceBuilder(), baseName);
         propagate(traceContext, fusionResult);
         return fusionResult;
       });
-      propagationTask.getShallowTraceBuilder().setSystemHidden(true);
       context.after(_asyncTask).run(propagationTask);
       context.run(_asyncTask);
       Promises.propagateResult(propagationTask, result);
