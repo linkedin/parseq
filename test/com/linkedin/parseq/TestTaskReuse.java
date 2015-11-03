@@ -168,8 +168,8 @@ public class TestTaskReuse extends BaseEngineTest {
     runAndWait("TestTaskReuse.testTaskReusedByTwoPlans-plan2", plan2);
 
     assertEquals(counter.get(), 1);
-    assertEquals(countTasks(plan1.getTrace()), 2);
-    assertEquals(countTasks(plan2.getTrace()), 2);
+    assertEquals(countTasks(plan1.getTrace()), 3);
+    assertEquals(countTasks(plan2.getTrace()), 3);
   }
 
   @Test
@@ -193,10 +193,10 @@ public class TestTaskReuse extends BaseEngineTest {
     runAndWait("TestTaskReuse.testTaskReusedByTwoPlansAndMerged-merged", merged);
 
     assertEquals(counter.get(), 1);
-    assertEquals(countTasks(merged.getTrace()), 8);
+    assertEquals(countTasks(merged.getTrace()), 13);
 
-    assertEquals(countTasks(plan1.getTrace()), 2);
-    assertEquals(countTasks(plan2.getTrace()), 2);
+    assertEquals(countTasks(plan1.getTrace()), 3);
+    assertEquals(countTasks(plan2.getTrace()), 3);
   }
 
   @Test
@@ -208,7 +208,7 @@ public class TestTaskReuse extends BaseEngineTest {
       return "hello";
     } );
 
-    Task<String> plan1 = task.flatMap("+earch", s -> Task.callable(() -> s + " on earth!"));
+    Task<String> plan1 = task.flatMap("+earth", s -> Task.callable(() -> s + " on earth!"));
     Task<String> plan2 = task.flatMap("+moon", s -> Task.callable(() -> s + " on moon!"));
 
     runAndWait("TestTaskReuse.testTaskReusedByTwoPlansAndMergedWithFlatMap-plan1", plan1);
@@ -220,10 +220,10 @@ public class TestTaskReuse extends BaseEngineTest {
     runAndWait("TestTaskReuse.testTaskReusedByTwoPlansAndMergedWithFlatMap-merged", merged);
 
     assertEquals(counter.get(), 1);
-    assertEquals(countTasks(merged.getTrace()), 9);
+    assertEquals(countTasks(merged.getTrace()), 12);
 
-    assertEquals(countTasks(plan1.getTrace()), 4);
-    assertEquals(countTasks(plan2.getTrace()), 4);
+    assertEquals(countTasks(plan1.getTrace()), 6);
+    assertEquals(countTasks(plan2.getTrace()), 6);
   }
 
 }

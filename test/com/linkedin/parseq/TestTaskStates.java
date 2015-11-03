@@ -378,7 +378,7 @@ public class TestTaskStates {
 
     @Override
     public ShallowTraceBuilder getShallowTraceBuilder() {
-      throw new UnsupportedOperationException();
+      return new ShallowTraceBuilder(0L);
     }
 
     @Override

@@ -149,6 +149,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
     final TaskLogger taskLogger = context.getTaskLogger();
     final TraceBuilder traceBuilder = context.getTraceBuilder();
     if (transitionRun(traceBuilder)) {
+      markTaskStarted();
       final Promise<T> promise;
       try {
         if (parent != null) {
@@ -295,7 +296,6 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
   protected boolean transitionRun(final TraceBuilder traceBuilder) {
     State state;
     State newState;
-    final long startNanos = System.nanoTime();
     do {
       state = _stateRef.get();
       if (state.getType() != StateType.INIT) {
@@ -305,15 +305,16 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
     } while (!_stateRef.compareAndSet(state, newState));
     _traceBuilder = traceBuilder;
     traceBuilder.addShallowTrace(_shallowTraceBuilder);
-    _shallowTraceBuilder.setStartNanos(startNanos);
-
     return true;
+  }
+
+  protected void markTaskStarted() {
+    _shallowTraceBuilder.setStartNanos(System.nanoTime());
   }
 
   protected void transitionPending() {
     State state;
     State newState;
-    final long pendingNanos = System.nanoTime();
     do {
       state = _stateRef.get();
       if (state.getType() != StateType.RUN) {
@@ -321,23 +322,24 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
       }
       newState = state.transitionPending();
     } while (!_stateRef.compareAndSet(state, newState));
-    _shallowTraceBuilder.setPendingNanos(pendingNanos);
+    markTaskPending();
+  }
+
+  protected void markTaskPending() {
+    _shallowTraceBuilder.setPendingNanos(System.nanoTime());
   }
 
   protected boolean transitionCancel(final Exception reason) {
     State state;
     State newState;
-
     do {
       state = _stateRef.get();
       final StateType type = state.getType();
       if (type == StateType.RUN || type == StateType.DONE) {
         return false;
       }
-
       newState = state.transitionDone();
     } while (!_stateRef.compareAndSet(state, newState));
-
     return true;
   }
 
@@ -349,7 +351,6 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
       if (state.getType() == StateType.DONE) {
         return false;
       }
-
       newState = state.transitionDone();
     } while (!_stateRef.compareAndSet(state, newState));
     return true;

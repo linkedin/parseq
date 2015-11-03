@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -200,8 +201,8 @@ public class TestTaskToTrace extends BaseEngineTest {
 
     assertEquals(predecessor.getTrace(), successor.getTrace());
 
-    //expected relationship: PARENT_OF and SUCCESSOR_OF
-    assertEquals(2, getRelationships(successor.getTrace(), successor.getId()).size());
+    //expected relationship: CHILD_OF, PARENT_OF and SUCCESSOR_OF
+    assertEquals(3, getRelationships(successor.getTrace(), successor.getId()).size());
     assertTrue(successor.getTrace().getRelationships()
         .contains(new TraceRelationship(successor.getId(), predecessor.getId(), Relationship.SUCCESSOR_OF)));
   }
@@ -440,11 +441,36 @@ public class TestTaskToTrace extends BaseEngineTest {
     }
   }
 
+  private Long getChild(TraceRelationship rel, Long parent) {
+    if ((rel.getRelationhsip() == Relationship.PARENT_OF || rel.getRelationhsip() == Relationship.POTENTIAL_PARENT_OF) &&
+        rel.getFrom().equals(parent)) {
+      return rel.getTo();
+    }
+    if (rel.getRelationhsip() == Relationship.POTENTIAL_CHILD_OF &&  rel.getTo().equals(parent)) {
+      return rel.getFrom();
+    }
+    return null;
+  }
+
+  private ShallowTrace findPossiblyFusedTrace(final Task<?> task) {
+    final ShallowTrace main = task.getShallowTrace();
+    if (main.getName().equals("fused")) {
+      final Trace trace = task.getTrace();
+      Optional<Long> child = trace.getRelationships().stream()
+                               .map(rel -> getChild(rel, main.getId()))
+                               .filter(id-> id != null)
+                               .findFirst();
+      if (child.isPresent()) {
+        return trace.getTraceMap().get(child.get());
+      }
+    }
+    return main;
+  }
+
   private void verifyShallowTrace(final Task<?> task) {
-    final ShallowTrace trace = task.getShallowTrace();
+    final ShallowTrace trace = findPossiblyFusedTrace(task);
     assertEquals(task.getName(), trace.getName());
     assertEquals(ResultType.fromTask(task), trace.getResultType());
-    assertEquals(task.getShallowTrace().getStartNanos(), trace.getStartNanos());
 
     // If the task has not been started then we expect the endNanos to be null.
     // If the task has started but has not been finished then endNanos is set
@@ -461,8 +487,6 @@ public class TestTaskToTrace extends BaseEngineTest {
         // greater than the start time.
         assertTrue(trace.getEndNanos() > trace.getStartNanos());
       }
-    } else {
-      assertEquals(task.getShallowTrace().getEndNanos(), trace.getEndNanos());
     }
     if (task.isDone()) {
       if (task.isFailed() && !(Exceptions.isEarlyFinish(task.getError()))) {

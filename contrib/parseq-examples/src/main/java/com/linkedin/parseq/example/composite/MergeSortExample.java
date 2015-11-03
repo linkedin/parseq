@@ -56,15 +56,15 @@ public class MergeSortExample extends AbstractExample {
 
   private Task<int[]> mergeSort(final int[] toSort, final Range range) {
     if (range.size() == 0) {
-      return Task.callable("leaf", () -> new int[0]);
+      return Task.value("leaf", new int[0]);
     } else if (range.size() == 1) {
-      return Task.callable("leaf", () -> new int[] { toSort[range.start()] });
+      return Task.value("leaf", new int[] { toSort[range.start()] });
     } else {
       // Neither base case applied, so recursively split this problem into
       // smaller problems and then merge the results.
-      return Task.callable("split", () -> Tuples.tuple(range.firstHalf(), range.secondHalf()))
-          .flatMap(ranges -> Task.par(mergeSort(toSort, ranges._1()), mergeSort(toSort, ranges._2())).map("merge",
-              parts -> merge(ranges._1(), parts._1(), ranges._2(), parts._2())));
+      return Task.value("ranges", Tuples.tuple(range.firstHalf(), range.secondHalf()))
+          .flatMap("split", ranges -> Task.par(mergeSort(toSort, ranges._1()), mergeSort(toSort, ranges._2()))
+          .map("merge", parts -> merge(ranges._1(), parts._1(), ranges._2(), parts._2())));
     }
   }
 

@@ -23,7 +23,7 @@ import com.linkedin.parseq.trace.TraceBuilder;
 
 /**
  * This is internal class and it should not be extended or used outside ParSeq.
- * It may change at any time in a backwards incopmpatible way.
+ * It may change at any time in a backwards incompatible way.
  *
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
@@ -34,19 +34,32 @@ class FusionTask<S, T> extends BaseTask<T> {
   private static final Continuations CONTINUATIONS = new Continuations();
 
   private final Consumer3<FusionTraceContext, Promise<S>, Settable<T>> _propagator;
-  private final Task<S> _task;
+  private final Task<S> _asyncTask;
   private final Promise<S> _source;
 
   private final ShallowTraceBuilder _predecessor;
 
   private FusionTask(final String desc, final Task<S> task, final Promise<S> source,
-      final Consumer3<FusionTraceContext, Promise<S>, Settable<T>> propagator,
-      final ShallowTraceBuilder predecessor) {
+      final PromisePropagator<S, T> propagator) {
     super(desc);
-    _propagator = completing(propagator);
-    _task = task;
+    _propagator = completing(adaptToAcceptTraceContext(propagator));
+    _asyncTask = task;
     _source = source;
-    _predecessor = predecessor;
+    _predecessor = null;
+  }
+
+  private <R> FusionTask(final String desc, final FusionTask<S, R> predecessor,
+      final PromisePropagator<R, T> propagator) {
+    super(desc);
+    _asyncTask = predecessor._asyncTask;
+    _source = predecessor._source;
+    _predecessor = predecessor.getShallowTraceBuilder();
+    _propagator = completing(compose(predecessor._propagator, adaptToAcceptTraceContext(propagator)));
+  }
+
+  private static <A, B> Consumer3<FusionTraceContext, Promise<A>, Settable<B>> adaptToAcceptTraceContext(
+      final PromisePropagator<A, B> propagator) {
+    return (traceContext, src, dest) -> propagator.accept(src, dest);
   }
 
   private void trnasitionToDone(final FusionTraceContext traceContext) {
@@ -55,31 +68,62 @@ class FusionTask<S, T> extends BaseTask<T> {
     transitionDone();
   }
 
-  private void addRelationships(final FusionTraceContext traceContext) {
-    TraceBuilder builder = getTraceBuilder();
-    final ShallowTraceBuilder parent = traceContext.getContext().getShallowTraceBuilder();
-    final boolean isTrigger = traceContext.getTrigger().getId().equals(getId());
+  private boolean isPropagationInitiator(final FusionTraceContext traceContext) {
+    return traceContext.getPropagationInitiator().getId().equals(getId());
+  }
 
-    if (!isTrigger) {
-      builder.addRelationship(Relationship.PARENT_OF, parent, _shallowTraceBuilder);
+  private ShallowTraceBuilder getEffectiveShallowTraceBuilder(final FusionTraceContext traceContext) {
+    if (isPropagationInitiator(traceContext)) {
+      return traceContext.getSurrogate();
+    } else {
+      return _shallowTraceBuilder;
     }
+  }
 
-    if (_predecessor != null && (!isTrigger)) {
-      builder.addRelationship(Relationship.SUCCESSOR_OF, _shallowTraceBuilder, _predecessor);
+  private void addRelationships(final FusionTraceContext traceContext) {
+    final ShallowTraceBuilder effectoveShallowTraceBuilder = getEffectiveShallowTraceBuilder(traceContext);
+    TraceBuilder builder = getTraceBuilder();
+    builder.addRelationship(Relationship.PARENT_OF, traceContext.getParent().getShallowTraceBuilder(), effectoveShallowTraceBuilder);
+    if (_predecessor != null) {
+      builder.addRelationship(Relationship.SUCCESSOR_OF, effectoveShallowTraceBuilder, _predecessor);
     }
   }
 
   private void addPotentialRelationships(final FusionTraceContext traceContext, final TraceBuilder builder) {
-    final ShallowTraceBuilder parent = traceContext.getContext().getShallowTraceBuilder();
-    final boolean isTrigger = traceContext.getTrigger().getId().equals(getId());
-
-    if (!isTrigger) {
-      builder.addRelationship(Relationship.POTENTIAL_CHILD_OF, _shallowTraceBuilder, parent);
+    final ShallowTraceBuilder effectoveShallowTraceBuilder = getEffectiveShallowTraceBuilder(traceContext);
+    builder.addRelationship(Relationship.POTENTIAL_CHILD_OF, effectoveShallowTraceBuilder, traceContext.getParent().getShallowTraceBuilder());
+    if (_predecessor != null) {
+      builder.addRelationship(Relationship.POSSIBLE_SUCCESSOR_OF, effectoveShallowTraceBuilder, _predecessor);
     }
+  }
 
-    if (_predecessor != null && (!isTrigger)) {
-      builder.addRelationship(Relationship.POSSIBLE_SUCCESSOR_OF, _shallowTraceBuilder, _predecessor);
-    }
+  private <R> Consumer3<FusionTraceContext, Promise<S>, Settable<T>> compose(
+      final Consumer3<FusionTraceContext, Promise<S>, Settable<R>> predecessor,
+      final Consumer3<FusionTraceContext, Promise<R>, Settable<T>> propagator) {
+    return (traceContext, src, dst) -> {
+      predecessor.accept(traceContext, src, new Settable<R>() {
+
+        @Override
+        public void done(R value) throws PromiseResolvedException {
+          try {
+            getEffectiveShallowTraceBuilder(traceContext).setStartNanos(System.nanoTime());
+            propagator.accept(traceContext, Promises.value(value), dst);
+          } catch (Exception e) {
+            LOGGER.error("An exception was thrown by propagator", e);
+          }
+        }
+
+        @Override
+        public void fail(Throwable error) throws PromiseResolvedException {
+          try {
+            getEffectiveShallowTraceBuilder(traceContext).setStartNanos(System.nanoTime());
+            propagator.accept(traceContext, Promises.error(error), dst);
+          } catch (Exception e) {
+            LOGGER.error("An exception was thrown by propagator", e);
+          }
+        }
+      });
+    };
   }
 
   private Consumer3<FusionTraceContext, Promise<S>, Settable<T>> completing(
@@ -87,24 +131,51 @@ class FusionTask<S, T> extends BaseTask<T> {
     return (traceContext, src, dest) -> {
       final SettablePromise<T> settable = FusionTask.this.getSettableDelegate();
 
-      if (traceContext.getTrigger() != null && traceContext.getTrigger().getId().equals(getId())) {
-        //simply propagate result because the BaseTask's code
-        //handles completing the task
+      if (isPropagationInitiator(traceContext)) {
+        //BaseTask's code handles completing the parent task
+        //we need to handle tracing of a surrogate task here
+        final ShallowTraceBuilder shallowTraceBuilder = traceContext.getSurrogate();
+        final long startNanos = System.nanoTime();
+        shallowTraceBuilder.setStartNanos(startNanos);
         propagator.accept(traceContext, src, new Settable<T>() {
           @Override
           public void done(T value) throws PromiseResolvedException {
+            addRelationships(traceContext);
+            final long endNanos = System.nanoTime();
+            shallowTraceBuilder.setPendingNanos(endNanos);
+            shallowTraceBuilder.setEndNanos(endNanos);
+            final Function<T, String> traceValueProvider = _traceValueProvider;
+            shallowTraceBuilder.setResultType(ResultType.SUCCESS);
+            if (traceValueProvider != null) {
+              try {
+                shallowTraceBuilder.setValue(traceValueProvider.apply(value));
+              } catch (Exception e) {
+                shallowTraceBuilder.setValue(Exceptions.failureToString(e));
+              }
+            }
             dest.done(value);
           }
 
           @Override
           public void fail(Throwable error) throws PromiseResolvedException {
+            addRelationships(traceContext);
+            final long endNanos = System.nanoTime();
+            shallowTraceBuilder.setPendingNanos(endNanos);
+            shallowTraceBuilder.setEndNanos(endNanos);
+            if (Exceptions.isEarlyFinish(error)) {
+              shallowTraceBuilder.setResultType(ResultType.EARLY_FINISH);
+            } else {
+              shallowTraceBuilder.setResultType(ResultType.ERROR);
+              shallowTraceBuilder.setValue(Exceptions.failureToString(error));
+            }
             dest.fail(error);
           }
         });
-      } else if (transitionRun(traceContext.getContext().getTraceBuilder())) {
+      } else if (transitionRun(traceContext.getParent().getTraceBuilder())) {
+        markTaskStarted();
         //non-parent task executed for the first time
-        traceContext.getContext().getTaskLogger().logTaskStart(this);
-        Runnable complete = () -> {
+        traceContext.getParent().getTaskLogger().logTaskStart(this);
+        CONTINUATIONS.submit(() -> {
           try {
             propagator.accept(traceContext, src, new Settable<T>() {
               @Override
@@ -121,7 +192,7 @@ class FusionTask<S, T> extends BaseTask<T> {
                     }
                   }
                   settable.done(value);
-                  traceContext.getContext().getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);
+                  traceContext.getParent().getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);
                   CONTINUATIONS.submit(() -> dest.done(value));
                 } catch (Exception e) {
                   CONTINUATIONS.submit(() -> dest.fail(e));
@@ -134,7 +205,7 @@ class FusionTask<S, T> extends BaseTask<T> {
                   trnasitionToDone(traceContext);
                   traceFailure(error);
                   settable.fail(error);
-                  traceContext.getContext().getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);
+                  traceContext.getParent().getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);
                   CONTINUATIONS.submit(() -> dest.fail(error));
                 } catch (Exception e) {
                   CONTINUATIONS.submit(() -> dest.fail(e));
@@ -144,63 +215,32 @@ class FusionTask<S, T> extends BaseTask<T> {
           } catch (Exception e) {
             LOGGER.error("An exception was thrown by propagator", e);
           }
-        };
-        CONTINUATIONS.submit(complete);
+        });
       } else {
         //non-parent tasks subsequent executions
-        addPotentialRelationships(traceContext, traceContext.getContext().getTraceBuilder());
+        addPotentialRelationships(traceContext, traceContext.getParent().getTraceBuilder());
         Promises.propagateResult(settable, dest);
       }
     };
-  }
-
-  private static <A, B> Consumer3<FusionTraceContext, Promise<A>, Settable<B>> withFusionTraceContext(
-      final PromisePropagator<A, B> propagator) {
-    return (traceContext, src, dest) -> propagator.accept(src, dest);
   }
 
   /**
    * Create new FusionTask without any predecessors.
    */
   public static <S, T> FusionTask<?, T> create(final String name, final PromisePropagator<S, T> propagator) {
-    return new FusionTask<S, T>(name, null, null, withFusionTraceContext(propagator), null);
+    return new FusionTask<S, T>(name, null, null, propagator);
   }
 
   /**
-   * Create new FusionTask where task is not a FusionTask
+   * Create new FusionTask with an async predecessor.
    */
   public static <S, T> FusionTask<?, T> create(final String name, final Task<S> task, final PromisePropagator<S, T> propagator) {
-    return new FusionTask<S, T>(name, task, task, withFusionTraceContext(propagator), null);
-  }
-
-  private <R> Consumer3<FusionTraceContext, Promise<S>, Settable<R>> compose(
-      final Consumer3<FusionTraceContext, Promise<T>, Settable<R>> propagator) {
-    return (traceContext, src, dst) -> {
-      _propagator.accept(traceContext, src, new Settable<T>() {
-        @Override
-        public void done(T value) throws PromiseResolvedException {
-          try {
-            propagator.accept(traceContext, Promises.value(value), dst);
-          } catch (Exception e) {
-            LOGGER.error("An exception was thrown by propagator", e);
-          }
-        }
-
-        @Override
-        public void fail(Throwable error) throws PromiseResolvedException {
-          try {
-            propagator.accept(traceContext, Promises.error(error), dst);
-          } catch (Exception e) {
-            LOGGER.error("An exception was thrown by propagator", e);
-          }
-        }
-      });
-    };
+    return new FusionTask<S, T>(name, task, task, propagator);
   }
 
   @Override
   public <R> Task<R> apply(String desc, PromisePropagator<T, R> propagator) {
-    return new FusionTask<>(desc, _task, _task, compose(withFusionTraceContext(propagator)), _shallowTraceBuilder);
+    return new FusionTask<>(desc, this, propagator);
   }
 
   @Override
@@ -229,7 +269,7 @@ class FusionTask<S, T> extends BaseTask<T> {
     });
   }
 
-  protected void propagate(final FusionTraceContext traceContext, final SettablePromise<T> result) {
+  private void propagate(final FusionTraceContext traceContext, final SettablePromise<T> result) {
     try {
       _propagator.accept(traceContext, _source, result);
     } catch (Throwable t) {
@@ -240,20 +280,24 @@ class FusionTask<S, T> extends BaseTask<T> {
   @Override
   protected Promise<? extends T> run(final Context context) throws Throwable {
     final SettablePromise<T> result = Promises.settable();
-    if (_task == null) {
+    String baseName = getName();
+    _shallowTraceBuilder.setSystemHidden(true);
+    if (_asyncTask == null) {
+      _shallowTraceBuilder.setName("fused");
       FusionTraceContext traceContext = new FusionTraceContext(context,
-          FusionTask.this.getShallowTraceBuilder());
+          FusionTask.this.getShallowTraceBuilder(), baseName);
       propagate(traceContext, result);
     } else {
-      final Task<T> propagationTask = Task.async(FusionTask.this.getName(), ctx -> {
+      _shallowTraceBuilder.setName("async fused");
+      final Task<T> propagationTask = Task.async("fused", ctx -> {
         final SettablePromise<T> fusionResult = Promises.settable();
-        FusionTraceContext traceContext = new FusionTraceContext(ctx, FusionTask.this.getShallowTraceBuilder());
+        FusionTraceContext traceContext = new FusionTraceContext(ctx, FusionTask.this.getShallowTraceBuilder(), baseName);
         propagate(traceContext, fusionResult);
         return fusionResult;
       });
       propagationTask.getShallowTraceBuilder().setSystemHidden(true);
-      context.after(_task).run(propagationTask);
-      context.run(_task);
+      context.after(_asyncTask).run(propagationTask);
+      context.run(_asyncTask);
       Promises.propagateResult(propagationTask, result);
     }
     return result;

@@ -1,23 +1,31 @@
 package com.linkedin.parseq;
 
+import com.linkedin.parseq.internal.IdGenerator;
 import com.linkedin.parseq.trace.ShallowTraceBuilder;
 
 
 public class FusionTraceContext {
 
-  private final ShallowTraceBuilder _trigger;
-  private final Context _context;
+  private final ShallowTraceBuilder _propagationInitiator;
+  private final Context _parent;
+  private final ShallowTraceBuilder _surrogate;
 
-  public FusionTraceContext(Context context, ShallowTraceBuilder trigger) {
-    _context = context;
-    _trigger = trigger;
+  public FusionTraceContext(Context parent, ShallowTraceBuilder propagationInitiator, String desc) {
+    _parent = parent;
+    _propagationInitiator = propagationInitiator;
+    _surrogate = new ShallowTraceBuilder(IdGenerator.getNextId());
+    _surrogate.setName(desc);
   }
 
-  public ShallowTraceBuilder getTrigger() {
-    return _trigger;
+  public ShallowTraceBuilder getPropagationInitiator() {
+    return _propagationInitiator;
   }
 
-  public Context getContext() {
-    return _context;
+  public Context getParent() {
+    return _parent;
+  }
+
+  public ShallowTraceBuilder getSurrogate() {
+    return _surrogate;
   }
 }
