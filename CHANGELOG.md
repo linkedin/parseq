@@ -1,3 +1,10 @@
+v2.1.0
+------
+
+* Tracing improvements:
+  - Changed the way tasks fusion is reflected in trace so that it is  more intuitive and better reflect performance of individual transformations
+  - Added class name of lambdas passed to functional API to default task descriptions
+
 v2.0.8
 ------
 
