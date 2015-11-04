@@ -22,10 +22,17 @@ import com.linkedin.parseq.trace.TraceBuilder;
 
 
 /**
+ * FusionTask implements optimization in case when multiple synchronous
+ * transformations are applied in sequence. Instead of rescheduling every transformation
+ * as a separate task it is faster to apply transformations in a chain.
+ *
  * This is internal class and it should not be extended or used outside ParSeq.
- * It may change at any time in a backwards incompatible way.
+ * It may change or be removed at any time in a backwards incompatible way.
  *
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
+ *
+ * @param <S> type of source
+ * @param <T> type of target
  */
 class FusionTask<S, T> extends BaseTask<T> {
 
@@ -33,10 +40,16 @@ class FusionTask<S, T> extends BaseTask<T> {
 
   private static final Continuations CONTINUATIONS = new Continuations();
 
+  /* Encapsulates transformation from source to target, includes all predecessors' transformations, can't be null */
   private final Consumer3<FusionTraceContext, Promise<S>, Settable<T>> _propagator;
+
+  /* Asynchronous task that will complete source promise, can be null in which case propagator must not depend on source */
   private final Task<S> _asyncTask;
+
+  /* Source that will be used by propagator, can be null in which case propagator must not depend on it */
   private final Promise<S> _source;
 
+  /* Trace builder for the predecessor, used for building trace relationships, can be null */
   private final ShallowTraceBuilder _predecessor;
 
   private FusionTask(final String desc, final Task<S> task, final Promise<S> source,
@@ -57,6 +70,10 @@ class FusionTask<S, T> extends BaseTask<T> {
     _propagator = completing(compose(predecessor._propagator, adaptToAcceptTraceContext(propagator)));
   }
 
+  /**
+   * Drops FusionTraceContext on the floor. This method adapts pure transformation to be used within FusionTask
+   * that needs additional information (FusionTraceContext) to build trace.
+   */
   private static <A, B> Consumer3<FusionTraceContext, Promise<A>, Settable<B>> adaptToAcceptTraceContext(
       final PromisePropagator<A, B> propagator) {
     return (traceContext, src, dest) -> propagator.accept(src, dest);
@@ -68,10 +85,17 @@ class FusionTask<S, T> extends BaseTask<T> {
     transitionDone();
   }
 
+  /**
+   * Has current task initiated propagation?
+   */
   private boolean isPropagationInitiator(final FusionTraceContext traceContext) {
     return traceContext.getPropagationInitiator().getId().equals(getId());
   }
 
+  /**
+   * Depending on the context, returns trace builder that will contain information about the
+   * transformation. This is used to avoid wrapping single transformation with "fused" parent.
+   */
   private ShallowTraceBuilder getEffectiveShallowTraceBuilder(final FusionTraceContext traceContext) {
     if (isPropagationInitiator(traceContext)) {
       return traceContext.getSurrogate();
@@ -97,11 +121,19 @@ class FusionTask<S, T> extends BaseTask<T> {
     }
   }
 
+  /**
+   * Composes transformation with the transformation of the predecessor.
+   */
   private <R> Consumer3<FusionTraceContext, Promise<S>, Settable<T>> compose(
       final Consumer3<FusionTraceContext, Promise<S>, Settable<R>> predecessor,
       final Consumer3<FusionTraceContext, Promise<R>, Settable<T>> propagator) {
+
     return (traceContext, src, dst) -> {
 
+      /*
+       * At this point we know that transformation chain's length > 1.
+       * This code is executed during task execution, not when task is constructed.
+       */
       traceContext.createSurrogate();
 
       predecessor.accept(traceContext, src, new Settable<R>() {
@@ -109,34 +141,43 @@ class FusionTask<S, T> extends BaseTask<T> {
         @Override
         public void done(R value) throws PromiseResolvedException {
           try {
+            /* Track start time of the transformation. End time is tracked by closure created by completing() */
             getEffectiveShallowTraceBuilder(traceContext).setStartNanos(System.nanoTime());
             propagator.accept(traceContext, Promises.value(value), dst);
           } catch (Exception e) {
-            LOGGER.error("An exception was thrown by propagator", e);
+            /* This can only happen if there is an internal problem. Propagators should not throw any exceptions. */
+            LOGGER.error("ParSeq ingternal error. An exception was thrown by propagator", e);
           }
         }
 
         @Override
         public void fail(Throwable error) throws PromiseResolvedException {
           try {
+            /* Track start time of the transformation. End time is tracked by closure created by completing() */
             getEffectiveShallowTraceBuilder(traceContext).setStartNanos(System.nanoTime());
             propagator.accept(traceContext, Promises.error(error), dst);
           } catch (Exception e) {
-            LOGGER.error("An exception was thrown by propagator", e);
+            /* This can only happen if there is an internal problem. Propagators should not throw any exceptions. */
+            LOGGER.error("ParSeq ingternal error. An exception was thrown by propagator.", e);
           }
         }
       });
     };
   }
 
+  /**
+   * Adds closure to the propagator that maintains correct state of the task e.g. transitions between states,
+   * adds trace etc.
+   */
   private Consumer3<FusionTraceContext, Promise<S>, Settable<T>> completing(
       final Consumer3<FusionTraceContext, Promise<S>, Settable<T>> propagator) {
     return (traceContext, src, dest) -> {
       final SettablePromise<T> settable = FusionTask.this.getSettableDelegate();
 
       if (isPropagationInitiator(traceContext)) {
-        //BaseTask's code handles completing the parent task
-        //we need to handle tracing of a surrogate task here
+        /* BaseTask's code handles completing the parent task
+         * we need to handle tracing of a surrogate task here
+         */
         propagator.accept(traceContext, src, new Settable<T>() {
           @Override
           public void done(T value) throws PromiseResolvedException {
@@ -219,7 +260,8 @@ class FusionTask<S, T> extends BaseTask<T> {
               }
             });
           } catch (Exception e) {
-            LOGGER.error("An exception was thrown by propagator", e);
+            /* This can only happen if there is an internal problem. Propagators should not throw any exceptions. */
+            LOGGER.error("ParSeq ingternal error. An exception was thrown by propagator.", e);
           }
         });
       } else {
@@ -288,12 +330,15 @@ class FusionTask<S, T> extends BaseTask<T> {
     final SettablePromise<T> result = Promises.settable();
     String baseName = getName();
     if (_asyncTask == null) {
+      /* There is no async predecessor, run propagation immediately */
       FusionTraceContext traceContext = new FusionTraceContext(context,
           FusionTask.this.getShallowTraceBuilder(), baseName);
       propagate(traceContext, result);
     } else {
+      /* There is async predecessor, need to run it first */
       _shallowTraceBuilder.setName("async fused");
       _shallowTraceBuilder.setSystemHidden(true);
+      /* PropagationTask will actually run propagation */
       final Task<T> propagationTask = Task.async(baseName, ctx -> {
         final SettablePromise<T> fusionResult = Promises.settable();
         FusionTraceContext traceContext = new FusionTraceContext(ctx, FusionTask.this.getShallowTraceBuilder(), baseName);

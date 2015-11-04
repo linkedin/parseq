@@ -50,7 +50,6 @@ public class TestFusionTaskTrace extends BaseEngineTest {
     runAndWait("FusionTaskTraceTest.testMapFork", task);
   }
 
-
   @Test
   public void testAsyncMap0() {
     Task<Integer> task = Task.async("value", () -> {
@@ -110,7 +109,7 @@ public class TestFusionTaskTrace extends BaseEngineTest {
     });
     Task<Integer> task = Task.par(base.map("m1", x -> x), base.map("m2", x -> x))
     .map("sum", (x, y) -> x + y);
-    runAndWait("FusionTaskTraceTest.testMapFork", task);
+    runAndWait("FusionTaskTraceTest.testAsyncFork", task);
   }
 
 
