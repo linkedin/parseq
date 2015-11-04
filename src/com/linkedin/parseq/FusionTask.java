@@ -46,27 +46,21 @@ class FusionTask<S, T> extends BaseTask<T> {
   /* Asynchronous task that will complete source promise, can be null in which case propagator must not depend on source */
   private final Task<S> _asyncTask;
 
-  /* Source that will be used by propagator, can be null in which case propagator must not depend on it */
-  private final Promise<S> _source;
-
   /* Trace builder for the predecessor, used for building trace relationships, can be null */
-  private final ShallowTraceBuilder _predecessor;
+  private final ShallowTraceBuilder _predecessorShallowTraceBuilder;
 
-  private FusionTask(final String desc, final Task<S> task, final Promise<S> source,
-      final PromisePropagator<S, T> propagator) {
+  private FusionTask(final String desc, final Task<S> task, final PromisePropagator<S, T> propagator) {
     super(desc);
     _propagator = completing(adaptToAcceptTraceContext(propagator));
     _asyncTask = task;
-    _source = source;
-    _predecessor = null;
+    _predecessorShallowTraceBuilder = null;
   }
 
   private <R> FusionTask(final String desc, final FusionTask<S, R> predecessor,
       final PromisePropagator<R, T> propagator) {
     super(desc);
     _asyncTask = predecessor._asyncTask;
-    _source = predecessor._source;
-    _predecessor = predecessor.getShallowTraceBuilder();
+    _predecessorShallowTraceBuilder = predecessor.getShallowTraceBuilder();
     _propagator = completing(compose(predecessor._propagator, adaptToAcceptTraceContext(propagator)));
   }
 
@@ -108,16 +102,16 @@ class FusionTask<S, T> extends BaseTask<T> {
     final ShallowTraceBuilder effectoveShallowTraceBuilder = getEffectiveShallowTraceBuilder(traceContext);
     TraceBuilder builder = getTraceBuilder();
     builder.addRelationship(Relationship.PARENT_OF, traceContext.getParent().getShallowTraceBuilder(), effectoveShallowTraceBuilder);
-    if (_predecessor != null) {
-      builder.addRelationship(Relationship.SUCCESSOR_OF, effectoveShallowTraceBuilder, _predecessor);
+    if (_predecessorShallowTraceBuilder != null) {
+      builder.addRelationship(Relationship.SUCCESSOR_OF, effectoveShallowTraceBuilder, _predecessorShallowTraceBuilder);
     }
   }
 
   private void addPotentialRelationships(final FusionTraceContext traceContext, final TraceBuilder builder) {
     final ShallowTraceBuilder effectoveShallowTraceBuilder = getEffectiveShallowTraceBuilder(traceContext);
     builder.addRelationship(Relationship.POTENTIAL_CHILD_OF, effectoveShallowTraceBuilder, traceContext.getParent().getShallowTraceBuilder());
-    if (_predecessor != null) {
-      builder.addRelationship(Relationship.POSSIBLE_SUCCESSOR_OF, effectoveShallowTraceBuilder, _predecessor);
+    if (_predecessorShallowTraceBuilder != null) {
+      builder.addRelationship(Relationship.POSSIBLE_SUCCESSOR_OF, effectoveShallowTraceBuilder, _predecessorShallowTraceBuilder);
     }
   }
 
@@ -276,14 +270,14 @@ class FusionTask<S, T> extends BaseTask<T> {
    * Create new FusionTask without any predecessors.
    */
   public static <S, T> FusionTask<?, T> create(final String name, final PromisePropagator<S, T> propagator) {
-    return new FusionTask<S, T>(name, null, null, propagator);
+    return new FusionTask<S, T>(name, (Task<S>)null, propagator);
   }
 
   /**
    * Create new FusionTask with an async predecessor.
    */
   public static <S, T> FusionTask<?, T> create(final String name, final Task<S> task, final PromisePropagator<S, T> propagator) {
-    return new FusionTask<S, T>(name, task, task, propagator);
+    return new FusionTask<S, T>(name, task, propagator);
   }
 
   @Override
@@ -319,7 +313,7 @@ class FusionTask<S, T> extends BaseTask<T> {
 
   private void propagate(final FusionTraceContext traceContext, final SettablePromise<T> result) {
     try {
-      _propagator.accept(traceContext, _source, result);
+      _propagator.accept(traceContext, _asyncTask, result);
     } catch (Throwable t) {
       result.fail(t);
     }
