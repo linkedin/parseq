@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.linkedin.parseq.Tasks.par;
 import static com.linkedin.parseq.Task.value;
+import static org.testng.Assert.assertFalse;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
@@ -506,8 +507,8 @@ public class TestParTask extends BaseEngineTest {
   }
 
   @Test
-  public void testParIsSystemHidden() {
+  public void testParIsNotSystemHidden() {
     final ParTask<String> par = par(Collections.singleton(value("value")));
-    assertTrue(par.getShallowTrace().getSystemHidden());
+    assertFalse(par.getShallowTrace().getSystemHidden());
   }
 }

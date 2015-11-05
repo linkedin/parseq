@@ -127,7 +127,7 @@ public class BaseEngineTest {
 
   protected void logTracingResults(final String test, final Task<?> task) {
     try {
-      LOG.info("Trace [" + test + "]: " + TraceUtil.getJsonTrace(task));
+      LOG.info("Trace [" + test + "]:\n" + TraceUtil.getJsonTrace(task));
     } catch (IOException e) {
       LOG.error("Failed to encode JSON");
     }

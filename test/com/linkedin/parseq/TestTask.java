@@ -33,7 +33,7 @@ public class TestTask extends AbstractTaskTest {
 
   @Test
   public void testRecover() {
-    testRecover(4);
+    testRecover(5);
   }
 
   @Test
@@ -43,7 +43,7 @@ public class TestTask extends AbstractTaskTest {
 
   @Test
   public void testTry() {
-    testToTry(4);
+    testToTry(5);
   }
 
   @Test
