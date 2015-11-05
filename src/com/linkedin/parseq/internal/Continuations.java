@@ -1,7 +1,8 @@
 package com.linkedin.parseq.internal;
 
-import java.util.Stack;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 /**
  * This class allows running the following code structure:
@@ -43,16 +44,16 @@ public class Continuations {
   private static final class Continuation {
     // contains sibling actions in reverse order of submission
     // sibling actions are actions submitted by the same parent action
-    private Stack<Runnable> _siblingActions = new Stack<>();
+    private final Deque<Runnable> _siblingActions = new ArrayDeque<>();
 
     /** contains actions for execution in post-order
      *  actions with larger depth at the top;
      *  for sibling actions with the same depth, the first submitted is at the top
      */
-    private Stack<Runnable> _postOrderExecutionStack = new Stack<>();
+    private final Deque<Runnable> _postOrderExecutionStack = new ArrayDeque<>();
 
     private void submit(final Runnable action) {
-      if (_postOrderExecutionStack.empty()) {
+      if (_postOrderExecutionStack.size() == 0) {
         // we are at the root level of a call tree
         // this branch contains main loop responsible for
         // executing all actions
@@ -60,7 +61,7 @@ public class Continuations {
         loop();
       } else {
         // another child action added by the current action
-        _siblingActions.add(action);
+        _siblingActions.push(action);
       }
     }
 
@@ -77,10 +78,10 @@ public class Continuations {
           // currentAction could have submitted a few children actions, so we pop them out from
           // _siblingActions & push them into _postOrderExecutionStack, resulting in the desired
           // post-order execution order
-          while (!_siblingActions.empty()) {
+          while (_siblingActions.size() > 0) {
             _postOrderExecutionStack.push(_siblingActions.pop());
           }
-        } while (!_postOrderExecutionStack.empty());
+        } while (_postOrderExecutionStack.size() > 0);
       } finally {
         // maintain invariants
         _postOrderExecutionStack.clear();
