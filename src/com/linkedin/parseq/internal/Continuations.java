@@ -1,8 +1,8 @@
 package com.linkedin.parseq.internal;
 
+
 import java.util.ArrayDeque;
 import java.util.Deque;
-
 
 /**
  * This class allows running the following code structure:
@@ -16,8 +16,9 @@ import java.util.Deque;
  * such that {@code actionX} can throw exception or recursively call {@code method}
  * multiple times, without worry about stack overflow.
  * <p>
- * The guarantee is that actions are called in the same order than recursive approch
- * would have called them.
+ * The guarantee is that actions are called in the same order than recursive approach
+ * would have called them. To put it in another way, this class guarantees to traversal the
+ * execution tree in post-order.
  * <p>
  * You can imagine recursive invocations as walking an execution tree in DFS order where
  * order of visiting children of a tree matters. This class implements DFS walk
@@ -32,10 +33,7 @@ public class Continuations {
   private final ThreadLocal<Continuation> CONTINUATION = new ThreadLocal<Continuation>() {
     @Override
     protected Continuation initialValue() {
-      Continuation cont = new Continuation();
-      cont._inactive = new ArrayDeque<>();
-      cont._scheduled = new ArrayDeque<>();
-      return cont;
+      return new Continuation();
     }
   };
 
@@ -44,51 +42,54 @@ public class Continuations {
   }
 
   private static final class Continuation {
-    // contains actions scheduled in the current recurrence level
-    private Deque<Runnable> _active;
+    // contains sibling actions in reverse order of submission
+    // sibling actions are actions submitted by the same parent action
+    private final Deque<Runnable> _siblingActions = new ArrayDeque<>();
 
-    // variable to cache empty deque instance
-    private Deque<Runnable> _inactive;
-
-    // contains actions scheduled for execution
-    private Deque<Runnable> _scheduled;
+    /** contains actions for execution in post-order
+     *  actions with larger depth at the top;
+     *  for sibling actions with the same depth, the first submitted is at the top
+     */
+    private final Deque<Runnable> _postOrderExecutionStack = new ArrayDeque<>();
 
     private void submit(final Runnable action) {
-      if (_active == null) {
+      if (_postOrderExecutionStack.size() == 0) {
         // we are at the root level of a call tree
         // this branch contains main loop responsible for
         // executing all actions
-        _active = _inactive;
-        _scheduled.add(action);
+        _postOrderExecutionStack.push(action);
         loop();
       } else {
-        // not a root level, just schedule an action
-        _active.add(action);
+        // another child action added by the current action
+        _siblingActions.push(action);
       }
     }
 
     private void loop() {
       //  Entering state:
-      //  - _active is empty
-      //  - _scheduled has one action
+      //  - _siblingActions is empty
+      //  - _postOrderExecutionStack has one action (root)
       try {
         do {
-          final Runnable next = _scheduled.pollFirst();
-          next.run();
-          while (!_active.isEmpty()) {
-            _scheduled.addFirst(_active.pollLast());
+          Runnable currentAction = _postOrderExecutionStack.peek();
+          currentAction.run();
+          _postOrderExecutionStack.pop();
+
+          // currentAction could have submitted a few children actions, so we pop them out from
+          // _siblingActions & push them into _postOrderExecutionStack, resulting in the desired
+          // post-order execution order
+          while (_siblingActions.size() > 0) {
+            _postOrderExecutionStack.push(_siblingActions.pop());
           }
-        } while (!_scheduled.isEmpty());
+        } while (_postOrderExecutionStack.size() > 0);
       } finally {
         // maintain invariants
-        _scheduled.clear();
-        _active.clear();
-        _inactive = _active;
-        _active = null;
+        _postOrderExecutionStack.clear();
+        _siblingActions.clear();
       }
       //  Exiting state (even when exception is thrown):
-      //  - _active is null
-      //  - _scheduled and _inactive is empty
+      //  - _siblingActions is empty
+      //  - _postOrderExecutionStack is empty
     }
   }
 }
