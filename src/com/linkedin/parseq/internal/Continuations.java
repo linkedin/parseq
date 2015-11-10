@@ -16,7 +16,7 @@ import java.util.Deque;
  * such that {@code actionX} can throw exception or recursively call {@code method}
  * multiple times, without worry about stack overflow.
  * <p>
- * The guarantee is that actions are called in the same order than recursive approach
+ * The guarantee is that actions are called in the same order that recursive approach
  * would have called them. To put it in another way, this class guarantees to traversal the
  * execution tree in pre-order.
  * <p>
