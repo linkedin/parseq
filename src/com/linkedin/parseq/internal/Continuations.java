@@ -1,8 +1,8 @@
 package com.linkedin.parseq.internal;
 
+
 import java.util.ArrayDeque;
 import java.util.Deque;
-
 
 /**
  * This class allows running the following code structure:
@@ -16,8 +16,9 @@ import java.util.Deque;
  * such that {@code actionX} can throw exception or recursively call {@code method}
  * multiple times, without worry about stack overflow.
  * <p>
- * The guarantee is that actions are called in the same order than recursive approch
- * would have called them.
+ * The guarantee is that actions are called in the same order than recursive approach
+ * would have called them. To put it in another way, this class guarantees to traversal the
+ * execution tree in pre-order.
  * <p>
  * You can imagine recursive invocations as walking an execution tree in DFS order where
  * order of visiting children of a tree matters. This class implements DFS walk
@@ -32,10 +33,7 @@ public class Continuations {
   private final ThreadLocal<Continuation> CONTINUATION = new ThreadLocal<Continuation>() {
     @Override
     protected Continuation initialValue() {
-      Continuation cont = new Continuation();
-      cont._inactive = new ArrayDeque<>();
-      cont._scheduled = new ArrayDeque<>();
-      return cont;
+      return new Continuation();
     }
   };
 
@@ -44,51 +42,58 @@ public class Continuations {
   }
 
   private static final class Continuation {
-    // contains actions scheduled in the current recurrence level
-    private Deque<Runnable> _active;
+    // contains sibling actions in reverse order of submission
+    // sibling actions are actions submitted by the same parent action
+    private final Deque<Runnable> _siblingActions = new ArrayDeque<>();
 
-    // variable to cache empty deque instance
-    private Deque<Runnable> _inactive;
+    // contains actions for execution in pre-order
+    // actions with larger depth at the top
+    // for sibling actions with the same depth, the first submitted is at the top
+    private final Deque<Runnable> _preOrderExecutionStack = new ArrayDeque<>();
 
-    // contains actions scheduled for execution
-    private Deque<Runnable> _scheduled;
+    private boolean _inLoop = false;
 
     private void submit(final Runnable action) {
-      if (_active == null) {
+      if (!_inLoop) {
         // we are at the root level of a call tree
         // this branch contains main loop responsible for
         // executing all actions
-        _active = _inactive;
-        _scheduled.add(action);
+        _preOrderExecutionStack.push(action);
         loop();
       } else {
-        // not a root level, just schedule an action
-        _active.add(action);
+        // another child action added by the current action
+        _siblingActions.push(action);
       }
     }
 
     private void loop() {
       //  Entering state:
-      //  - _active is empty
-      //  - _scheduled has one action
+      //  - _siblingActions is empty
+      //  - _preOrderExecutionStack has one element
+      //  - _inLoop is false
+
+      _inLoop = true;
       try {
         do {
-          final Runnable next = _scheduled.pollFirst();
-          next.run();
-          while (!_active.isEmpty()) {
-            _scheduled.addFirst(_active.pollLast());
+          _preOrderExecutionStack.pop().run();
+
+          // currentAction could have submitted a few children actions, so we pop them out from
+          // _siblingActions & push them into _preOrderExecutionStack, resulting in the desired
+          // pre-order execution
+          while (_siblingActions.size() > 0) {
+            _preOrderExecutionStack.push(_siblingActions.pop());
           }
-        } while (!_scheduled.isEmpty());
+        } while (_preOrderExecutionStack.size() > 0);
       } finally {
         // maintain invariants
-        _scheduled.clear();
-        _active.clear();
-        _inactive = _active;
-        _active = null;
+        _preOrderExecutionStack.clear();
+        _siblingActions.clear();
+        _inLoop = false;
       }
       //  Exiting state (even when exception is thrown):
-      //  - _active is null
-      //  - _scheduled and _inactive is empty
+      //  - _siblingActions is empty
+      //  - _preOrderExecutionStack is empty
+      //  - _inLoop is false
     }
   }
 }
