@@ -105,7 +105,7 @@ public class BatchImpl<K, T> implements Batch<K, T> {
 
   }
 
-  public static class BatchBuilder<K, T> {
+  static class BatchBuilder<K, T> {
 
     private final Map<K, BatchEntry<T>> _map = new HashMap<>();
 

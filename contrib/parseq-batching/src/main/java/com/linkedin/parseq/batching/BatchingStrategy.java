@@ -110,7 +110,7 @@ public abstract class BatchingStrategy<G extends Group, K, T> {
 
   public abstract G classify(K entry);
 
-  public Map<G, Batch<K, T>> split(Batch<K, T> batch) {
+  private Map<G, Batch<K, T>> split(Batch<K, T> batch) {
     return batch.entires().stream()
         .collect(Collectors.groupingBy(entry -> classify(entry.getKey()), batchCollector()));
   }
@@ -129,7 +129,7 @@ public abstract class BatchingStrategy<G extends Group, K, T> {
       }
 
       private BatchBuilder<K, T> combine(BatchBuilder<K, T> larger, BatchBuilder<K, T> smaller) {
-        return null;
+        throw new UnsupportedOperationException();
       }
 
       @Override
