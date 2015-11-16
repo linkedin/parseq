@@ -60,6 +60,7 @@ public class SerialExecutor implements Executor {
 
   public void execute(final Runnable runnable) {
     _queue.add(runnable);
+    // Guarantee that execution loop is schedule only once.
     if (_pendingCount.getAndIncrement() == 0) {
       tryExecuteLoop();
     }
@@ -79,6 +80,7 @@ public class SerialExecutor implements Executor {
 
     @Override
     public void run() {
+      // If this plan is not marked as active, mark it now
       if (!_active) {
         _active = true;
         _activityHandler.activated();
@@ -97,13 +99,21 @@ public class SerialExecutor implements Executor {
       try {
         runnable.run();
       } finally {
+        // At this point _pendingCount >= 1. If there is no more work to be
+        // executed then mark this executor as deactivated.
+        // It is possible that between now and when we try to check if there is
+        // more work to do few lines below someone adds new task to the queue.
+        // This is expected and all it means is that executor will be marked as
+        // deactivated and activated short after that. This situation can only
+        // happen if task has been added to this executor asynchronously.
         if (_pendingCount.get() == 1) {
           _active = false;
           _activityHandler.deactivated();
         }
-        // In addition to its obvious use, this CAS operation acts like an
-        // exit from a monitor for memory consistency purposes. See the note
-        // above for more details.
+        // Guarantee that execution loop is schedule only once.
+        // In addition this CAS operation acts like an
+        // exit from a monitor for memory consistency purposes.
+        // See the note above for more details.
         if (_pendingCount.decrementAndGet() > 0) {
           tryExecuteLoop();
         }
