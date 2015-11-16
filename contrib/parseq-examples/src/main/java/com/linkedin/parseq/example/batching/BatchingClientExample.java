@@ -4,8 +4,10 @@ package com.linkedin.parseq.example.batching;
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.batching.Batch;
+import com.linkedin.parseq.batching.BatchImpl.BatchEntry;
 import com.linkedin.parseq.batching.BatchingStrategy;
 import com.linkedin.parseq.batching.BatchingSupport;
+import com.linkedin.parseq.batching.Group;
 import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.example.common.ExampleUtil;
 
@@ -15,12 +17,26 @@ import com.linkedin.parseq.example.common.ExampleUtil;
  */
 public class BatchingClientExample extends AbstractExample {
 
-  public static class ExampleBatchingStrategy extends BatchingStrategy<Long, String> {
+  private static class G implements Group {
+  }
+
+  public static class ExampleBatchingStrategy extends BatchingStrategy<G, Long, String> {
+
+    private final G singleGroup = new G();
 
     @Override
-    public void executeBatch(Batch<Long, String> batch) {
-      System.out.println("batch: " + batch);
+    public void executeBatch(G group, Batch<Long, String> batch) {
       batch.foreach((key, promise) -> promise.done("value for id + " + key));
+    }
+
+    @Override
+    public void executeSingleton(G group, Long key, BatchEntry<String> entry) {
+      entry.getPromise().done("value for id + " + key);
+    }
+
+    @Override
+    public G classify(Long entry) {
+      return singleGroup;
     }
 
   }
@@ -36,7 +52,7 @@ public class BatchingClientExample extends AbstractExample {
   protected void customizeEngine(com.linkedin.parseq.EngineBuilder engineBuilder) {
     BatchingSupport batchingSupport = new BatchingSupport();
     batchingSupport.registerStrategy(batchingStrategy);
-    engineBuilder.addPlanActivityListener(batchingSupport);
+    engineBuilder.setPlanActivityListener(batchingSupport);
   };
 
   public static void main(String[] args) throws Exception {

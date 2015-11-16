@@ -16,9 +16,7 @@
 
 package com.linkedin.parseq;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
@@ -45,9 +43,8 @@ import com.linkedin.parseq.internal.PlanActivityListener;
 public class EngineBuilder {
   private Executor _taskExecutor;
   private DelayedExecutor _timerScheduler;
-  private ILoggerFactory _loggerFactory = null;
-  private List<PlanActivityListener> _planActivityListeners =
-      new ArrayList<>();
+  private ILoggerFactory _loggerFactory;
+  private PlanActivityListener _planActivityListener;
 
   private Map<String, Object> _properties = new HashMap<String, Object>();
 
@@ -55,7 +52,7 @@ public class EngineBuilder {
   }
 
   /**
-   * Adds plan activity listener to the engine. The listener will be notified
+   * Sets plan activity listener for the engine. The listener will be notified
    * when plan becomes activated and deactivated.
    * <p>
    * Plan becomes activated when task belonging to it gets scheduled for execution
@@ -74,9 +71,9 @@ public class EngineBuilder {
    * @param planActivityListener the listener that will be notified when plan
    * is being activated and deactivated
    */
-  public void addPlanActivityListener(PlanActivityListener planActivityListener) {
+  public void setPlanActivityListener(PlanActivityListener planActivityListener) {
     ArgumentUtil.requireNotNull(planActivityListener, "planActivityListener");
-    _planActivityListeners.add(planActivityListener);
+    _planActivityListener = planActivityListener;
   }
 
   /**
@@ -163,7 +160,7 @@ public class EngineBuilder {
     }
     Engine engine = new Engine(_taskExecutor, new IndirectDelayedExecutor(_timerScheduler),
         _loggerFactory != null ? _loggerFactory : new CachedLoggerFactory(LoggerFactory.getILoggerFactory()),
-        _properties, _planActivityListeners);
+        _properties, _planActivityListener);
     return engine;
   }
 

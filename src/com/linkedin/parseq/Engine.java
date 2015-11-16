@@ -68,7 +68,7 @@ public class Engine {
 
   private final int _maxRelationshipsPerTrace;
 
-  final CopyOnWriteArrayList<PlanActivityListener> _planActivityListeners;
+  private final PlanActivityListener _planActivityListener;
 
   private final PromiseListener<Object> _taskDoneListener = new PromiseListener<Object>() {
     @Override
@@ -94,12 +94,12 @@ public class Engine {
 
   /* package private */ Engine(final Executor taskExecutor, final DelayedExecutor timerExecutor,
       final ILoggerFactory loggerFactory, final Map<String, Object> properties,
-      final List<PlanActivityListener> planActivityListeners) {
+      final PlanActivityListener planActivityListener) {
     _taskExecutor = taskExecutor;
     _timerExecutor = timerExecutor;
     _loggerFactory = loggerFactory;
     _properties = properties;
-    _planActivityListeners = new CopyOnWriteArrayList<>(planActivityListeners);
+    _planActivityListener = planActivityListener;
 
     _allLogger = loggerFactory.getLogger(LOGGER_BASE + ":all");
     _rootLogger = loggerFactory.getLogger(LOGGER_BASE + ":root");
@@ -145,7 +145,7 @@ public class Engine {
     } while (!_stateRef.compareAndSet(currState, newState));
 
     PlanContext planContext = new PlanContext(this, _taskExecutor, _timerExecutor, _loggerFactory, _allLogger,
-        _rootLogger, planClass, task, _maxRelationshipsPerTrace, _planActivityListeners);
+        _rootLogger, planClass, task, _maxRelationshipsPerTrace, _planActivityListener);
     new ContextImpl(planContext, task).runTask();
 
     InternalUtil.unwildcardTask(task).addListener(_taskDoneListener);
@@ -203,14 +203,6 @@ public class Engine {
    */
   public boolean awaitTermination(final int time, final TimeUnit unit) throws InterruptedException {
     return _terminated.await(time, unit);
-  }
-
-  public boolean addPlanActivityListener(final PlanActivityListener planActivityListener) {
-    return _planActivityListeners.add(planActivityListener);
-  }
-
-  public boolean removePlanActivityListener(final PlanActivityListener planActivityListener) {
-    return _planActivityListeners.remove(planActivityListener);
   }
 
   private boolean tryTransitionShutdown() {
