@@ -108,8 +108,12 @@ public class BatchImpl<K, T> implements Batch<K, T> {
   static class BatchBuilder<K, T> {
 
     private final Map<K, BatchEntry<T>> _map = new HashMap<>();
+    private Batch<K, T> _batch = null;
 
     public BatchBuilder<K, T> add(K key, BatchEntry<T> entry) {
+      if (_batch != null) {
+        throw new IllegalStateException("BatchBuilder has already been used to build a batch");
+      }
       //deduplication
       BatchEntry<T> duplicate = _map.get(key);
       if (duplicate != null) {
@@ -127,7 +131,10 @@ public class BatchImpl<K, T> implements Batch<K, T> {
 
 
     public Batch<K, T> build() {
-      return new BatchImpl<>(_map);
+      if (_batch == null) {
+        _batch = new BatchImpl<>(_map);
+      }
+      return _batch;
     }
 
     public int size() {
