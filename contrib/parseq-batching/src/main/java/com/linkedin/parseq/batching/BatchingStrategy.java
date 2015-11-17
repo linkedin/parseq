@@ -26,11 +26,71 @@ import com.linkedin.parseq.trace.Relationship;
 import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.TraceBuilder;
 
-public abstract class BatchingStrategy<G extends Group, K, T> {
+/**
+ * BatchingStrategy helps building "batching clients" in ParSeq. "Client" means on object that given {@code K key}
+ * provides a task that returns {@code T value}. "Batching" means that it can group together keys to resolve values
+ * in batches. The benefit of this approach is that batching happens transparently in the background and user's code
+ * does not have to deal with logic needed to implement batching.
+ * <p>
+ * Example of a batching client might be ParSeq client for a key-value store that provides batch get operation. For
+ * the sake of simplicity of the example we are using dummy, synchronous key-value store interface:
+ * <blockquote><pre>
+ *  interface KVStore {
+ *
+ *    String get(Long key);
+ *
+ *    Map{@code <Long, String>} batchGet(Collection{@code <Long>} keys);
+ *  }
+ * </pre></blockquote>
+ *
+ * We can then implement a {@code BatchingStrategy} in the following way:
+ * <blockquote><pre>
+ *  public static class BatchingKVStoreClient extends BatchingStrategy{@code <Integer, Long, String>} {
+ *    private final KVStore _store;
+ *
+ *    public BatchingKVStoreClient(KVStore store) {
+ *      _store = store;
+ *    }
+ *
+ *    {@code @Override}
+ *    public void executeBatch(Integer group, Batch{@code <Long, String>} batch) {
+ *      Map{@code <Long, String>} batchResult = _store.batchGet(batch.keys());
+ *      batch.foreach((key, promise) -> promise.done(batchResult.get(key)));
+ *    }
+ *
+ *    {@code @Override}
+ *    public void executeSingleton(Integer group, Long key, BatchEntry{@code <String>} entry) {
+ *      entry.getPromise().done(_store.get(key));
+ *    }
+ *
+ *    {@code @Override}
+ *    public Integer classify(Long entry) {
+ *      return 0;
+ *    }
+ *  }
+ * </pre></blockquote>
+ *
+ * In above example there is an assumption that all keys can be grouped together. This is why method {@code classify()}
+ * trivially returns a constant {@code 0}. In practice {@code classify()} returns an equivalence class. All keys that
+ * returns equal equivalence class will constitute a batch.
+ *
+ * @author Jaroslaw Odzga (jodzga@linkedin.com)
+ *
+ * @param <G> Type of a Group
+ * @param <K> Type of a Key
+ * @param <T> Type of a Value
+ */
+public abstract class BatchingStrategy<G, K, T> {
 
   private final ConcurrentHashMap<Long, BatchBuilder<K, T>> _batches =
       new ConcurrentHashMap<>();
 
+  /**
+   * This method returns Task that returns value for a single key in allowing this strategy to batch operations.
+   * @param desc description of the task
+   * @param key key
+   * @return Task that returns value for a single key in allowing this strategy to batch operations
+   */
   public Task<T> batchable(final String desc, final K key) {
     return Task.async(desc, ctx -> {
       final SettablePromise<T> result = Promises.settable();
@@ -49,7 +109,7 @@ public abstract class BatchingStrategy<G extends Group, K, T> {
   }
 
   private Task<?> taskForBatch(final G group, final Batch<K, T> batch) {
-    return Task.async(group.getName(batch), ctx -> {
+    return Task.async(getBatchName(batch, group), ctx -> {
       final SettablePromise<T> result = Promises.settable();
       final PromiseListener<T> countDownListener =
           new CountDownPromiseListener<T>(batch.size(), result, null);
@@ -109,6 +169,17 @@ public abstract class BatchingStrategy<G extends Group, K, T> {
   public abstract void executeSingleton(G group, K key, BatchEntry<T> entry);
 
   public abstract G classify(K entry);
+
+  /**
+   * Overriding this method allows providing custom name for a batch. Name will appear in the
+   * ParSeq trace as a description of the task that executes the batch.
+   * @param batch batch
+   * @param group group
+   * @return name for the batch
+   */
+  public String getBatchName(Batch<K, T> batch, G group) {
+    return "batch(" + batch.size() + ")";
+  }
 
   private Map<G, Batch<K, T>> split(Batch<K, T> batch) {
     return batch.entires().stream()

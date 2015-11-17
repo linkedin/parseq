@@ -242,8 +242,7 @@ public class GetRequestGroup implements RequestGroup {
         + ", _queryParams=" + _queryParams + "]";
   }
 
-  @Override
-  public <K, V> String getName(final Batch<K, V> batch) {
+  public <K, V> String getBatchName(final Batch<K, V> batch) {
     return _baseUriTemplate + " " + (batch.size() == 1 ? ResourceMethod.GET : (ResourceMethod.BATCH_GET +
         "(" + batch.size() + ")"));
   }

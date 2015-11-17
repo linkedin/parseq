@@ -16,9 +16,7 @@
 
 package com.linkedin.parseq;
 
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -41,6 +39,7 @@ import com.linkedin.parseq.promise.PromiseListener;
  * create Engine instances.
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
+ * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
 public class Engine {
   public static final String LOGGER_BASE = Engine.class.getName();

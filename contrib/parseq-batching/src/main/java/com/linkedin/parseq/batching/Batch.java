@@ -10,6 +10,13 @@ import com.linkedin.parseq.batching.BatchImpl.BatchEntry;
 import com.linkedin.parseq.promise.PromiseResolvedException;
 import com.linkedin.parseq.promise.SettablePromise;
 
+/**
+ *
+ * @author Jaroslaw Odzga (jodzga@linkedin.com)
+ *
+ * @param <K> Type of a Key
+ * @param <T> Type of a Value
+ */
 public interface Batch<K, T> {
 
   void foreach(BiConsumer<K, SettablePromise<T>> consumer);
