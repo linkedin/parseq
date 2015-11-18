@@ -73,6 +73,22 @@ import com.linkedin.parseq.trace.TraceBuilder;
  * In above example there is an assumption that all keys can be grouped together. This is why method {@code classify()}
  * trivially returns a constant {@code 0}. In practice {@code classify()} returns an equivalence class. All keys that
  * returns equal equivalence class will constitute a batch.
+ * <p>
+ * The interaction between ParSeq and BatchingStrategy is the following:
+ * <ol>
+ *   <li>{@code batchable(String desc, K key)} is invoked to create Task instance</li>
+ *   <li>Plan is started by {@code Engine.run()}</li>
+ *   <li>When Task returned by {@code batchable(String desc, K key)} is started, the key {@code K} is remembered by a BatchingStrategy</li>
+ *   <li>When Plan can't make immediate progress BatchingStrategy will be invoked to run batchable operations:</li>
+ *   <ol>
+ *     <li>Every {@code K key} is classified using {@code classify(K key)} method</li>
+ *     <li>Keys, together with adequate Promises, are batched together based on {@code G group} returned by previous step</li>
+ *     <li>If batch contains single element, method {@code executeSingleton(G group, K key, BatchEntry<T> entry)} is invoked for it</li>
+ *     <li>If batch contains at least two elements, method {@code executeBatch(G group, Batch<K, T> batch)} is invoked for it</li>
+ *   </ol>
+ *   Both {@code executeSingleton(G group, K key, BatchEntry<T> entry)} and {@code executeBatch(G group, Batch<K, T> batch)} are invoked
+ *   in the context of their own Task instance with description given by {@code getBatchName(G group, Batch<K, T> batch)}.
+ * </ol>
  *
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  *
