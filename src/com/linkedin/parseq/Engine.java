@@ -28,7 +28,7 @@ import org.slf4j.Logger;
 import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.internal.ContextImpl;
 import com.linkedin.parseq.internal.InternalUtil;
-import com.linkedin.parseq.internal.PlanActivityListener;
+import com.linkedin.parseq.internal.PlanDeactivationListener;
 import com.linkedin.parseq.internal.PlanContext;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
@@ -67,7 +67,7 @@ public class Engine {
 
   private final int _maxRelationshipsPerTrace;
 
-  private final PlanActivityListener _planActivityListener;
+  private final PlanDeactivationListener _planDeactivationListener;
 
   private final PromiseListener<Object> _taskDoneListener = new PromiseListener<Object>() {
     @Override
@@ -93,12 +93,12 @@ public class Engine {
 
   /* package private */ Engine(final Executor taskExecutor, final DelayedExecutor timerExecutor,
       final ILoggerFactory loggerFactory, final Map<String, Object> properties,
-      final PlanActivityListener planActivityListener) {
+      final PlanDeactivationListener planActivityListener) {
     _taskExecutor = taskExecutor;
     _timerExecutor = timerExecutor;
     _loggerFactory = loggerFactory;
     _properties = properties;
-    _planActivityListener = planActivityListener;
+    _planDeactivationListener = planActivityListener;
 
     _allLogger = loggerFactory.getLogger(LOGGER_BASE + ":all");
     _rootLogger = loggerFactory.getLogger(LOGGER_BASE + ":root");
@@ -144,7 +144,7 @@ public class Engine {
     } while (!_stateRef.compareAndSet(currState, newState));
 
     PlanContext planContext = new PlanContext(this, _taskExecutor, _timerExecutor, _loggerFactory, _allLogger,
-        _rootLogger, planClass, task, _maxRelationshipsPerTrace, _planActivityListener);
+        _rootLogger, planClass, task, _maxRelationshipsPerTrace, _planDeactivationListener);
     new ContextImpl(planContext, task).runTask();
 
     InternalUtil.unwildcardTask(task).addListener(_taskDoneListener);

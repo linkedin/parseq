@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.internal.CachedLoggerFactory;
-import com.linkedin.parseq.internal.PlanActivityListener;
+import com.linkedin.parseq.internal.PlanDeactivationListener;
 
 /**
  * A configurable builder that makes {@link Engine}s.
@@ -44,7 +44,7 @@ public class EngineBuilder {
   private Executor _taskExecutor;
   private DelayedExecutor _timerScheduler;
   private ILoggerFactory _loggerFactory;
-  private PlanActivityListener _planActivityListener;
+  private PlanDeactivationListener _planDeactivationListener;
 
   private Map<String, Object> _properties = new HashMap<String, Object>();
 
@@ -53,27 +53,22 @@ public class EngineBuilder {
 
   /**
    * Sets plan activity listener for the engine. The listener will be notified
-   * when plan becomes activated and deactivated.
-   * <p>
-   * Plan becomes activated when task belonging to it gets scheduled for execution
-   * by the engine. It remains activated as long as there are other tasks belonging
-   * to this plan that can be executed.
-   * <p>
+   * when plan becomes deactivated.
    * Plan becomes deactivated when there are no tasks that can be executed e.g.
    * asynchronous operations are in progress and subsequent tasks depend on their results.
    * <p>
    *
-   * For given plan id methods on {@link PlanActivityListener} are always called sequentially
+   * For given plan id methods on {@link PlanDeactivationListener} are always called sequentially
    * in the following order: {@code onPlanActivated(id), onPlanDeactivated(id),  (...),
    * onPlanActivated(id), onPlanDeactivated(id)}. For arbitrary plan ids methods on
    * {@code PlanActivityListener} can be called in parallel.
    *
-   * @param planActivityListener the listener that will be notified when plan
-   * is being activated and deactivated
+   * @param planDeactivationListener the listener that will be notified when plan
+   * becomes deactivated
    */
-  public void setPlanActivityListener(PlanActivityListener planActivityListener) {
-    ArgumentUtil.requireNotNull(planActivityListener, "planActivityListener");
-    _planActivityListener = planActivityListener;
+  public void setPlanDeactivationListener(PlanDeactivationListener planDeactivationListener) {
+    ArgumentUtil.requireNotNull(planDeactivationListener, "planDeactivationListener");
+    _planDeactivationListener = planDeactivationListener;
   }
 
   /**
@@ -160,7 +155,7 @@ public class EngineBuilder {
     }
     Engine engine = new Engine(_taskExecutor, new IndirectDelayedExecutor(_timerScheduler),
         _loggerFactory != null ? _loggerFactory : new CachedLoggerFactory(LoggerFactory.getILoggerFactory()),
-        _properties, _planActivityListener);
+        _properties, _planDeactivationListener != null ? _planDeactivationListener : planContext -> {});
     return engine;
   }
 

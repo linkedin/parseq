@@ -11,7 +11,6 @@ import com.linkedin.parseq.Cancellable;
 import com.linkedin.parseq.DelayedExecutor;
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.Task;
-import com.linkedin.parseq.internal.SerialExecutor.ActivityListener;
 import com.linkedin.parseq.trace.TraceBuilder;
 
 
@@ -45,26 +44,15 @@ public class PlanContext {
 
   public PlanContext(final Engine engine, final Executor taskExecutor, final DelayedExecutor timerExecutor,
       final ILoggerFactory loggerFactory, final Logger allLogger, final Logger rootLogger, final String planClass,
-      Task<?> root, final int maxRelationshipsPerTrace, final PlanActivityListener planActivityListener) {
+      Task<?> root, final int maxRelationshipsPerTrace, final PlanDeactivationListener planDeactivationListener) {
     _id = IdGenerator.getNextId();
     _relationshipsBuilder = new TraceBuilder(maxRelationshipsPerTrace);
     _engine = engine;
-    _taskExecutor = new SerialExecutor(taskExecutor, new CancelPlanRejectionHandler(root), new ActivityListener() {
-      @Override
-      public void deactivated() {
-        try {
-          planActivityListener.onPlanDeactivated(PlanContext.this);
-        } catch (Throwable t) {
-          LOG.error("Failed to notify listener " + planActivityListener + " about plan deactivation", t);
-        }
-      }
-      @Override
-      public void activated() {
-        try {
-          planActivityListener.onPlanActivated(PlanContext.this);
-        } catch (Throwable t) {
-          LOG.error("Failed to notify listener " + planActivityListener + " about plan activation", t);
-        }
+    _taskExecutor = new SerialExecutor(taskExecutor, new CancelPlanRejectionHandler(root), () -> {
+      try {
+        planDeactivationListener.onPlanDeactivated(PlanContext.this);
+      } catch (Throwable t) {
+        LOG.error("Failed to notify deactivation listener " + planDeactivationListener, t);
       }
     });
     _timerScheduler = timerExecutor;

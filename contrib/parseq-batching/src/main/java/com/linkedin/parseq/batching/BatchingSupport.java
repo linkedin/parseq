@@ -6,6 +6,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import com.linkedin.parseq.EngineBuilder;
 import com.linkedin.parseq.internal.PlanActivityListener;
 import com.linkedin.parseq.internal.PlanContext;
+import com.linkedin.parseq.internal.PlanDeactivationListener;
 
 /**
  * This class allows registering instances of {@link BatchingStrategy}.
@@ -20,7 +21,7 @@ import com.linkedin.parseq.internal.PlanContext;
  *
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class BatchingSupport implements PlanActivityListener {
+public class BatchingSupport implements PlanDeactivationListener {
 
   private final List<BatchingStrategy<?, ?, ?>> _strategies =
       new CopyOnWriteArrayList<>();
@@ -31,10 +32,6 @@ public class BatchingSupport implements PlanActivityListener {
    */
   public void registerStrategy(BatchingStrategy<?, ?, ?> strategy) {
     _strategies.add(strategy);
-  }
-
-  @Override
-  public void onPlanActivated(final PlanContext planContext) {
   }
 
   @Override

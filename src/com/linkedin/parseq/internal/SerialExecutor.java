@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * to a layer that can more appropriate handle this event.
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
+ * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
 public class SerialExecutor implements Executor {
   private final Executor _executor;
@@ -44,18 +45,18 @@ public class SerialExecutor implements Executor {
   private final ExecutorLoop _executorLoop = new ExecutorLoop();
   private final FIFOPriorityQueue<Runnable> _queue = new FIFOPriorityQueue<Runnable>();
   private final AtomicInteger _pendingCount = new AtomicInteger();
-  private final ActivityListener _activityHandler;
+  private final DeactivationListener _deactivationListener;
 
   public SerialExecutor(final Executor executor,
       final RejectedSerialExecutionHandler rejectionHandler,
-      final ActivityListener activityHandler) {
+      final DeactivationListener deactivationListener) {
     ArgumentUtil.requireNotNull(executor, "executor");
     ArgumentUtil.requireNotNull(rejectionHandler, "rejectionHandler" );
-    ArgumentUtil.requireNotNull(activityHandler, "activityHandler" );
+    ArgumentUtil.requireNotNull(deactivationListener, "deactivationListener" );
 
     _executor = executor;
     _rejectionHandler = rejectionHandler;
-    _activityHandler = activityHandler;
+    _deactivationListener = deactivationListener;
   }
 
   public void execute(final Runnable runnable) {
@@ -68,6 +69,11 @@ public class SerialExecutor implements Executor {
 
   private void tryExecuteLoop() {
     try {
+      // Executor.execute() method has a memory consistency effect
+      // such that actions in a thread prior to submitting a Runnable
+      // to an Executor happen-before its execution begins, perhaps in another thread.
+      // Above property ensures that the completion of a task happens-before
+      // the execution of the next task.
       _executor.execute(_executorLoop);
     } catch (Throwable t) {
       _rejectionHandler.rejectedExecution(t);
@@ -75,57 +81,30 @@ public class SerialExecutor implements Executor {
   }
 
   private class ExecutorLoop implements Runnable {
-
-    private boolean _active = false;
-
     @Override
     public void run() {
-      // If this plan is not marked as active, mark it now
-      if (!_active) {
-        _active = true;
-        _activityHandler.activated();
-      }
       // This runnable is only scheduled when the queue is non-empty.
+      // Memory consistency of concurrent collections is such that actions in a thread
+      // prior to placing an object into a collection happen-before actions subsequent
+      // to the access or removal of that element from the collection, perhaps in another thread.
+      // Above property ensures that the adding task to a queue happens-before
+      // executing it. This is relevant in a case when task was added to the plan while
+      // another task was being executed.
       final Runnable runnable = _queue.poll();
-
-      // This seemingly unnecessary call ensures that we have full visibility
-      // of any changes that occurred since the last task executed. It, in
-      // combination with _pendingCount.decrementAndGet() below, effectively
-      // causes this code to have memory consistency similar to entering and
-      // exiting a monitor without the associated mutual exclusion. We need
-      // this because there is no other happens-before guarantee when a new
-      // task is added while this executor is currently processing a task.
-      _pendingCount.get();
       try {
         runnable.run();
       } finally {
-        // At this point _pendingCount >= 1. If there is no more work to be
-        // executed then mark this executor as deactivated.
-        // It is possible that between now and when we try to check if there is
-        // more work to do few lines below someone adds new task to the queue.
-        // This is expected and all it means is that executor will be marked as
-        // deactivated and activated short after that. This situation can only
-        // happen if task has been added to this executor asynchronously.
-        if (_pendingCount.get() == 1) {
-          _active = false;
-          _activityHandler.deactivated();
-        }
-        // Guarantee that execution loop is schedule only once.
-        // In addition this CAS operation acts like an
-        // exit from a monitor for memory consistency purposes.
-        // See the note above for more details.
+        // Guarantees that execution loop is scheduled by only one thread.
         if (_pendingCount.decrementAndGet() > 0) {
           tryExecuteLoop();
+        } else {
+          _deactivationListener.deactivated();
         }
       }
     }
   }
 
-  public static interface ActivityListener {
-
-    void activated();
-
+  static interface DeactivationListener {
     void deactivated();
-
   }
 }

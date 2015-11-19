@@ -16,22 +16,22 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.linkedin.parseq.internal.SerialExecutor.ActivityListener;
+import com.linkedin.parseq.internal.SerialExecutor.DeactivationListener;
 
 
 public class TestSerialExecutor {
   private ExecutorService _executorService;
   private CapturingRejectionHandler _rejectionHandler;
   private SerialExecutor _serialExecutor;
-  private CapturingActivityListener _capturingActivityListener;
+  private CapturingActivityListener _capturingDeactivationListener;
 
   @BeforeMethod
   public void setUp() {
     _executorService = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(1),
         new ThreadPoolExecutor.AbortPolicy());
     _rejectionHandler = new CapturingRejectionHandler();
-    _capturingActivityListener = new CapturingActivityListener();
-    _serialExecutor = new SerialExecutor(_executorService, _rejectionHandler, _capturingActivityListener);
+    _capturingDeactivationListener = new CapturingActivityListener();
+    _serialExecutor = new SerialExecutor(_executorService, _rejectionHandler, _capturingDeactivationListener);
   }
 
   @AfterMethod
@@ -49,8 +49,7 @@ public class TestSerialExecutor {
     _serialExecutor.execute(runnable);
     assertTrue(runnable.await(5, TimeUnit.SECONDS));
     assertFalse(_rejectionHandler.wasExecuted());
-    assertEquals(_capturingActivityListener.getActivatedCount(), 1);
-    assertEquals(_capturingActivityListener.getDeactivatedCount(), 1);
+    assertEquals(_capturingDeactivationListener.getDeactivatedCount(), 1);
   }
 
   @Test
@@ -67,8 +66,7 @@ public class TestSerialExecutor {
     _executorService.execute(outer);
     assertTrue(inner.await(5, TimeUnit.SECONDS));
     assertFalse(_rejectionHandler.wasExecuted());
-    assertEquals(_capturingActivityListener.getActivatedCount(), 1);
-    assertEquals(_capturingActivityListener.getDeactivatedCount(), 1);
+    assertEquals(_capturingDeactivationListener.getDeactivatedCount(), 1);
   }
 
   @Test
@@ -139,23 +137,13 @@ public class TestSerialExecutor {
     }
   }
 
-  private static class CapturingActivityListener implements ActivityListener {
+  private static class CapturingActivityListener implements DeactivationListener {
 
-    private AtomicInteger _activatedCount = new AtomicInteger();
     private AtomicInteger _deactivatedCount = new AtomicInteger();
-
-    @Override
-    public void activated() {
-      _activatedCount.incrementAndGet();
-    }
 
     @Override
     public void deactivated() {
       _deactivatedCount.incrementAndGet();
-    }
-
-    public int getActivatedCount() {
-      return _activatedCount.get();
     }
 
     public int getDeactivatedCount() {
