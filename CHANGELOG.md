@@ -1,3 +1,8 @@
+v2.1.1
+------
+
+* Fixed bug in recovery methods when task was cancelled.
+
 v2.1.0
 ------
 
