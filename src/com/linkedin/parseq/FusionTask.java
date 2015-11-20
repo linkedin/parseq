@@ -292,13 +292,18 @@ class FusionTask<S, T> extends BaseTask<T> {
     return Task.async(desc, context -> {
       final SettablePromise<T> result = Promises.settable();
       context.after(that).run(() -> {
-        if (that.isFailed() && !(Exceptions.isCancellation(that.getError()))) {
-          try {
-            Task<T> r = func.apply(that.getError());
-            Promises.propagateResult(r, result);
-            return r;
-          } catch (Throwable t) {
-            result.fail(t);
+        if (that.isFailed()) {
+          if (!(Exceptions.isCancellation(that.getError()))) {
+            try {
+              Task<T> r = func.apply(that.getError());
+              Promises.propagateResult(r, result);
+              return r;
+            } catch (Throwable t) {
+              result.fail(t);
+              return null;
+            }
+          } else {
+            result.fail(that.getError());
             return null;
           }
         } else {

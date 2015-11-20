@@ -71,6 +71,18 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
     assertEquals(countTasks(failure.getTrace()), expectedNumberOfTasks);
   }
 
+  public void testCancelledRecover(int expectedNumberOfTasks) {
+    Task<Integer> cancelled = getCancelledTask().map("strlen", String::length).recover(e -> -1);
+    try {
+      runAndWait("AbstractTaskTest.testCancelledRecover", cancelled);
+      fail("should have failed");
+    } catch (Exception ex) {
+      assertTrue(cancelled.isFailed());
+      assertTrue(Exceptions.isCancellation(cancelled.getError()));
+    }
+    assertEquals(countTasks(cancelled.getTrace()), expectedNumberOfTasks);
+  }
+
   public void testNoRecover(int expectedNumberOfTasks) {
     Task<Integer> task = getFailureTask().map("strlen", String::length);
     try {
@@ -131,6 +143,18 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
       assertEquals(ex.getCause().getMessage(), "recover failed!");
     }
     assertEquals(countTasks(failure.getTrace()), expectedNumberOfTasks);
+  }
+
+  public void testRecoverWithCancelled(int expectedNumberOfTasks) {
+    Task<String> cancelled = getCancelledTask().recoverWith(e -> Task.callable("recover success", () -> "recovered"));
+    try {
+      runAndWait("AbstractTaskTest.testRecoverWithCancelled", cancelled);
+      fail("should have failed");
+    } catch (Exception ex) {
+      assertTrue(cancelled.isFailed());
+      assertTrue(Exceptions.isCancellation(cancelled.getError()));
+    }
+    assertEquals(countTasks(cancelled.getTrace()), expectedNumberOfTasks);
   }
 
   public void testRecoverWithRecoverd(int expectedNumberOfTasks) {
@@ -264,6 +288,20 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
     assertEquals(countTasks(failure.getTrace()), expectedNumberOfTasks);
   }
 
+  public void testOnFailureWhenCancelled(int expectedNumberOfTasks) {
+    final AtomicReference<Throwable> variable = new AtomicReference<Throwable>();
+    Task<String> cancelled = getCancelledTask().onFailure(variable::set);
+    try {
+      runAndWait("AbstractTaskTest.testOnFailureWhenCancelled", cancelled);
+      fail("should have failed");
+    } catch (Exception ex) {
+      assertTrue(cancelled.isFailed());
+      assertTrue(Exceptions.isCancellation(cancelled.getError()));
+    }
+    assertNull(variable.get());
+    assertEquals(countTasks(cancelled.getTrace()), expectedNumberOfTasks);
+  }
+
   @Test
   public void testTransformSuccessToSuccess() {
     Task<String> success = getSuccessTask();
@@ -358,4 +396,6 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
   abstract Task<String> getSuccessTask();
 
   abstract Task<String> getFailureTask();
+
+  abstract Task<String> getCancelledTask();
 }

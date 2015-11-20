@@ -360,8 +360,8 @@ public class TestParTask extends BaseEngineTest {
     getEngine().run(par);
 
     promise1.done("done1");
-    promise2.fail(new CancellationException(new EarlyFinishException()));
-    promise3.fail(new CancellationException(new EarlyFinishException()));
+    promise2.fail(new CancellationException(Exceptions.EARLY_FINISH_EXCEPTION));
+    promise3.fail(new CancellationException(Exceptions.EARLY_FINISH_EXCEPTION));
     assertTrue(par.await(5, TimeUnit.SECONDS));
 
     if (!par.isFailed()) {
@@ -413,7 +413,7 @@ public class TestParTask extends BaseEngineTest {
     getEngine().run(par);
 
     promise1.done("done1");
-    promise2.fail(new EarlyFinishException());
+    promise2.fail(new CancellationException(Exceptions.EARLY_FINISH_EXCEPTION));
     promise3.fail(new Exception());
     assertTrue(par.await(5, TimeUnit.SECONDS));
 

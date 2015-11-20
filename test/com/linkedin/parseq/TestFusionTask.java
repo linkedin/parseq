@@ -7,6 +7,7 @@ import static org.testng.Assert.fail;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.testng.annotations.Test;
@@ -46,6 +47,11 @@ public class TestFusionTask extends AbstractTaskTest {
   }
 
   @Test
+  public void testCancelledRecover() {
+    testCancelledRecover(4);
+  }
+
+  @Test
   public void testNoRecover() {
     testNoRecover(3);
   }
@@ -66,6 +72,11 @@ public class TestFusionTask extends AbstractTaskTest {
   }
 
   @Test
+  public void testRecoverWithCancelled() {
+    testRecoverWithCancelled(2);
+  }
+
+  @Test
   public void testRecoverWithRecoverd() {
     testRecoverWithRecoverd(3);
   }
@@ -83,6 +94,11 @@ public class TestFusionTask extends AbstractTaskTest {
   @Test
   public void testOnFailure() {
     testOnFailure(3);
+  }
+
+  @Test
+  public void testOnFailureWhenCancelled() {
+    testOnFailureWhenCancelled(3);
   }
 
   @Test
@@ -138,6 +154,11 @@ public class TestFusionTask extends AbstractTaskTest {
   @Override
   Task<String> getFailureTask() {
     return Task.failure("failure", new RuntimeException(TASK_ERROR_MESSAGE));
+  }
+
+  @Override
+  Task<String> getCancelledTask() {
+    return Task.failure("cancelled", new CancellationException(new TimeoutException()));
   }
 
 }

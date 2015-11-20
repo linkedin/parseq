@@ -458,11 +458,15 @@ public interface Task<T> extends Promise<T>, Cancellable {
   default Task<T> recover(final String desc, final Function1<Throwable, T> func) {
     ArgumentUtil.requireNotNull(func, "function");
     return apply(desc, (src, dst) -> {
-      if (src.isFailed() && !(Exceptions.isCancellation(src.getError()))) {
-        try {
-          dst.done(func.apply(src.getError()));
-        } catch (Throwable t) {
-          dst.fail(t);
+      if (src.isFailed()) {
+        if (!(Exceptions.isCancellation(src.getError()))) {
+          try {
+            dst.done(func.apply(src.getError()));
+          } catch (Throwable t) {
+            dst.fail(t);
+          }
+        } else {
+          dst.fail(src.getError());
         }
       } else {
         dst.done(src.get());
@@ -516,13 +520,17 @@ public interface Task<T> extends Promise<T>, Cancellable {
   default Task<T> onFailure(final String desc, final Consumer1<Throwable> consumer) {
     ArgumentUtil.requireNotNull(consumer, "consumer");
     return apply(desc, (src, dst) -> {
-      if (src.isFailed() && !(Exceptions.isCancellation(src.getError()))) {
-        try {
-          consumer.accept(src.getError());
-        } catch (Exception e) {
-          //exceptions thrown by consumer are logged and ignored
-          LOGGER.error("Exception thrown by onFailure consumer: ", e);
-        } finally {
+      if (src.isFailed()) {
+        if (!(Exceptions.isCancellation(src.getError()))) {
+          try {
+            consumer.accept(src.getError());
+          } catch (Exception e) {
+            //exceptions thrown by consumer are logged and ignored
+            LOGGER.error("Exception thrown by onFailure consumer: ", e);
+          } finally {
+            dst.fail(src.getError());
+          }
+        } else {
           dst.fail(src.getError());
         }
       } else {
@@ -696,20 +704,26 @@ public interface Task<T> extends Promise<T>, Cancellable {
     return async(desc, context -> {
       final SettablePromise<T> result = Promises.settable();
       final Task<T> recovery = async("revovery", ctx -> {
-        if (that.isFailed() && !(Exceptions.isCancellation(that.getError()))) {
-          try {
-            Task<T> r = func.apply(that.getError());
-            Promises.propagateResult(r, result);
-            ctx.run(r);
-          } catch (Throwable t) {
-            result.fail(t);
+        final SettablePromise<T> recoveryResult = Promises.settable();
+        if (that.isFailed()) {
+          if (!(Exceptions.isCancellation(that.getError()))) {
+            try {
+              Task<T> r = func.apply(that.getError());
+              Promises.propagateResult(r, recoveryResult);
+              ctx.run(r);
+            } catch (Throwable t) {
+              recoveryResult.fail(t);
+            }
+          } else {
+            recoveryResult.fail(that.getError());
           }
         } else {
-          result.done(that.get());
+          recoveryResult.done(that.get());
         }
-        return result;
+        return recoveryResult;
       });
       recovery.getShallowTraceBuilder().setSystemHidden(true);
+      Promises.propagateResult(recovery, result);
       context.after(that).run(recovery);
       context.run(that);
       return result;

@@ -1,5 +1,7 @@
 package com.linkedin.parseq;
 
+import java.util.concurrent.TimeoutException;
+
 import org.testng.annotations.Test;
 
 import com.linkedin.parseq.promise.Promises;
@@ -37,6 +39,11 @@ public class TestTask extends AbstractTaskTest {
   }
 
   @Test
+  public void testCancelledRecover() {
+    testCancelledRecover(5);
+  }
+
+  @Test
   public void testNoRecover() {
     testNoRecover(3);
   }
@@ -54,6 +61,11 @@ public class TestTask extends AbstractTaskTest {
   @Test
   public void testRecoverWithFailure() {
     testRecoverWithFailure(4);
+  }
+
+  @Test
+  public void testRecoverWithCancelled() {
+    testRecoverWithCancelled(3);
   }
 
   @Test
@@ -76,6 +88,11 @@ public class TestTask extends AbstractTaskTest {
     testOnFailure(3);
   }
 
+  @Test
+  public void testOnFailureWhenCancelled() {
+    testOnFailureWhenCancelled(3);
+  }
+
   @Override
   Task<String> getSuccessTask() {
     return Task.async("success", () -> Promises.value(TASK_VALUE));
@@ -87,4 +104,10 @@ public class TestTask extends AbstractTaskTest {
       throw new RuntimeException(TASK_ERROR_MESSAGE);
     });
   }
+
+  @Override
+  Task<String> getCancelledTask() {
+    return Task.async("cancelled", () -> {
+      throw new CancellationException(new TimeoutException());
+    });  }
 }
