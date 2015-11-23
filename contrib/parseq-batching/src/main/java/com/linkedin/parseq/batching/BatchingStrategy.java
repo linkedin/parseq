@@ -102,10 +102,10 @@ public abstract class BatchingStrategy<G, K, T> {
       new ConcurrentHashMap<>();
 
   /**
-   * This method returns Task that returns value for a single key in allowing this strategy to batch operations.
+   * This method returns Task that returns value for a single key allowing this strategy to batch operations.
    * @param desc description of the task
    * @param key key
-   * @return Task that returns value for a single key in allowing this strategy to batch operations
+   * @return Task that returns value for a single key allowing this strategy to batch operations
    */
   public Task<T> batchable(final String desc, final K key) {
     return Task.async(desc, ctx -> {
@@ -122,6 +122,15 @@ public abstract class BatchingStrategy<G, K, T> {
       builder.add(key, ctx.getShallowTraceBuilder(), result);
       return result;
     });
+  }
+
+  /**
+   * This method returns Task that returns value for a single key allowing this strategy to batch operations.
+   * @param key key
+   * @return Task that returns value for a single key allowing this strategy to batch operations
+   */
+  public Task<T> batchable(final K key) {
+    return batchable("taskForKey: " + key.toString(), key);
   }
 
   private Task<?> taskForBatch(final G group, final Batch<K, T> batch) {
@@ -144,7 +153,7 @@ public abstract class BatchingStrategy<G, K, T> {
 
       try {
         if (batch.size() == 1) {
-          Entry<K, BatchEntry<T>> entry = batch.entires().iterator().next();
+          Entry<K, BatchEntry<T>> entry = batch.entries().iterator().next();
           executeSingleton(group, entry.getKey(), entry.getValue());
         } else {
           executeBatch(group, batch);
@@ -198,7 +207,7 @@ public abstract class BatchingStrategy<G, K, T> {
   }
 
   private Map<G, Batch<K, T>> split(Batch<K, T> batch) {
-    return batch.entires().stream()
+    return batch.entries().stream()
         .collect(Collectors.groupingBy(entry -> classify(entry.getKey()), batchCollector()));
   }
 

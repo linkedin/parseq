@@ -34,16 +34,19 @@ public class BatchImpl<K, T> implements Batch<K, T> {
 
   @Override
   public void failAll(Throwable error) throws PromiseResolvedException {
-    PromiseResolvedException exception = null;
-    for (BatchEntry<T> entry: _map.values()) {
+    List<K> alreadyResolved = null;
+    for (Entry<K, BatchEntry<T>> entry: _map.entrySet()) {
       try {
-        entry.getPromise().fail(error);
+        entry.getValue().getPromise().fail(error);
       } catch (PromiseResolvedException e) {
-        exception = e;
+        if (alreadyResolved == null) {
+          alreadyResolved = new ArrayList<>();
+        }
+        alreadyResolved.add(entry.getKey());
       }
     }
-    if (exception != null) {
-      throw exception;
+    if (alreadyResolved != null) {
+      throw new PromiseResolvedException("Promises for the following keys have already been resolved: " + alreadyResolved);
     }
   }
 
@@ -68,12 +71,11 @@ public class BatchImpl<K, T> implements Batch<K, T> {
   }
 
   @Override
-  public boolean failAllRemaining(Throwable error) {
+  public void failAllRemaining(Throwable error) {
     try {
       failAll(error);
-      return true;
     } catch (PromiseResolvedException e) {
-      return false;
+      // ignore error which signals that some promises have already been resolved
     }
   }
 
@@ -91,15 +93,15 @@ public class BatchImpl<K, T> implements Batch<K, T> {
       return _promise;
     }
 
-    public List<ShallowTraceBuilder> getShallowTraceBuilders() {
+    List<ShallowTraceBuilder> getShallowTraceBuilders() {
       return _shallowTraceBuilders;
     }
 
-    public void addShallowTraceBuilder(final ShallowTraceBuilder shallowTraceBuilder) {
+    void addShallowTraceBuilder(final ShallowTraceBuilder shallowTraceBuilder) {
       _shallowTraceBuilders.add(shallowTraceBuilder);
     }
 
-    public void addShallowTraceBuilders(final List<ShallowTraceBuilder> shallowTraceBuilders) {
+    void addShallowTraceBuilders(final List<ShallowTraceBuilder> shallowTraceBuilders) {
       _shallowTraceBuilders.addAll(shallowTraceBuilders);
     }
 
@@ -110,7 +112,7 @@ public class BatchImpl<K, T> implements Batch<K, T> {
     private final Map<K, BatchEntry<T>> _map = new HashMap<>();
     private Batch<K, T> _batch = null;
 
-    public BatchBuilder<K, T> add(K key, BatchEntry<T> entry) {
+    BatchBuilder<K, T> add(K key, BatchEntry<T> entry) {
       if (_batch != null) {
         throw new IllegalStateException("BatchBuilder has already been used to build a batch");
       }
@@ -125,7 +127,7 @@ public class BatchImpl<K, T> implements Batch<K, T> {
       return this;
     }
 
-    public BatchBuilder<K, T> add(K key, ShallowTraceBuilder traceBuilder, SettablePromise<T> promise) {
+    BatchBuilder<K, T> add(K key, ShallowTraceBuilder traceBuilder, SettablePromise<T> promise) {
       return add(key, new BatchEntry<>(traceBuilder, promise));
     }
 
@@ -148,7 +150,7 @@ public class BatchImpl<K, T> implements Batch<K, T> {
   }
 
   @Override
-  public Set<Entry<K, BatchEntry<T>>> entires() {
+  public Set<Entry<K, BatchEntry<T>>> entries() {
     return _map.entrySet();
   }
 

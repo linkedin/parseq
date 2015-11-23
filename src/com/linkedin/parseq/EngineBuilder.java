@@ -57,10 +57,8 @@ public class EngineBuilder {
    * Plan becomes deactivated when there are no tasks that can be executed e.g.
    * asynchronous operations are in progress and subsequent tasks depend on their results.
    * <p>
-   *
-   * For given plan id methods on {@link PlanDeactivationListener} are always called sequentially
-   * in the following order: {@code onPlanActivated(id), onPlanDeactivated(id),  (...),
-   * onPlanActivated(id), onPlanDeactivated(id)}. For arbitrary plan ids methods on
+   * For given plan id deactivation listener is called sequentially
+   * with respect to tasks belonging to that plan. For arbitrary plan ids methods on
    * {@code PlanActivityListener} can be called in parallel.
    *
    * @param planDeactivationListener the listener that will be notified when plan

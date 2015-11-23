@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.linkedin.parseq.EngineBuilder;
-import com.linkedin.parseq.internal.PlanActivityListener;
 import com.linkedin.parseq.internal.PlanContext;
 import com.linkedin.parseq.internal.PlanDeactivationListener;
 

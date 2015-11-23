@@ -84,7 +84,7 @@ public class GetRequestGroup implements RequestGroup {
   }
 
   private <K, RT extends RecordTemplate> void executeKVBatch(final RestClient restClient, final Batch<RestRequestBatchKey, Response<Object>> batch) {
-    List<BatchGetKVRequest> listOfBatchGets = batch.entires().stream()
+    List<BatchGetKVRequest> listOfBatchGets = batch.entries().stream()
         .map(Entry::getKey)
         .map(RestRequestBatchKey::getRequest)
         .map(GetRequestGroup::toGetRequest)
@@ -98,7 +98,7 @@ public class GetRequestGroup implements RequestGroup {
       @Override
       public void onSuccess(Response<BatchKVResponse<K, RT>> responseToBatch) {
         final ProtocolVersion version = ProtocolVersionUtil.extractProtocolVersion(responseToBatch.getHeaders());
-        batch.entires().stream()
+        batch.entries().stream()
         .forEach(entry -> {
           try {
             Request request = entry.getKey().getRequest();
@@ -124,7 +124,7 @@ public class GetRequestGroup implements RequestGroup {
   }
 
   public <RT extends RecordTemplate> void executeNonKVBatch(final RestClient restClient, final Batch<RestRequestBatchKey, Response<Object>> batch) {
-    List<BatchGetRequest> listOfBatchGets = batch.entires().stream()
+    List<BatchGetRequest> listOfBatchGets = batch.entries().stream()
         .map(Entry::getKey)
         .map(RestRequestBatchKey::getRequest)
         .map(GetRequestGroup::toGetRequest)
@@ -137,7 +137,7 @@ public class GetRequestGroup implements RequestGroup {
 
         @Override
         public void onSuccess(Response<BatchResponse<RT>> responseToBatch) {
-          batch.entires().stream()
+          batch.entries().stream()
             .forEach(entry -> {
               try {
                 String id = toGetRequest(entry.getKey().getRequest()).getObjectId().toString();
@@ -161,7 +161,7 @@ public class GetRequestGroup implements RequestGroup {
   public <RT extends RecordTemplate> void executeBatch(final RestClient restClient, final Batch<RestRequestBatchKey, Response<Object>> batch) {
 
     //TODO this needs better API from rest.li team
-    Class<?> keyClass = batch.entires().iterator().next().getKey().getRequest().getResourceSpec().getKeyClass();
+    Class<?> keyClass = batch.entries().iterator().next().getKey().getRequest().getResourceSpec().getKeyClass();
     if (CompoundKey.class.isAssignableFrom(keyClass) || keyClass == ComplexResourceKey.class) {
       executeKVBatch(restClient, batch);
     } else {
