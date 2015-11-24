@@ -55,7 +55,7 @@ import com.linkedin.parseq.trace.TraceBuilder;
  *    {@code @Override}
  *    public void executeBatch(Integer group, Batch{@code <Long, String>} batch) {
  *      Map{@code <Long, String>} batchResult = _store.batchGet(batch.keys());
- *      batch.foreach((key, promise) -> promise.done(batchResult.get(key)));
+ *      batch.foreach((key, promise) {@code ->} promise.done(batchResult.get(key)));
  *    }
  *
  *    {@code @Override}
@@ -79,7 +79,7 @@ import com.linkedin.parseq.trace.TraceBuilder;
  *   <li>{@code batchable(String desc, K key)} is invoked to create Task instance</li>
  *   <li>Plan is started by {@code Engine.run()}</li>
  *   <li>When Task returned by {@code batchable(String desc, K key)} is started, the key {@code K} is remembered by a BatchingStrategy</li>
- *   <li>When Plan can't make immediate progress BatchingStrategy will be invoked to run batchable operations:</li>
+ *   <li>When Plan can't make immediate progress BatchingStrategy will be invoked to run batchable operations:
  *   <ol>
  *     <li>Every {@code K key} is classified using {@code classify(K key)} method</li>
  *     <li>Keys, together with adequate Promises, are batched together based on {@code G group} returned by previous step</li>
