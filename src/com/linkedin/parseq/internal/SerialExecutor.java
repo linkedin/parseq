@@ -44,26 +44,26 @@ public class SerialExecutor implements Executor {
   /*
    * Below is a proof and description of a mechanism that ensures that
    * "completion of a Runnable happens-before the execution of the next Runnable".
-   * Let's call above proposition P from now on.
+   * Let's call the above proposition P from now on.
    *
-   * Runnable can only be executed by tryExecuteLoop. tryExecuteLoop makes sure that
-   * there is a happens-before relationship between current thread that executes
-   * tryExecuteLoop and the execution of next Runnable. Lets call this property HB.
+   * A Runnable can only be executed by tryExecuteLoop. tryExecuteLoop makes sure that
+   * there is a happens-before relationship between the current thread that executes
+   * tryExecuteLoop and the execution of the next Runnable. Lets call this property HB.
    *
    * tryExecuteLoop can be invoked in two ways:
    *
-   * 1) Recursively from within ExecutorLoop.run method after completion of a Runnable
+   * 1) Recursively from within the ExecutorLoop.run method after completion of a Runnable
    * on a thread belonging to the underlying executor.
    * In this case HB ensures that P is true.
    *
-   * 2) Through SerialExecutor.execute method on an arbitrary thread.
+   * 2) Through the SerialExecutor.execute method on an arbitrary thread.
    * There are two cases:
-   * a) Submitted Runnable is first Runnable executed by this SerialExecutor. In this case P is trivially true.
-   * b) Submitted Runnable is first Runnable executed by this SerialExecutor. In this case thread that executed
-   * last runnable, after it's completion must have invoked _pendingCount.decrementAndGet, and got 0. Since
-   * thread executing SerialExecutor.execute invoked _pendingCount.getAndIncrement, and got value 0, it means
-   * that there is a happens-before relationship between thread completing last Runnable and current thread
-   * executing SerialExecutor.execute. Combined with HB1 it means P is true.
+   * a) The submitted Runnable is the first Runnable executed by this SerialExecutor. In this case P is trivially true.
+   * b) The submitted Runnable is not the first Runnable executed by this SerialExecutor. In this case the thread that executed
+   * the last runnable, after it's completion, must have invoked _pendingCount.decrementAndGet, and got 0. Since the
+   * thread executing SerialExecutor.execute invoked _pendingCount.getAndIncrement, and got the value 0, it means
+   * that there is a happens-before relationship between the thread completing last Runnable and the current thread
+   * executing SerialExecutor.execute. Combined with HB1 this means that P is true.
    */
 
   private final Executor _executor;
@@ -121,7 +121,9 @@ public class SerialExecutor implements Executor {
         // Deactivation listener is called before _pendingCount.decrementAndGet() so that
         // it does not run concurrently with any other Runnable submitted to this Executor.
         // _pendingCount.get() == 1 means that there are no more Runnables submitted to this
-        // executor waiting to be executed.
+        // executor waiting to be executed. Since _pendingCount can be changed in other threads
+        // in is possible to get _pendingCount.get() == 1 and _pendingCount.decrementAndGet() > 0
+        // to be true few lines below.
         if (_pendingCount.get() == 1) {
           _deactivationListener.deactivated();
         }
