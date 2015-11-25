@@ -27,7 +27,7 @@ import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.TraceBuilder;
 
 /**
- * BatchingStrategy helps building "batching clients" in ParSeq. "Client" means on object that given {@code K key}
+ * {@code BatchingStrategy} helps building "batching clients" in ParSeq. "Client" means on object that given {@code K key}
  * provides a task that returns {@code T value}. "Batching" means that it can group together keys to resolve values
  * in batches. The benefit of this approach is that batching happens transparently in the background and user's code
  * does not have to deal with logic needed to implement batching.
@@ -36,9 +36,7 @@ import com.linkedin.parseq.trace.TraceBuilder;
  * the sake of simplicity of the example we are using dummy, synchronous key-value store interface:
  * <blockquote><pre>
  *  interface KVStore {
- *
  *    String get(Long key);
- *
  *    Map{@code <Long, String>} batchGet(Collection{@code <Long>} keys);
  *  }
  * </pre></blockquote>
@@ -47,7 +45,6 @@ import com.linkedin.parseq.trace.TraceBuilder;
  * <blockquote><pre>
  *  public static class BatchingKVStoreClient extends BatchingStrategy{@code <Integer, Long, String>} {
  *    private final KVStore _store;
- *
  *    public BatchingKVStoreClient(KVStore store) {
  *      _store = store;
  *    }
@@ -74,12 +71,12 @@ import com.linkedin.parseq.trace.TraceBuilder;
  * trivially returns a constant {@code 0}. In practice {@code classify()} returns an equivalence class. All keys that
  * returns equal equivalence class will constitute a batch.
  * <p>
- * The interaction between ParSeq and BatchingStrategy is the following:
+ * The interaction between ParSeq and {@code BatchingStrategy} is the following:
  * <ol>
  *   <li>{@code batchable(String desc, K key)} is invoked to create Task instance</li>
  *   <li>Plan is started by {@code Engine.run()}</li>
- *   <li>When Task returned by {@code batchable(String desc, K key)} is started, the key {@code K} is remembered by a BatchingStrategy</li>
- *   <li>When Plan can't make immediate progress BatchingStrategy will be invoked to run batchable operations:
+ *   <li>When Task returned by {@code batchable(String desc, K key)} is started, the key {@code K} is remembered by a {@code BatchingStrategy}</li>
+ *   <li>When Plan can't make immediate progress {@code BatchingStrategy} will be invoked to run batchable operations:
  *   <ol>
  *     <li>Every {@code K key} is classified using {@code classify(K key)} method</li>
  *     <li>Keys, together with adequate Promises, are batched together based on {@code G group} returned by previous step</li>
@@ -88,6 +85,10 @@ import com.linkedin.parseq.trace.TraceBuilder;
  *   </ol>
  *   Both {@code executeSingleton(G group, K key, BatchEntry<T> entry)} and {@code executeBatch(G group, Batch<K, T> batch)} are invoked
  *   in the context of their own Task instance with description given by {@code getBatchName(G group, Batch<K, T> batch)}.
+ *   Implementation of {@code BatchingStrategy} has to be fast because it is executed sequentially with respect to tasks belonging
+ *   to the plan. It means that no other task will be executed until {@code BatchingStrategy} completes. Typically classify(K key)
+ *   is a synchronous and fast operation whilst {@code executeBatch(G group, Batch<K, T> batch)} and
+ *   {@code executeSingleton(G group, K key, BatchEntry<T> entry)} return quickly and complete promises asynchronously.
  * </ol>
  *
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
@@ -189,21 +190,48 @@ public abstract class BatchingStrategy<G, K, T> {
     }
   }
 
+  /**
+   * This method will be called for every {@code Batch} that contains at least two elements.
+   * Implementation of this method should make sure that all {@code SettablePromise} contained in the {@code Batch}
+   * will eventually be resolved - typically asynchronously.
+   * @param group group that represents the batch
+   * @param batch batch contains collection of {@code SettablePromise} that eventually need to be resolved - typically asynchronously
+   */
   public abstract void executeBatch(G group, Batch<K, T> batch);
 
+  /**
+   * This method will be called for every {@code Batch} that contains only one element.
+   * Implementation of this method should make sure that {@code SettablePromise} contained in the {@code BatchEntry}
+   * will eventually be resolved - typically asynchronously.
+   * @param group group that represents the batch
+   * @param key key of the single element classified to the given group
+   * @param entry entry contains a {@code SettablePromise} that eventually needs to be resolved - typically asynchronously
+   */
   public abstract void executeSingleton(G group, K key, BatchEntry<T> entry);
 
-  public abstract G classify(K entry);
+  /**
+   * Classify the {@code K Key} and by doing so assign it to a {@code G group}.
+   * If two keys are classified by the same group then they will belong to the same {@code Batch}.
+   * For each batch either {@link #executeBatch(Object, Batch)} will be called if batch contains at least two elements
+   * or {@link #executeSingleton(Object, Object, BatchEntry)} will be called if batch contains only one element.
+   * @param key key to be classified
+   * @return Group that represents a batch the key will belong to
+   */
+  public abstract G classify(K key);
 
   /**
    * Overriding this method allows providing custom name for a batch. Name will appear in the
    * ParSeq trace as a description of the task that executes the batch.
-   * @param batch batch
-   * @param group group
-   * @return name for the batch
+   * @param batch batch to be described
+   * @param group group to be described
+   * @return name for the batch and group
    */
   public String getBatchName(Batch<K, T> batch, G group) {
-    return "batch(" + batch.size() + ")";
+    if (batch.size() == 1) {
+      return "singleton";
+    } else {
+      return "batch(" + batch.size() + ")";
+    }
   }
 
   private Map<G, Batch<K, T>> split(Batch<K, T> batch) {
