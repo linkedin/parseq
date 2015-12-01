@@ -3,6 +3,8 @@ package com.linkedin.parseq.batching;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+import java.util.concurrent.TimeUnit;
+
 import org.testng.annotations.Test;
 
 import com.linkedin.parseq.BaseEngineTest;
@@ -27,7 +29,7 @@ public class TestBatchingSupport extends BaseEngineTest {
     _batchingSupport.registerStrategy(strategy);
 
     Task<String> task = Task.par(strategy.batchable(0), strategy.batchable(1))
-        .map((s0, s1) -> s0 + s1);
+        .map("concat", (s0, s1) -> s0 + s1);
 
     String result = runAndWait("TestBatchingSupport.testBatchInvoked", task);
 
@@ -46,7 +48,7 @@ public class TestBatchingSupport extends BaseEngineTest {
     _batchingSupport.registerStrategy(strategy);
 
     Task<String> task = Task.par(strategy.batchable(0), strategy.batchable(1))
-        .map((s0, s1) -> s0 + s1);
+        .map("concat", (s0, s1) -> s0 + s1);
 
     String result = runAndWait("TestBatchingSupport.testSingletonsInvoked", task);
 
@@ -65,7 +67,7 @@ public class TestBatchingSupport extends BaseEngineTest {
     _batchingSupport.registerStrategy(strategy);
 
     Task<String> task = Task.par(strategy.batchable(0), strategy.batchable(1), strategy.batchable(2))
-        .map((s0, s1, s2) -> s0 + s1 + s2);
+        .map("concat", (s0, s1, s2) -> s0 + s1 + s2);
 
     String result = runAndWait("TestBatchingSupport.testBatchAndSingleton", task);
 
@@ -91,7 +93,7 @@ public class TestBatchingSupport extends BaseEngineTest {
     _batchingSupport.registerStrategy(strategy);
 
     Task<String> task = Task.par(strategy.batchable(0), strategy.batchable(1).recover(e -> "failed"), strategy.batchable(2))
-        .map((s0, s1, s2) -> s0 + s1 + s2);
+        .map("concat", (s0, s1, s2) -> s0 + s1 + s2);
 
     String result = runAndWait("TestBatchingSupport.testBatchAndFailedSingleton", task);
 
@@ -117,7 +119,7 @@ public class TestBatchingSupport extends BaseEngineTest {
     _batchingSupport.registerStrategy(strategy);
 
     Task<String> task = Task.par(strategy.batchable(0).recover(e -> "failed"), strategy.batchable(1), strategy.batchable(2).recover(e -> "failed"))
-        .map((s0, s1, s2) -> s0 + s1 + s2);
+        .map("concat", (s0, s1, s2) -> s0 + s1 + s2);
 
     String result = runAndWait("TestBatchingSupport.testFailedBatchAndSingleton", task);
 
@@ -137,7 +139,7 @@ public class TestBatchingSupport extends BaseEngineTest {
     _batchingSupport.registerStrategy(strategy);
 
     Task<String> task = Task.par(strategy.batchable(0).recover(e -> "failed"), strategy.batchable(1).recover(e -> "failed"))
-        .map((s0, s1) -> s0 + s1);
+        .map("concat", (s0, s1) -> s0 + s1);
 
     String result = runAndWait("TestBatchingSupport.testClassifyFailure", task);
 
@@ -161,7 +163,7 @@ public class TestBatchingSupport extends BaseEngineTest {
     _batchingSupport.registerStrategy(strategy);
 
     Task<String> task = Task.par(strategy.batchable(0).recover(e -> "failed"), strategy.batchable(1), strategy.batchable(2).recover(e -> "failed"))
-        .map((s0, s1, s2) -> s0 + s1 + s2);
+        .map("concat", (s0, s1, s2) -> s0 + s1 + s2);
 
     String result = runAndWait("TestBatchingSupport.testExecuteBatchFailure", task);
 
@@ -188,7 +190,7 @@ public class TestBatchingSupport extends BaseEngineTest {
     _batchingSupport.registerStrategy(strategy);
 
     Task<String> task = Task.par(strategy.batchable(0), strategy.batchable(1).recover(e -> "failed"), strategy.batchable(2))
-        .map((s0, s1, s2) -> s0 + s1 + s2);
+        .map("concat", (s0, s1, s2) -> s0 + s1 + s2);
 
     String result = runAndWait("TestBatchingSupport.testExecuteSingletonFailure", task);
 
@@ -208,7 +210,7 @@ public class TestBatchingSupport extends BaseEngineTest {
     _batchingSupport.registerStrategy(strategy);
 
     Task<String> task = Task.par(Task.value("0"), Task.value("1"))
-        .map((s0, s1) -> s0 + s1);
+        .map("concat", (s0, s1) -> s0 + s1);
 
     String result = runAndWait("TestBatchingSupport.testNothingToDoForStrategy", task);
 
@@ -227,7 +229,7 @@ public class TestBatchingSupport extends BaseEngineTest {
 
     Task<String> task = Task.par(strategy.batchable(0), strategy.batchable(1), strategy.batchable(2),
         strategy.batchable(0), strategy.batchable(1), strategy.batchable(2))
-        .map((s0, s1, s2, s3, s4, s5) -> s0 + s1 + s2 + s3 + s4 + s5);
+        .map("concat", (s0, s1, s2, s3, s4, s5) -> s0 + s1 + s2 + s3 + s4 + s5);
 
     String result = runAndWait("TestBatchingSupport.testDeduplication", task);
 
@@ -239,5 +241,63 @@ public class TestBatchingSupport extends BaseEngineTest {
     assertEquals(strategy.getExecutedSingletons().size(), 1);
   }
 
+  @Test
+  public void testBatchWithTimeoutAndSingleton() {
+
+    RecordingStrategy<Integer, Integer, String> strategy =
+        new RecordingStrategy<Integer, Integer, String>((key, promise) -> promise.done(String.valueOf(key)), key -> key % 2) {
+      @Override
+      public void executeBatch(final Integer group, final Batch<Integer, String> batch) {
+        getScheduler().schedule(() -> {
+          super.executeBatch(group, batch);
+        }, 250, TimeUnit.MILLISECONDS);
+      }
+    };
+
+    _batchingSupport.registerStrategy(strategy);
+
+    Task<String> task = Task.par(strategy.batchable(0).withTimeout(10, TimeUnit.MILLISECONDS).recover("toExceptionName", e -> e.getClass().getName()),
+        strategy.batchable(1), strategy.batchable(2))
+        .map("concat", (s0, s1, s2) -> s0 + s1 + s2);
+
+    String result = runAndWait("TestBatchingSupport.testBatchWithTimeoutAndSingleton", task);
+
+    assertEquals(result, "java.util.concurrent.TimeoutException12");
+    assertTrue(strategy.getClassifiedKeys().contains(0));
+    assertTrue(strategy.getClassifiedKeys().contains(1));
+    assertTrue(strategy.getClassifiedKeys().contains(2));
+    assertEquals(strategy.getExecutedBatches().size(), 1);
+    assertEquals(strategy.getExecutedSingletons().size(), 1);
+  }
+
+  @Test
+  public void testBatchAndSingletonWithTimeout() {
+
+    RecordingStrategy<Integer, Integer, String> strategy =
+        new RecordingStrategy<Integer, Integer, String>((key, promise) -> promise.done(String.valueOf(key)), key -> key % 2) {
+      @Override
+      public void executeBatch(final Integer group, final Batch<Integer, String> batch) {
+        getScheduler().schedule(() -> {
+          super.executeBatch(group, batch);
+        }, 250, TimeUnit.MILLISECONDS);
+      }
+    };
+
+    _batchingSupport.registerStrategy(strategy);
+
+    Task<String> task = Task.par(strategy.batchable(0),
+        strategy.batchable(1).withTimeout(10, TimeUnit.MILLISECONDS).recover("toExceptionName", e -> e.getClass().getName()),
+        strategy.batchable(2))
+        .map("concat", (s0, s1, s2) -> s0 + s1 + s2);
+
+    String result = runAndWait("TestBatchingSupport.testBatchAndSingletonWithTimeout", task);
+
+    assertEquals(result, "0java.util.concurrent.TimeoutException2");
+    assertTrue(strategy.getClassifiedKeys().contains(0));
+    assertTrue(strategy.getClassifiedKeys().contains(1));
+    assertTrue(strategy.getClassifiedKeys().contains(2));
+    assertEquals(strategy.getExecutedBatches().size(), 1);
+    assertEquals(strategy.getExecutedSingletons().size(), 1);
+  }
 
 }

@@ -68,7 +68,7 @@ public class BatchingClientExample extends AbstractExample {
   }
 
   Task<String> branch(final Function<Long, Task<String>> client, Long base) {
-    return client.apply(base).flatMap(x -> Task.par(client.apply(base + 1), client.apply(base + 2))).flatMap(x -> client.apply(base + 3));
+    return client.apply(base).flatMap("first", x -> Task.par(client.apply(base + 1), client.apply(base + 2))).flatMap("second", x -> client.apply(base + 3));
   }
 
   Task<?> plan(final Function<Long, Task<String>> client) {
