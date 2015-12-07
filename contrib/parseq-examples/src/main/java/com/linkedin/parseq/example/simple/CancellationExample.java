@@ -15,9 +15,9 @@ import com.linkedin.parseq.example.common.MockService;
 /**
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class CalcellationExample extends AbstractExample {
+public class CancellationExample extends AbstractExample {
   public static void main(String[] args) throws Exception {
-    new CalcellationExample().runExample();
+    new CancellationExample().runExample();
   }
 
   @Override

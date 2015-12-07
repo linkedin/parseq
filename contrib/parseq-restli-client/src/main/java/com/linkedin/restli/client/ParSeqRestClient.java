@@ -212,7 +212,7 @@ public class ParSeqRestClient
   }
 
   @Override
-  public String getBatchName(Batch<RestRequestBatchKey, Response<Object>> batch, RequestGroup group) {
+  public String getBatchName(RequestGroup group, Batch<RestRequestBatchKey, Response<Object>> batch) {
     return group.getBatchName(batch);
   }
 

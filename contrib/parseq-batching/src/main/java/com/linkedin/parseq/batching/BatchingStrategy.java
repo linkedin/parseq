@@ -20,6 +20,7 @@ import com.linkedin.parseq.internal.ContextImpl;
 import com.linkedin.parseq.internal.PlanContext;
 import com.linkedin.parseq.promise.CountDownPromiseListener;
 import com.linkedin.parseq.promise.PromiseListener;
+import com.linkedin.parseq.promise.PromiseResolvedException;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 import com.linkedin.parseq.trace.Relationship;
@@ -68,8 +69,8 @@ import com.linkedin.parseq.trace.TraceBuilder;
  * </pre></blockquote>
  *
  * In above example there is an assumption that all keys can be grouped together. This is why method {@code classify()}
- * trivially returns a constant {@code 0}. In practice {@code classify()} returns an equivalence class. All keys that
- * returns equal equivalence class will constitute a batch.
+ * trivially returns a constant {@code 0}. In practice {@code classify()} returns a group for a key. Keys that have
+ * the same group will be batched together.
  * <p>
  * The interaction between ParSeq and {@code BatchingStrategy} is the following:
  * <ol>
@@ -109,7 +110,7 @@ public abstract class BatchingStrategy<G, K, T> {
    * @return Task that returns value for a single key allowing this strategy to batch operations
    */
   public Task<T> batchable(final String desc, final K key) {
-    return Task.async(desc, ctx -> {
+    return Task.async("batch: " + desc, ctx -> {
       final SettablePromise<T> result = Promises.settable();
       Long planId = ctx.getPlanId();
       BatchBuilder<K, T> builder = _batches.get(planId);
@@ -131,11 +132,11 @@ public abstract class BatchingStrategy<G, K, T> {
    * @return Task that returns value for a single key allowing this strategy to batch operations
    */
   public Task<T> batchable(final K key) {
-    return batchable("taskForKey: " + key.toString(), key);
+    return batchable("batchableTaskForKey: " + key.toString(), key);
   }
 
   private Task<?> taskForBatch(final G group, final Batch<K, T> batch) {
-    return Task.async(getBatchName(batch, group), ctx -> {
+    return Task.async(getBatchName(group, batch), ctx -> {
       final SettablePromise<T> result = Promises.settable();
       final PromiseListener<T> countDownListener =
           new CountDownPromiseListener<T>(batch.size(), result, null);
@@ -160,8 +161,10 @@ public abstract class BatchingStrategy<G, K, T> {
           executeBatch(group, batch);
         }
       } catch (Throwable t) {
-        batch.failAllRemaining(t);
+        batch.failAll(t);
       }
+
+      ctx.getShallowTraceBuilder().setSystemHidden(true);
 
       return result;
     });
@@ -184,7 +187,7 @@ public abstract class BatchingStrategy<G, K, T> {
         } catch (Throwable t) {
           //we don't care if some of promises have already been completed
           //all we care is that all remaining promises have been failed
-          batch.failAllRemaining(t);
+          batch.failAll(t);
         }
       }
     }
@@ -192,8 +195,10 @@ public abstract class BatchingStrategy<G, K, T> {
 
   /**
    * This method will be called for every {@code Batch} that contains at least two elements.
-   * Implementation of this method should make sure that all {@code SettablePromise} contained in the {@code Batch}
-   * will eventually be resolved - typically asynchronously.
+   * Implementation of this method must make sure that all {@code SettablePromise} contained in the {@code Batch}
+   * will eventually be resolved - typically asynchronously. Failing to eventually resolve any
+   * of the promises may lead to plan that never completes i.e. appears to hung and may lead to
+   * a memory leak.
    * @param group group that represents the batch
    * @param batch batch contains collection of {@code SettablePromise} that eventually need to be resolved - typically asynchronously
    */
@@ -212,8 +217,8 @@ public abstract class BatchingStrategy<G, K, T> {
   /**
    * Classify the {@code K Key} and by doing so assign it to a {@code G group}.
    * If two keys are classified by the same group then they will belong to the same {@code Batch}.
-   * For each batch either {@link #executeBatch(Object, Batch)} will be called if batch contains at least two elements
-   * or {@link #executeSingleton(Object, Object, BatchEntry)} will be called if batch contains only one element.
+   * For each batch either {@link #executeBatch(G group, Batch batch)} will be called if batch contains at least two elements
+   * or {@link #executeSingleton(G, K, BatchEntry)} will be called if batch contains only one element.
    * @param key key to be classified
    * @return Group that represents a batch the key will belong to
    */
@@ -226,7 +231,7 @@ public abstract class BatchingStrategy<G, K, T> {
    * @param group group to be described
    * @return name for the batch and group
    */
-  public String getBatchName(Batch<K, T> batch, G group) {
+  public String getBatchName(G group, Batch<K, T> batch) {
     if (batch.size() == 1) {
       return "singleton";
     } else {

@@ -1,26 +1,36 @@
 /* $Id$ */
 package com.linkedin.parseq.example.domain;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.Task;
+import com.linkedin.parseq.Tasks;
 import com.linkedin.parseq.example.common.ExampleUtil;
+import com.linkedin.parseq.function.Tuple2;
 
 
 /**
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
 public class Examples extends AbstractDomainExample {
+
   public static void main(String[] args) throws Exception {
-    new Examples().runExample();
+    new Examples(true).runExample();
   }
+
+  public Examples(boolean useBatching) {
+    super(useBatching);
+  }
+
 
   //---------------------------------------------------------------
 
   //create summary for a person: "<first name> <last name>"
   Task<String> createSummary(int id) {
-    return fetchPerson(id).map(this::shortSummary);
+    return fetchPerson(id).map("shortSummary", this::shortSummary);
   }
 
   String shortSummary(Person person) {
@@ -47,20 +57,38 @@ public class Examples extends AbstractDomainExample {
 
   //create extended summary for a person: "<first name> <last name> working at <company name>"
   Task<String> createExtendedSummary(int id) {
-    return fetchPerson(id).flatMap(this::createExtendedSummary);
+    return fetchPerson(id).flatMap("createExtendedSummary", this::createExtendedSummary);
   }
 
   Task<String> createExtendedSummary(final Person p) {
-    return fetchCompany(p.getCompanyId()).map(company -> shortSummary(p) + " working at " + company.getName());
+    return fetchCompany(p.getCompanyId()).map("summary", company -> shortSummary(p) + " working at " + company.getName());
   }
 
   //---------------------------------------------------------------
 
   //create mailbox summary for a person: "<first name> <last name> has <X> messages"
   Task<String> createMailboxSummary(int id) {
-    return Task.par(createSummary(id), fetchMailbox(id))
-        .map((summary, mailbox) -> summary + " has " + mailbox.size() + " messages");
+    return Task.par(createExtendedSummary(id), fetchMailbox(id))
+        .map("createMailboxSummary", (summary, mailbox) -> summary + " has " + mailbox.size() + " messages");
+  }
 
+  //create list of summaries, one per each connection
+  Task<List<String>> createConnectionsSummaries(int id) {
+    return fetchPerson(id).flatMap("createConnectionsSummaries", person -> createConnectionsSummaries(person.getConnections()));
+  }
+
+  Task<List<String>> createConnectionsSummaries(List<Integer> connections) {
+    return Tasks.par(createConnectionsSummariesTasks(connections));
+  }
+
+  List<Task<String>> createConnectionsSummariesTasks(List<Integer> connections) {
+    return connections.stream().map(this::createExtendedSummary).collect(Collectors.toList());
+  }
+
+  //---------------------------------------------------------------
+
+  Task<Tuple2<String, List<String>>> createFullSummary(int id) {
+    return Task.par(createMailboxSummary(id), createConnectionsSummaries(id));
   }
 
   //---------------------------------------------------------------
@@ -71,16 +99,16 @@ public class Examples extends AbstractDomainExample {
 
   @Override
   protected void doRunExample(final Engine engine) throws Exception {
-    Task<String> task = createSummary(1);
+    Task<?> task = Task.par(createFullSummary(2), createFullSummary(3));
 
     runTaskAndPrintResults(engine, task);
   }
 
   private void runTaskAndPrintResults(final Engine engine, Task<?> task) throws InterruptedException {
-    Task<?> printRsults = task.andThen("println", System.out::println);
-    engine.run(printRsults);
-    printRsults.await();
-    ExampleUtil.printTracingResults(printRsults);
+    engine.run(task);
+    task.await();
+    System.out.println(task.get());
+    ExampleUtil.printTracingResults(task);
   }
 
 }

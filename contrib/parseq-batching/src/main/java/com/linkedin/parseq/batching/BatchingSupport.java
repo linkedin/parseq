@@ -13,7 +13,7 @@ import com.linkedin.parseq.internal.PlanDeactivationListener;
  * Please note that BatchingSupport must be registered with an {@link EngineBuilder} e.g.
  * <blockquote><pre>
  *  BatchingSupport batchingSupport = new BatchingSupport();
- *  engineBuilder.setPlanActivityListener(batchingSupport);
+ *  engineBuilder.setPlanDeactivationListener(batchingSupport);
  *  (...)
  *  batchingSupport.registerStrategy(batchingStrategy);
  * </pre></blockquote>

@@ -18,6 +18,7 @@ package com.linkedin.parseq.example.common;
 
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.EngineBuilder;
+import com.linkedin.parseq.batching.BatchingSupport;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -29,6 +30,7 @@ import java.util.concurrent.ScheduledExecutorService;
  */
 public abstract class AbstractExample {
   private volatile ScheduledExecutorService _serviceScheduler;
+  private final BatchingSupport _batchingSupport = new BatchingSupport();
 
   public void runExample() throws Exception {
     _serviceScheduler = Executors.newScheduledThreadPool(2);
@@ -50,10 +52,17 @@ public abstract class AbstractExample {
   protected abstract void doRunExample(Engine engine) throws Exception;
 
   protected void customizeEngine(EngineBuilder engineBuilder) {
-
+    engineBuilder.setPlanDeactivationListener(_batchingSupport);
   }
 
   protected <T> MockService<T> getService() {
     return new MockService<T>(_serviceScheduler);
   }
+
+  protected <T> BatchableMockService<T> getBatchableService() {
+    BatchableMockService<T> service = new BatchableMockService<>(_serviceScheduler);
+    _batchingSupport.registerStrategy(service.getStrategy());
+    return service;
+  }
+
 }

@@ -20,13 +20,8 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Random;
 
-import com.linkedin.parseq.BaseTask;
-import com.linkedin.parseq.Context;
 import com.linkedin.parseq.Task;
-import com.linkedin.parseq.promise.Promise;
-import com.linkedin.parseq.trace.Trace;
 import com.linkedin.parseq.trace.TraceUtil;
-import com.linkedin.parseq.trace.codec.json.JsonTraceCodec;
 
 
 /**
@@ -41,14 +36,14 @@ public class ExampleUtil {
   private ExampleUtil() {
   }
 
-  public static <RES> Task<RES> callService(final String name, final MockService<RES> service,
+  public static <K, RES> Task<RES> callService(final String name, final MockService<RES> service,
       final MockRequest<RES> request) {
-    return new BaseTask<RES>(name) {
-      @Override
-      protected Promise<RES> run(final Context context) throws Exception {
-        return service.call(request);
-      }
-    };
+    if (service instanceof BatchableMockService) {
+      BatchableMockService<RES> batchableService = (BatchableMockService<RES>)service;
+      return batchableService.task(name, request);
+    } else {
+      return Task.async(name, () -> service.call(request));
+    }
   }
 
   public static <T> Task<T> fetch(String name, final MockService<T> service, final int id, final Map<Integer, T> map) {

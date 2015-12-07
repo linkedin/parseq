@@ -33,21 +33,16 @@ public class BatchImpl<K, T> implements Batch<K, T> {
   }
 
   @Override
-  public void failAll(Throwable error) throws PromiseResolvedException {
-    List<K> alreadyResolved = null;
+  public int failAll(Throwable error) {
+    int alreadyResolved = 0;
     for (Entry<K, BatchEntry<T>> entry: _map.entrySet()) {
       try {
         entry.getValue().getPromise().fail(error);
       } catch (PromiseResolvedException e) {
-        if (alreadyResolved == null) {
-          alreadyResolved = new ArrayList<>();
-        }
-        alreadyResolved.add(entry.getKey());
+        alreadyResolved++;
       }
     }
-    if (alreadyResolved != null) {
-      throw new PromiseResolvedException("Promises for the following keys have already been resolved: " + alreadyResolved);
-    }
+    return alreadyResolved;
   }
 
   @Override
@@ -68,15 +63,6 @@ public class BatchImpl<K, T> implements Batch<K, T> {
   @Override
   public String toString() {
     return "BatchImpl [entries=" + _map + "]";
-  }
-
-  @Override
-  public void failAllRemaining(Throwable error) {
-    try {
-      failAll(error);
-    } catch (PromiseResolvedException e) {
-      // ignore error which signals that some promises have already been resolved
-    }
   }
 
   public static class BatchEntry<T> {

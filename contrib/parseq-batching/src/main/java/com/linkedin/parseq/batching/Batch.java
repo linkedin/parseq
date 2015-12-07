@@ -59,7 +59,7 @@ public interface Batch<K, T> {
 
   /**
    * Fails a {@link Promise} associated with given key with
-   * a an error.
+   * an error.
    * Throws PromiseResolvedException if Promise associated with given key has already been resolved.
    * @param key key that identifies a Promise to be completed
    * @param error error to fail Promise with
@@ -69,22 +69,13 @@ public interface Batch<K, T> {
 
   /**
    * Fails all promises belonging to this batch with given error.
-   * This method throws PromiseResolvedException if any of the promises
-   * have already been resolved.
-   * This method guarantees that each Promise in this batch is either completed or failed.
+   * If a promise belonging to this batch has already been completed then it is
+   * ignored by this method.
+   * This method guarantees that after it returns each Promise in this batch is either completed or failed.
    * @param error error that all promises belonging to this batch will be failed with
-   * @throws PromiseResolvedException if any of promises belonging to this batch have already been completed
+   * @return number of promises that were successfully failed with provided error
    */
-  void failAll(Throwable error) throws PromiseResolvedException;
-
-  /**
-   * Fails all remaining unresolved promises belonging to this batch with given error.
-   * The difference between this method and {@link #failAll(Throwable)} is that this method
-   * does not throw any exception.
-   * This method guarantees that each Promise in this batch is either completed or failed.
-   * @param error error that all remaining, uncompleted promises belonging to this batch will be failed with
-   */
-  void failAllRemaining(Throwable error);
+  int failAll(Throwable error);
 
   Collection<BatchEntry<T>> values();
 
