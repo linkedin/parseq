@@ -1,3 +1,8 @@
+v2.1.2
+------
+
+* Fixed bug in ShallowTraceBuilder that could cause NPE when getTrace() was called and task was cancelled at the same time.
+
 v2.1.1
 ------
 

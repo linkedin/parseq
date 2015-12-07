@@ -186,13 +186,21 @@ public class ShallowTraceBuilder {
   }
 
   public ShallowTraceImp build() {
-    final Long startNanos = _startNanos;
-    Long endNanos = _endNanos;
+    /*
+     * Order of reading volatile variable matters.
+     * Make sure you understand it before changing the following lines.
+     * For example it is important to read _resultType before _endNanos because
+     * ShallowTraceImpl expects _endNanos to be set for certain types of _resultType.
+     */
+    final String value = _value;
     final ResultType resultType = _resultType;
+    Long endNanos = _endNanos;
+    final Long pendingNanos = _pendingNanos;
+    final Long startNanos = _startNanos;
     if (resultType == ResultType.UNFINISHED && startNanos != null && endNanos == null) {
       endNanos = System.nanoTime();
     }
-    return new ShallowTraceImp(_id, _name, _hidden, _systemHidden, resultType, _value, startNanos, _pendingNanos,
+    return new ShallowTraceImp(_id, _name, _hidden, _systemHidden, resultType, value, startNanos, pendingNanos,
         endNanos, getAttributes());
   }
 }
