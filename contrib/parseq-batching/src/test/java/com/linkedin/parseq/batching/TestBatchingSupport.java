@@ -281,6 +281,13 @@ public class TestBatchingSupport extends BaseEngineTest {
           super.executeBatch(group, batch);
         }, 250, TimeUnit.MILLISECONDS);
       }
+
+      @Override
+          public void executeSingleton(Integer group, Integer key, BatchEntry<String> entry) {
+            getScheduler().schedule(() -> {
+              super.executeSingleton(group, key, entry);
+            }, 250, TimeUnit.MILLISECONDS);
+          }
     };
 
     _batchingSupport.registerStrategy(strategy);
