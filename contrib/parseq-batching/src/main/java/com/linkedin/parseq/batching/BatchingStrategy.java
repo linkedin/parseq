@@ -217,8 +217,8 @@ public abstract class BatchingStrategy<G, K, T> {
   /**
    * Classify the {@code K Key} and by doing so assign it to a {@code G group}.
    * If two keys are classified by the same group then they will belong to the same {@code Batch}.
-   * For each batch either {@link #executeBatch(G group, Batch batch)} will be called if batch contains at least two elements
-   * or {@link #executeSingleton(G, K, BatchEntry)} will be called if batch contains only one element.
+   * For each batch either {@link #executeBatch(Object, Batch)} will be called if batch contains at least two elements
+   * or {@link #executeSingleton(Object, Object, BatchEntry)} will be called if batch contains only one element.
    * @param key key to be classified
    * @return Group that represents a batch the key will belong to
    */
