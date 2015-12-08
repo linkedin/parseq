@@ -114,7 +114,7 @@ public class TimeBoundSearchExample extends AbstractExample {
       for (int i = 0; i < REQUEST_LATENCIES.length; i++) {
         final long requestLatency = REQUEST_LATENCIES[i];
         final Task<Integer> callSvc =
-            callService("subSearch[" + i + "]", _service, new SimpleMockRequest<Integer>(requestLatency, i));
+            callService("subSearch[" + i + "]", _service, new SimpleMockRequest<Integer>(requestLatency, i), i);
 
         ctx.run(callSvc.andThen(addResponse(callSvc)).andThen(checkDone()));
       }

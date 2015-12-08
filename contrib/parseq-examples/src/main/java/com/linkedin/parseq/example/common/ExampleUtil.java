@@ -37,10 +37,10 @@ public class ExampleUtil {
   }
 
   public static <K, RES> Task<RES> callService(final String name, final MockService<RES> service,
-      final MockRequest<RES> request) {
+      final MockRequest<RES> request, K key) {
     if (service instanceof BatchableMockService) {
       BatchableMockService<RES> batchableService = (BatchableMockService<RES>)service;
-      return batchableService.task(name, request);
+      return batchableService.task(name, new MockRequestWithKey<K, RES>(key, request));
     } else {
       return Task.async(name, () -> service.call(request));
     }
@@ -52,7 +52,7 @@ public class ExampleUtil {
     final long latency = Math.max(LATENCY_MIN, (int) (RANDOM.nextGaussian() * stddev + mean));
     final MockRequest<T> request = (map.containsKey(id)) ? new SimpleMockRequest<T>(latency, map.get(id))
         : new ErrorMockRequest<T>(latency, new Exception("404"));
-    return callService("fetch" + name + "[id=" + id + "]", service, request);
+    return callService("fetch" + name + "[id=" + id + "]", service, request, id);
   }
 
   public static Task<String> fetchUrl(final MockService<String> httpClient, final String url) {
@@ -60,12 +60,12 @@ public class ExampleUtil {
     final long stddev = DEFAULT_LATENCY_STDDEV;
     final long latency = Math.max(LATENCY_MIN, (int) (RANDOM.nextGaussian() * stddev + mean));
     return callService("fetch[url=" + url + "]", httpClient,
-        new SimpleMockRequest<String>(latency, "HTTP response for " + url));
+        new SimpleMockRequest<String>(latency, "HTTP response for " + url), url);
   }
 
   public static Task<String> fetchUrl(final MockService<String> httpClient, final String url, final long latency) {
     return callService("fetch[url=" + url + "]", httpClient,
-        new SimpleMockRequest<String>(latency, "HTTP response for " + url));
+        new SimpleMockRequest<String>(latency, "HTTP response for " + url), url);
   }
 
   public static Task<String> fetch404Url(final MockService<String> httpClient, final String url) {
@@ -73,7 +73,7 @@ public class ExampleUtil {
     final long stddev = DEFAULT_LATENCY_STDDEV;
     final long latency = Math.max(LATENCY_MIN, (int) (RANDOM.nextGaussian() * stddev + mean));
     return callService("fetch[url=" + url + "]", httpClient,
-        new ErrorMockRequest<String>(latency, new Exception(url + ": 404")));
+        new ErrorMockRequest<String>(latency, new Exception(url + ": 404")), url);
   }
 
   public static void printTracingResults(final Task<?> task) {

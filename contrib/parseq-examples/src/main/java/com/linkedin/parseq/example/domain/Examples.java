@@ -33,8 +33,8 @@ public class Examples extends AbstractDomainExample {
     return fetchPerson(id).map("shortSummary", this::shortSummary);
   }
 
-  String shortSummary(Person person) {
-    return person.getFirstName() + " " + person.getLastName();
+  String shortSummary(Person p) {
+    return p.getFirstName() + " " + p.getLastName();
   }
 
   //---------------------------------------------------------------
@@ -57,11 +57,13 @@ public class Examples extends AbstractDomainExample {
 
   //create extended summary for a person: "<first name> <last name> working at <company name>"
   Task<String> createExtendedSummary(int id) {
-    return fetchPerson(id).flatMap("createExtendedSummary", this::createExtendedSummary);
+    return fetchPerson(id)
+        .flatMap("createExtendedSummary", this::createExtendedSummary);
   }
 
   Task<String> createExtendedSummary(final Person p) {
-    return fetchCompany(p.getCompanyId()).map("summary", company -> shortSummary(p) + " working at " + company.getName());
+    return fetchCompany(p.getCompanyId())
+        .map("summary", company -> shortSummary(p) + " working at " + company.getName());
   }
 
   //---------------------------------------------------------------
@@ -99,7 +101,9 @@ public class Examples extends AbstractDomainExample {
 
   @Override
   protected void doRunExample(final Engine engine) throws Exception {
-    Task<?> task = Task.par(createFullSummary(2), createFullSummary(3));
+    Task<?> task = Task.par(createExtendedSummary(1), createExtendedSummary(2));
+
+    engine.run(task);
 
     runTaskAndPrintResults(engine, task);
   }
