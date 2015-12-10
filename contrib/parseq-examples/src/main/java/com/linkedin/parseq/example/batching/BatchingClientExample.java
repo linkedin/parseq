@@ -45,11 +45,6 @@ public class BatchingClientExample extends AbstractExample {
     }
 
     @Override
-    public void executeSingleton(Integer group, Long key, BatchEntry<String> entry) {
-      entry.getPromise().done(_store.get(key));
-    }
-
-    @Override
     public Integer classify(Long entry) {
       return 0;
     }

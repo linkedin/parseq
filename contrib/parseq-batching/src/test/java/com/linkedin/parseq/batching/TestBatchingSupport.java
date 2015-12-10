@@ -10,7 +10,6 @@ import org.testng.annotations.Test;
 import com.linkedin.parseq.BaseEngineTest;
 import com.linkedin.parseq.EngineBuilder;
 import com.linkedin.parseq.Task;
-import com.linkedin.parseq.batching.BatchImpl.BatchEntry;
 
 public class TestBatchingSupport extends BaseEngineTest {
 
@@ -162,43 +161,16 @@ public class TestBatchingSupport extends BaseEngineTest {
 
     _batchingSupport.registerStrategy(strategy);
 
-    Task<String> task = Task.par(strategy.batchable(0).recover(e -> "failed"), strategy.batchable(1), strategy.batchable(2).recover(e -> "failed"))
+    Task<String> task = Task.par(strategy.batchable(0).recover(e -> "failed"), strategy.batchable(1).recover(e -> "failed"), strategy.batchable(2).recover(e -> "failed"))
         .map("concat", (s0, s1, s2) -> s0 + s1 + s2);
 
     String result = runAndWait("TestBatchingSupport.testExecuteBatchFailure", task);
 
-    assertEquals(result, "failed1failed");
+    assertEquals(result, "failedfailedfailed");
     assertTrue(strategy.getClassifiedKeys().contains(0));
     assertTrue(strategy.getClassifiedKeys().contains(1));
     assertTrue(strategy.getClassifiedKeys().contains(2));
     assertEquals(strategy.getExecutedBatches().size(), 0);
-    assertEquals(strategy.getExecutedSingletons().size(), 1);
-  }
-
-  @Test
-  public void testExecuteSingletonFailure() {
-    RecordingStrategy<Integer, Integer, String> strategy =
-        new RecordingStrategy<Integer, Integer, String>((key, promise) -> promise.done(String.valueOf(key)), key -> key % 2) {
-
-      @Override
-      public void executeSingleton(Integer group, Integer key, BatchEntry<String> entry) {
-        throw new RuntimeException();
-      }
-
-    };
-
-    _batchingSupport.registerStrategy(strategy);
-
-    Task<String> task = Task.par(strategy.batchable(0), strategy.batchable(1).recover(e -> "failed"), strategy.batchable(2))
-        .map("concat", (s0, s1, s2) -> s0 + s1 + s2);
-
-    String result = runAndWait("TestBatchingSupport.testExecuteSingletonFailure", task);
-
-    assertEquals(result, "0failed2");
-    assertTrue(strategy.getClassifiedKeys().contains(0));
-    assertTrue(strategy.getClassifiedKeys().contains(1));
-    assertTrue(strategy.getClassifiedKeys().contains(2));
-    assertEquals(strategy.getExecutedBatches().size(), 1);
     assertEquals(strategy.getExecutedSingletons().size(), 0);
   }
 
@@ -281,13 +253,6 @@ public class TestBatchingSupport extends BaseEngineTest {
           super.executeBatch(group, batch);
         }, 250, TimeUnit.MILLISECONDS);
       }
-
-      @Override
-          public void executeSingleton(Integer group, Integer key, BatchEntry<String> entry) {
-            getScheduler().schedule(() -> {
-              super.executeSingleton(group, key, entry);
-            }, 250, TimeUnit.MILLISECONDS);
-          }
     };
 
     _batchingSupport.registerStrategy(strategy);

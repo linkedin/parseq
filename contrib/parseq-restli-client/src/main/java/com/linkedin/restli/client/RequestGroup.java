@@ -18,8 +18,6 @@ interface RequestGroup {
 
   <RT extends RecordTemplate> void executeBatch(RestClient restClient, Batch<RestRequestBatchKey, Response<Object>> batch);
 
-  <RT extends RecordTemplate> void executeSingleton(RestClient restClient, RestRequestBatchKey key, BatchEntry<Response<Object>> entry);
-
   <K, V> String getBatchName(Batch<K, V> batch);
 
 }

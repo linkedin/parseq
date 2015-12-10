@@ -19,7 +19,6 @@ package com.linkedin.restli.client;
 import com.linkedin.common.callback.Callback;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.batching.Batch;
-import com.linkedin.parseq.batching.BatchImpl.BatchEntry;
 import com.linkedin.parseq.batching.BatchingStrategy;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
@@ -199,11 +198,6 @@ public class ParSeqRestClient
   @Override
   public void executeBatch(RequestGroup group, Batch<RestRequestBatchKey, Response<Object>> batch) {
     group.executeBatch(_restClient, batch);
-  }
-
-  @Override
-  public void executeSingleton(RequestGroup group, RestRequestBatchKey key, BatchEntry<Response<Object>> entry) {
-    group.executeSingleton(_restClient, key, entry);
   }
 
   @Override

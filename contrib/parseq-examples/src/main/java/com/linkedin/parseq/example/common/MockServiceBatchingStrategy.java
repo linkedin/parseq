@@ -34,17 +34,6 @@ public class MockServiceBatchingStrategy<RES> extends BatchingStrategy<Integer, 
   }
 
   @Override
-  public void executeSingleton(final Integer group, final MockRequest<RES> key, final BatchEntry<RES> entry) {
-    _scheduler.schedule(() -> {
-        try {
-          entry.getPromise().done(key.getResult());
-        } catch (Exception e) {
-          entry.getPromise().fail(e);
-        }
-      }, key.getLatency(), TimeUnit.MILLISECONDS);
-  }
-
-  @Override
   public Integer classify(MockRequest<RES> key) {
     return 0;
   }

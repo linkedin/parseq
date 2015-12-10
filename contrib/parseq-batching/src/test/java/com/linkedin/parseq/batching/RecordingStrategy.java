@@ -14,7 +14,7 @@ public class RecordingStrategy<G, K, T> extends BatchingStrategy<G, K, T> {
 
   final List<K> _classifiedKeys = new ArrayList<>();
   final List<Batch<K, T>> _executedBatches = new ArrayList<>();
-  final List<Tuple2<K, BatchEntry<T>>> _executedSingletons = new ArrayList<>();
+  final List<Batch<K, T>> _executedSingletons = new ArrayList<>();
 
   final BiConsumer<K, SettablePromise<T>> _completer;
   final Function<K, G> _classifier;
@@ -26,14 +26,12 @@ public class RecordingStrategy<G, K, T> extends BatchingStrategy<G, K, T> {
 
   @Override
   public void executeBatch(G group, Batch<K, T> batch) {
-    _executedBatches.add(batch);
+    if (batch.size() == 1) {
+      _executedSingletons.add(batch);
+    } else {
+      _executedBatches.add(batch);
+    }
     batch.foreach(_completer);
-  }
-
-  @Override
-  public void executeSingleton(G group, K key, BatchEntry<T> entry) {
-    _executedSingletons.add(Tuples.tuple(key, entry));
-    _completer.accept(key, entry.getPromise());
   }
 
   @Override
@@ -50,7 +48,7 @@ public class RecordingStrategy<G, K, T> extends BatchingStrategy<G, K, T> {
     return _executedBatches;
   }
 
-  public List<Tuple2<K, BatchEntry<T>>> getExecutedSingletons() {
+  public List<Batch<K, T>> getExecutedSingletons() {
     return _executedSingletons;
   }
 

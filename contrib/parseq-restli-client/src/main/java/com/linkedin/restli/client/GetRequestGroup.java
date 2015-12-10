@@ -169,6 +169,11 @@ public class GetRequestGroup implements RequestGroup {
     }
   }
 
+  public <RT extends RecordTemplate> void executeSingleton(RestClient restClient, RestRequestBatchKey key, BatchEntry<Response<Object>> entry) {
+    restClient.sendRequest(key.getRequest(), key.getRequestContext(),
+        new PromiseCallbackAdapter<Object>(entry.getPromise()));
+  }
+
   static GetRequest toGetRequest(Request request) {
     return (GetRequest) request;
   }
@@ -179,12 +184,6 @@ public class GetRequestGroup implements RequestGroup {
 
   static BatchGetKVRequest toBatchGetKV(GetRequest getRequest) {
     return BatchGetRequestBuilder.batchKV(getRequest);
-  }
-
-  @Override
-  public <RT extends RecordTemplate> void executeSingleton(RestClient restClient, RestRequestBatchKey key, BatchEntry<Response<Object>> entry) {
-    restClient.sendRequest(key.getRequest(), key.getRequestContext(),
-        new PromiseCallbackAdapter<Object>(entry.getPromise()));
   }
 
   public String getBaseUriTemplate() {

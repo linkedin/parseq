@@ -1,5 +1,7 @@
 package com.linkedin.restli.client;
 
+import java.util.Map.Entry;
+
 import com.linkedin.data.template.RecordTemplate;
 import com.linkedin.parseq.batching.Batch;
 import com.linkedin.parseq.batching.BatchImpl.BatchEntry;
@@ -15,15 +17,15 @@ public class SingletonRequestGroup implements RequestGroup {
   }
 
   @Override
-  public <RT extends RecordTemplate> void executeSingleton(RestClient restClient, RestRequestBatchKey key, BatchEntry<Response<Object>> entry) {
-    restClient.sendRequest(key.getRequest(), key.getRequestContext(),
-        new PromiseCallbackAdapter<Object>(entry.getPromise()));
-  }
-
-  @Override
   public <RT extends RecordTemplate> void executeBatch(RestClient restClient,
       Batch<RestRequestBatchKey, Response<Object>> batch) {
-    throw new UnsupportedOperationException("singleton request should not be executed as a batch");
+    if (batch.size() > 1) {
+      throw new UnsupportedOperationException("singleton request should not be executed as a batch");
+    } else {
+      Entry<RestRequestBatchKey, BatchEntry<Response<Object>>> entry = batch.entries().iterator().next();
+      restClient.sendRequest(entry.getKey().getRequest(), entry.getKey().getRequestContext(),
+          new PromiseCallbackAdapter<Object>(entry.getValue().getPromise()));
+    }
   }
 
   @Override

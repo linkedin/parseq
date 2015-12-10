@@ -20,7 +20,6 @@ import com.linkedin.parseq.internal.ContextImpl;
 import com.linkedin.parseq.internal.PlanContext;
 import com.linkedin.parseq.promise.CountDownPromiseListener;
 import com.linkedin.parseq.promise.PromiseListener;
-import com.linkedin.parseq.promise.PromiseResolvedException;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 import com.linkedin.parseq.trace.Relationship;
@@ -57,11 +56,6 @@ import com.linkedin.parseq.trace.TraceBuilder;
  *    }
  *
  *    {@code @Override}
- *    public void executeSingleton(Integer group, Long key, BatchEntry{@code <String>} entry) {
- *      entry.getPromise().done(_store.get(key));
- *    }
- *
- *    {@code @Override}
  *    public Integer classify(Long entry) {
  *      return 0;
  *    }
@@ -81,15 +75,14 @@ import com.linkedin.parseq.trace.TraceBuilder;
  *   <ol>
  *     <li>Every {@code K key} is classified using {@code classify(K key)} method</li>
  *     <li>Keys, together with adequate Promises, are batched together based on {@code G group} returned by previous step</li>
- *     <li>If batch contains single element, method {@code executeSingleton(G group, K key, BatchEntry<T> entry)} is invoked for it</li>
- *     <li>If batch contains at least two elements, method {@code executeBatch(G group, Batch<K, T> batch)} is invoked for it</li>
+ *     <li>Method {@code executeBatch(G group, Batch<K, T> batch)} is invoked for every batch</li>
  *   </ol>
- *   Both {@code executeSingleton(G group, K key, BatchEntry<T> entry)} and {@code executeBatch(G group, Batch<K, T> batch)} are invoked
- *   in the context of their own Task instance with description given by {@code getBatchName(G group, Batch<K, T> batch)}.
+ *   {@code executeBatch(G group, Batch<K, T> batch)} invocations are executed
+ *   in the context of their own Task instances with description given by {@code getBatchName(G group, Batch<K, T> batch)}.
  *   Implementation of {@code BatchingStrategy} has to be fast because it is executed sequentially with respect to tasks belonging
  *   to the plan. It means that no other task will be executed until {@code BatchingStrategy} completes. Typically classify(K key)
- *   is a synchronous and fast operation whilst {@code executeBatch(G group, Batch<K, T> batch)} and
- *   {@code executeSingleton(G group, K key, BatchEntry<T> entry)} return quickly and complete promises asynchronously.
+ *   is a synchronous and fast operation whilst {@code executeBatch(G group, Batch<K, T> batch)} returns quickly and completes
+ *   promises asynchronously.
  * </ol>
  *
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
@@ -154,12 +147,7 @@ public abstract class BatchingStrategy<G, K, T> {
       }
 
       try {
-        if (batch.size() == 1) {
-          Entry<K, BatchEntry<T>> entry = batch.entries().iterator().next();
-          executeSingleton(group, entry.getKey(), entry.getValue());
-        } else {
-          executeBatch(group, batch);
-        }
+        executeBatch(group, batch);
       } catch (Throwable t) {
         batch.failAll(t);
       }
@@ -205,20 +193,9 @@ public abstract class BatchingStrategy<G, K, T> {
   public abstract void executeBatch(G group, Batch<K, T> batch);
 
   /**
-   * This method will be called for every {@code Batch} that contains only one element.
-   * Implementation of this method should make sure that {@code SettablePromise} contained in the {@code BatchEntry}
-   * will eventually be resolved - typically asynchronously.
-   * @param group group that represents the batch
-   * @param key key of the single element classified to the given group
-   * @param entry entry contains a {@code SettablePromise} that eventually needs to be resolved - typically asynchronously
-   */
-  public abstract void executeSingleton(G group, K key, BatchEntry<T> entry);
-
-  /**
    * Classify the {@code K Key} and by doing so assign it to a {@code G group}.
    * If two keys are classified by the same group then they will belong to the same {@code Batch}.
-   * For each batch either {@link #executeBatch(Object, Batch)} will be called if batch contains at least two elements
-   * or {@link #executeSingleton(Object, Object, BatchEntry)} will be called if batch contains only one element.
+   * For each batch {@link #executeBatch(Object, Batch)} will be .
    * @param key key to be classified
    * @return Group that represents a batch the key will belong to
    */
@@ -232,11 +209,7 @@ public abstract class BatchingStrategy<G, K, T> {
    * @return name for the batch and group
    */
   public String getBatchName(G group, Batch<K, T> batch) {
-    if (batch.size() == 1) {
-      return "singleton";
-    } else {
-      return "batch(" + batch.size() + ")";
-    }
+    return "batch(" + batch.size() + ")";
   }
 
   private Map<G, Batch<K, T>> split(Batch<K, T> batch) {
