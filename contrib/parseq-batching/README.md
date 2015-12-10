@@ -94,3 +94,59 @@ Actual types will depend on specific use case.
 * ```void executeBatch(G group, Batch<K, T> batch)``` - executes batch and must ensure that all ```Promise``` contained in a given ```Batch``` eventually will be completed
 
 ```BatchingStrategy``` has one more method worth mentioning: ```String getBatchName(G group, Batch<K, T> batch)```. It allows to provide a description for a task that executes a batch. By default it is equal to ```"batch(" + batch.size() + ")"```.
+
+Example
+=======
+
+Assuming that we have an async API for fetching a Person by id we will create a ParSeq client that will perform batching automatically. For simplicity we will assume that all individual ```get``` operations can be grouped together:
+```java
+public interface AsyncPersonClient {
+  CompletableFuture<Person> get(Long id);
+  CompletableFuture<Map<Long, Person>> batchGet(Collection<Long> ids);
+}
+```
+In this example we assume that async client is using Java ```CompletableFuture``` but our code would look very similar if we had to deal with other async mechanisms e.g. callbacks. 
+
+
+```ParSeqPersonClient``` will use ```AsynPersonClient``` internally and will implement ```BatchingStrategy```:
+```java
+public class ParSeqPersonClient extends BatchingStrategy<Integer, Long, Person> {
+  private final AsyncPersonClient _client;
+  public ParSeqPersonClient(AsyncPersonClient client) {
+    _client = client;
+  }
+  // ...
+}
+```
+
+Since we can group all individual ```get``` into one batch, the grouping function is trivial. Here we declare that all operations can be grouped into one group indentified by ```Integer 0```:
+```java
+  @Override
+  public Integer classify(Long key) {
+    return 0;
+  }
+```
+
+To execute batch we call async ```batchGet``` method and complete ParSeq promises once result is known:
+```java
+  @Override
+  public void executeBatch(Integer group, Batch<Long, Person> batch) {
+    _client.batchGet(batch.keys()).whenComplete((results, exception) -> {
+      if (exception != null) {
+        // batch operation failed so we need to fail all promises
+        batch.failAll(exception);
+      } else {
+        // complete promises with values from results
+        batch.foreach((key, promise) -> promise.done(results.get(key)));
+      }
+    });
+  }
+```
+
+Finally we need to define main API for our ```ParSeqPersonClient```:
+```java
+  public Task<Person> get(Long id) {
+    return batchable("fetch Person " + id, id);
+  }
+```
+```batchable()``` method is declared by a ```BatchingStrategy```.
