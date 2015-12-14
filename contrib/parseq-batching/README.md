@@ -144,3 +144,5 @@ Finally we need to define main API for our ```ParSeqPersonClient```:
   }
 ```
 ```batchable()``` method is declared by a ```BatchingStrategy``` and returns a task that cooperates with a batching strategy to performa a batchable operation.
+
+Source code for above example can be found [here](https://github.com/linkedin/parseq/blob/master/contrib/parseq-examples/src/main/java/com/linkedin/parseq/example/domain/ParSeqPersonClient.java).
