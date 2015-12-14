@@ -1,8 +1,8 @@
 package com.linkedin.parseq.internal;
 
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import static org.testng.Assert.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -10,22 +10,28 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import com.linkedin.parseq.internal.SerialExecutor.DeactivationListener;
 
 
 public class TestSerialExecutor {
   private ExecutorService _executorService;
   private CapturingRejectionHandler _rejectionHandler;
   private SerialExecutor _serialExecutor;
+  private CapturingActivityListener _capturingDeactivationListener;
 
   @BeforeMethod
   public void setUp() {
     _executorService = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(1),
         new ThreadPoolExecutor.AbortPolicy());
     _rejectionHandler = new CapturingRejectionHandler();
-    _serialExecutor = new SerialExecutor(_executorService, _rejectionHandler);
+    _capturingDeactivationListener = new CapturingActivityListener();
+    _serialExecutor = new SerialExecutor(_executorService, _rejectionHandler, _capturingDeactivationListener);
   }
 
   @AfterMethod
@@ -43,6 +49,8 @@ public class TestSerialExecutor {
     _serialExecutor.execute(runnable);
     assertTrue(runnable.await(5, TimeUnit.SECONDS));
     assertFalse(_rejectionHandler.wasExecuted());
+    assertTrue(_capturingDeactivationListener.await(5, TimeUnit.SECONDS));
+    assertEquals(_capturingDeactivationListener.getDeactivatedCount(), 1);
   }
 
   @Test
@@ -59,6 +67,8 @@ public class TestSerialExecutor {
     _executorService.execute(outer);
     assertTrue(inner.await(5, TimeUnit.SECONDS));
     assertFalse(_rejectionHandler.wasExecuted());
+    assertTrue(_capturingDeactivationListener.await(5, TimeUnit.SECONDS));
+    assertEquals(_capturingDeactivationListener.getDeactivatedCount(), 1);
   }
 
   @Test
@@ -126,6 +136,26 @@ public class TestSerialExecutor {
       } catch (InterruptedException e) {
         // This is our shutdown mechanism.
       }
+    }
+  }
+
+  private static class CapturingActivityListener implements DeactivationListener {
+
+    private AtomicInteger _deactivatedCount = new AtomicInteger();
+    private final CountDownLatch _latch = new CountDownLatch(1);
+
+    @Override
+    public void deactivated() {
+      _deactivatedCount.incrementAndGet();
+      _latch.countDown();
+    }
+
+    public int getDeactivatedCount() {
+      return _deactivatedCount.get();
+    }
+
+    public boolean await(long timeout, TimeUnit unit) throws InterruptedException {
+      return _latch.await(timeout, unit);
     }
   }
 

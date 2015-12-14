@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
 public class MockService<RES> {
-  private final ScheduledExecutorService _scheduler;
+  protected final ScheduledExecutorService _scheduler;
 
   public MockService(ScheduledExecutorService scheduler) {
     _scheduler = scheduler;

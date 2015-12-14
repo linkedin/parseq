@@ -81,7 +81,8 @@ function rewriteNodes(g, parents) {
         style:     'dashed',
         color:     '#cccccc',
         fillcolor: fillcolor(value.resultType),
-        resultType: value.resultType
+        resultType: value.resultType,
+        tooltip: value.name
       });
     } else {
       g.node(u, {
@@ -89,7 +90,8 @@ function rewriteNodes(g, parents) {
         shape: 'Mrecord',
         style: 'filled',
         fillcolor: fillcolor(value.resultType),
-        resultType: value.resultType
+        resultType: value.resultType,
+        tooltip: value.name
       });
     }
   });
@@ -120,7 +122,8 @@ function expandClusters(g, parents) {
     g.addNode(source, {
       shape: 'circle',
       style: 'filled',
-      label: '&nbsp;'
+      label: '&nbsp;',
+      tooltip: value.tooltip
     });
     g.parent(source, u);
 
@@ -128,7 +131,8 @@ function expandClusters(g, parents) {
       shape: 'doublecircle',
       style: 'filled',
       fillcolor: g.node(u).fillcolor,
-      label: '&nbsp;'
+      label: '&nbsp;',
+      tooltip: value.tooltip
     });
     g.parent(sink, u);
 

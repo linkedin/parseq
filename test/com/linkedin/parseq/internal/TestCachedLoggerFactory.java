@@ -6,6 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
+import static org.testng.Assert.assertTrue;
+
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -39,7 +41,7 @@ public class TestCachedLoggerFactory {
     }
     // start race
     startRace.countDown();
-    stopRace.await(5000, TimeUnit.MILLISECONDS);
+    assertTrue(stopRace.await(5000, TimeUnit.MILLISECONDS));
     Assert.assertEquals(loggerFactory.getCount(), 1);
   }
 

@@ -35,7 +35,6 @@ import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 import com.linkedin.parseq.trace.Trace;
 import com.linkedin.parseq.trace.TraceUtil;
-import com.linkedin.parseq.trace.codec.json.JsonTraceCodec;
 
 
 /**
@@ -62,6 +61,7 @@ public class BaseEngineTest {
     EngineBuilder engineBuilder =
         new EngineBuilder().setTaskExecutor(_scheduler).setTimerScheduler(_scheduler).setLoggerFactory(_loggerFactory);
     AsyncCallableTask.register(engineBuilder, _asyncExecutor);
+    customizeEngine(engineBuilder);
     _engine = engineBuilder.build();
   }
 
@@ -76,6 +76,9 @@ public class BaseEngineTest {
     _asyncExecutor = null;
     _loggerFactory.reset();
     _loggerFactory = null;
+  }
+
+  protected void customizeEngine(EngineBuilder engineBuilder) {
   }
 
   protected Engine getEngine() {

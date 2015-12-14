@@ -61,14 +61,18 @@ function excludeTasks(g, predicate) {
 
 function sources(g, parent) {
   return g.children(parent).filter(function(u) {
-    return !g.inEdges(u).length;
+    return !filterOutPotentialParents(g, g.inEdges(u)).length;
   });
 }
 
 function sinks(g, parent) {
   return g.children(parent).filter(function(u) {
-    return !g.outEdges(u).length;
+    return !filterOutPotentialParents(g, g.outEdges(u)).length;
   });
+}
+
+function filterOutPotentialParents(g, es) {
+  return es.filter(function(e) { return g.edge(e).relationship !== 'POTENTIAL_PARENT'; });
 }
 
 function filterSuccessorEdges(g, es) {

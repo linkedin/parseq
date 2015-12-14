@@ -31,6 +31,21 @@ public abstract class AbstractDomainExample extends AbstractExample {
   protected MockService<Message> messageService;
   protected MockService<List<Integer>> mailboxService;
 
+  private final boolean _useBatching;
+
+  public AbstractDomainExample(boolean useBatching) {
+    _useBatching = useBatching;
+  }
+
+  @Override
+  protected <T> MockService<T> getService() {
+    if (_useBatching) {
+      return getBatchableService();
+    } else {
+      return super.getService();
+    }
+  }
+
   public Task<Person> fetchPerson(int id) {
     if (personService == null) {
       personService = getService();

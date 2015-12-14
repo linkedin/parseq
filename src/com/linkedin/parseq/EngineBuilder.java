@@ -16,16 +16,17 @@
 
 package com.linkedin.parseq;
 
-import com.linkedin.parseq.internal.ArgumentUtil;
-import com.linkedin.parseq.internal.CachedLoggerFactory;
-import org.slf4j.ILoggerFactory;
-import org.slf4j.LoggerFactory;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 
+import org.slf4j.ILoggerFactory;
+import org.slf4j.LoggerFactory;
+
+import com.linkedin.parseq.internal.ArgumentUtil;
+import com.linkedin.parseq.internal.CachedLoggerFactory;
+import com.linkedin.parseq.internal.PlanDeactivationListener;
 
 /**
  * A configurable builder that makes {@link Engine}s.
@@ -37,15 +38,35 @@ import java.util.concurrent.ScheduledExecutorService;
  * </ul>
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
+ * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
 public class EngineBuilder {
   private Executor _taskExecutor;
   private DelayedExecutor _timerScheduler;
-  private ILoggerFactory _loggerFactory = null;
+  private ILoggerFactory _loggerFactory;
+  private PlanDeactivationListener _planDeactivationListener;
 
   private Map<String, Object> _properties = new HashMap<String, Object>();
 
   public EngineBuilder() {
+  }
+
+  /**
+   * Sets plan activity listener for the engine. The listener will be notified
+   * when plan becomes deactivated.
+   * Plan becomes deactivated when there are no tasks that can be executed e.g.
+   * asynchronous operations are in progress and subsequent tasks depend on their results.
+   * <p>
+   * For given plan id deactivation listener is called sequentially
+   * with respect to tasks belonging to that plan. For arbitrary plan ids methods on
+   * {@code PlanActivityListener} can be called in parallel.
+   *
+   * @param planDeactivationListener the listener that will be notified when plan
+   * becomes deactivated
+   */
+  public void setPlanDeactivationListener(PlanDeactivationListener planDeactivationListener) {
+    ArgumentUtil.requireNotNull(planDeactivationListener, "planDeactivationListener");
+    _planDeactivationListener = planDeactivationListener;
   }
 
   /**
@@ -132,7 +153,7 @@ public class EngineBuilder {
     }
     Engine engine = new Engine(_taskExecutor, new IndirectDelayedExecutor(_timerScheduler),
         _loggerFactory != null ? _loggerFactory : new CachedLoggerFactory(LoggerFactory.getILoggerFactory()),
-        _properties);
+        _properties, _planDeactivationListener != null ? _planDeactivationListener : planContext -> {});
     return engine;
   }
 

@@ -213,7 +213,7 @@ function render(root, graph) {
                                         : bbox.width).attr("height",
                                     bbox.height);
                             var cloned = ellipse.node().cloneNode();
-                            this.insertBefore(cloned,
+                            ellipse.node().parentNode.insertBefore(cloned,
                                 ellipse.node().nextSibling);
                             d3.select(cloned).style(
                                 "fill",
@@ -239,7 +239,7 @@ function render(root, graph) {
                                         : bbox.width).attr("height",
                                     bbox.height);
                             var cloned = path.node().cloneNode();
-                            this.insertBefore(cloned, path.node().nextSibling);
+                            path.node().parentNode.insertBefore(cloned, path.node().nextSibling);
                             d3.select(cloned).style(
                                 "fill",
                                 progressColorsMap[d3.rgb(path.style('fill'))

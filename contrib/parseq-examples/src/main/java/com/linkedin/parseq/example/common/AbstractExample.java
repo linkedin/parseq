@@ -18,6 +18,7 @@ package com.linkedin.parseq.example.common;
 
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.EngineBuilder;
+import com.linkedin.parseq.batching.BatchingSupport;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -25,15 +26,19 @@ import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
+ * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
 public abstract class AbstractExample {
   private volatile ScheduledExecutorService _serviceScheduler;
+  private final BatchingSupport _batchingSupport = new BatchingSupport();
 
   public void runExample() throws Exception {
     _serviceScheduler = Executors.newScheduledThreadPool(2);
     final int numCores = Runtime.getRuntime().availableProcessors();
     final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(numCores + 1);
-    final Engine engine = new EngineBuilder().setTaskExecutor(scheduler).setTimerScheduler(scheduler).build();
+    final EngineBuilder builder = new EngineBuilder().setTaskExecutor(scheduler).setTimerScheduler(scheduler);
+    customizeEngine(builder);
+    final Engine engine = builder.build();
     try {
       doRunExample(engine);
     } finally {
@@ -46,7 +51,18 @@ public abstract class AbstractExample {
 
   protected abstract void doRunExample(Engine engine) throws Exception;
 
+  protected void customizeEngine(EngineBuilder engineBuilder) {
+    engineBuilder.setPlanDeactivationListener(_batchingSupport);
+  }
+
   protected <T> MockService<T> getService() {
     return new MockService<T>(_serviceScheduler);
   }
+
+  protected <T> BatchableMockService<T> getBatchableService() {
+    BatchableMockService<T> service = new BatchableMockService<>(_serviceScheduler);
+    _batchingSupport.registerStrategy(service.getStrategy());
+    return service;
+  }
+
 }

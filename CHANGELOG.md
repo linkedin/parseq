@@ -1,3 +1,11 @@
+v2.2.0
+------
+
+* Added parseq-batching contrib project. It allows automatic batching of asynchronous operations based on user defined strategy.
+* Fixed bug in tracevis that caused filtering option not work correctly for certain types of graphs.
+* Added tooltip to Graphviz view in tracevis.
+* Improved documentation of SerialExecutor.
+
 v2.1.2
 ------
 

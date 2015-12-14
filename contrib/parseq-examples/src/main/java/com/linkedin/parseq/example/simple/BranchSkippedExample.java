@@ -48,6 +48,6 @@ public class BranchSkippedExample extends AbstractExample {
   }
 
   private Task<Integer> fetchX(final MockService<Integer> serviceX, final int x) {
-    return callService("fetch x (x := " + x + ")", serviceX, new SimpleMockRequest<Integer>(10, x));
+    return callService("fetch x (x := " + x + ")", serviceX, new SimpleMockRequest<Integer>(10, x), x);
   }
 }
