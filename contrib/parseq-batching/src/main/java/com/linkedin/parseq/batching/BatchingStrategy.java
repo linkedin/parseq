@@ -182,7 +182,7 @@ public abstract class BatchingStrategy<G, K, T> {
   }
 
   /**
-   * This method will be called for every {@code Batch} that contains at least two elements.
+   * This method will be called for every {@code Batch}.
    * Implementation of this method must make sure that all {@code SettablePromise} contained in the {@code Batch}
    * will eventually be resolved - typically asynchronously. Failing to eventually resolve any
    * of the promises may lead to plan that never completes i.e. appears to hung and may lead to
