@@ -13,7 +13,7 @@ import com.linkedin.parseq.promise.SettablePromise;
 
 /**
  * Batch represents a collection of keys related to each other in such a way that
- * is more efficient to compute values for those keys in bulk than computing value
+ * it is more efficient to compute values for those keys in bulk than computing value
  * for each key individually.
  * This class contains methods helpful in implementing bulk operation that completes
  * Promises associated with keys.

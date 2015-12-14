@@ -80,7 +80,7 @@ _batchingSupport.registerStrategy(myBatchingStrategy);
 BatchingStrategy
 ================
 
-```BatchingStrategy``` allows building "batching clients" where "client" means on object that given ```K key``` provides a task that returns ```T value```. ```BatchingStrategy``` defines which keys can be grouped together into batches and how batches are executed.
+```BatchingStrategy``` allows building "batching clients" where "client" means an object that given ```K key``` provides a task that returns ```T value```. ```BatchingStrategy``` defines which keys can be grouped together into batches and how batches are executed.
 
 ```BatchingStrategy``` class has 3 type parameters:
 * ```<G>``` Type of a Group,
