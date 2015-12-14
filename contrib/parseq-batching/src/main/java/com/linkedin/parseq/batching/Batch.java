@@ -73,7 +73,9 @@ public interface Batch<K, T> {
    * ignored by this method.
    * This method guarantees that after it returns each Promise in this batch is either completed or failed.
    * @param error error that all promises belonging to this batch will be failed with
-   * @return number of promises that were successfully failed with provided error
+   * @return number of promises that were not failed because the promise has already been resolved; if this
+   * method returns {@code 0} it means that it successfully failed all promises belonging to this batch with
+   * specified error
    */
   int failAll(Throwable error);
 

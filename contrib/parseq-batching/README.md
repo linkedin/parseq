@@ -127,7 +127,7 @@ Since we can group all individual ```get``` into one batch, the grouping functio
   }
 ```
 
-To execute batch we call async ```batchGet``` method and complete ParSeq promises once result is known:
+To execute batch we call async ```batchGet``` method and complete ParSeq promises once result is known. All promises belonging to the batch have to be resolved with either successful result or a failure. Leaving any of the promises unresolved may lead to plan that remains uncompleted forever.
 ```java
   @Override
   public void executeBatch(Integer group, Batch<Long, Person> batch) {

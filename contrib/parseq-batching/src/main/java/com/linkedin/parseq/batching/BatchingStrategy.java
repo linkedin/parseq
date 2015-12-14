@@ -27,7 +27,7 @@ import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.TraceBuilder;
 
 /**
- * {@code BatchingStrategy} helps building "batching clients" in ParSeq. "Client" means on object that given {@code K key}
+ * {@code BatchingStrategy} helps build "batching clients" in ParSeq. "Client" means an object that given {@code K key}
  * provides a task that returns {@code T value}. "Batching" means that it can group together keys to resolve values
  * in batches. The benefit of this approach is that batching happens transparently in the background and user's code
  * does not have to deal with logic needed to implement batching.
