@@ -49,6 +49,7 @@ public class TestSerialExecutor {
     _serialExecutor.execute(runnable);
     assertTrue(runnable.await(5, TimeUnit.SECONDS));
     assertFalse(_rejectionHandler.wasExecuted());
+    assertTrue(_capturingDeactivationListener.await(5, TimeUnit.SECONDS));
     assertEquals(_capturingDeactivationListener.getDeactivatedCount(), 1);
   }
 
@@ -66,6 +67,7 @@ public class TestSerialExecutor {
     _executorService.execute(outer);
     assertTrue(inner.await(5, TimeUnit.SECONDS));
     assertFalse(_rejectionHandler.wasExecuted());
+    assertTrue(_capturingDeactivationListener.await(5, TimeUnit.SECONDS));
     assertEquals(_capturingDeactivationListener.getDeactivatedCount(), 1);
   }
 
@@ -140,16 +142,21 @@ public class TestSerialExecutor {
   private static class CapturingActivityListener implements DeactivationListener {
 
     private AtomicInteger _deactivatedCount = new AtomicInteger();
+    private final CountDownLatch _latch = new CountDownLatch(1);
 
     @Override
     public void deactivated() {
       _deactivatedCount.incrementAndGet();
+      _latch.countDown();
     }
 
     public int getDeactivatedCount() {
       return _deactivatedCount.get();
     }
 
+    public boolean await(long timeout, TimeUnit unit) throws InterruptedException {
+      return _latch.await(timeout, unit);
+    }
   }
 
   private static class CapturingRejectionHandler implements RejectedSerialExecutionHandler {
