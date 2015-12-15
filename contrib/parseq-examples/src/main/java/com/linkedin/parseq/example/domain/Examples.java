@@ -18,7 +18,7 @@ import com.linkedin.parseq.function.Tuple2;
 public class Examples extends AbstractDomainExample {
 
   public static void main(String[] args) throws Exception {
-    new Examples(true).runExample();
+    new Examples(false).runExample();
   }
 
   public Examples(boolean useBatching) {
@@ -101,7 +101,8 @@ public class Examples extends AbstractDomainExample {
 
   @Override
   protected void doRunExample(final Engine engine) throws Exception {
-    Task<?> task = Task.par(createExtendedSummary(1), createExtendedSummary(2));
+    Task<?> task = createExtendedSummary(1);
+//    Task<?> task = Task.par(createExtendedSummary(1), createExtendedSummary(2));
 
     engine.run(task);
 

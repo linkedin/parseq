@@ -57,7 +57,7 @@ public abstract class AbstractDomainExample extends AbstractExample {
     if (companyService == null) {
       companyService = getService();
     }
-    return ExampleUtil.fetch("Comapny", companyService, id, DB.companyDB);
+    return ExampleUtil.fetch("Company", companyService, id, DB.companyDB);
   }
 
   public Task<Message> fetchMessage(int id) {
