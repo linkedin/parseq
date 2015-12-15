@@ -5,9 +5,6 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import com.linkedin.parseq.batching.BatchImpl.BatchEntry;
-import com.linkedin.parseq.function.Tuple2;
-import com.linkedin.parseq.function.Tuples;
 import com.linkedin.parseq.promise.SettablePromise;
 
 public class RecordingStrategy<G, K, T> extends BatchingStrategy<G, K, T> {
