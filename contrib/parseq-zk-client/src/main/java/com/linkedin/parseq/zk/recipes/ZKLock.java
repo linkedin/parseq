@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 LinkedIn, Inc
+ * Copyright 2016 LinkedIn Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -145,7 +145,7 @@ public class ZKLock {
         /* Step 2: Call getChildren( ) on the lock node without setting the watch flag */
         _zkClient.getChildren(_lockPath)
             .flatMap(children -> {
-              children = children.stream().map(child -> ZKUtil.noramlizeZKPath(_lockPath, child))
+              children = children.stream().map(child -> ZKUtil.normalizeZKPath(_lockPath, child))
                   .collect(Collectors.toList());
               String node = ZKUtil.findNodeWithNextLowestSN(children, lockNode);
               if (node.equals(lockNode)) {
@@ -214,7 +214,7 @@ public class ZKLock {
   private Task<String> createLockNode(String uuid) {
     return _zkClient.ensurePathExists(_lockPath)
         .flatMap(path -> _zkClient.create(
-            ZKUtil.noramlizeZKPath(path, uuid + "-lock-"), /* path to the lock node */
+            ZKUtil.normalizeZKPath(path, uuid + "-lock-"), /* path to the lock node */
             LockUtil.getLockData(),      /* data */
             _acls, /* ACLs */
             CreateMode.EPHEMERAL_SEQUENTIAL /* CreateMode */));

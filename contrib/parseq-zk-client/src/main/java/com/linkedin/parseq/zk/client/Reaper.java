@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 LinkedIn, Inc
+ * Copyright 2016 LinkedIn Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,10 +18,6 @@ package com.linkedin.parseq.zk.client;
 
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.Task;
-import com.linkedin.r2.util.NamedThreadFactory;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,67 +34,35 @@ import org.slf4j.LoggerFactory;
 
   private static final Logger LOG = LoggerFactory.getLogger(Reaper.class);
 
-
-  private final ArrayBlockingQueue<Zombie> _queue;
-
   private final Engine _engine;
-  private final ExecutorService _executor;
-
-  private final ReaperRunnable _runnable = new ReaperRunnable();
 
   public Reaper(Engine engine) {
-    this(engine, Executors.newSingleThreadExecutor(new NamedThreadFactory("ZKClient Reaper")));
-  }
-
-  public Reaper(Engine engine, ExecutorService executor) {
-    _queue = new ArrayBlockingQueue<>(10);
     _engine = engine;
-    _executor = executor;
-    _executor.execute(_runnable);
   }
 
   public void submit(Zombie zombie) {
-    _queue.add(zombie);
-  }
-
-  public void shutdown() {
-    _runnable.shutdown();
-    _executor.shutdownNow();
-  }
-
-  private class ReaperRunnable implements Runnable {
-
-    private volatile boolean _runnable = true;
-
-    @Override
-    public void run() {
-      try {
-        while (_runnable) {
-          Zombie zombie = _queue.take();
-
-          Task<?> clean = zombie.cleanUp().onFailure(e -> {
-            if (ZKUtil.isRecoverable(e)) {
-              _queue.add(zombie);
-            } else {
-              LOG.error("failed to delete zombie node: {}", zombie);
-            }
-          });
-          _engine.run(clean);
-        }
-      } catch (InterruptedException ex) {
-        LOG.debug("Caught InterruptedException");
+    Task<?> reapTask = zombie.reap().onFailure(e -> {
+      if (ZKUtil.isRecoverable(e)) {
+        submit(zombie);
+      } else {
+        LOG.error("failed to delete zombie node: {}", zombie);
       }
-      LOG.info("Reaper thread terminated.");
-    }
+    });
 
-    public void shutdown() {
-      _runnable = false;
-    }
+    _engine.run(reapTask);
   }
 
   @FunctionalInterface
   public interface Zombie {
-    Task<Void> cleanUp();
+    /**
+     * Returns a {@link Task} which reaps this zombie node.
+     * Note that {@link #reap()} may be called more than once for a single
+     * zombie instance, therefore each time it is called, a new {@link Task}
+     * must be returned.
+     *
+     * @return reap task
+     */
+    Task<Void> reap();
   }
 
 }

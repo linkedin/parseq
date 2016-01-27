@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 LinkedIn, Inc
+ * Copyright 2016 LinkedIn Crop.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -28,7 +28,7 @@ public final class ZKUtil {
 
   private ZKUtil() {}
 
-  public static String noramlizeZKPath(String basePath, String child) {
+  public static String normalizeZKPath(String basePath, String child) {
     // normalization
     while (basePath.endsWith("/")) {
       basePath = basePath.substring(0, basePath.length() - 2);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 LinkedIn, Inc
+ * Copyright 2016 LinkedIn Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -121,7 +121,6 @@ public class ZKClient {
   public void shutdown() throws InterruptedException {
     if (_zkClient != null) {
       _zkClient.close();
-      _reaper.shutdown();
     }
   }
 
@@ -308,7 +307,7 @@ public class ZKClient {
   }
 
   /**
-   * Returns task that will wait for the given {@link KeeperState} to fulfil.
+   * Returns task that will wait for the given {@link KeeperState} to fulfill.
    * The task will be failed if the underlying zookeeper session expires.
    *
    * @param state keeper state to wait for.
