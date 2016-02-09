@@ -49,7 +49,10 @@ class FusionTraceContext {
     if (_surrogate == null) {
       _surrogate = new ShallowTraceBuilder(IdGenerator.getNextId());
       _surrogate.setName(_desc);
-      _parent.getShallowTraceBuilder().setName("fused").setSystemHidden(true);
+      ShallowTraceBuilder parentShallowTraceBuilder = _parent.getShallowTraceBuilder();
+      _surrogate.setHidden(parentShallowTraceBuilder.getHidden());
+      _surrogate.setSystemHidden(parentShallowTraceBuilder.getSystemHidden());
+      parentShallowTraceBuilder.setName("fused").setSystemHidden(true);
     }
   }
 }

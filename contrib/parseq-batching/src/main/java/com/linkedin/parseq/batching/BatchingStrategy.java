@@ -13,6 +13,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import com.linkedin.parseq.Context;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.batching.BatchImpl.BatchBuilder;
 import com.linkedin.parseq.batching.BatchImpl.BatchEntry;
@@ -90,6 +91,9 @@ import com.linkedin.parseq.trace.TraceBuilder;
  * @param <G> Type of a Group
  * @param <K> Type of a Key
  * @param <T> Type of a Value
+ *
+ * @see SimpleBatchingStrategy
+ * @see TaskBasedBatchingStrategy
  */
 public abstract class BatchingStrategy<G, K, T> {
 
@@ -147,7 +151,7 @@ public abstract class BatchingStrategy<G, K, T> {
       }
 
       try {
-        executeBatch(group, batch);
+        executeBatchWithContext(group, batch, ctx);
       } catch (Throwable t) {
         batch.failAll(t);
       }
@@ -191,6 +195,10 @@ public abstract class BatchingStrategy<G, K, T> {
    * @param batch batch contains collection of {@code SettablePromise} that eventually need to be resolved - typically asynchronously
    */
   public abstract void executeBatch(G group, Batch<K, T> batch);
+
+  protected void executeBatchWithContext(G group, Batch<K, T> batch, Context ctx) {
+    executeBatch(group, batch);
+  }
 
   /**
    * Classify the {@code K Key} and by doing so assign it to a {@code G group}.

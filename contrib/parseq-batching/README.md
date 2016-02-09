@@ -146,3 +146,23 @@ Finally we need to define main API for our ```ParSeqPersonClient```:
 ```batchable()``` method is declared by a ```BatchingStrategy``` and returns a task that cooperates with a batching strategy to performa a batchable operation.
 
 Source code for above example can be found [here](https://github.com/linkedin/parseq/blob/master/contrib/parseq-examples/src/main/java/com/linkedin/parseq/example/domain/ParSeqPersonClient.java).
+
+Task-based BatchingStrategy
+===========================
+
+```BatchingStrategy``` API is intended to be used when integrating asynchronous API (e.g. based on callbacks or ```CompletableFuture``` ) with parseq. It is not convenient to use when we have an existing parseq API. In those cases we can use ```TaskBasedBatchingStrategy```.
+
+```TaskBasedBatchingStrategy``` class has 3 type parameters:
+* ```<G>``` Type of a Group,
+* ```<K>``` Type of a Key,
+* ```<T>``` Type of a Value,
+
+Actual types will depend on specific use case.
+
+```TaskBasedBatchingStrategy``` class declares 2 abstract methods:
+* ```G classify(K key)``` - specifies what keys will be grouped together to form a batch,
+* ```Task<Map<K, Try<T>>> taskForBatchGroup(G group, Set<K> keys)``` - returns a ```Task``` that given set of keys return a map containing successful result or a failure for every key.
+
+```TaskBasedBatchingStrategy``` has one more method worth mentioning: ```String getBatchName(G group, Set<K> key)```. It allows to provide a description for a task that executes a batch. By default it is equal to ```"batch(" + keys.size() + ")"```.
+
+For a simple case when all keys can always be grouped into a batch there exists a ```SimpleTaskBasedBatchingStrategy``` that requires only one method to be declared: ```Task<Map<K, Try<T>>> taskForBatch(Set<K> keys)```.
