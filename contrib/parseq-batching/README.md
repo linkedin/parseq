@@ -161,7 +161,7 @@ Actual types will depend on specific use case.
 
 ```TaskBasedBatchingStrategy``` class declares 2 abstract methods:
 * ```G classify(K key)``` - specifies what keys will be grouped together to form a batch,
-* ```Task<Map<K, Try<T>>> taskForBatchGroup(G group, Set<K> keys)``` - returns a ```Task``` that given set of keys return a map containing successful result or a failure for every key.
+* ```Task<Map<K, Try<T>>> taskForBatch(G group, Set<K> keys)``` - returns a ```Task``` that given set of keys return a map containing successful result or a failure for every key.
 
 ```TaskBasedBatchingStrategy``` has one more method worth mentioning: ```String getBatchName(G group, Set<K> key)```. It allows to provide a description for a task that executes a batch. By default it is equal to ```"batch(" + keys.size() + ")"```.
 

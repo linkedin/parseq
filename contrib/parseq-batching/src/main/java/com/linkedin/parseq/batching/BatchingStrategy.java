@@ -107,7 +107,7 @@ public abstract class BatchingStrategy<G, K, T> {
    * @return Task that returns value for a single key allowing this strategy to batch operations
    */
   public Task<T> batchable(final String desc, final K key) {
-    return Task.async("batch: " + desc, ctx -> {
+    return Task.async("batched: " + desc, ctx -> {
       final SettablePromise<T> result = Promises.settable();
       Long planId = ctx.getPlanId();
       BatchBuilder<K, T> builder = _batches.get(planId);

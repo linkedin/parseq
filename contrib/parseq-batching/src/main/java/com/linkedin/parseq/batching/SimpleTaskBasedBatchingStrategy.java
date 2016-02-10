@@ -8,6 +8,14 @@ import com.linkedin.parseq.batching.SimpleBatchingStrategy.Group;
 import com.linkedin.parseq.function.Try;
 import static com.linkedin.parseq.batching.SimpleBatchingStrategy.ALL;
 
+/**
+ * A simple {@link TaskBasedBatchingStrategy} that groups all keys into one batch.
+ *
+ * @author Jaroslaw Odzga (jodzga@linkedin.com)
+ *
+ * @param <K> Type of a Key
+ * @param <T> Type of a Value
+  */
 public abstract class SimpleTaskBasedBatchingStrategy<K, T> extends TaskBasedBatchingStrategy<SimpleBatchingStrategy.Group, K, T> {
 
   @Override
@@ -35,6 +43,14 @@ public abstract class SimpleTaskBasedBatchingStrategy<K, T> extends TaskBasedBat
     return super.getBatchName(ALL, batch);
   }
 
+  /**
+   * This method will be called for every batch. It returns a map that for every key contains
+   * either a success with a value or a failure. If returned map does not contain results for
+   * some keys the tasks for which results are missing will fail.
+   * @param keys set of keys belonging to the batch
+   * @return A map that for every key contains either a success with a value or a failure.
+   * If returned map does not contain results for some keys the tasks for which results are missing will fail.
+   */
   public abstract Task<Map<K, Try<T>>> taskForBatch(Set<K> keys);
 
 }

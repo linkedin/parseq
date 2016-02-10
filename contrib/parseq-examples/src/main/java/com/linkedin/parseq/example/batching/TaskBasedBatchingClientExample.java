@@ -3,34 +3,37 @@ package com.linkedin.parseq.example.batching;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.Task;
-import com.linkedin.parseq.batching.Batch;
-import com.linkedin.parseq.batching.BatchingStrategy;
 import com.linkedin.parseq.batching.BatchingSupport;
+import com.linkedin.parseq.batching.SimpleTaskBasedBatchingStrategy;
 import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.example.common.ExampleUtil;
+import com.linkedin.parseq.function.Success;
+import com.linkedin.parseq.function.Try;
 
 
 /**
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class BatchingClientExample extends AbstractExample {
+public class TaskBasedBatchingClientExample extends AbstractExample {
 
 
   static class KVStore {
-    String get(Long key) {
-      return String.valueOf(key);
+    Task<String> get(Long key) {
+      return Task.callable("get key: " + key, () -> String.valueOf(key));
     }
-    Map<Long, String> batchGet(Collection<Long> keys) {
-      return keys.stream().collect(Collectors.toMap(key -> key, key -> get(key)));
+    Task<Map<Long, Try<String>>> batchGet(Collection<Long> keys) {
+      return Task.callable("batchGet",
+          () -> keys.stream().collect(Collectors.toMap(Function.identity(), key -> Success.of(Long.toString(key)))));
     }
   }
 
-  public static class BatchingKVStoreClient extends BatchingStrategy<Integer, Long, String> {
+  public static class BatchingKVStoreClient extends SimpleTaskBasedBatchingStrategy<Long, String> {
     private final KVStore _store;
 
     public BatchingKVStoreClient(KVStore store) {
@@ -38,14 +41,8 @@ public class BatchingClientExample extends AbstractExample {
     }
 
     @Override
-    public void executeBatch(Integer group, Batch<Long, String> batch) {
-      Map<Long, String> batchResult = _store.batchGet(batch.keys());
-      batch.foreach((key, promise) -> promise.done(batchResult.get(key)));
-    }
-
-    @Override
-    public Integer classify(Long entry) {
-      return 0;
+    public Task<Map<Long, Try<String>>> taskForBatch(Set<Long> keys) {
+      return _store.batchGet(keys);
     }
   }
 
@@ -58,7 +55,7 @@ public class BatchingClientExample extends AbstractExample {
   }
 
   Task<String> nonBatchableTask(final Long id) {
-    return Task.callable("fetch id: " + id, () -> store.get(id));
+    return store.get(id);
   }
 
   Task<String> branch(final Function<Long, Task<String>> client, Long base) {
@@ -77,7 +74,7 @@ public class BatchingClientExample extends AbstractExample {
   };
 
   public static void main(String[] args) throws Exception {
-    new BatchingClientExample().runExample();
+    new TaskBasedBatchingClientExample().runExample();
   }
 
   @Override

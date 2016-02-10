@@ -9,7 +9,43 @@ import com.linkedin.parseq.function.Try;
 
 /**
  * This is a base class for a batching strategy that leverages existing Task-based API.
+ * <p>
+ * Example below shows how to build a ParSeq client for a key-value store that provides
+ * transparent batching given existing Task-based API. Let's assume that we have an implementation
+ * of the following key-value store interface:
+ * <blockquote><pre>
+ *  interface KVStore {
+ *    Task{@code <String>} get(Long key);
+ *    Task{@code <Map<Long, Try<String>>>} batchGet(Collection{@code <Long>} keys);
+ *  }
+ * </pre></blockquote>
  *
+ * We can then implement a {@code TaskBasedBatchingStrategy} in the following way (for the sake
+ * of simplicity we assume that all keys can be grouped into one batch thus we implement
+ * {@code SimpleTaskBasedBatchingStrategy}):
+ * <blockquote><pre>
+ *  public static class BatchingKVStoreClient extends SimpleTaskBasedBatchingStrategy{@code <Long, String>} {
+ *    private final KVStore _store;
+ *    public BatchingKVStoreClient(KVStore store) {
+ *      _store = store;
+ *    }
+ *
+ *    {@code @Override}
+ *    public void executeBatch(Integer group, Batch{@code <Long, String>} batch) {
+ *      Map{@code <Long, String>} batchResult = _store.batchGet(batch.keys());
+ *      batch.foreach((key, promise) {@code ->} promise.done(batchResult.get(key)));
+ *    }
+ *
+ *    {@code @Override}
+ *    public {@code Task<Map<Long, Try<String>>>} taskForBatch(Set{@code <Long>} keys) {
+ *      return _store.batchGet(keys);
+ *    }
+ *  }
+ * </pre></blockquote>
+ *
+ * {@code taskForBatch} method returns a task that computes a map that for every key contains
+ * either a success with a value or a failure. If returned map does not contain results for
+ * some keys the tasks for which results are missing will fail.
  *
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  *
@@ -72,6 +108,15 @@ public abstract class TaskBasedBatchingStrategy<G, K, T> extends BatchingStrateg
     return "batch(" + keys.size() + ")";
   }
 
+  /**
+   * This method will be called for every batch. It returns a map that for every key contains
+   * either a success with a value or a failure. If returned map does not contain results for
+   * some keys the tasks for which results are missing will fail.
+   * @param group group that represents the batch
+   * @param keys set of keys belonging to the batch
+   * @return A map that for every key contains either a success with a value or a failure.
+   * If returned map does not contain results for some keys the tasks for which results are missing will fail.
+   */
   public abstract Task<Map<K, Try<T>>> taskForBatch(G group, Set<K> keys);
 
 }
