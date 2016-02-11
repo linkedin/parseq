@@ -16,7 +16,7 @@ import com.linkedin.parseq.function.Failure;
 import com.linkedin.parseq.function.Success;
 import com.linkedin.parseq.function.Try;
 
-public class TestTaskBasedBatchingStrategy extends BaseEngineTest {
+public class TestTaskBatchingStrategy extends BaseEngineTest {
 
   private final BatchingSupport _batchingSupport = new BatchingSupport();
 
@@ -27,15 +27,15 @@ public class TestTaskBasedBatchingStrategy extends BaseEngineTest {
 
   @Test
   public void testBatchInvoked() {
-    RecordingTaskBasedStrategy<Integer, Integer, String> strategy =
-        new RecordingTaskBasedStrategy<Integer, Integer, String>(key -> Success.of(String.valueOf(key)), key -> 0);
+    RecordingTaskStrategy<Integer, Integer, String> strategy =
+        new RecordingTaskStrategy<Integer, Integer, String>(key -> Success.of(String.valueOf(key)), key -> 0);
 
     _batchingSupport.registerStrategy(strategy);
 
     Task<String> task = Task.par(strategy.batchable(0), strategy.batchable(1))
         .map("concat", (s0, s1) -> s0 + s1);
 
-    String result = runAndWait("TestTaskBasedBatchingStrategy.testBatchInvoked", task);
+    String result = runAndWait("TestTaskBatchingStrategy.testBatchInvoked", task);
 
     assertEquals(result, "01");
     assertTrue(strategy.getClassifiedKeys().contains(0));
@@ -45,15 +45,15 @@ public class TestTaskBasedBatchingStrategy extends BaseEngineTest {
 
   @Test
   public void testSingletonsInvoked() {
-    RecordingTaskBasedStrategy<Integer, Integer, String> strategy =
-        new RecordingTaskBasedStrategy<Integer, Integer, String>(key -> Success.of(String.valueOf(key)), key -> key);
+    RecordingTaskStrategy<Integer, Integer, String> strategy =
+        new RecordingTaskStrategy<Integer, Integer, String>(key -> Success.of(String.valueOf(key)), key -> key);
 
     _batchingSupport.registerStrategy(strategy);
 
     Task<String> task = Task.par(strategy.batchable(0), strategy.batchable(1))
         .map("concat", (s0, s1) -> s0 + s1);
 
-    String result = runAndWait("TestTaskBasedBatchingStrategy.testSingletonsInvoked", task);
+    String result = runAndWait("TestTaskBatchingStrategy.testSingletonsInvoked", task);
 
     assertEquals(result, "01");
     assertTrue(strategy.getClassifiedKeys().contains(0));
@@ -64,15 +64,15 @@ public class TestTaskBasedBatchingStrategy extends BaseEngineTest {
 
   @Test
   public void testBatchAndSingleton() {
-    RecordingTaskBasedStrategy<Integer, Integer, String> strategy =
-        new RecordingTaskBasedStrategy<Integer, Integer, String>(key -> Success.of(String.valueOf(key)), key -> key % 2);
+    RecordingTaskStrategy<Integer, Integer, String> strategy =
+        new RecordingTaskStrategy<Integer, Integer, String>(key -> Success.of(String.valueOf(key)), key -> key % 2);
 
     _batchingSupport.registerStrategy(strategy);
 
     Task<String> task = Task.par(strategy.batchable(0), strategy.batchable(1), strategy.batchable(2))
         .map("concat", (s0, s1, s2) -> s0 + s1 + s2);
 
-    String result = runAndWait("TestTaskBasedBatchingStrategy.testBatchAndSingleton", task);
+    String result = runAndWait("TestTaskBatchingStrategy.testBatchAndSingleton", task);
 
     assertEquals(result, "012");
     assertTrue(strategy.getClassifiedKeys().contains(0));
@@ -84,8 +84,8 @@ public class TestTaskBasedBatchingStrategy extends BaseEngineTest {
 
   @Test
   public void testBatchAndFailedSingleton() {
-    RecordingTaskBasedStrategy<Integer, Integer, String> strategy =
-        new RecordingTaskBasedStrategy<Integer, Integer, String>(key -> {
+    RecordingTaskStrategy<Integer, Integer, String> strategy =
+        new RecordingTaskStrategy<Integer, Integer, String>(key -> {
           if (key % 2 == 0) {
             return Success.of(String.valueOf(key));
           } else {
@@ -98,7 +98,7 @@ public class TestTaskBasedBatchingStrategy extends BaseEngineTest {
     Task<String> task = Task.par(strategy.batchable(0), strategy.batchable(1).recover(e -> "failed"), strategy.batchable(2))
         .map("concat", (s0, s1, s2) -> s0 + s1 + s2);
 
-    String result = runAndWait("TestTaskBasedBatchingStrategy.testBatchAndFailedSingleton", task);
+    String result = runAndWait("TestTaskBatchingStrategy.testBatchAndFailedSingleton", task);
 
     assertEquals(result, "0failed2");
     assertTrue(strategy.getClassifiedKeys().contains(0));
@@ -110,8 +110,8 @@ public class TestTaskBasedBatchingStrategy extends BaseEngineTest {
 
   @Test
   public void testFailedBatchAndSingleton() {
-    RecordingTaskBasedStrategy<Integer, Integer, String> strategy =
-        new RecordingTaskBasedStrategy<Integer, Integer, String>(key -> {
+    RecordingTaskStrategy<Integer, Integer, String> strategy =
+        new RecordingTaskStrategy<Integer, Integer, String>(key -> {
           if (key % 2 == 1) {
             return Success.of(String.valueOf(key));
           } else {
@@ -124,7 +124,7 @@ public class TestTaskBasedBatchingStrategy extends BaseEngineTest {
     Task<String> task = Task.par(strategy.batchable(0).recover(e -> "failed"), strategy.batchable(1), strategy.batchable(2).recover(e -> "failed"))
         .map("concat", (s0, s1, s2) -> s0 + s1 + s2);
 
-    String result = runAndWait("TestTaskBasedBatchingStrategy.testFailedBatchAndSingleton", task);
+    String result = runAndWait("TestTaskBatchingStrategy.testFailedBatchAndSingleton", task);
 
     assertEquals(result, "failed1failed");
     assertTrue(strategy.getClassifiedKeys().contains(0));
@@ -136,15 +136,15 @@ public class TestTaskBasedBatchingStrategy extends BaseEngineTest {
 
   @Test
   public void testClassifyFailure() {
-    RecordingTaskBasedStrategy<Integer, Integer, String> strategy =
-        new RecordingTaskBasedStrategy<Integer, Integer, String>(key -> Success.of(String.valueOf(key)), key -> key / key);
+    RecordingTaskStrategy<Integer, Integer, String> strategy =
+        new RecordingTaskStrategy<Integer, Integer, String>(key -> Success.of(String.valueOf(key)), key -> key / key);
 
     _batchingSupport.registerStrategy(strategy);
 
     Task<String> task = Task.par(strategy.batchable(0).recover(e -> "failed"), strategy.batchable(1).recover(e -> "failed"))
         .map("concat", (s0, s1) -> s0 + s1);
 
-    String result = runAndWait("TestTaskBasedBatchingStrategy.testClassifyFailure", task);
+    String result = runAndWait("TestTaskBatchingStrategy.testClassifyFailure", task);
 
     assertEquals(result, "failedfailed");
     assertEquals(strategy.getExecutedBatches().size(), 0);
@@ -153,8 +153,8 @@ public class TestTaskBasedBatchingStrategy extends BaseEngineTest {
 
   @Test
   public void testExecuteBatchFailure() {
-    RecordingTaskBasedStrategy<Integer, Integer, String> strategy =
-        new RecordingTaskBasedStrategy<Integer, Integer, String>(key -> Success.of(String.valueOf(key)), key -> key % 2) {
+    RecordingTaskStrategy<Integer, Integer, String> strategy =
+        new RecordingTaskStrategy<Integer, Integer, String>(key -> Success.of(String.valueOf(key)), key -> key % 2) {
 
       @Override
       public Task<Map<Integer, Try<String>>> taskForBatch(Integer group, Set<Integer> keys) {
@@ -167,7 +167,7 @@ public class TestTaskBasedBatchingStrategy extends BaseEngineTest {
     Task<String> task = Task.par(strategy.batchable(0).recover(e -> "failed"), strategy.batchable(1).recover(e -> "failed"), strategy.batchable(2).recover(e -> "failed"))
         .map("concat", (s0, s1, s2) -> s0 + s1 + s2);
 
-    String result = runAndWait("TestTaskBasedBatchingStrategy.testExecuteBatchFailure", task);
+    String result = runAndWait("TestTaskBatchingStrategy.testExecuteBatchFailure", task);
 
     assertEquals(result, "failedfailedfailed");
     assertTrue(strategy.getClassifiedKeys().contains(0));
@@ -179,15 +179,15 @@ public class TestTaskBasedBatchingStrategy extends BaseEngineTest {
 
   @Test
   public void testNothingToDoForStrategy() {
-    RecordingTaskBasedStrategy<Integer, Integer, String> strategy =
-        new RecordingTaskBasedStrategy<Integer, Integer, String>(key -> Success.of(String.valueOf(key)), key -> 0);
+    RecordingTaskStrategy<Integer, Integer, String> strategy =
+        new RecordingTaskStrategy<Integer, Integer, String>(key -> Success.of(String.valueOf(key)), key -> 0);
 
     _batchingSupport.registerStrategy(strategy);
 
     Task<String> task = Task.par(Task.value("0"), Task.value("1"))
         .map("concat", (s0, s1) -> s0 + s1);
 
-    String result = runAndWait("TestTaskBasedBatchingStrategy.testNothingToDoForStrategy", task);
+    String result = runAndWait("TestTaskBatchingStrategy.testNothingToDoForStrategy", task);
 
     assertEquals(result, "01");
     assertEquals(strategy.getClassifiedKeys().size(), 0);
@@ -197,8 +197,8 @@ public class TestTaskBasedBatchingStrategy extends BaseEngineTest {
 
   @Test
   public void testDeduplication() {
-    RecordingTaskBasedStrategy<Integer, Integer, String> strategy =
-        new RecordingTaskBasedStrategy<Integer, Integer, String>(key -> Success.of(String.valueOf(key)), key -> key % 2);
+    RecordingTaskStrategy<Integer, Integer, String> strategy =
+        new RecordingTaskStrategy<Integer, Integer, String>(key -> Success.of(String.valueOf(key)), key -> key % 2);
 
     _batchingSupport.registerStrategy(strategy);
 
@@ -206,7 +206,7 @@ public class TestTaskBasedBatchingStrategy extends BaseEngineTest {
         strategy.batchable(0), strategy.batchable(1), strategy.batchable(2))
         .map("concat", (s0, s1, s2, s3, s4, s5) -> s0 + s1 + s2 + s3 + s4 + s5);
 
-    String result = runAndWait("TestTaskBasedBatchingStrategy.testDeduplication", task);
+    String result = runAndWait("TestTaskBatchingStrategy.testDeduplication", task);
 
     assertEquals(result, "012012");
     assertTrue(strategy.getClassifiedKeys().contains(0));
@@ -219,8 +219,8 @@ public class TestTaskBasedBatchingStrategy extends BaseEngineTest {
   @Test
   public void testBatchWithTimeoutAndSingleton() {
 
-    RecordingTaskBasedStrategy<Integer, Integer, String> strategy =
-        new RecordingTaskBasedStrategy<Integer, Integer, String>(key -> Success.of(String.valueOf(key)), key -> key % 2) {
+    RecordingTaskStrategy<Integer, Integer, String> strategy =
+        new RecordingTaskStrategy<Integer, Integer, String>(key -> Success.of(String.valueOf(key)), key -> key % 2) {
 
       @Override
           public Task<Map<Integer, Try<String>>> taskForBatch(Integer group, Set<Integer> keys) {
@@ -234,7 +234,7 @@ public class TestTaskBasedBatchingStrategy extends BaseEngineTest {
         strategy.batchable(1), strategy.batchable(2))
         .map("concat", (s0, s1, s2) -> s0 + s1 + s2);
 
-    String result = runAndWait("TestTaskBasedBatchingStrategy.testBatchWithTimeoutAndSingleton", task);
+    String result = runAndWait("TestTaskBatchingStrategy.testBatchWithTimeoutAndSingleton", task);
 
     assertEquals(result, "java.util.concurrent.TimeoutException12");
     assertTrue(strategy.getClassifiedKeys().contains(0));
@@ -247,8 +247,8 @@ public class TestTaskBasedBatchingStrategy extends BaseEngineTest {
   @Test
   public void testBatchAndSingletonWithTimeout() {
 
-    RecordingTaskBasedStrategy<Integer, Integer, String> strategy =
-        new RecordingTaskBasedStrategy<Integer, Integer, String>(key -> Success.of(String.valueOf(key)), key -> key % 2) {
+    RecordingTaskStrategy<Integer, Integer, String> strategy =
+        new RecordingTaskStrategy<Integer, Integer, String>(key -> Success.of(String.valueOf(key)), key -> key % 2) {
 
       @Override
           public Task<Map<Integer, Try<String>>> taskForBatch(Integer group, Set<Integer> keys) {
@@ -263,7 +263,7 @@ public class TestTaskBasedBatchingStrategy extends BaseEngineTest {
         strategy.batchable(2))
         .map("concat", (s0, s1, s2) -> s0 + s1 + s2);
 
-    String result = runAndWait("TestTaskBasedBatchingStrategy.testBatchAndSingletonWithTimeout", task);
+    String result = runAndWait("TestTaskBatchingStrategy.testBatchAndSingletonWithTimeout", task);
 
     assertEquals(result, "0java.util.concurrent.TimeoutException2");
     assertTrue(strategy.getClassifiedKeys().contains(0));
@@ -275,8 +275,8 @@ public class TestTaskBasedBatchingStrategy extends BaseEngineTest {
 
   @Test
   public void testEntriesMissingInReturnedMap() {
-    RecordingTaskBasedStrategy<Integer, Integer, String> strategy =
-        new RecordingTaskBasedStrategy<Integer, Integer, String>(key -> Success.of(String.valueOf(key)), key -> key % 2) {
+    RecordingTaskStrategy<Integer, Integer, String> strategy =
+        new RecordingTaskStrategy<Integer, Integer, String>(key -> Success.of(String.valueOf(key)), key -> key % 2) {
 
       @Override
           public Task<Map<Integer, Try<String>>> taskForBatch(Integer group, Set<Integer> keys) {
@@ -289,7 +289,7 @@ public class TestTaskBasedBatchingStrategy extends BaseEngineTest {
     Task<String> task = Task.par(strategy.batchable(0), strategy.batchable(1).recover(e -> "missing"), strategy.batchable(2))
         .map("concat", (s0, s1, s2) -> s0 + s1 + s2);
 
-    String result = runAndWait("TestTaskBasedBatchingStrategy.testEntriesMissingInReturnedMap", task);
+    String result = runAndWait("TestTaskBatchingStrategy.testEntriesMissingInReturnedMap", task);
 
     assertEquals(result, "0missing2");
     assertTrue(strategy.getClassifiedKeys().contains(0));
@@ -301,8 +301,8 @@ public class TestTaskBasedBatchingStrategy extends BaseEngineTest {
 
   @Test
   public void testFailureReturned() {
-    RecordingTaskBasedStrategy<Integer, Integer, String> strategy =
-        new RecordingTaskBasedStrategy<Integer, Integer, String>(key -> {
+    RecordingTaskStrategy<Integer, Integer, String> strategy =
+        new RecordingTaskStrategy<Integer, Integer, String>(key -> {
           if (key % 2 == 1) {
             return Failure.of(new Exception("failure message"));
           } else {
@@ -315,7 +315,7 @@ public class TestTaskBasedBatchingStrategy extends BaseEngineTest {
     Task<String> task = Task.par(strategy.batchable(0), strategy.batchable(1).recover(e -> e.getMessage()), strategy.batchable(2))
         .map("concat", (s0, s1, s2) -> s0 + s1 + s2);
 
-    String result = runAndWait("TestTaskBasedBatchingStrategy.testFailureReturned", task);
+    String result = runAndWait("TestTaskBatchingStrategy.testFailureReturned", task);
 
     assertEquals(result, "0failure message2");
     assertTrue(strategy.getClassifiedKeys().contains(0));

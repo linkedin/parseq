@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.batching.BatchingSupport;
-import com.linkedin.parseq.batching.SimpleTaskBasedBatchingStrategy;
+import com.linkedin.parseq.batching.SimpleTaskBatchingStrategy;
 import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.example.common.ExampleUtil;
 import com.linkedin.parseq.function.Success;
@@ -20,7 +20,7 @@ import com.linkedin.parseq.function.Try;
 /**
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class TaskBasedBatchingClientExample extends AbstractExample {
+public class TaskBatchingClientExample extends AbstractExample {
 
 
   static class KVStore {
@@ -33,7 +33,7 @@ public class TaskBasedBatchingClientExample extends AbstractExample {
     }
   }
 
-  public static class BatchingKVStoreClient extends SimpleTaskBasedBatchingStrategy<Long, String> {
+  public static class BatchingKVStoreClient extends SimpleTaskBatchingStrategy<Long, String> {
     private final KVStore _store;
 
     public BatchingKVStoreClient(KVStore store) {
@@ -74,7 +74,7 @@ public class TaskBasedBatchingClientExample extends AbstractExample {
   };
 
   public static void main(String[] args) throws Exception {
-    new TaskBasedBatchingClientExample().runExample();
+    new TaskBatchingClientExample().runExample();
   }
 
   @Override

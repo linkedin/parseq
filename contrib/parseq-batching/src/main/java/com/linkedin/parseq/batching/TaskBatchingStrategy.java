@@ -20,11 +20,11 @@ import com.linkedin.parseq.function.Try;
  *  }
  * </pre></blockquote>
  *
- * We can then implement a {@code TaskBasedBatchingStrategy} in the following way (for the sake
+ * We can then implement a {@code TaskBatchingStrategy} in the following way (for the sake
  * of simplicity we assume that all keys can be grouped into one batch thus we implement
- * {@code SimpleTaskBasedBatchingStrategy}):
+ * {@code SimpleTaskBatchingStrategy}):
  * <blockquote><pre>
- *  public static class BatchingKVStoreClient extends SimpleTaskBasedBatchingStrategy{@code <Long, String>} {
+ *  public static class BatchingKVStoreClient extends SimpleTaskBatchingStrategy{@code <Long, String>} {
  *    private final KVStore _store;
  *    public BatchingKVStoreClient(KVStore store) {
  *      _store = store;
@@ -54,9 +54,9 @@ import com.linkedin.parseq.function.Try;
  * @param <T> Type of a Value
  *
  * @see BatchingStrategy
- * @see SimpleTaskBasedBatchingStrategy
+ * @see SimpleTaskBatchingStrategy
  */
-public abstract class TaskBasedBatchingStrategy<G, K, T> extends BatchingStrategy<G, K, T> {
+public abstract class TaskBatchingStrategy<G, K, T> extends BatchingStrategy<G, K, T> {
 
   @Override
   public final void executeBatch(G group, Batch<K, T> batch) {

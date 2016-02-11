@@ -9,14 +9,14 @@ import com.linkedin.parseq.function.Try;
 import static com.linkedin.parseq.batching.SimpleBatchingStrategy.ALL;
 
 /**
- * A simple {@link TaskBasedBatchingStrategy} that groups all keys into one batch.
+ * A simple {@link TaskBatchingStrategy} that groups all keys into one batch.
  *
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  *
  * @param <K> Type of a Key
  * @param <T> Type of a Value
   */
-public abstract class SimpleTaskBasedBatchingStrategy<K, T> extends TaskBasedBatchingStrategy<SimpleBatchingStrategy.Group, K, T> {
+public abstract class SimpleTaskBatchingStrategy<K, T> extends TaskBatchingStrategy<SimpleBatchingStrategy.Group, K, T> {
 
   @Override
   final public Group classify(K key) {

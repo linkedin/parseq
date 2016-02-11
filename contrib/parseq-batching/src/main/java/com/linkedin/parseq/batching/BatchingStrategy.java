@@ -93,7 +93,7 @@ import com.linkedin.parseq.trace.TraceBuilder;
  * @param <T> Type of a Value
  *
  * @see SimpleBatchingStrategy
- * @see TaskBasedBatchingStrategy
+ * @see TaskBatchingStrategy
  */
 public abstract class BatchingStrategy<G, K, T> {
 

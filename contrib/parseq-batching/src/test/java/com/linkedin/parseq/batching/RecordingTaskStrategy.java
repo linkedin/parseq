@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.function.Try;
 
-public class RecordingTaskBasedStrategy<G, K, T> extends TaskBasedBatchingStrategy<G, K, T> {
+public class RecordingTaskStrategy<G, K, T> extends TaskBatchingStrategy<G, K, T> {
 
   final List<K> _classifiedKeys = new ArrayList<>();
   final List<Set<K>> _batches = new ArrayList<>();
@@ -19,7 +19,7 @@ public class RecordingTaskBasedStrategy<G, K, T> extends TaskBasedBatchingStrate
   final Function<K, Try<T>> _completer;
   final Function<K, G> _classifier;
 
-  public RecordingTaskBasedStrategy(Function<K, Try<T>> completer,Function<K, G> classifier) {
+  public RecordingTaskStrategy(Function<K, Try<T>> completer,Function<K, G> classifier) {
     _completer = completer;
     _classifier = classifier;
   }
