@@ -1,3 +1,9 @@
+v2.3.0
+------
+
+* Added Task based batching strategy to parseq-batching contrib project. It allows defining strategy using Task API. 
+* Fixed bug in setting system hidden attribute on fused task.
+
 v2.2.0
 ------
 
