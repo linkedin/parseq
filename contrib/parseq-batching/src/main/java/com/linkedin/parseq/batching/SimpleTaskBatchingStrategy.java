@@ -36,7 +36,7 @@ public abstract class SimpleTaskBatchingStrategy<K, T> extends TaskBatchingStrat
   /**
    * Overriding this method allows providing custom name for a batch. Name will appear in the
    * ParSeq trace as a description of the task that executes the batch.
-   * @param keys set of keys belonging to the batch that needs to be described
+   * @param batch set of keys belonging to the batch that needs to be described
    * @return name for the batch
    */
   public String getBatchName(Set<K> batch) {
