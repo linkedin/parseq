@@ -344,6 +344,8 @@ class FusionTask<S, T> extends BaseTask<T> {
         propagate(traceContext, fusionResult);
         return fusionResult;
       });
+      propagationTask.getShallowTraceBuilder().setHidden(getShallowTraceBuilder().getHidden());
+      propagationTask.getShallowTraceBuilder().setSystemHidden(getShallowTraceBuilder().getSystemHidden());
       context.after(_asyncTask).run(propagationTask);
       context.run(_asyncTask);
       Promises.propagateResult(propagationTask, result);

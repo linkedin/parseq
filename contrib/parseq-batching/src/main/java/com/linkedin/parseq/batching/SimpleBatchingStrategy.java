@@ -15,7 +15,7 @@ public abstract class SimpleBatchingStrategy<K, T> extends BatchingStrategy<Simp
     }
   }
 
-  private static final Group ALL = new Group();
+  static final Group ALL = new Group();
 
   @Override
   final public Group classify(K key) {

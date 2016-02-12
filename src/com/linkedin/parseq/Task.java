@@ -389,7 +389,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * Creates a new task which runs given task after
    * completion of this task and completes with a result of
    * that task. Task passed in as a parameter will run even if
-   * this task completes fails.
+   * this task fails. Notice that task passed in as a parameter
+   * does not depend on an actual result of this task.
    * <blockquote><pre>
    *  // task that processes payment
    *  Task{@code <PaymentStatus>} processPayment = processPayment(...);
