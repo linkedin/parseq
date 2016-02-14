@@ -73,7 +73,7 @@ Next, we will compose tasks to run in parallel using `Task.par`.
     engine.run(plan);
 ```
 
-This example is fully asynchronous. The home pages for Google, Yahoo, and Bing are all fetched in parallel while the original thread has returned to the calling code. We used `Tasks.par` to tell the engine to parallelize these HTTP requests. Once all of the responses have been retrieved they are transfomred into a `String` that is finally printed out.
+This example is fully asynchronous. The home pages for Google, Yahoo, and Bing are all fetched in parallel while the original thread has returned to the calling code. We used `Tasks.par` to tell the engine to parallelize these HTTP requests. Once all of the responses have been retrieved they are transformed into a `String` that is finally printed out.
 
 We can do various transforms on the data we retrieved. Here's a very simple transform that sums the length of the 3 pages that were fetched:
 
