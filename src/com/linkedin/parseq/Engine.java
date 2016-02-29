@@ -121,7 +121,6 @@ public class Engine {
    * @param task the task to run
    */
   public void run(final Task<?> task) {
-    ArgumentUtil.requireNotNull(task, "task");
     run(task, task.getClass().getName());
   }
 
@@ -132,6 +131,8 @@ public class Engine {
    * @param task the task to run
    */
   public void run(final Task<?> task, final String planClass) {
+    ArgumentUtil.requireNotNull(task, "task");
+    ArgumentUtil.requireNotNull(planClass, "planClass");
     State currState, newState;
     do {
       currState = _stateRef.get();
