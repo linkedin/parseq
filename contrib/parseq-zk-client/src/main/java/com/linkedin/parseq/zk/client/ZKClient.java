@@ -18,12 +18,14 @@ package com.linkedin.parseq.zk.client;
 
 import com.linkedin.parseq.Context;
 import com.linkedin.parseq.Engine;
+import com.linkedin.parseq.MultiException;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -302,8 +304,34 @@ public class ZKClient {
    * @param executor {@code Executor} that will be used to run the operations.
    * @return task to execute multiple operations.
    */
-  public Task<List<OpResult>> multi(Iterable<Op> ops, Executor executor) {
-    return Task.blocking(() -> _zkClient.multi(ops), executor);
+  public Task<List<OpResult>> multi(List<Op> ops, Executor executor) {
+    return Task.blocking(() -> _zkClient.multi(ops), executor)
+        .recoverWith(e -> {
+          if (e instanceof KeeperException) {
+            e = getCause((KeeperException) e, ops);
+          }
+          return Task.failure(e);
+        });
+  }
+
+  /**
+   * Gets the exact cause out of {@link KeeperException} thrown from
+   * {@link ZooKeeper#multi(Iterable)}
+   *
+   * @param ex {@code KeeperException}
+   * @param ops list of {@code Op}s which resulted in the given {@code KeeperException}.
+   * @return unwrapped {@code KeeperException} with the correct error code and path info.
+   */
+  private KeeperException getCause(KeeperException ex, List<Op> ops) {
+    List<OpResult> results = ex.getResults();
+    for (int i = 0; i < results.size(); ++i) {
+      if (results.get(i) instanceof OpResult.ErrorResult &&
+          ((OpResult.ErrorResult) results.get(i)).getErr() != KeeperException.Code.OK.intValue()) {
+        OpResult.ErrorResult error = (OpResult.ErrorResult) results.get(i);
+        return KeeperException.create(KeeperException.Code.get(error.getErr()), ops.get(i).getPath());
+      }
+    }
+    throw new IllegalArgumentException("None of the Ops is failed. Ops results: " + ex.getResults());
   }
 
   /**
@@ -340,12 +368,20 @@ public class ZKClient {
   public Task<String> ensurePathExists(String path) {
     return exists(path).flatMap(stat -> {
       if (!stat.isPresent()) {
+        Task<String> createAndIgnoreNodeExistsException =
+            create(path, null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)
+            .recoverWith("recover from NodeExistsException", e -> {
+              if (e instanceof KeeperException.NodeExistsException) {
+                return Task.value(path);
+              } else {
+                return Task.failure(e);
+              }
+            });
         String parent = path.substring(0, path.lastIndexOf('/'));
         if (parent.isEmpty()) { // parent is root
-          return create(path, null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+          return createAndIgnoreNodeExistsException;
         } else {
-          return ensurePathExists(parent)
-              .flatMap(unused -> create(path, null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+          return ensurePathExists(parent).flatMap(unused -> createAndIgnoreNodeExistsException);
         }
       } else {
         return Task.value(path);
