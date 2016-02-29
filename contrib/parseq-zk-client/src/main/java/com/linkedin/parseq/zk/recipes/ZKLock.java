@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Ang Xu
  */
-public class ZKLock {
+public class ZKLock implements Synchronizable {
   private static final Logger LOG = LoggerFactory.getLogger(ZKLock.class);
   private static final String LOCK_INTERNAL_KEY = "lockInternal";
 
@@ -60,13 +60,9 @@ public class ZKLock {
   }
 
   /**
-   * Runs the given task while holding the lock.
-   *
-   * @param task task to run
-   * @param deadline the absolute time, in milliseconds, to wait for the lock
-   *
-   * @return a new task wrapped with {@link ZKLock#synchronize(Task, long)}
+   * {@inheritDoc}
    */
+  @Override
   public <T> Task<T> synchronize(Task<T> task, long deadline) {
     return PlanLocal.get(getPlanLocalKey(), LockInternal.class)
         .flatMap(lockInternal -> {

@@ -207,6 +207,39 @@ public class TestZKLock extends BaseEngineTest {
     Assert.assertFalse(inner.isDone());
   }
 
+  @Test
+  public void testMultiLocks()
+      throws InterruptedException {
+    int loopCount = 100;
+    final long deadline = System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(60, TimeUnit.SECONDS);
+    MultiLocks multiLocks1 = new MultiLocks(_zkClient, "/locks/l1", "/locks/l2", "/locks/l3");
+    MultiLocks multiLocks2 = new MultiLocks(_zkClient, "/locks/l3", "/locks/l1", "/locks/l2");
+
+    final AtomicReference<Integer> sum = new AtomicReference<>(0);
+
+    Task<Void> plan1 = loop(loopCount, () -> multiLocks1.synchronize(Task.action(() -> {
+      int current = sum.get();
+      // increment by one.
+      sum.set(++current);
+    }), deadline));
+
+    Task<Void> plan2 = loop(loopCount, () -> multiLocks2.synchronize(Task.action(() -> {
+      int current = sum.get();
+      // increment by one.
+      sum.set(++current);
+    }), deadline));
+
+    run(plan1);
+    run(plan2);
+
+    Assert.assertTrue(plan1.await(60, TimeUnit.SECONDS));
+    plan1.get();
+    Assert.assertTrue(plan2.await(60, TimeUnit.SECONDS));
+    plan2.get();
+
+    Assert.assertEquals((int) sum.get(), 2 * loopCount);
+  }
+
   private ZKLock createZKLock()
       throws InterruptedException {
     return createZKLock("/" + new Exception().getStackTrace()[1].getMethodName());
