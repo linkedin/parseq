@@ -268,56 +268,5 @@ public class TestZKClient extends BaseEngineTest {
     Assert.assertNull(waitForDisconnected.get());
   }
 
-  @Test
-  public void testMultiSuccessful() {
-    final String path = "/testMultiSuccessful";
-    final byte[] data1 = "multi1".getBytes();
-    final byte[] data2 = "multi2".getBytes();
-
-    Executor executor = Executors.newFixedThreadPool(2);
-
-    Op[] ops = new Op[] {
-        Op.create(path, data1, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL),
-        Op.setData(path, data2, 0)
-    };
-
-    Task<List<OpResult>> multiOps = _zkClient.multi(Arrays.asList(ops), executor);
-    List<OpResult> result = runAndWait("multiOps", multiOps);
-
-    Assert.assertNotNull(result);
-    Assert.assertEquals(result.size(), 2);
-    Assert.assertEquals(result.get(0).getType(), ZooDefs.OpCode.create);
-    OpResult.CreateResult createResult = (OpResult.CreateResult) result.get(0);
-    Assert.assertEquals(createResult.getPath(), path);
-    Assert.assertEquals(result.get(1).getType(), ZooDefs.OpCode.setData);
-    OpResult.SetDataResult setDataResult = (OpResult.SetDataResult) result.get(1);
-    Assert.assertNotNull(setDataResult.getStat());
-    Assert.assertEquals(setDataResult.getStat().getVersion(), 1);
-  }
-
-  @Test
-  public void testMultiFail()
-      throws InterruptedException {
-    final String path = "/testMultiFail";
-    final String badPath = "/pathDoesntExist";
-    final byte[] data1 = "multi1".getBytes();
-
-    Executor executor = Executors.newFixedThreadPool(2);
-
-    Op[] ops = new Op[] {
-        Op.create(path, data1, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL),
-        Op.delete("/pathDoesntExist", 0)
-    };
-
-    Task<List<OpResult>> multiOps = _zkClient.multi(Arrays.asList(ops), executor);
-    run(multiOps);
-    multiOps.await(10, TimeUnit.SECONDS);
-
-    Assert.assertTrue(multiOps.isFailed());
-    Assert.assertTrue(multiOps.getError() instanceof KeeperException);
-    KeeperException ex = (KeeperException) multiOps.getError();
-    Assert.assertEquals(ex.getPath(), badPath);
-    Assert.assertEquals(ex.code(), KeeperException.Code.NONODE);
-  }
 }
 

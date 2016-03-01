@@ -5,8 +5,7 @@ import com.linkedin.parseq.zk.client.ZKClient;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import static java.util.stream.Collectors.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -27,7 +26,7 @@ public class MultiLocks implements Synchronizable {
     List<ZKLock> locks = Arrays.stream(lockPaths)
         .sorted()
         .map(lockPath -> new ZKLock(lockPath, zkClient))
-        .collect(toList());
+        .collect(Collectors.toList());
     _locks = Collections.unmodifiableList(locks);
   }
 
