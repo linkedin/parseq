@@ -4,6 +4,9 @@ import com.linkedin.parseq.Task;
 
 
 /**
+ * Synchronizable represents a object upon which {@link Task}s within different plans
+ * can be properly synchronized.
+ *
  * @author Ang Xu
  */
 public interface Synchronizable {
