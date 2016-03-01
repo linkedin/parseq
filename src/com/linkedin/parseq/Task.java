@@ -704,7 +704,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
     final Task<T> that = this;
     return async(desc, context -> {
       final SettablePromise<T> result = Promises.settable();
-      final Task<T> recovery = async("revovery", ctx -> {
+      final Task<T> recovery = async("recovery", ctx -> {
         final SettablePromise<T> recoveryResult = Promises.settable();
         if (that.isFailed()) {
           if (!(Exceptions.isCancellation(that.getError()))) {
