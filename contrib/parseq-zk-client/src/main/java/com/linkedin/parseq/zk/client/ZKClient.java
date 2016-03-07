@@ -18,12 +18,14 @@ package com.linkedin.parseq.zk.client;
 
 import com.linkedin.parseq.Context;
 import com.linkedin.parseq.Engine;
+import com.linkedin.parseq.MultiException;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -302,7 +304,7 @@ public class ZKClient {
    * @param executor {@code Executor} that will be used to run the operations.
    * @return task to execute multiple operations.
    */
-  public Task<List<OpResult>> multi(Iterable<Op> ops, Executor executor) {
+  public Task<List<OpResult>> multi(List<Op> ops, Executor executor) {
     return Task.blocking(() -> _zkClient.multi(ops), executor);
   }
 
@@ -340,12 +342,19 @@ public class ZKClient {
   public Task<String> ensurePathExists(String path) {
     return exists(path).flatMap(stat -> {
       if (!stat.isPresent()) {
+        Task<String> createIfAbsent = create(path, null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)
+            .recoverWith("recover from NodeExistsException", e -> {
+              if (e instanceof KeeperException.NodeExistsException) {
+                return Task.value(path);
+              } else {
+                return Task.failure(e);
+              }
+            });
         String parent = path.substring(0, path.lastIndexOf('/'));
         if (parent.isEmpty()) { // parent is root
-          return create(path, null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+          return createIfAbsent;
         } else {
-          return ensurePathExists(parent)
-              .flatMap(unused -> create(path, null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+          return ensurePathExists(parent).flatMap(unused -> createIfAbsent);
         }
       } else {
         return Task.value(path);
