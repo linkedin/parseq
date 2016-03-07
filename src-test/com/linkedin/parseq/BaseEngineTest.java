@@ -16,7 +16,7 @@
 
 package com.linkedin.parseq;
 
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.Assert.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -31,6 +31,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
 import com.linkedin.parseq.internal.TimeUnitHelper;
+import com.linkedin.parseq.promise.PromiseException;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 import com.linkedin.parseq.trace.Trace;
@@ -135,6 +136,7 @@ public class BaseEngineTest {
    * @param <T> expected exception type
    * @return exception thrown by the task
    */
+  @SuppressWarnings("unchecked")
   protected <T extends Exception> T runAndWaitException(Task<?> task, Class<T> exceptionClass) {
     try {
       runAndWait("exception task", task);
@@ -144,7 +146,7 @@ public class BaseEngineTest {
     } catch (PromiseException pe) {
       Throwable cause = pe.getCause();
       assertEquals(cause.getClass(), exceptionClass);
-      return (T) cause;
+      return  (T) cause;
     }
   }
 
