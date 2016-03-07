@@ -88,6 +88,14 @@ public class BaseEngineTest {
   protected ScheduledExecutorService getScheduler() {
     return _scheduler;
   }
+  
+  /**
+   * Equivalent to {@code runAndWait("runAndWait", task)}.
+   * @see #runAndWait(String, Task)
+   */
+  protected <T> T runAndWait(Task<T> task) {
+    return runAndWait("runAndWait", task);
+  }
 
   /**
    * Equivalent to {@code runAndWait(desc, task, 5, TimeUnit.SECONDS)}.
@@ -117,6 +125,26 @@ public class BaseEngineTest {
       throw new RuntimeException(e);
     } finally {
       logTracingResults(desc, task);
+    }
+  }
+  
+  /**
+   * Runs a task and verifies that it finishes with an error.
+   * @param task task to run
+   * @param exceptionClass expected exception class
+   * @param <T> expected exception type
+   * @return exception thrown by the task
+   */
+  protected <T extends Exception> T runAndWaitException(Task<?> task, Class<T> exceptionClass) {
+    try {
+      runAndWait("exception task", task);
+      fail("An exception is expected, but the task succeeded");
+      // just to make the compiler happy, we will never get here
+      return null;
+    } catch (PromiseException pe) {
+      Throwable cause = pe.getCause();
+      assertEquals(cause.getClass(), exceptionClass);
+      return (T) cause;
     }
   }
 
