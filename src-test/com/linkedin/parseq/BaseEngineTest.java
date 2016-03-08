@@ -16,7 +16,9 @@
 
 package com.linkedin.parseq;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import java.io.IOException;
 import java.util.List;
@@ -89,13 +91,21 @@ public class BaseEngineTest {
   protected ScheduledExecutorService getScheduler() {
     return _scheduler;
   }
-  
+
   /**
    * Equivalent to {@code runAndWait("runAndWait", task)}.
-   * @see #runAndWait(String, Task)
+   * @see #runAndWait(String, Task, long, TimeUnit)
    */
   protected <T> T runAndWait(Task<T> task) {
     return runAndWait("runAndWait", task);
+  }
+
+  /**
+   * Equivalent to {@code runAndWait("runAndWait", task, 5, TimeUnit.SECONDS)}.
+   * @see #runAndWait(String, Task, long, TimeUnit)
+   */
+  protected <T> T runAndWait(Task<T> task, long time, TimeUnit timeUnit) {
+    return runAndWait("runAndWait", task, time, timeUnit);
   }
 
   /**
@@ -128,26 +138,55 @@ public class BaseEngineTest {
       logTracingResults(desc, task);
     }
   }
-  
+
   /**
    * Runs a task and verifies that it finishes with an error.
+   * @param desc description of a test
    * @param task task to run
    * @param exceptionClass expected exception class
+   * @param time amount of time to wait for task completion
+   * @param timeUnit unit of time
    * @param <T> expected exception type
-   * @return exception thrown by the task
+   * @return error returned by the task
    */
-  @SuppressWarnings("unchecked")
-  protected <T extends Exception> T runAndWaitException(Task<?> task, Class<T> exceptionClass) {
+  protected <T extends Throwable> T runAndWaitException(final String desc, Task<?> task, Class<T> exceptionClass,
+      long time, TimeUnit timeUnit) {
     try {
-      runAndWait("exception task", task);
+      runAndWait(desc, task, time, timeUnit);
       fail("An exception is expected, but the task succeeded");
       // just to make the compiler happy, we will never get here
       return null;
     } catch (PromiseException pe) {
       Throwable cause = pe.getCause();
       assertEquals(cause.getClass(), exceptionClass);
-      return  (T) cause;
+      return exceptionClass.cast(cause);
+    } finally {
+      logTracingResults(desc, task);
     }
+  }
+
+  /**
+   * Equivalent to {@code runAndWaitException(desc, task, exceptionClass, 5, TimeUnit.SECONDS)}.
+   * @see #runAndWaitException(String, Task, Class, long, TimeUnit)
+   */
+  protected <T extends Throwable> T runAndWaitException(final String desc, Task<?> task, Class<T> exceptionClass) {
+    return runAndWaitException(desc, task, exceptionClass, 5, TimeUnit.SECONDS);
+  }
+
+  /**
+   * Equivalent to {@code runAndWaitException("runAndWaitException", task, exceptionClass)}.
+   * @see #runAndWaitException(String, Task, Class, long, TimeUnit)
+   */
+  protected <T extends Throwable> T runAndWaitException(Task<?> task, Class<T> exceptionClass) {
+    return runAndWaitException("runAndWaitException", task, exceptionClass);
+  }
+
+  /**
+   * Equivalent to {@code runAndWaitException("runAndWaitException", task, exceptionClass, time, timeUnit)}.
+   * @see #runAndWaitException(String, Task, Class, long, TimeUnit)
+   */
+  protected <T extends Throwable> T runAndWaitException(Task<?> task, Class<T> exceptionClass, long time, TimeUnit timeUnit) {
+    return runAndWaitException("runAndWaitException", task, exceptionClass, time, timeUnit);
   }
 
   /**
