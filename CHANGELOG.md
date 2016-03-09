@@ -1,3 +1,8 @@
+v2.3.1
+------
+
+* Added convenience methods to BaseEngineTest
+
 v2.3.0
 ------
 
