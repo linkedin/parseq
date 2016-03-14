@@ -38,6 +38,8 @@ import org.apache.zookeeper.OpResult;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.data.Stat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -50,6 +52,8 @@ import static org.testng.Assert.fail;
  * @author Ang Xu
  */
 public class TestZKClient extends BaseEngineTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(BaseEngineTest.class.getName());
 
   private ZKServer _zkServer;
   private ZKClient _zkClient;
@@ -65,7 +69,22 @@ public class TestZKClient extends BaseEngineTest {
       _zkClient = new ZKClient("localhost:" + _zkServer.getPort(), 10000, getEngine());
       _zkClient.start().await(10, TimeUnit.SECONDS);
       _zooKeeper = new ZKConnection("localhost:" + _zkServer.getPort(), 10000);
+      CountDownLatch startLatch = new CountDownLatch(1);
+      _zooKeeper.addStateListener( state -> {
+          switch (state) {
+            case SyncConnected: {
+              startLatch.countDown();
+              break;
+            }
+            default:
+              LOG.error("Receiving wrong state from zookeeper {}", state);
+              // do nothing and let the count down latch timeout.
+          }
+      });
       _zooKeeper.start();
+      if (!startLatch.await(5, TimeUnit.SECONDS)) {
+        fail("Failed to establish zk connection with in 5s.");
+      }
     } catch (IOException e) {
       fail("Failed to setup zkServer or zkClient", e);
     }
