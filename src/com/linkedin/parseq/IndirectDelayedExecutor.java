@@ -46,7 +46,7 @@ import com.linkedin.parseq.Cancellable;
 
     public boolean cancel() {
       final Runnable runnable = _commandRef.get();
-      return _commandRef.compareAndSet(runnable, null);
+      return (runnable != null && _commandRef.compareAndSet(runnable, null));
     }
   }
 
