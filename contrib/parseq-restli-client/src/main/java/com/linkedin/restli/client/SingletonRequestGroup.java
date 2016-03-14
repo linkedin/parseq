@@ -6,7 +6,6 @@ import com.linkedin.data.template.RecordTemplate;
 import com.linkedin.parseq.batching.Batch;
 import com.linkedin.parseq.batching.BatchImpl.BatchEntry;
 import com.linkedin.restli.client.ParSeqRestClient.PromiseCallbackAdapter;
-import com.linkedin.restli.client.ParSeqRestClient.RestRequestBatchKey;
 
 public class SingletonRequestGroup implements RequestGroup {
 

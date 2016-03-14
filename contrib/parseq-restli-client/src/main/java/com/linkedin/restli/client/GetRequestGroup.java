@@ -12,7 +12,6 @@ import com.linkedin.parseq.batching.Batch;
 import com.linkedin.parseq.batching.BatchImpl.BatchEntry;
 import com.linkedin.r2.RemoteInvocationException;
 import com.linkedin.restli.client.ParSeqRestClient.PromiseCallbackAdapter;
-import com.linkedin.restli.client.ParSeqRestClient.RestRequestBatchKey;
 import com.linkedin.restli.client.response.BatchKVResponse;
 import com.linkedin.restli.common.BatchResponse;
 import com.linkedin.restli.common.ComplexResourceKey;

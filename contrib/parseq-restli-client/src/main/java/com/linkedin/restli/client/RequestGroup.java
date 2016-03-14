@@ -3,7 +3,6 @@ package com.linkedin.restli.client;
 import com.linkedin.data.template.RecordTemplate;
 import com.linkedin.parseq.batching.Batch;
 import com.linkedin.parseq.batching.BatchImpl.BatchEntry;
-import com.linkedin.restli.client.ParSeqRestClient.RestRequestBatchKey;
 
 interface RequestGroup {
 

@@ -27,8 +27,13 @@ import com.linkedin.r2.message.RequestContext;
 import com.linkedin.restli.common.OperationNameGenerator;
 
 
+/**
+ *
+ * @author Jaroslaw Odzga (jodzga@linkedin.com)
+ *
+ */
 public class ParSeqRestClient
-    extends BatchingStrategy<RequestGroup, ParSeqRestClient.RestRequestBatchKey, Response<Object>> {
+    extends BatchingStrategy<RequestGroup, RestRequestBatchKey, Response<Object>> {
   private final RestClient _restClient;
 
   public ParSeqRestClient(final RestClient restClient) {
@@ -38,10 +43,11 @@ public class ParSeqRestClient
   /**
    * Sends a type-bound REST request, returning a promise.
    *
-   * @deprecated Use higher level API that returns Task instance. This method is
+   * @deprecated Use higher level API that returns Task instance, see {@link #createTask(Request)}. This method is
    * left for backwards compatibility.
    * @param request to send
    * @return response promise
+   * @see #createTask(Request)
    */
   @Deprecated
   public <T> Promise<Response<T>> sendRequest(final Request<T> request) {
@@ -51,7 +57,7 @@ public class ParSeqRestClient
   /**
    * Sends a type-bound REST request, returning a promise.
    *
-   * @deprecated Use higher level API that returns Task instance. This method is
+   * @deprecated Use higher level API that returns Task instance, see {@link #createTask(Request, RequestContext)}. This method is
    * left for backwards compatibility.
    * @param request to send
    * @param requestContext context for the request
@@ -141,60 +147,6 @@ public class ParSeqRestClient
     return (Task<X>) t;
   }
 
-  /**
-   * Class used for deduplication. Two requests are considered equal
-   * when Request and RequestContext objects are equal.
-   */
-  public static class RestRequestBatchKey {
-    private final Request<Object> _request;
-    private final RequestContext _requestContext;
-
-    public RestRequestBatchKey(Request<Object> request, RequestContext requestContext) {
-      _request = request;
-      _requestContext = requestContext;
-    }
-
-    public Request<Object> getRequest() {
-      return _request;
-    }
-
-    public RequestContext getRequestContext() {
-      return _requestContext;
-    }
-
-    @Override
-    public int hashCode() {
-      final int prime = 31;
-      int result = 1;
-      result = prime * result + ((_request == null) ? 0 : _request.hashCode());
-      result = prime * result + ((_requestContext == null) ? 0 : _requestContext.hashCode());
-      return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      if (this == obj)
-        return true;
-      if (obj == null)
-        return false;
-      if (getClass() != obj.getClass())
-        return false;
-      RestRequestBatchKey other = (RestRequestBatchKey) obj;
-      if (_request == null) {
-        if (other._request != null)
-          return false;
-      } else if (!_request.equals(other._request))
-        return false;
-      if (_requestContext == null) {
-        if (other._requestContext != null)
-          return false;
-      } else if (!_requestContext.equals(other._requestContext))
-        return false;
-      return true;
-    }
-
-  }
-
   @Override
   public void executeBatch(RequestGroup group, Batch<RestRequestBatchKey, Response<Object>> batch) {
     group.executeBatch(_restClient, batch);
@@ -209,5 +161,4 @@ public class ParSeqRestClient
   public String getBatchName(RequestGroup group, Batch<RestRequestBatchKey, Response<Object>> batch) {
     return group.getBatchName(batch);
   }
-
 }
