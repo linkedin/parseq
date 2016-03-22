@@ -6,7 +6,7 @@ import com.linkedin.r2.message.RequestContext;
  * Class used for deduplication. Two requests are considered equal
  * when Request and RequestContext objects are equal.
  */
-public class RestRequestBatchKey {
+class RestRequestBatchKey {
   private final Request<Object> _request;
   private final RequestContext _requestContext;
 
@@ -53,5 +53,11 @@ public class RestRequestBatchKey {
       return false;
     return true;
   }
+
+  @Override
+  public String toString() {
+    return "RestRequestBatchKey [request=" + _request + ", requestContext=" + _requestContext + "]";
+  }
+
 
 }

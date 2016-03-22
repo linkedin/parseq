@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
+import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.promise.PromiseResolvedException;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
@@ -69,6 +70,7 @@ public class BatchImpl<K, T> implements Batch<K, T> {
 
     private final SettablePromise<T> _promise;
     private final List<ShallowTraceBuilder> _shallowTraceBuilders = new ArrayList<>();
+    private final long _creationTimeNano = System.nanoTime();
 
     public BatchEntry(ShallowTraceBuilder shallowTraceBuilder, SettablePromise<T> promise) {
       _promise = promise;
@@ -90,17 +92,27 @@ public class BatchImpl<K, T> implements Batch<K, T> {
     void addShallowTraceBuilders(final List<ShallowTraceBuilder> shallowTraceBuilders) {
       _shallowTraceBuilders.addAll(shallowTraceBuilders);
     }
-
   }
 
   static class BatchBuilder<K, T> {
 
     private final Map<K, BatchEntry<T>> _map = new HashMap<>();
     private Batch<K, T> _batch = null;
+    private final int _maxSize;
+    private final BatchAggregationTimeMetric _batchAggregationTimeMetric;
+
+    public BatchBuilder(int maxSize, BatchAggregationTimeMetric batchAggregationTimeMetric) {
+      ArgumentUtil.requirePositive(maxSize, "max batch size");
+      _maxSize = maxSize;
+      _batchAggregationTimeMetric = batchAggregationTimeMetric;
+    }
 
     BatchBuilder<K, T> add(K key, BatchEntry<T> entry) {
       if (_batch != null) {
         throw new IllegalStateException("BatchBuilder has already been used to build a batch");
+      }
+      if (isFull()) {
+        throw new IllegalStateException("BatchBuilder is full, max size: " + _maxSize);
       }
       //deduplication
       BatchEntry<T> duplicate = _map.get(key);
@@ -117,9 +129,17 @@ public class BatchImpl<K, T> implements Batch<K, T> {
       return add(key, new BatchEntry<>(traceBuilder, promise));
     }
 
+    public boolean isFull() {
+      return _map.size() == _maxSize;
+    }
 
     public Batch<K, T> build() {
       if (_batch == null) {
+        final long _currentTimeNano = System.nanoTime();
+        _map.values().forEach(entry -> {
+          final long time = _currentTimeNano - entry._creationTimeNano;
+          _batchAggregationTimeMetric.record(time > 0 ? time : 0);
+        });
         _batch = new BatchImpl<>(_map);
       }
       return _batch;

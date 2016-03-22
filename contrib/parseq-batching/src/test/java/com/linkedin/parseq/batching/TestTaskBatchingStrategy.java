@@ -146,9 +146,9 @@ public class TestTaskBatchingStrategy extends BaseEngineTest {
 
     String result = runAndWait("TestTaskBatchingStrategy.testClassifyFailure", task);
 
-    assertEquals(result, "failedfailed");
+    assertEquals(result, "failed1");
     assertEquals(strategy.getExecutedBatches().size(), 0);
-    assertEquals(strategy.getExecutedSingletons().size(), 0);
+    assertEquals(strategy.getExecutedSingletons().size(), 1);
   }
 
   @Test

@@ -7,7 +7,7 @@ import com.linkedin.parseq.batching.Batch;
 import com.linkedin.parseq.batching.BatchImpl.BatchEntry;
 import com.linkedin.restli.client.ParSeqRestClient.PromiseCallbackAdapter;
 
-public class SingletonRequestGroup implements RequestGroup {
+class SingletonRequestGroup implements RequestGroup {
 
   private final String _name;
 
@@ -30,6 +30,11 @@ public class SingletonRequestGroup implements RequestGroup {
   @Override
   public <K, V> String getBatchName(Batch<K, V> batch) {
     return _name;
+  }
+
+  @Override
+  public String toString() {
+    return "SingletonRequestGroup [name=" + _name + "]";
   }
 
 }

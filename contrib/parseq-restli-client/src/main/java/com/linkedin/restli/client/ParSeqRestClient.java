@@ -34,10 +34,19 @@ import com.linkedin.restli.common.OperationNameGenerator;
  */
 public class ParSeqRestClient
     extends BatchingStrategy<RequestGroup, RestRequestBatchKey, Response<Object>> {
+
   private final RestClient _restClient;
+  private final boolean _batchingDryRun;
+  private final BatchingMetrics _batchingMetrics = new BatchingMetrics();
+
 
   public ParSeqRestClient(final RestClient restClient) {
+    this(restClient, true);
+  }
+
+  public ParSeqRestClient(final RestClient restClient, final boolean batchingDryRun) {
     _restClient = restClient;
+    _batchingDryRun = batchingDryRun;
   }
 
   /**
@@ -136,10 +145,28 @@ public class ParSeqRestClient
    * @param name the name of the tasks
    * @return response task
    */
-  @SuppressWarnings("unchecked")
   public <T> Task<Response<T>> createTask(final String name, final Request<T> request,
       final RequestContext requestContext) {
-    return cast(batchable(name, new RestRequestBatchKey((Request<Object>) request, requestContext)));
+    if (RequestGroup.isBatchable(request)) {
+      return createBatchableTask(name, request, requestContext);
+    } else {
+      return Task.async(name, () -> {
+        return sendRequest(request, requestContext);
+      });
+    }
+  }
+
+  private RestRequestBatchKey createKey(String name, Request<Object> request, RequestContext requestContext) {
+    if (_batchingDryRun) {
+      return new DryRunRestRequestBatchKey<>(request, requestContext, sendRequest(request, requestContext));
+    } else {
+      return new RestRequestBatchKey(request, requestContext);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private <T> Task<Response<T>> createBatchableTask(String name, Request<T> request, RequestContext requestContext) {
+    return cast(batchable(name, createKey(name, (Request<Object>) request, requestContext)));
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -147,9 +174,17 @@ public class ParSeqRestClient
     return (Task<X>) t;
   }
 
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   @Override
   public void executeBatch(RequestGroup group, Batch<RestRequestBatchKey, Response<Object>> batch) {
-    group.executeBatch(_restClient, batch);
+    if (group instanceof GetRequestGroup) {
+      _batchingMetrics.recordBatchSize(((GetRequestGroup)group).getBaseUriTemplate(), batch.size());
+    }
+    if (_batchingDryRun) {
+      batch.foreach((key, promise) -> Promises.propagateResult(((DryRunRestRequestBatchKey)key).getPromise(), promise));
+    } else {
+      group.executeBatch(_restClient, batch);
+    }
   }
 
   @Override
@@ -160,5 +195,9 @@ public class ParSeqRestClient
   @Override
   public String getBatchName(RequestGroup group, Batch<RestRequestBatchKey, Response<Object>> batch) {
     return group.getBatchName(batch);
+  }
+
+  public BatchingMetrics getBatchingMetrics() {
+    return _batchingMetrics;
   }
 }

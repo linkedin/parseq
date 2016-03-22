@@ -24,7 +24,7 @@ import com.linkedin.restli.internal.client.ResponseImpl;
 import com.linkedin.restli.internal.common.ProtocolVersionUtil;
 import com.linkedin.restli.internal.common.ResponseUtils;
 
-public class GetRequestGroup implements RequestGroup {
+class GetRequestGroup implements RequestGroup {
 
   private final String _baseUriTemplate;
   private final Map<String, String> _headers;
@@ -236,8 +236,8 @@ public class GetRequestGroup implements RequestGroup {
 
   @Override
   public String toString() {
-    return "GetRequestEquivalenceClass [_baseUriTemplate=" + _baseUriTemplate + ", _headers=" + _headers
-        + ", _queryParams=" + _queryParams + "]";
+    return "GetRequestGroup [baseUriTemplate=" + _baseUriTemplate + ", headers=" + _headers
+        + ", queryParams=" + _queryParams + "]";
   }
 
   public <K, V> String getBatchName(final Batch<K, V> batch) {
