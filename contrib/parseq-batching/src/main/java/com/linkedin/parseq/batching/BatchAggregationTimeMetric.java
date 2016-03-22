@@ -1,7 +1,7 @@
 package com.linkedin.parseq.batching;
 
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.HdrHistogram.Histogram;
 import org.HdrHistogram.Recorder;
@@ -47,14 +47,15 @@ public class BatchAggregationTimeMetric {
   }
 
   /**
-   * Allows consuming histogram.
+   * Allows consuming histogram and returning a result.
    * Histogram passed to the consumer includes stable, consistent view
    * of all values accumulated since last harvest.
    * This method is thread safe.
    * @param consumer
+   * @return a result of a passed in function
    */
-  public synchronized void harvest(Consumer<Histogram> consumer) {
+  public synchronized <T> T harvest(Function<Histogram, T> consumer) {
     _recycle = _recorder.getIntervalHistogram(_recycle);
-    consumer.accept(_recycle);
+    return consumer.apply(_recycle);
   }
 }
