@@ -334,18 +334,18 @@ class FusionTask<S, T> extends BaseTask<T> {
           FusionTask.this.getShallowTraceBuilder(), baseName);
       propagate(traceContext, result);
     } else {
-      /* There is async predecessor, need to run it first */
-      _shallowTraceBuilder.setName("async fused");
-      _shallowTraceBuilder.setSystemHidden(true);
-      /* PropagationTask will actually run propagation */
+      /* There is async predecessor, need to run it first
+         PropagationTask will actually run propagation */
       final Task<T> propagationTask = Task.async(baseName, ctx -> {
         final SettablePromise<T> fusionResult = Promises.settable();
         FusionTraceContext traceContext = new FusionTraceContext(ctx, FusionTask.this.getShallowTraceBuilder(), baseName);
         propagate(traceContext, fusionResult);
         return fusionResult;
       });
-      propagationTask.getShallowTraceBuilder().setHidden(getShallowTraceBuilder().getHidden());
-      propagationTask.getShallowTraceBuilder().setSystemHidden(getShallowTraceBuilder().getSystemHidden());
+      propagationTask.getShallowTraceBuilder().setHidden(_shallowTraceBuilder.getHidden());
+      propagationTask.getShallowTraceBuilder().setSystemHidden(_shallowTraceBuilder.getSystemHidden());
+      _shallowTraceBuilder.setName("async fused");
+      _shallowTraceBuilder.setSystemHidden(true);
       context.after(_asyncTask).run(propagationTask);
       context.run(_asyncTask);
       Promises.propagateResult(propagationTask, result);
