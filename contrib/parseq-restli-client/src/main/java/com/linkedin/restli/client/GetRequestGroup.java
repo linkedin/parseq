@@ -86,7 +86,6 @@ class GetRequestGroup implements RequestGroup {
     List<BatchGetKVRequest> listOfBatchGets = batch.entries().stream()
         .map(Entry::getKey)
         .map(RestRequestBatchKey::getRequest)
-        .map(GetRequestGroup::toGetRequest)
         .map(GetRequestGroup::toBatchGetKV)
         .collect(Collectors.toList());
 
@@ -101,12 +100,19 @@ class GetRequestGroup implements RequestGroup {
         .forEach(entry -> {
           try {
             Request request = entry.getKey().getRequest();
-            String idString = toGetRequest(request).getObjectId().toString();
-            Object id = ResponseUtils.convertKey(idString, request.getResourceSpec().getKeyType(),
-                request.getResourceSpec().getKeyParts(), request.getResourceSpec().getComplexKeyType(),
-                version);
-            Response rsp = unbatchKVResponse(batchGet, responseToBatch, id);
-            entry.getValue().getPromise().done(rsp);
+            if (request instanceof GetRequest) {
+              String idString = ((GetRequest)request).getObjectId().toString();
+              Object id = ResponseUtils.convertKey(idString, request.getResourceSpec().getKeyType(),
+                  request.getResourceSpec().getKeyParts(), request.getResourceSpec().getComplexKeyType(),
+                  version);
+              Response rsp = unbatchKVResponse(batchGet, responseToBatch, id);
+              entry.getValue().getPromise().done(rsp);
+            } else {
+              BatchGetKVRequest batchGetKVRequest = (BatchGetKVRequest)request;
+              System.out.println("batchGetKVRequest: " + batchGetKVRequest);
+              //TODO do try-catch thing and handle each entry individually
+
+            }
           } catch (RemoteInvocationException e) {
             entry.getValue().getPromise().fail(e);
           }
@@ -126,7 +132,6 @@ class GetRequestGroup implements RequestGroup {
     List<BatchGetRequest> listOfBatchGets = batch.entries().stream()
         .map(Entry::getKey)
         .map(RestRequestBatchKey::getRequest)
-        .map(GetRequestGroup::toGetRequest)
         .map(GetRequestGroup::toBatchGet)
         .collect(Collectors.toList());
 
@@ -139,9 +144,17 @@ class GetRequestGroup implements RequestGroup {
           batch.entries().stream()
             .forEach(entry -> {
               try {
-                String id = toGetRequest(entry.getKey().getRequest()).getObjectId().toString();
-                Response rsp = BatchGetRequestUtil.unbatchResponse(batchGet, responseToBatch, id);
-                entry.getValue().getPromise().done(rsp);
+                Request request = entry.getKey().getRequest();
+                if (request instanceof GetRequest) {
+                  String id = ((GetRequest)request).getObjectId().toString();
+                  Response rsp = BatchGetRequestUtil.unbatchResponse(batchGet, responseToBatch, id);
+                  entry.getValue().getPromise().done(rsp);
+                } else {
+                  BatchGetRequest batchGetRequest = (BatchGetRequest)request;
+                  System.out.println("batchGetRequest: " + batchGetRequest);
+                  //TODO do try-catch thing and handle each entry individually
+
+                }
               } catch (RemoteInvocationException e) {
                 entry.getValue().getPromise().fail(e);
               }
@@ -173,16 +186,20 @@ class GetRequestGroup implements RequestGroup {
         new PromiseCallbackAdapter<Object>(entry.getPromise()));
   }
 
-  static GetRequest toGetRequest(Request request) {
-    return (GetRequest) request;
+  static BatchGetRequest toBatchGet(Request request) {
+    if (request instanceof GetRequest) {
+      return BatchGetRequestBuilder.batch((GetRequest)request);
+    } else {
+      return (BatchGetRequest) request;
+    }
   }
 
-  static BatchGetRequest toBatchGet(GetRequest getRequest) {
-    return BatchGetRequestBuilder.batch(getRequest);
-  }
-
-  static BatchGetKVRequest toBatchGetKV(GetRequest getRequest) {
-    return BatchGetRequestBuilder.batchKV(getRequest);
+  static BatchGetKVRequest toBatchGetKV(Request request) {
+    if (request instanceof GetRequest) {
+      return BatchGetRequestBuilder.batchKV((GetRequest)request);
+    } else {
+      return (BatchGetKVRequest) request;
+    }
   }
 
   public String getBaseUriTemplate() {

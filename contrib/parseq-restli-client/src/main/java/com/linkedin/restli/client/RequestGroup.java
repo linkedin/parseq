@@ -10,6 +10,8 @@ interface RequestGroup {
     switch (request.getMethod()) {
       case GET:
         return new GetRequestGroup(request);
+      case BATCH_GET:
+        return new GetRequestGroup(request);
       default:
         return new SingletonRequestGroup(ParSeqRestClient.generateTaskName(request));
     }
