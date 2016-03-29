@@ -18,7 +18,7 @@ interface RequestGroup {
   }
 
   public static boolean isBatchable(final Request<?> request) {
-    return request.getMethod().equals(ResourceMethod.GET);
+    return request.getMethod().equals(ResourceMethod.GET) || request.getMethod().equals(ResourceMethod.BATCH_GET);
   }
 
   <RT extends RecordTemplate> void executeBatch(RestClient restClient, Batch<RestRequestBatchKey, Response<Object>> batch);
