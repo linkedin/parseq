@@ -100,18 +100,15 @@ class GetRequestGroup implements RequestGroup {
         final ProtocolVersion version = ProtocolVersionUtil.extractProtocolVersion(responseToBatch.getHeaders());
         batch.entries().stream()
         .forEach(entry -> {
+          try {
             Request request = entry.getKey().getRequest();
             if (request instanceof GetRequest) {
-              try {
                 String idString = ((GetRequest)request).getObjectId().toString();
                 Object id = ResponseUtils.convertKey(idString, request.getResourceSpec().getKeyType(),
                     request.getResourceSpec().getKeyParts(), request.getResourceSpec().getComplexKeyType(),
                     version);
                 Response rsp = unbatchKVResponse(batchGet, responseToBatch, id);
                 entry.getValue().getPromise().done(rsp);
-              } catch (RemoteInvocationException e) {
-                entry.getValue().getPromise().fail(e);
-              }
             } else {
                 BatchGetKVRequest batchGetKVRequest = (BatchGetKVRequest)request;
                 Set<String> ids = ((Set<Object>) batchGetKVRequest.getObjectIds()).stream().map(Object::toString).collect(Collectors.toSet());
@@ -123,6 +120,9 @@ class GetRequestGroup implements RequestGroup {
                 Response rsp = new ResponseImpl(responseToBatch, br);
                 entry.getValue().getPromise().done(rsp);
             }
+          } catch (RemoteInvocationException e) {
+            entry.getValue().getPromise().fail(e);
+          }
         });
       }
 
@@ -138,7 +138,7 @@ class GetRequestGroup implements RequestGroup {
   private DataMap filterIdsInBatchResult(DataMap data, Set<String> ids) {
     DataMap dm = new DataMap(data.size());
     data.forEach((key, value) -> {
-      if (key.equals(BatchKVResponse.ERRORS) || key.equals(BatchKVResponse.RESULTS)) {
+      if (key.equals(BatchResponse.ERRORS) || key.equals(BatchResponse.RESULTS) || key.equals(BatchResponse.STATUSES)) {
         dm.put(key, filterIds((DataMap)value, ids));
       } else {
         dm.put(key, value);
@@ -180,9 +180,13 @@ class GetRequestGroup implements RequestGroup {
                   entry.getValue().getPromise().done(rsp);
                 } else {
                   BatchGetRequest batchGetRequest = (BatchGetRequest)request;
-                  System.out.println("batchGetRequest: " + batchGetRequest);
-                  //TODO do try-catch thing and handle each entry individually
 
+                  Set<String> ids = ((Set<Object>) batchGetRequest.getObjectIds()).stream().map(Object::toString).collect(Collectors.toSet());
+                  DataMap dm = filterIdsInBatchResult(responseToBatch.getEntity().data(), ids);
+
+                  BatchResponse br = new BatchResponse<>(dm, batchGetRequest.getResponseDecoder().getEntityClass());
+                  Response rsp = new ResponseImpl(responseToBatch, br);
+                  entry.getValue().getPromise().done(rsp);
                 }
               } catch (RemoteInvocationException e) {
                 entry.getValue().getPromise().fail(e);
