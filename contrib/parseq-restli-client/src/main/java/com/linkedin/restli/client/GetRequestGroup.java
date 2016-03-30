@@ -31,11 +31,15 @@ class GetRequestGroup implements RequestGroup {
   private final String _baseUriTemplate;
   private final Map<String, String> _headers;
   private final Map<String, Object> _queryParams;
+  private final boolean _dryRun;
+  private final int _maxBatchSize;
 
-  public GetRequestGroup(Request request) {
+  public GetRequestGroup(Request request, boolean dryRun, int maxBatchSize) {
     _baseUriTemplate = request.getBaseUriTemplate();
     _headers = request.getHeaders();
     _queryParams = getQueryParamsForBatchingKey(request);
+    _dryRun = dryRun;
+    _maxBatchSize = maxBatchSize;
   }
 
   private static Map<String, Object> getQueryParamsForBatchingKey(Request<?> request)
@@ -236,6 +240,7 @@ class GetRequestGroup implements RequestGroup {
     }
   }
 
+  @Override
   public String getBaseUriTemplate() {
     return _baseUriTemplate;
   }
@@ -288,12 +293,22 @@ class GetRequestGroup implements RequestGroup {
   @Override
   public String toString() {
     return "GetRequestGroup [baseUriTemplate=" + _baseUriTemplate + ", headers=" + _headers
-        + ", queryParams=" + _queryParams + "]";
+        + ", queryParams=" + _queryParams + ", dryRun=" + _dryRun + "]";
   }
 
   public <K, V> String getBatchName(final Batch<K, V> batch) {
     return _baseUriTemplate + " " + (batch.size() == 1 ? ResourceMethod.GET : (ResourceMethod.BATCH_GET +
         "(" + batch.size() + ")"));
+  }
+
+  @Override
+  public boolean isDryRun() {
+    return _dryRun;
+  }
+
+  @Override
+  public int getMaxBatchSize() {
+    return _maxBatchSize;
   }
 
 }
