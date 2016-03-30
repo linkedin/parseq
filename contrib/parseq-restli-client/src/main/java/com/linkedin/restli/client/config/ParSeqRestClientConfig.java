@@ -1,5 +1,6 @@
 package com.linkedin.restli.client.config;
 
+import java.util.Collections;
 import java.util.Map;
 
 public class ParSeqRestClientConfig {
@@ -15,4 +16,9 @@ public class ParSeqRestClientConfig {
   public ResourceConfig getResourceConfig(String resource) {
     return _resourceConfig.getOrDefault(resource, _defaultResourceConfig);
   }
+
+  public Map<String, ResourceConfig> getResourceConfig() {
+    return Collections.unmodifiableMap(_resourceConfig);
+  }
+
 }
