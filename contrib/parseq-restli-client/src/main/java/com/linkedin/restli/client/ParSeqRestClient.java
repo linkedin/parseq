@@ -44,18 +44,21 @@ public class ParSeqRestClient
 
   public static final int DEFAULT_MAX_BATCH_SIZE = 1024;
 
+  public static final BatchingConfig DEFAULT_BATCHING_CONFIG =
+      new BatchingConfig(false, ParSeqRestClient.DEFAULT_MAX_BATCH_SIZE, true);
+
+  public static final ResourceConfig DEFAULT_RESOURCE_CONFIG =
+      new ResourceConfig(Collections.emptyMap(), Optional.empty(), DEFAULT_BATCHING_CONFIG);
+
+  public static final ParSeqRestClientConfig DEFAULT_PARSEQ_REST_CLIENT_CONFIG =
+      new ParSeqRestClientConfig(Collections.emptyMap(), DEFAULT_RESOURCE_CONFIG);
+
   private final RestClient _restClient;
   private final BatchingMetrics _batchingMetrics = new BatchingMetrics();
   private final ParSeqRestClientConfig _clientConfig;
 
   public ParSeqRestClient(final RestClient restClient) {
-    this(restClient, defaultConfig());
-  }
-
-  private static ParSeqRestClientConfig defaultConfig() {
-    BatchingConfig defaultBatchingConfig = new BatchingConfig(false, DEFAULT_MAX_BATCH_SIZE, true);
-    ResourceConfig defaultResourceConfig = new ResourceConfig(Collections.emptyMap(), Optional.empty(), defaultBatchingConfig);
-    return new ParSeqRestClientConfig(Collections.emptyMap(), defaultResourceConfig);
+    this(restClient, DEFAULT_PARSEQ_REST_CLIENT_CONFIG);
   }
 
   public ParSeqRestClient(final RestClient restClient, final ParSeqRestClientConfig config) {
