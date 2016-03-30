@@ -1,5 +1,6 @@
 package com.linkedin.restli.client.config;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
@@ -20,6 +21,10 @@ public class ResourceConfig {
 
   public BatchingConfig getBatchingConfig(ResourceMethod method) {
     return _batchingConfig.getOrDefault(method, _defaultBatchingConfig);
+  }
+
+  public Map<ResourceMethod, BatchingConfig> getBatchingConfig() {
+    return Collections.unmodifiableMap(_batchingConfig);
   }
 
   public Optional<Long> getTimeoutNs() {
