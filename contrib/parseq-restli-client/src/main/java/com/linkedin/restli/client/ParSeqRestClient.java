@@ -17,9 +17,8 @@
 package com.linkedin.restli.client;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import com.linkedin.common.callback.Callback;
 import com.linkedin.parseq.Task;
@@ -33,7 +32,6 @@ import com.linkedin.restli.client.config.BatchingConfig;
 import com.linkedin.restli.client.config.ParSeqRestClientConfig;
 import com.linkedin.restli.client.config.ResourceConfig;
 import com.linkedin.restli.common.OperationNameGenerator;
-import com.linkedin.restli.common.ResourceMethod;
 
 
 /**
@@ -48,26 +46,21 @@ public class ParSeqRestClient
 
   private final RestClient _restClient;
   private final BatchingMetrics _batchingMetrics = new BatchingMetrics();
-  private final ParSeqRestClientConfig _config;
+  private final ParSeqRestClientConfig _clientConfig;
 
   public ParSeqRestClient(final RestClient restClient) {
     this(restClient, defaultConfig());
   }
 
   private static ParSeqRestClientConfig defaultConfig() {
-    //batching enabled in dry-run mode for GET and BATCH_GET
-    BatchingConfig dryRunBatchingConfig = new BatchingConfig(true, DEFAULT_MAX_BATCH_SIZE, true);
-    Map<ResourceMethod, BatchingConfig> batchConfigs = new HashMap<>();
-    batchConfigs.put(ResourceMethod.GET, dryRunBatchingConfig);
-    batchConfigs.put(ResourceMethod.BATCH_GET, dryRunBatchingConfig);
     BatchingConfig defaultBatchingConfig = new BatchingConfig(false, DEFAULT_MAX_BATCH_SIZE, true);
-    ResourceConfig defaultResourceConfig = new ResourceConfig(batchConfigs, Optional.empty(), defaultBatchingConfig);
+    ResourceConfig defaultResourceConfig = new ResourceConfig(Collections.emptyMap(), Optional.empty(), defaultBatchingConfig);
     return new ParSeqRestClientConfig(Collections.emptyMap(), defaultResourceConfig);
   }
 
   public ParSeqRestClient(final RestClient restClient, final ParSeqRestClientConfig config) {
     _restClient = restClient;
-    _config = config;
+    _clientConfig = config;
   }
 
   /**
@@ -126,31 +119,17 @@ public class ParSeqRestClient
     }
   }
 
-  /**
-   * Return a task that will send a type-bound REST request when run.
-   *
-   * @param request to send
-   * @return response task
-   */
   public <T> Task<Response<T>> createTask(final Request<T> request) {
     return createTask(request, new RequestContext());
   }
 
-  /**
-   * Return a task that will send a type-bound REST request when run. The task's name
-   * defaults to information about the request.
-   *
-   * @param request to send
-   * @param requestContext context for the request
-   * @return response task
-   */
   public <T> Task<Response<T>> createTask(final Request<T> request, final RequestContext requestContext) {
     return createTask(generateTaskName(request), request, requestContext);
   }
 
   /**
-   * Generates a task name for the current task.
-   * @param request the outgoing request
+   * Generates a task name for the request.
+   * @param request
    * @return a task name
    */
   static String generateTaskName(final Request<?> request) {
@@ -158,19 +137,27 @@ public class ParSeqRestClient
         + OperationNameGenerator.generate(request.getMethod(), request.getMethodName());
   }
 
-  /**
-   * Return a task that will send a type-bound REST request when run.
-   *
-   * @param request to send
-   * @param requestContext context for the request
-   * @param name the name of the tasks
-   * @return response task
-   */
   public <T> Task<Response<T>> createTask(final String name, final Request<T> request,
       final RequestContext requestContext) {
-    ResourceConfig resourceConfig = _config.getResourceConfig(request.getBaseUriTemplate());
-    if (RequestGroup.isBatchable(request, resourceConfig)) {
-      return createBatchableTask(name, request, requestContext, resourceConfig);
+    return createTask(name, request, requestContext, _clientConfig);
+  }
+
+  public <T> Task<Response<T>> createTask(final String name, final Request<T> request,
+      final RequestContext requestContext, ParSeqRestClientConfig config) {
+    ResourceConfig resourceConfig = config.getResourceConfig(request.getBaseUriTemplate());
+    BatchingConfig bathcingConfig = resourceConfig.getBatchingConfig(request.getMethod());
+    final Task<Response<T>> task = createTask(name, request, requestContext, bathcingConfig);
+    if (resourceConfig.getTimeoutNs().isPresent()) {
+      return task.withTimeout(resourceConfig.getTimeoutNs().get(), TimeUnit.NANOSECONDS);
+    } else {
+      return task;
+    }
+  }
+
+  private <T> Task<Response<T>> createTask(final String name, final Request<T> request,
+      final RequestContext requestContext, BatchingConfig bathcingConfig) {
+    if (RequestGroup.isBatchable(request, bathcingConfig)) {
+      return createBatchableTask(name, request, requestContext, bathcingConfig);
     } else {
       return Task.async(name, () -> {
         return sendRequest(request, requestContext);
@@ -179,18 +166,18 @@ public class ParSeqRestClient
   }
 
   private RestRequestBatchKey createKey(String name, Request<Object> request, RequestContext requestContext,
-      ResourceConfig resourceConfig) {
-    if (resourceConfig.getBatchingConfig(request.getMethod()).isDryRun()) {
-      return new DryRunRestRequestBatchKey<>(request, requestContext, sendRequest(request, requestContext));
+      BatchingConfig bathcingConfig) {
+    if (bathcingConfig.isDryRun()) {
+      return new DryRunRestRequestBatchKey<>(request, requestContext, bathcingConfig, sendRequest(request, requestContext));
     } else {
-      return new RestRequestBatchKey(request, requestContext);
+      return new RestRequestBatchKey(request, requestContext, bathcingConfig);
     }
   }
 
   @SuppressWarnings("unchecked")
   private <T> Task<Response<T>> createBatchableTask(String name, Request<T> request, RequestContext requestContext,
-      ResourceConfig resourceConfig) {
-    return cast(batchable(name, createKey(name, (Request<Object>) request, requestContext, resourceConfig)));
+      BatchingConfig bathcingConfig) {
+    return cast(batchable(name, createKey(name, (Request<Object>) request, requestContext, bathcingConfig)));
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -214,9 +201,7 @@ public class ParSeqRestClient
   @Override
   public RequestGroup classify(RestRequestBatchKey key) {
     Request<Object> request = key.getRequest();
-    ResourceConfig resourceConfig = _config.getResourceConfig(request.getBaseUriTemplate());
-    BatchingConfig batchingConfig = resourceConfig.getBatchingConfig(request.getMethod());
-    return RequestGroup.fromRequest(request, batchingConfig.isDryRun(), batchingConfig.getMaxBatchSize());
+    return RequestGroup.fromRequest(request, key.getBathcingConfig().isDryRun(), key.getBathcingConfig().getMaxBatchSize());
   }
 
   @Override
