@@ -210,9 +210,7 @@ class GetRequestGroup implements RequestGroup {
   public <RT extends RecordTemplate> void executeBatch(final RestClient restClient, final Batch<RestRequestBatchKey, Response<Object>> batch) {
 
     //TODO this needs better API from rest.li team
-    Request firstRequest = batch.entries().iterator().next().getKey().getRequest();
-    Class<?> keyClass = firstRequest.getResourceSpec().getKeyClass();
-    if ((firstRequest instanceof BatchGetKVRequest) || (CompoundKey.class.isAssignableFrom(keyClass) || keyClass == ComplexResourceKey.class)) {
+    if (batch.entries().stream().anyMatch(entry -> entry.getKey().getRequest() instanceof BatchGetKVRequest)) {
       executeKVBatch(restClient, batch);
     } else {
       executeNonKVBatch(restClient, batch);
