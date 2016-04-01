@@ -1,5 +1,6 @@
 package com.linkedin.parseq.trace;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -60,7 +61,11 @@ public class Trace {
 
   @Override
   public String toString() {
-    return "Trace [traceMap=" + _traceMap + ", relationships=" + _relationships + "]";
+    try {
+      return TraceUtil.getJsonTrace(this);
+    } catch (IOException e) {
+      throw new RuntimeException("Could not serialize trace to JSON", e);
+    }
   }
 
 }

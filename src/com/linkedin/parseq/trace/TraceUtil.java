@@ -22,4 +22,14 @@ public class TraceUtil {
     return JSON_CODEC.encode(task.getTrace());
   }
 
+  /**
+   * Returns trace serialized to a JSON string.
+   * @param trace trace to serialize to JSON
+   * @return JSON representation of the trace
+   * @throws IOException
+   */
+  public static String getJsonTrace(final Trace trace) throws IOException {
+    return JSON_CODEC.encode(trace);
+  }
+
 }
