@@ -56,13 +56,6 @@ class GetRequestGroup implements RequestGroup {
     return params;
   }
 
-
-  /**
-   * Extract the get response for this resource out of an auto-batched batch response.
-   * This is pure rest.li logic, and it complements the auto-batching logic in BatchGetRequestBuilder.
-   * @throws com.linkedin.r2.RemoteInvocationException if the server returned an error response for this resource,
-   * or if it returned neither a result nor an error.
-   */
   private static <K, RT extends RecordTemplate> Response<RT> unbatchResponse(BatchGetEntityRequest<K, RT> request,
       Response<BatchKVResponse<K, EntityResponse<RT>>> batchResponse, Object id) throws RemoteInvocationException {
     final BatchKVResponse<K, EntityResponse<RT>> batchEntity = batchResponse.getEntity();
