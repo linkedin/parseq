@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.linkedin.parseq</groupId>
     <artifactId>parseq-restli-client</artifactId>
-    <version>2.3.2-SNAPSHOT</version>
+    <version>2.3.2</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -25,22 +25,22 @@
         <dependency>
             <groupId>com.linkedin.pegasus</groupId>
             <artifactId>pegasus-common</artifactId>
-            <version>2.6.0</version>
+            <version>5.0.19</version>
         </dependency>
         <dependency>
             <groupId>com.linkedin.pegasus</groupId>
             <artifactId>restli-common</artifactId>
-            <version>2.6.0</version>
+            <version>5.0.19</version>
         </dependency>
         <dependency>
             <groupId>com.linkedin.pegasus</groupId>
             <artifactId>restli-client</artifactId>
-            <version>2.6.0</version>
+            <version>5.0.19</version>
         </dependency>
         <dependency>
             <groupId>com.linkedin.pegasus</groupId>
             <artifactId>r2-core</artifactId>
-            <version>2.6.0</version>
+            <version>5.0.19</version>
         </dependency>
         <dependency>
             <groupId>org.hdrhistogram</groupId>
@@ -113,7 +113,7 @@
         </plugins>
     </build>
 
-    <name>parseq-batching</name>
+    <name>parseq-restli-client</name>
     <url>https://github.com/linkedin/parseq</url>
     <scm>
         <url>https://github.com/linkedin/parseq</url>
