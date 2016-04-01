@@ -228,15 +228,8 @@ public class Tasks {
    * @param tasks the tasks to run sequentially
    * @param <T> the result value for the sequence of tasks
    * @return a new task that will run the given tasks sequentially
-   * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, com.linkedin.parseq.function.Function1) Task.map},
-   * {@link Task#flatMap(String, com.linkedin.parseq.function.Function1) Task.flatMap},
-   * {@link Task#andThen(String, Task) Task.andThen} and other methods in {@link Task}.
-   * @see Task#map(String, com.linkedin.parseq.function.Function1) Task.map
-   * @see Task#flatMap(String, com.linkedin.parseq.function.Function1) Task.flatMap
-   * @see Task#andThen(String, Task) Task.andThen
-   * @see Task
    */
-  @Deprecated
+  @SuppressWarnings("deprecation")
   public static <T> Task<T> seq(final Iterable<? extends Task<?>> tasks) {
     return new SeqTask<T>("seq", tasks);
   }
