@@ -1,17 +1,11 @@
 package com.linkedin.parseq.batching;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiConsumer;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.linkedin.parseq.Context;
 import com.linkedin.parseq.Task;
@@ -97,8 +91,14 @@ import com.linkedin.parseq.trace.TraceBuilder;
  */
 public abstract class BatchingStrategy<G, K, T> {
 
-  private final ConcurrentHashMap<Long, BatchBuilder<K, T>> _batches =
+  private static final Logger LOGGER = LoggerFactory.getLogger(BatchingStrategy.class);
+  public static final int DEFAULT_MAX_BATCH_SIZE = 1024;
+
+  private final ConcurrentHashMap<Long, GroupBatchBuilder> _batches =
       new ConcurrentHashMap<>();
+
+  private final BatchSizeMetric _batchSizeMetric = new BatchSizeMetric();
+  private final BatchAggregationTimeMetric _batchAggregationTimeMetric = new BatchAggregationTimeMetric();
 
   /**
    * This method returns Task that returns value for a single key allowing this strategy to batch operations.
@@ -107,18 +107,21 @@ public abstract class BatchingStrategy<G, K, T> {
    * @return Task that returns value for a single key allowing this strategy to batch operations
    */
   public Task<T> batchable(final String desc, final K key) {
-    return Task.async("batched: " + desc, ctx -> {
+    return Task.async("batchable: " + desc, ctx -> {
       final SettablePromise<T> result = Promises.settable();
-      Long planId = ctx.getPlanId();
-      BatchBuilder<K, T> builder = _batches.get(planId);
-      if (builder == null) {
-        builder = Batch.builder();
-        BatchBuilder<K, T> existingBuilder = _batches.putIfAbsent(planId, builder);
-        if (existingBuilder != null) {
-          builder = existingBuilder;
+      final Long planId = ctx.getPlanId();
+      final GroupBatchBuilder builder = _batches.computeIfAbsent(planId, k -> new GroupBatchBuilder());
+      final G group = classify(key);
+      Batch<K, T> fullBatch = builder.add(group, key, ctx.getShallowTraceBuilder(), result);
+      if (fullBatch != null) {
+        try {
+          ctx.run(taskForBatch(group, fullBatch));
+        } catch (Throwable t) {
+          //we don't care if some of promises have already been completed
+          //all we care is that all remaining promises have been failed
+          fullBatch.failAll(t);
         }
       }
-      builder.add(key, ctx.getShallowTraceBuilder(), result);
       return result;
     });
   }
@@ -133,6 +136,10 @@ public abstract class BatchingStrategy<G, K, T> {
   }
 
   private Task<?> taskForBatch(final G group, final Batch<K, T> batch) {
+    _batchSizeMetric.record(batch.size());
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug(debugInfo(group, batch));
+    }
     return Task.async(getBatchName(group, batch), ctx -> {
       final SettablePromise<T> result = Promises.settable();
       final PromiseListener<T> countDownListener =
@@ -162,27 +169,42 @@ public abstract class BatchingStrategy<G, K, T> {
     });
   }
 
-  private Collection<Task<?>> taskForBatches(Collection<Entry<G, Batch<K, T>>> batches) {
-    return batches.stream().map(entry -> taskForBatch(entry.getKey(), entry.getValue())).collect(Collectors.toList());
+  private void runBatch(final PlanContext planContext, G group, final Batch<K, T> batch) {
+    try {
+      new ContextImpl(planContext, taskForBatch(group, batch)).runTask();
+    } catch (Throwable t) {
+      //we don't care if some of promises have already been completed
+      //all we care is that all remaining promises have been failed
+      batch.failAll(t);
+    }
   }
 
   void handleBatch(final PlanContext planContext) {
-    final BatchBuilder<K, T> batchBuilder = _batches.remove(planContext.getId());
+    final GroupBatchBuilder batchBuilder = _batches.remove(planContext.getId());
     if (batchBuilder != null) {
-      final Batch<K, T> batch = batchBuilder.build();
-      if (batch.size() > 0) {
-        try {
-          final Map<G, Batch<K, T>> batches = split(batch);
-          if (batches.size() > 0) {
-            taskForBatches(batches.entrySet()).forEach(task -> new ContextImpl(planContext, task).runTask());
-          }
-        } catch (Throwable t) {
-          //we don't care if some of promises have already been completed
-          //all we care is that all remaining promises have been failed
-          batch.failAll(t);
-        }
-      }
+      batchBuilder.batches().forEach((group, builder) -> runBatch(planContext, group, builder.build()));
     }
+  }
+
+  private String debugInfo(G group, Batch<K, T> batch) {
+    StringBuilder debugInfo = new StringBuilder("\n");
+      debugInfo.append("group: ")
+        .append(group)
+        .append("\n")
+        .append("batch keys: \n");
+      batch.keys().forEach(key -> {
+        debugInfo.append("    ").append(key).append("\n");
+      });
+    return debugInfo.toString();
+  }
+
+
+  public BatchSizeMetric getBatchSizeMetric() {
+    return _batchSizeMetric;
+  }
+
+  public BatchAggregationTimeMetric getBatchAggregationTimeMetric() {
+    return _batchAggregationTimeMetric;
   }
 
   /**
@@ -210,6 +232,16 @@ public abstract class BatchingStrategy<G, K, T> {
   public abstract G classify(K key);
 
   /**
+   * Overriding this method allows specifying maximum batch size for a given group.
+   * Default value is {@value #DEFAULT_MAX_BATCH_SIZE}.
+   * @param group group for which maximum batch size needs to be decided
+   * @return maximum batch size for a given group
+   */
+  public int maxBatchSizeForGroup(G group) {
+    return DEFAULT_MAX_BATCH_SIZE;
+  }
+
+  /**
    * Overriding this method allows providing custom name for a batch. Name will appear in the
    * ParSeq trace as a description of the task that executes the batch.
    * @param batch batch to be described
@@ -220,49 +252,32 @@ public abstract class BatchingStrategy<G, K, T> {
     return "batch(" + batch.size() + ")";
   }
 
-  private Map<G, Batch<K, T>> split(Batch<K, T> batch) {
-    return batch.entries().stream()
-        .collect(Collectors.groupingBy(entry -> classify(entry.getKey()), batchCollector()));
-  }
+  private class GroupBatchBuilder {
+    private final Map<G, BatchBuilder<K, T>> _batchesByGroup =
+        new HashMap<>();
 
-  private Collector<Entry<K, BatchEntry<T>>, BatchBuilder<K, T>, Batch<K, T>> batchCollector() {
-    return new Collector<Entry<K,BatchEntry<T>>, BatchBuilder<K,T>, Batch<K,T>>() {
-
-      @Override
-      public Supplier<BatchBuilder<K, T>> supplier() {
-        return Batch::<K, T>builder;
+    /**
+     * Adds new entry to a batch specified by a given group and returns
+     * that batch if it is full.
+     * @return full batch if new entry made batch full or null otherwise
+     */
+    Batch<K, T> add(G group, K key, ShallowTraceBuilder traceBuilder, SettablePromise<T> promise) {
+      BatchBuilder<K, T> builder =
+        _batchesByGroup.computeIfAbsent(group, k -> Batch.builder(maxBatchSizeForGroup(group), _batchAggregationTimeMetric));
+      //invariant: builder is not full - it is maintained by the fact that max batch size >= 1
+      //and that we remove builder from the map after adding to it entry that makes it full
+      builder.add(key, traceBuilder, promise);
+      if (builder.isFull()) {
+        _batchesByGroup.remove(group);
+        return builder.build();
       }
+      return null;
+    }
 
-      @Override
-      public BiConsumer<BatchBuilder<K, T>, Entry<K, BatchEntry<T>>> accumulator() {
-        return (builder, entry) -> builder.add(entry.getKey(), entry.getValue());
-      }
+    Map<G, BatchBuilder<K, T>> batches() {
+      return _batchesByGroup;
+    }
 
-      private BatchBuilder<K, T> combine(BatchBuilder<K, T> larger, BatchBuilder<K, T> smaller) {
-        throw new UnsupportedOperationException();
-      }
-
-      @Override
-      public BinaryOperator<BatchBuilder<K, T>> combiner() {
-        return (a, b) -> {
-          if (a.size() > b.size()) {
-            return combine(a, b);
-          } else {
-            return combine(b, a);
-          }
-        };
-      }
-
-      @Override
-      public Function<BatchBuilder<K, T>, Batch<K, T>> finisher() {
-        return builder -> builder.build();
-      }
-
-      @Override
-      public Set<Collector.Characteristics> characteristics() {
-        return Collections.emptySet();
-      }
-    };
   }
 
 }

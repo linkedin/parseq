@@ -83,7 +83,7 @@ public interface Batch<K, T> {
 
   Set<Map.Entry<K, BatchEntry<T>>> entries();
 
-  static <K, T> BatchBuilder<K, T> builder() {
-    return new BatchBuilder<>();
+  static <K, T> BatchBuilder<K, T> builder(int maxSize, BatchAggregationTimeMetric batchAggregationTimeMetric) {
+    return new BatchBuilder<>(maxSize, batchAggregationTimeMetric);
   }
 }

@@ -18,7 +18,7 @@ public class TestBatch {
 
   @Test
   public void testEmptyBatch() {
-    BatchBuilder<Integer, String> builder = Batch.builder();
+    BatchBuilder<Integer, String> builder = Batch.builder(10, new BatchAggregationTimeMetric());
     Batch<Integer, String> empty = builder.build();
 
     assertEquals(empty.size(), 0);
@@ -41,7 +41,7 @@ public class TestBatch {
       return promise;
     };
 
-    BatchBuilder<Integer, String> builder = Batch.builder();
+    BatchBuilder<Integer, String> builder = Batch.builder(10, new BatchAggregationTimeMetric());
     builder.add(0, new ShallowTraceBuilder(0L), createPromise.apply("0"));
     builder.add(1, new ShallowTraceBuilder(1L), createPromise.apply("1"));
     final SettablePromise<String> p2 = createPromise.apply("2");
