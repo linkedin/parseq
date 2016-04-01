@@ -1,3 +1,9 @@
+v2.3.2
+------
+
+* Trace.toString() now returns JSON representation that can be directly used in trace visualization tools
+* Significant progress towards fully functional batching restli client
+
 v2.3.1
 ------
 
