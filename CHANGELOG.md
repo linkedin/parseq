@@ -1,3 +1,8 @@
+v2.3.3
+------
+
+* Fixed unwrapping EntityResponse from batch get response in batching restli client 
+
 v2.3.2
 ------
 
