@@ -78,13 +78,13 @@ class GetRequestGroup implements RequestGroup {
     data.forEach((key, value) -> {
       switch(key) {
         case BatchResponse.ERRORS:
-          dm.put(key, filterIds((DataMap)value, ids, EntityResponse.ERROR));
+          dm.put(key, filterIds((DataMap)value, ids, stripEntities ? EntityResponse.ERROR : null));
           break;
         case BatchResponse.RESULTS:
-          dm.put(key, filterIds((DataMap)value, ids, EntityResponse.ENTITY));
+          dm.put(key, filterIds((DataMap)value, ids, stripEntities ? EntityResponse.ENTITY : null));
           break;
         case BatchResponse.STATUSES:
-          dm.put(key, filterIds((DataMap)value, ids, EntityResponse.STATUS));
+          dm.put(key, filterIds((DataMap)value, ids, stripEntities ? EntityResponse.STATUS : null));
           break;
         default:
           dm.put(key, value);
