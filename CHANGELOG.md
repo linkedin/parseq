@@ -1,7 +1,12 @@
+v2.3.4
+------
+
+* Fixed type of response for BatchEntityResponse in batching restli client
+
 v2.3.3
 ------
 
-* Fixed unwrapping EntityResponse from batch get response in batching restli client 
+* Fixed unwrapping EntityResponse from batch get response in batching restli client
 
 v2.3.2
 ------
