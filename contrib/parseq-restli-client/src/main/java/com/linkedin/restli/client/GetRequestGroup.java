@@ -24,6 +24,7 @@ import com.linkedin.restli.common.ResourceMethod;
 import com.linkedin.restli.common.ResourceSpec;
 import com.linkedin.restli.common.RestConstants;
 import com.linkedin.restli.internal.client.ResponseImpl;
+import com.linkedin.restli.internal.client.response.BatchEntityResponse;
 import com.linkedin.restli.internal.common.ProtocolVersionUtil;
 import com.linkedin.restli.internal.common.ResponseUtils;
 
@@ -191,7 +192,7 @@ class GetRequestGroup implements RequestGroup {
               BatchGetEntityRequest batchGetEntityRequest = (BatchGetEntityRequest) request;
               Set<String> ids = extractIds(batchGetEntityRequest);
               DataMap dm = filterIdsInBatchResult(responseToBatch.getEntity().data(), ids, false);
-              BatchKVResponse br = new BatchKVResponse(dm, request.getResourceSpec().getKeyType(),
+              BatchKVResponse br = new BatchEntityResponse<>(dm, request.getResourceSpec().getKeyType(),
                   request.getResourceSpec().getValueType(), request.getResourceSpec().getKeyParts(),
                   request.getResourceSpec().getComplexKeyType(), version);
               Response rsp = new ResponseImpl(responseToBatch, br);
