@@ -30,10 +30,10 @@ import com.linkedin.restli.internal.common.ResponseUtils;
 
 class GetRequestGroup implements RequestGroup {
 
-  private final String _baseUriTemplate; //taken from first request
+  private final String _baseUriTemplate; //taken from first request, used to differentiate between groups
   private final ResourceSpec _resourceSpec;  //taken from first request
-  private final Map<String, String> _headers; //taken from first request
-  private final RestliRequestOptions _requestOptions; //taken from first request
+  private final Map<String, String> _headers; //taken from first request, used to differentiate between groups
+  private final RestliRequestOptions _requestOptions; //taken from first request, used to differentiate between groups
   private final Map<String, Object> _queryParams; //taken from first request, used to differentiate between groups
   private final boolean _dryRun;
   private final int _maxBatchSize;
@@ -51,7 +51,7 @@ class GetRequestGroup implements RequestGroup {
 
   private static Map<String, Object> getQueryParamsForBatchingKey(Request<?> request)
   {
-    final Map<String, Object> params = new HashMap<String, Object>(request.getQueryParamsObjects());
+    final Map<String, Object> params = new HashMap<>(request.getQueryParamsObjects());
     params.remove(RestConstants.QUERY_BATCH_IDS_PARAM);
     params.remove(RestConstants.FIELDS_PARAM);
     return params;
@@ -71,7 +71,7 @@ class GetRequestGroup implements RequestGroup {
           + ". Verify that the batchGet endpoint returns response keys that match batchGet request IDs.", null);
     }
 
-    return new ResponseImpl<RT>(batchResponse, entityResult);
+    return new ResponseImpl<>(batchResponse, entityResult);
   }
 
   private DataMap filterIdsInBatchResult(DataMap data, Set<String> ids, boolean stripEntities) {
@@ -138,20 +138,18 @@ class GetRequestGroup implements RequestGroup {
   @SuppressWarnings({ "rawtypes", "unchecked" })
   private <K, RT extends RecordTemplate> void doExecuteBatch(final RestClient restClient, final Batch<RestRequestBatchKey, Response<Object>> batch) {
 
+    final Tuple2<Set<Object>, Set<PathSpec>> idsAndFields = collectIdsAndFields(batch);
+    final Set<Object> ids = idsAndFields._1();
+    Set<PathSpec> fields = idsAndFields._2();
+
     final BatchGetEntityRequestBuilder<K, RT> builder = new BatchGetEntityRequestBuilder<>(_baseUriTemplate, _resourceSpec, _requestOptions);
     builder.setHeaders(_headers);
     _queryParams.forEach((key, value) -> builder.setParam(key, value));
 
-    final Tuple2<Set<Object>, Set<PathSpec>> idsAndFields = batch.entries().stream()
-      .map(Entry::getKey)
-      .map(RestRequestBatchKey::getRequest)
-      .reduce(Tuples.tuple(new HashSet<>(), new HashSet<>()),
-          GetRequestGroup::reduceIdAndFields,
-          (a, b) -> a);
 
-    builder.setParam(RestConstants.QUERY_BATCH_IDS_PARAM, idsAndFields._1());
-    if (idsAndFields._2() != null && !idsAndFields._2().isEmpty()) {
-      builder.setParam(RestConstants.FIELDS_PARAM, idsAndFields._2().toArray());
+    builder.setParam(RestConstants.QUERY_BATCH_IDS_PARAM, ids);
+    if (fields != null && !fields.isEmpty()) {
+      builder.setParam(RestConstants.FIELDS_PARAM, fields.toArray());
     }
 
     final BatchGetEntityRequest<K, RT> batchGet = builder.build();
@@ -215,9 +213,19 @@ class GetRequestGroup implements RequestGroup {
     });
   }
 
+  private Tuple2<Set<Object>, Set<PathSpec>> collectIdsAndFields(
+      final Batch<RestRequestBatchKey, Response<Object>> batch) {
+    return batch.entries().stream()
+      .map(Entry::getKey)
+      .map(RestRequestBatchKey::getRequest)
+      .reduce(Tuples.tuple(new HashSet<>(), new HashSet<>()),
+          GetRequestGroup::reduceIdAndFields,
+          (a, b) -> a);
+  }
+
 
   private <RT extends RecordTemplate> Set<String> extractIds(BatchRequest<RT> request) {
-    return ((Set<Object>) request.getObjectIds()).stream().map(Object::toString).collect(Collectors.toSet());
+    return request.getObjectIds().stream().map(Object::toString).collect(Collectors.toSet());
   }
 
   @Override
@@ -246,12 +254,15 @@ class GetRequestGroup implements RequestGroup {
     return _requestOptions;
   }
 
+
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
     result = prime * result + ((_baseUriTemplate == null) ? 0 : _baseUriTemplate.hashCode());
+    result = prime * result + ((_headers == null) ? 0 : _headers.hashCode());
     result = prime * result + ((_queryParams == null) ? 0 : _queryParams.hashCode());
+    result = prime * result + ((_requestOptions == null) ? 0 : _requestOptions.hashCode());
     return result;
   }
 
@@ -269,10 +280,20 @@ class GetRequestGroup implements RequestGroup {
         return false;
     } else if (!_baseUriTemplate.equals(other._baseUriTemplate))
       return false;
+    if (_headers == null) {
+      if (other._headers != null)
+        return false;
+    } else if (!_headers.equals(other._headers))
+      return false;
     if (_queryParams == null) {
       if (other._queryParams != null)
         return false;
     } else if (!_queryParams.equals(other._queryParams))
+      return false;
+    if (_requestOptions == null) {
+      if (other._requestOptions != null)
+        return false;
+    } else if (!_requestOptions.equals(other._requestOptions))
       return false;
     return true;
   }
@@ -280,10 +301,11 @@ class GetRequestGroup implements RequestGroup {
   @Override
   public String toString() {
     return "GetRequestGroup [_baseUriTemplate=" + _baseUriTemplate + ", _queryParams=" + _queryParams
-        + ", _requestOptions=" + _requestOptions + ", _headers=" + _headers + ", _resourceSpec=" + _resourceSpec
+        + ", _requestOptions=" + _requestOptions + ", _headers=" + _headers
         + ", _dryRun=" + _dryRun + ", _maxBatchSize=" + _maxBatchSize + "]";
   }
 
+  @Override
   public <K, V> String getBatchName(final Batch<K, V> batch) {
     return _baseUriTemplate + " " + (batch.size() == 1 ? ResourceMethod.GET : (ResourceMethod.BATCH_GET +
         "(" + batch.size() + ")"));
