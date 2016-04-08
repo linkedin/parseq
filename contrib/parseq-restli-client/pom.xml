@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.linkedin.parseq</groupId>
     <artifactId>parseq-restli-client</artifactId>
-    <version>2.3.4</version>
+    <version>2.3.5-SNAPSHOT</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -14,14 +14,13 @@
         <dependency>
             <groupId>com.linkedin.parseq</groupId>
             <artifactId>parseq</artifactId>
-            <version>2.3.4</version>
+            <version>2.3.5-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.linkedin.parseq</groupId>
             <artifactId>parseq-batching</artifactId>
-            <version>2.3.4</version>
+            <version>2.3.5-SNAPSHOT</version>
         </dependency>
-
         <dependency>
             <groupId>com.linkedin.pegasus</groupId>
             <artifactId>pegasus-common</artifactId>
@@ -46,6 +45,30 @@
             <groupId>org.hdrhistogram</groupId>
             <artifactId>HdrHistogram</artifactId>
             <version>2.1.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>6.9.9</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.linkedin.pegasus</groupId>
+            <artifactId>restli-int-test-server</artifactId>
+            <version>5.0.19</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.linkedin.pegasus</groupId>
+            <artifactId>restli-int-test-api</artifactId>
+            <version>5.0.19</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.linkedin.pegasus</groupId>
+            <artifactId>r2-netty</artifactId>
+            <version>5.0.19</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -121,7 +144,7 @@
     </scm>
     <description>
       Provides convenient API for creatinig automatically batched tasks
-    </description>    
+    </description>
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
