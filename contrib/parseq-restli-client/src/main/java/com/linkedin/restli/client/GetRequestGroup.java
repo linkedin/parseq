@@ -12,7 +12,7 @@ import com.linkedin.data.DataMap;
 import com.linkedin.data.schema.PathSpec;
 import com.linkedin.data.template.RecordTemplate;
 import com.linkedin.parseq.batching.Batch;
-import com.linkedin.parseq.function.Tuple2;
+import com.linkedin.parseq.function.Tuple3;
 import com.linkedin.parseq.function.Tuples;
 import com.linkedin.r2.RemoteInvocationException;
 import com.linkedin.restli.client.response.BatchKVResponse;
@@ -109,7 +109,9 @@ class GetRequestGroup implements RequestGroup {
     return dm;
   }
 
-  private static Tuple2<Set<Object>, Set<PathSpec>> reduceIdAndFields(Tuple2<Set<Object>, Set<PathSpec>> state, Request<?> request) {
+  //Tuple3: (keys, fields, contains-batch-get)
+  private static Tuple3<Set<Object>, Set<PathSpec>, Boolean> reduceIdAndFields(Tuple3<Set<Object>, Set<PathSpec>, Boolean> state,
+      Request<?> request) {
     if (request instanceof GetRequest) {
       GetRequest<?> getRequest = (GetRequest<?>)request;
       state._1().add(getRequest.getObjectId());
@@ -117,13 +119,14 @@ class GetRequestGroup implements RequestGroup {
     } else if (request instanceof BatchRequest) {
       BatchRequest<?> batchRequest = (BatchRequest<?>)request;
       state._1().addAll(batchRequest.getObjectIds());
-      return reduceFields(state, batchRequest.getFields());
+      return reduceFields(Tuples.tuple(state._1(), state._2(), true), batchRequest.getFields());
     } else {
       throw new RuntimeException("ParSeqRestClient could not handled this type of GET request: " + request.getClass().getName());
     }
   }
 
-  private static Tuple2<Set<Object>, Set<PathSpec>> reduceFields(final Tuple2<Set<Object>, Set<PathSpec>> state,
+  //Tuple3: (keys, fields, contains-batch-get)
+  private static Tuple3<Set<Object>, Set<PathSpec>, Boolean> reduceFields(final Tuple3<Set<Object>, Set<PathSpec>, Boolean> state,
       final Set<PathSpec> requestFields) {
     if (requestFields != null && !requestFields.isEmpty()) {
       if (state._2() != null) {
@@ -131,21 +134,30 @@ class GetRequestGroup implements RequestGroup {
       }
       return state;
     } else {
-      return Tuples.tuple(state._1(), null);
+      return Tuples.tuple(state._1(), null, state._3());
+    }
+  }
+
+  private <K, RT extends RecordTemplate> void doExecuteBatch(final RestClient restClient, final Batch<RestRequestBatchKey, Response<Object>> batch) {
+
+    final Tuple3<Set<Object>, Set<PathSpec>, Boolean> idsAndFields = collectIdsAndFields(batch);
+    final Set<Object> ids = idsAndFields._1();
+    final Set<PathSpec> fields = idsAndFields._2();
+    final boolean containsBatchGet = idsAndFields._3();
+
+    if (ids.size() == 1 && !containsBatchGet) {
+      doExecuteGet(restClient, batch, ids, fields);
+    } else {
+      doExecuteBatchGet(restClient, batch, ids, fields);
     }
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
-  private <K, RT extends RecordTemplate> void doExecuteBatch(final RestClient restClient, final Batch<RestRequestBatchKey, Response<Object>> batch) {
-
-    final Tuple2<Set<Object>, Set<PathSpec>> idsAndFields = collectIdsAndFields(batch);
-    final Set<Object> ids = idsAndFields._1();
-    Set<PathSpec> fields = idsAndFields._2();
-
+  private <K, RT extends RecordTemplate> void doExecuteBatchGet(final RestClient restClient,
+      final Batch<RestRequestBatchKey, Response<Object>> batch, final Set<Object> ids, final Set<PathSpec> fields) {
     final BatchGetEntityRequestBuilder<K, RT> builder = new BatchGetEntityRequestBuilder<>(_baseUriTemplate, _resourceSpec, _requestOptions);
     builder.setHeaders(_headers);
     _queryParams.forEach((key, value) -> builder.setParam(key, value));
-
 
     builder.setParam(RestConstants.QUERY_BATCH_IDS_PARAM, ids);
     if (fields != null && !fields.isEmpty()) {
@@ -197,7 +209,7 @@ class GetRequestGroup implements RequestGroup {
               entry.getValue().getPromise().done(rsp);
             } else {
               entry.getValue().getPromise().fail(new Exception(
-                  "ParSeqRestClient could not handled this type of GET request: " + request.getClass().getName()));
+                  "ParSeqRestClient could not handle this type of GET request: " + request.getClass().getName()));
             }
           } catch (RemoteInvocationException e) {
             entry.getValue().getPromise().fail(e);
@@ -213,12 +225,52 @@ class GetRequestGroup implements RequestGroup {
     });
   }
 
-  private Tuple2<Set<Object>, Set<PathSpec>> collectIdsAndFields(
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  private <K, RT extends RecordTemplate> void doExecuteGet(final RestClient restClient,
+      final Batch<RestRequestBatchKey, Response<Object>> batch, final Set<Object> ids, final Set<PathSpec> fields) {
+
+    final GetRequestBuilder<K, RT> builder = (GetRequestBuilder<K, RT>) new GetRequestBuilder<>(_baseUriTemplate,
+        _resourceSpec.getValueClass(), _resourceSpec, _requestOptions);
+    builder.setHeaders(_headers);
+    _queryParams.forEach((key, value) -> builder.setParam(key, value));
+
+    builder.id((K) ids.iterator().next());
+    if (fields != null && !fields.isEmpty()) {
+      builder.setParam(RestConstants.FIELDS_PARAM, fields.toArray());
+    }
+
+    final GetRequest<RT> get = builder.build();
+
+    restClient.sendRequest(get, new Callback<Response<RT>>() {
+
+      @Override
+      public void onError(Throwable e) {
+        batch.failAll(e);
+      }
+
+      @Override
+      public void onSuccess(Response<RT> responseToGet) {
+        batch.entries().stream().forEach(entry -> {
+          Request request = entry.getKey().getRequest();
+          if (request instanceof GetRequest) {
+            entry.getValue().getPromise().done(new ResponseImpl<>(responseToGet, responseToGet.getEntity()));
+          } else {
+            entry.getValue().getPromise().fail(new Exception(
+                "ParSeqRestClient could not handle this type of GET request: " + request.getClass().getName()));
+          }
+        });
+      }
+
+    });
+  }
+
+  //Tuple3: (keys, fields, contains-batch-get)
+  private Tuple3<Set<Object>, Set<PathSpec>, Boolean> collectIdsAndFields(
       final Batch<RestRequestBatchKey, Response<Object>> batch) {
     return batch.entries().stream()
       .map(Entry::getKey)
       .map(RestRequestBatchKey::getRequest)
-      .reduce(Tuples.tuple(new HashSet<>(), new HashSet<>()),
+      .reduce(Tuples.tuple(new HashSet<>(), new HashSet<>(), false),
           GetRequestGroup::reduceIdAndFields,
           (a, b) -> a);
   }

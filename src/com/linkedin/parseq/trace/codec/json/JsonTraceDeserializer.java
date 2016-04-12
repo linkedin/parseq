@@ -43,8 +43,10 @@ class JsonTraceDeserializer {
 
   public static Trace deserialize(final JsonNode rootNode) throws IOException {
     try {
+      final Long planId = getLongField(rootNode, JsonTraceCodec.PLAN_ID);
+      final String planClass = getTextField(rootNode, JsonTraceCodec.PLAN_CLASS);
       final Map<Long, ShallowTrace> traceMap = parseTraces(rootNode);
-      return new Trace(traceMap, parseRelationships(rootNode, traceMap));
+      return new Trace(traceMap, parseRelationships(rootNode, traceMap), planClass, planId);
     } catch (RuntimeException e) {
       throw new IOException(e);
     }

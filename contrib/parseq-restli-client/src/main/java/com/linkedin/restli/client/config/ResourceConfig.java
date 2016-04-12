@@ -11,6 +11,8 @@ public class ResourceConfig {
   private final Map<ResourceMethod, BatchingConfig> _batchingConfig;
   private final Optional<Long> _timeoutNs;
   private final BatchingConfig _defaultBatchingConfig;
+  public static final ResourceConfig DEFAULT_RESOURCE_CONFIG =
+  new ResourceConfig(Collections.emptyMap(), Optional.empty(), BatchingConfig.DEFAULT_BATCHING_CONFIG);
 
   public ResourceConfig(Map<ResourceMethod, BatchingConfig> batchingConfig, Optional<Long> timeoutNs,
       BatchingConfig defaultBatchingConfig) {
@@ -30,4 +32,5 @@ public class ResourceConfig {
   public Optional<Long> getTimeoutNs() {
     return _timeoutNs;
   }
+
 }

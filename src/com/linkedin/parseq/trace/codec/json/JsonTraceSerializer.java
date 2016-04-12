@@ -43,6 +43,8 @@ class JsonTraceSerializer {
   }
 
   private static void writeTraces(final Trace trace, final JsonGenerator generator) throws IOException {
+    generator.writeNumberField(JsonTraceCodec.PLAN_ID, trace.getPlanId());
+    generator.writeStringField(JsonTraceCodec.PLAN_CLASS, trace.getPlanClass());
     generator.writeArrayFieldStart(JsonTraceCodec.TRACES);
     for (Map.Entry<Long, ShallowTrace> entry : trace.getTraceMap().entrySet()) {
       final ShallowTrace t = entry.getValue();

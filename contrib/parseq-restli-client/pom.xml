@@ -53,14 +53,15 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.linkedin.pegasus</groupId>
-            <artifactId>restli-int-test-server</artifactId>
-            <version>5.0.19</version>
+            <groupId>com.linkedin.parseq</groupId>
+            <artifactId>parseq</artifactId>
+            <version>2.3.5-SNAPSHOT</version>
+            <classifier>test</classifier>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.linkedin.pegasus</groupId>
-            <artifactId>restli-int-test-api</artifactId>
+            <artifactId>restli-int-test-server</artifactId>
             <version>5.0.19</version>
             <scope>test</scope>
         </dependency>

@@ -10,10 +10,14 @@ public class Trace {
 
   private final Map<Long, ShallowTrace> _traceMap;
   private final Set<TraceRelationship> _relationships;
+  private final Long _planId;
+  private final String _planClass;
 
-  public Trace(Map<Long, ShallowTrace> traceMap, Set<TraceRelationship> relationships) {
+  public Trace(Map<Long, ShallowTrace> traceMap, Set<TraceRelationship> relationships, String planClass, Long planId) {
     _traceMap = Collections.unmodifiableMap(traceMap);
     _relationships = Collections.unmodifiableSet(relationships);
+    _planClass = planClass;
+    _planId = planId;
   }
 
   public Map<Long, ShallowTrace> getTraceMap() {
@@ -24,8 +28,16 @@ public class Trace {
     return _relationships;
   }
 
-  public static Trace single(ShallowTrace shallowTrace) {
-    return new Trace(Collections.singletonMap(shallowTrace.getId(), shallowTrace), Collections.emptySet());
+  public static Trace single(ShallowTrace shallowTrace, String planClass, Long planId) {
+    return new Trace(Collections.singletonMap(shallowTrace.getId(), shallowTrace), Collections.emptySet(), planClass, planId);
+  }
+
+  public Long getPlanId() {
+    return _planId;
+  }
+
+  public String getPlanClass() {
+    return _planClass;
   }
 
   @Override

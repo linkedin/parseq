@@ -1,4 +1,4 @@
-package com.linkedin.restli.client;
+package com.linkedin.restli.client.metrics;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;

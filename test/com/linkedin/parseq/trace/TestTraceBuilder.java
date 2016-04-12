@@ -38,7 +38,7 @@ public class TestTraceBuilder {
         new ShallowTraceBuilder(IdGenerator.getNextId()).setName("task1").setResultType(ResultType.UNFINISHED);
     final ShallowTraceBuilder trace2 =
         new ShallowTraceBuilder(IdGenerator.getNextId()).setName("task2").setResultType(ResultType.UNFINISHED);
-    final TraceBuilder builder = new TraceBuilder(1024);
+    final TraceBuilder builder = new TraceBuilder(1024, "test", 0L);
     builder.addRelationship(Relationship.SUCCESSOR_OF, trace1, trace2);
     Trace trace = builder.build();
     assertEquals(trace1.build(), trace.getTraceMap().get(trace1.getId()));
@@ -54,7 +54,7 @@ public class TestTraceBuilder {
         new ShallowTraceBuilder(IdGenerator.getNextId()).setName("task1").setResultType(ResultType.UNFINISHED);
     final ShallowTraceBuilder trace2 =
         new ShallowTraceBuilder(IdGenerator.getNextId()).setName("task2").setResultType(ResultType.UNFINISHED);
-    final TraceBuilder builder = new TraceBuilder(1024);
+    final TraceBuilder builder = new TraceBuilder(1024, "test", 0L);
     builder.addRelationship(Relationship.SUCCESSOR_OF, trace1, trace2);
     builder.addRelationship(Relationship.SUCCESSOR_OF, trace1, trace2);
     Trace trace = builder.build();
@@ -67,7 +67,7 @@ public class TestTraceBuilder {
 
   @Test
   public void testRelationshipRetention() {
-    final TraceBuilder builder = new TraceBuilder(4096);
+    final TraceBuilder builder = new TraceBuilder(4096, "test", 0L);
     for (int i = 0; i < 4096 * 10; i++) {
       final ShallowTraceBuilder trace1 =
           new ShallowTraceBuilder(IdGenerator.getNextId()).setName("task1").setResultType(ResultType.UNFINISHED);

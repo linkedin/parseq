@@ -2,6 +2,9 @@ package com.linkedin.restli.client.config;
 
 public class BatchingConfig {
 
+  public static final int DEFAULT_MAX_BATCH_SIZE = 1024;
+  public static final BatchingConfig DEFAULT_BATCHING_CONFIG = new BatchingConfig(false, DEFAULT_MAX_BATCH_SIZE, true);
+
   private final boolean _batchingEnabled;
   private final int _maxBatchSize;
   private final boolean _dryRun;

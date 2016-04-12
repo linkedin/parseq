@@ -373,7 +373,7 @@ public class TestTaskStates {
 
     @Override
     public TraceBuilder getTraceBuilder() {
-      return new TraceBuilder(1024);
+      return new TraceBuilder(1024, "test", 0L);
     }
 
     @Override
@@ -399,6 +399,11 @@ public class TestTaskStates {
     @Override
     public void runSideEffect(Task<?>... tasks) {
       throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getPlanClass() {
+      return "test";
     }
   }
 

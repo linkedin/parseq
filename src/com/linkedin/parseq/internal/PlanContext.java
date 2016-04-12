@@ -24,6 +24,8 @@ public class PlanContext {
   /** The engine used to execute this plan. */
   private final Engine _engine;
 
+  private final String _planClass;
+
   /**
    *  An executor that provides two guarantees:
    *
@@ -46,7 +48,7 @@ public class PlanContext {
       final ILoggerFactory loggerFactory, final Logger allLogger, final Logger rootLogger, final String planClass,
       Task<?> root, final int maxRelationshipsPerTrace, final PlanDeactivationListener planDeactivationListener) {
     _id = IdGenerator.getNextId();
-    _relationshipsBuilder = new TraceBuilder(maxRelationshipsPerTrace);
+    _relationshipsBuilder = new TraceBuilder(maxRelationshipsPerTrace, planClass, _id);
     _engine = engine;
     _taskExecutor = new SerialExecutor(taskExecutor, new CancelPlanRejectionHandler(root), () -> {
       try {
@@ -58,6 +60,7 @@ public class PlanContext {
     _timerScheduler = timerExecutor;
     final Logger planLogger = loggerFactory.getLogger(Engine.LOGGER_BASE + ":planClass=" + planClass);
     _taskLogger = new TaskLogger(_id, root.getId(), allLogger, rootLogger, planLogger);
+    _planClass = planClass;
   }
 
   public Long getId() {
@@ -82,6 +85,10 @@ public class PlanContext {
 
   public TraceBuilder getRelationshipsBuilder() {
     return _relationshipsBuilder;
+  }
+
+  public String getPlanClass() {
+    return _planClass;
   }
 
   private static class CancelPlanRejectionHandler implements RejectedSerialExecutionHandler {
