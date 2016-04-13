@@ -1,14 +1,10 @@
 package com.linkedin.restli.client;
 
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-
 import java.util.Collections;
 import java.util.Optional;
 
 import org.testng.annotations.Test;
 
-import com.linkedin.parseq.Task;
 import com.linkedin.restli.client.config.BatchingConfig;
 import com.linkedin.restli.client.config.ParSeqRestClientConfig;
 import com.linkedin.restli.client.config.ResourceConfig;
@@ -26,37 +22,31 @@ public class TestParSeqRestClientBatching extends ParSeqRestClientIntegrationTes
 
   @Test
   public void testGetRequestsAreBatched() {
-    Task<?> task = Task.par(greeting(1L), greeting(2L));
-    runAndWait("testGetRequestsAreBatched", task);
-    assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
+    testGetRequests(this.getClass().getName() + ".testGetRequestsAreBatched", true);
+  }
+
+  @Test
+  public void testGetRequestsAreBatchedWithError() {
+    testGetRequestsWithError(this.getClass().getName() + ".testGetRequestsAreBatchedWithError", true);
   }
 
   @Test
   public void testBatchGetRequestsAreBatched() {
-    Task<?> task = Task.par(greetings(1L, 2L), greetings(3L, 4L));
-    runAndWait("testBatchGetRequestsAreBatched", task);
-    assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
+    testBatchGetRequests(this.getClass().getName() + ".testBatchGetRequestsAreBatched", true);
   }
 
   @Test
   public void testGetAndBatchGetRequestsAreBatched() {
-    Task<?> task = Task.par(greeting(1L), greetings(2L, 3L));
-    runAndWait("testGetAndBatchGetRequestsAreBatched", task);
-    assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
+    testGetAndBatchGetRequests(this.getClass().getName() + ".testGetAndBatchGetRequestsAreBatched", true);
   }
 
   @Test
   public void testSingleGetRequestIsNotBatched() {
-    Task<?> task = greeting(1L);
-    runAndWait("testSingleGetRequestIsBatched", task);
-    assertFalse(hasTask("greetings batch_get(1)", task.getTrace()));
+    testSingleGetRequestIsNotBatched(this.getClass().getName() + ".testSingleGetRequestIsNotBatched");
   }
 
   @Test
   public void testDuplicateGetRequestIsNotBatched() {
-    Task<?> task = Task.par(greeting(1L), greeting(1L));
-    runAndWait("testDuplicateGetRequestIsNotBatched", task);
-    assertFalse(hasTask("greetings batch_get(1)", task.getTrace()));
+    testDuplicateGetRequestIsNotBatched(this.getClass().getName() + ".testDuplicateGetRequestIsNotBatched");
   }
-
 }

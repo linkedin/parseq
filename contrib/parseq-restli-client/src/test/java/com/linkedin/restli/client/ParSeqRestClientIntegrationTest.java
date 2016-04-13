@@ -1,18 +1,18 @@
 package com.linkedin.restli.client;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 
 import com.linkedin.common.callback.FutureCallback;
 import com.linkedin.common.util.None;
@@ -26,9 +26,7 @@ import com.linkedin.r2.transport.common.Client;
 import com.linkedin.r2.transport.common.bridge.client.TransportClientAdapter;
 import com.linkedin.r2.transport.http.client.HttpClientFactory;
 import com.linkedin.r2.transport.http.server.HttpServer;
-import com.linkedin.restli.client.config.BatchingConfig;
 import com.linkedin.restli.client.config.ParSeqRestClientConfig;
-import com.linkedin.restli.client.config.ResourceConfig;
 import com.linkedin.restli.common.BatchResponse;
 import com.linkedin.restli.examples.RestLiIntTestServer;
 import com.linkedin.restli.examples.greetings.api.Greeting;
@@ -108,6 +106,10 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
         .build();
   }
 
+  protected Task<String> toMessage(Task<Response<Greeting>> greeting) {
+    return greeting.map("toMessage", g -> g.getEntity().getMessage());
+  }
+
   protected Task<Response<Greeting>> greeting(Long id) {
     return _parseqClient.createTask(new GreetingsBuilders().get().id(id).build());
   }
@@ -120,5 +122,59 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
     return trace.getTraceMap().values().stream().anyMatch(shallowTrace -> shallowTrace.getName().equals(name));
   }
 
+  // ---------- Tests ----------
 
+  public void testGetRequests(String testName, boolean expectBatching) {
+    Task<?> task = Task.par(greeting(1L), greeting(2L));
+    runAndWait(testName, task);
+    if (expectBatching) {
+      assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
+    } else {
+      assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
+    }
+  }
+
+  public void testGetRequestsWithError(String testName, boolean expectBatching) {
+    Task<String> task = Task.par(toMessage(greeting(1L)), toMessage(greeting(-1L)).recover(e -> "failed"))
+        .map("combine", (x, y) -> x + y);
+    runAndWait(testName, task);
+    assertEquals(task.get(), "Good morning!failed");
+    if (expectBatching) {
+      assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
+    } else {
+      assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
+    }
+  }
+
+  public void testBatchGetRequests(String testName, boolean expectBatching) {
+    Task<?> task = Task.par(greetings(1L, 2L), greetings(3L, 4L));
+    runAndWait(testName, task);
+    if (expectBatching) {
+      assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
+    } else {
+      assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
+    }
+  }
+
+  public void testGetAndBatchGetRequests(String testName, boolean expectBatching) {
+    Task<?> task = Task.par(greeting(1L), greetings(2L, 3L));
+    runAndWait("testGetAndBatchGetRequestsAreBatched", task);
+    if (expectBatching) {
+      assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
+    } else {
+      assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
+    }
+  }
+
+  public void testSingleGetRequestIsNotBatched(String testName) {
+    Task<?> task = greeting(1L);
+    runAndWait(testName, task);
+    assertFalse(hasTask("greetings batch_get(1)", task.getTrace()));
+  }
+
+  public void testDuplicateGetRequestIsNotBatched(String testName) {
+    Task<?> task = Task.par(greeting(1L), greeting(1L));
+    runAndWait(testName, task);
+    assertFalse(hasTask("greetings batch_get(1)", task.getTrace()));
+  }
 }
