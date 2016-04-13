@@ -124,7 +124,7 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
 
   // ---------- Tests ----------
 
-  public void testGetRequests(String testName, boolean expectBatching) {
+  protected void testGetRequests(String testName, boolean expectBatching) {
     Task<?> task = Task.par(greeting(1L), greeting(2L));
     runAndWait(testName, task);
     if (expectBatching) {
@@ -134,7 +134,7 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
     }
   }
 
-  public void testGetRequestsWithError(String testName, boolean expectBatching) {
+  protected void testGetRequestsWithError(String testName, boolean expectBatching) {
     Task<String> task = Task.par(toMessage(greeting(1L)), toMessage(greeting(-1L)).recover(e -> "failed"))
         .map("combine", (x, y) -> x + y);
     runAndWait(testName, task);
@@ -146,7 +146,7 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
     }
   }
 
-  public void testBatchGetRequests(String testName, boolean expectBatching) {
+  protected void testBatchGetRequests(String testName, boolean expectBatching) {
     Task<?> task = Task.par(greetings(1L, 2L), greetings(3L, 4L));
     runAndWait(testName, task);
     if (expectBatching) {
@@ -156,7 +156,7 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
     }
   }
 
-  public void testGetAndBatchGetRequests(String testName, boolean expectBatching) {
+  protected void testGetAndBatchGetRequests(String testName, boolean expectBatching) {
     Task<?> task = Task.par(greeting(1L), greetings(2L, 3L));
     runAndWait("testGetAndBatchGetRequestsAreBatched", task);
     if (expectBatching) {
@@ -166,13 +166,13 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
     }
   }
 
-  public void testSingleGetRequestIsNotBatched(String testName) {
+  protected void testSingleGetRequestIsNotBatched(String testName) {
     Task<?> task = greeting(1L);
     runAndWait(testName, task);
     assertFalse(hasTask("greetings batch_get(1)", task.getTrace()));
   }
 
-  public void testDuplicateGetRequestIsNotBatched(String testName) {
+  protected void testDuplicateGetRequestIsNotBatched(String testName) {
     Task<?> task = Task.par(greeting(1L), greeting(1L));
     runAndWait(testName, task);
     assertFalse(hasTask("greetings batch_get(1)", task.getTrace()));
