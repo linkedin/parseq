@@ -252,7 +252,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
     if (traceBuilder != null) {
       return traceBuilder.build();
     } else {
-      return Trace.single(getShallowTrace());
+      return Trace.single(getShallowTrace(), "none", 0L);
     }
   }
 
@@ -558,6 +558,11 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
         getTraceBuilder().addRelationship(Relationship.POTENTIAL_PARENT_OF, getShallowTraceBuilder(),
             task.getShallowTraceBuilder());
       }
+    }
+
+    @Override
+    public String getPlanClass() {
+      return _context.getPlanClass();
     }
   }
 

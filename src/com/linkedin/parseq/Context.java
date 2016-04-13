@@ -83,6 +83,8 @@ public interface Context {
 
   Long getPlanId();
 
+  String getPlanClass();
+
   Long getTaskId();
 
   TaskLogger getTaskLogger();

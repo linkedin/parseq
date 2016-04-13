@@ -254,4 +254,9 @@ public class ContextImpl implements Context, Cancellable {
     return _planContext.getTaskLogger();
   }
 
+  @Override
+  public String getPlanClass() {
+    return _planContext.getPlanClass();
+  }
+
 }

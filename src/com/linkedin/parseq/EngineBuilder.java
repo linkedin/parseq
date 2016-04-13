@@ -48,9 +48,6 @@ public class EngineBuilder {
 
   private Map<String, Object> _properties = new HashMap<String, Object>();
 
-  public EngineBuilder() {
-  }
-
   /**
    * Sets plan activity listener for the engine. The listener will be notified
    * when plan becomes deactivated.
@@ -63,10 +60,12 @@ public class EngineBuilder {
    *
    * @param planDeactivationListener the listener that will be notified when plan
    * becomes deactivated
+   * @return this builder
    */
-  public void setPlanDeactivationListener(PlanDeactivationListener planDeactivationListener) {
+  public EngineBuilder setPlanDeactivationListener(PlanDeactivationListener planDeactivationListener) {
     ArgumentUtil.requireNotNull(planDeactivationListener, "planDeactivationListener");
     _planDeactivationListener = planDeactivationListener;
+    return this;
   }
 
   /**
@@ -151,10 +150,9 @@ public class EngineBuilder {
     if (_timerScheduler == null) {
       throw new IllegalStateException("Timer scheduler is required to create an Engine, but it is not set");
     }
-    Engine engine = new Engine(_taskExecutor, new IndirectDelayedExecutor(_timerScheduler),
+    return new EngineImpl(_taskExecutor, new IndirectDelayedExecutor(_timerScheduler),
         _loggerFactory != null ? _loggerFactory : new CachedLoggerFactory(LoggerFactory.getILoggerFactory()),
         _properties, _planDeactivationListener != null ? _planDeactivationListener : planContext -> {});
-    return engine;
   }
 
   /**

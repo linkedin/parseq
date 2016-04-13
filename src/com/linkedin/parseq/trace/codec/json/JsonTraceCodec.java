@@ -44,6 +44,8 @@ public class JsonTraceCodec implements TraceCodec {
   // Top Level Fields
   static final String TRACES = "traces";
   static final String RELATIONSHIPS = "relationships";
+  static final String PLAN_ID = "planId";
+  static final String PLAN_CLASS = "planClass";
 
   // Trace Fields
   static final String TRACE_ID = "id";

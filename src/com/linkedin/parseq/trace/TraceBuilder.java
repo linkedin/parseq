@@ -31,6 +31,10 @@ public class TraceBuilder {
 
   private final int _maxRelationshipsPerTrace;
 
+  private final String _planClass;
+
+  private final Long _planId;
+
   private static class RefCounted<T> {
     public RefCounted(int refCount, T value) {
       _refCount = refCount;
@@ -43,10 +47,12 @@ public class TraceBuilder {
   private final LinkedHashSet<TraceRelationship> _relationships;
   private final Map<Long, RefCounted<ShallowTraceBuilder>> _traceBuilders;
 
-  public TraceBuilder(int maxRelationshipsCount) {
+  public TraceBuilder(int maxRelationshipsCount, String planClass, Long planId) {
     _relationships = new LinkedHashSet<>();
     _traceBuilders = new HashMap<>();
     _maxRelationshipsPerTrace = maxRelationshipsCount;
+    _planClass = planClass;
+    _planId = planId;
   }
 
   public synchronized void addShallowTrace(final ShallowTraceBuilder shallowTrace) {
@@ -129,6 +135,6 @@ public class TraceBuilder {
       }
     }
 
-    return new Trace(traceMap, relationships);
+    return new Trace(traceMap, relationships, _planClass, _planId);
   }
 }
