@@ -19,8 +19,6 @@ package com.linkedin.restli.client;
 import java.util.Collections;
 import java.util.Optional;
 
-import org.testng.annotations.Test;
-
 import com.linkedin.restli.client.config.BatchingConfig;
 import com.linkedin.restli.client.config.ParSeqRestClientConfig;
 import com.linkedin.restli.client.config.ResourceConfig;
@@ -36,39 +34,9 @@ public class TestParSeqRestClientBatching extends ParSeqRestClientIntegrationTes
     return new ParSeqRestClientConfig(Collections.emptyMap(), defaultResourceConfig);
   }
 
-  @Test
-  public void testGetRequestsAreBatched() {
-    testGetRequests(this.getClass().getName() + ".testGetRequestsAreBatched", true);
+  @Override
+  protected boolean expectBatching() {
+    return true;
   }
 
-  @Test
-  public void testGetRequestsWithSameCustomHeaders() {
-    testGetRequestsWithSameCustomHeaders(this.getClass().getName() + ".testGetRequestsWithSameCustomHeadersAreNotBatched", true);
-  }
-
-
-  @Test
-  public void testGetRequestsAreBatchedWithError() {
-    testGetRequestsWithError(this.getClass().getName() + ".testGetRequestsAreBatchedWithError", true);
-  }
-
-  @Test
-  public void testBatchGetRequestsAreBatched() {
-    testBatchGetRequests(this.getClass().getName() + ".testBatchGetRequestsAreBatched", true);
-  }
-
-  @Test
-  public void testGetAndBatchGetRequestsAreBatched() {
-    testGetAndBatchGetRequests(this.getClass().getName() + ".testGetAndBatchGetRequestsAreBatched", true);
-  }
-
-  @Test
-  public void testSingleGetRequestIsNotBatched() {
-    testSingleGetRequestIsNotBatched(this.getClass().getName() + ".testSingleGetRequestIsNotBatched");
-  }
-
-  @Test
-  public void testDuplicateGetRequestIsNotBatched() {
-    testDuplicateGetRequestIsNotBatched(this.getClass().getName() + ".testDuplicateGetRequestIsNotBatched");
-  }
 }
