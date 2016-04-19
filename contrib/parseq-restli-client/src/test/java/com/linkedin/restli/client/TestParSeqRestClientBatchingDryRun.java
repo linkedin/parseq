@@ -36,33 +36,9 @@ public class TestParSeqRestClientBatchingDryRun extends ParSeqRestClientIntegrat
     return new ParSeqRestClientConfig(Collections.emptyMap(), defaultResourceConfig);
   }
 
-  @Test
-  public void testGetRequestsAreBatched() {
-    testGetRequests(this.getClass().getName() + ".testGetRequestsAreBatched", true);
+  @Override
+  protected boolean expectBatching() {
+    return true;
   }
 
-  @Test
-  public void testGetRequestsAreBatchedWithError() {
-    testGetRequestsWithError(this.getClass().getName() + ".testGetRequestsAreBatchedWithError", true);
-  }
-
-  @Test
-  public void testBatchGetRequestsAreBatched() {
-    testBatchGetRequests(this.getClass().getName() + ".testBatchGetRequestsAreBatched", true);
-  }
-
-  @Test
-  public void testGetAndBatchGetRequestsAreBatched() {
-    testGetAndBatchGetRequests(this.getClass().getName() + ".testGetAndBatchGetRequestsAreBatched", true);
-  }
-
-  @Test
-  public void testSingleGetRequestIsNotBatched() {
-    testSingleGetRequestIsNotBatched(this.getClass().getName() + ".testSingleGetRequestIsNotBatched");
-  }
-
-  @Test
-  public void testDuplicateGetRequestIsNotBatched() {
-    testDuplicateGetRequestIsNotBatched(this.getClass().getName() + ".testDuplicateGetRequestIsNotBatched");
-  }
 }

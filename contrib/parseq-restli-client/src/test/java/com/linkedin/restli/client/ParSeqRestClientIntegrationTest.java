@@ -29,6 +29,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import com.linkedin.common.callback.FutureCallback;
 import com.linkedin.common.util.None;
@@ -65,7 +66,9 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
 
   private ParSeqRestClient _parseqClient;
 
-  public abstract ParSeqRestClientConfig getParSeqRestClientGonfig();
+  protected abstract ParSeqRestClientConfig getParSeqRestClientGonfig();
+
+  protected abstract boolean expectBatching();
 
   @BeforeClass
   public static void init() throws Exception {
@@ -138,19 +141,26 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
     return trace.getTraceMap().values().stream().anyMatch(shallowTrace -> shallowTrace.getName().equals(name));
   }
 
+  private String getTestClassName() {
+    return this.getClass().getName();
+  }
+
+
   // ---------- Tests ----------
 
-  protected void testGetRequests(String testName, boolean expectBatching) {
+  @Test
+  public void testGetRequests() {
     Task<?> task = Task.par(greeting(1L), greeting(2L));
-    runAndWait(testName, task);
-    if (expectBatching) {
+    runAndWait(getTestClassName() + ".testGetRequests", task);
+    if (expectBatching()) {
       assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
     } else {
       assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
     }
   }
 
-  protected void testGetRequestsWithSameCustomHeaders(String testName, boolean expectBatching) {
+  @Test
+  public void testGetRequestsWithSameCustomHeaders() {
 
     Task<?> t1 = _parseqClient.createTask(new GreetingsBuilders().get().id(1L)
         .addHeader("H1", "V1").build());
@@ -160,55 +170,139 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
 
     Task<?> task = Task.par(t1, t2);
 
-    runAndWait(testName, task);
-    if (expectBatching) {
+    runAndWait(getTestClassName() + ".testGetRequestsWithSameCustomHeaders", task);
+    if (expectBatching()) {
       assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
     } else {
       assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
     }
   }
 
-  protected void testGetRequestsWithError(String testName, boolean expectBatching) {
+  @Test
+  public void testGetRequestsWithSameQueryParams() {
+
+    Task<?> t1 = _parseqClient.createTask(new GreetingsBuilders().get().id(1L)
+        .addParam("K1", "V1").build());
+
+    Task<?> t2 = _parseqClient.createTask(new GreetingsBuilders().get().id(2L)
+        .addParam("K1", "V1").build());
+
+    Task<?> task = Task.par(t1, t2);
+
+    runAndWait(getTestClassName() + ".testGetRequestsWithSameQueryParams", task);
+    if (expectBatching()) {
+      assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
+    } else {
+      assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
+    }
+  }
+
+  @Test
+  public void testGetRequestsWithDifferentCustomQueryParamValuesNoBatching() {
+
+    Task<?> t1 = _parseqClient.createTask(new GreetingsBuilders().get().id(1L)
+        .addParam("K1", "V1").build());
+
+    Task<?> t2 = _parseqClient.createTask(new GreetingsBuilders().get().id(2L)
+        .addParam("K1", "V2").build());
+
+    Task<?> task = Task.par(t1, t2);
+
+    runAndWait(getTestClassName() + ".testGetRequestsWithDifferentCustomQueryParamValuesNoBatching", task);
+    assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
+  }
+
+  @Test
+  public void testGetRequestsWithDifferentCustomHeaderValuesNoBatching() {
+
+    Task<?> t1 = _parseqClient.createTask(new GreetingsBuilders().get().id(1L)
+        .addHeader("H1", "V1").build());
+
+    Task<?> t2 = _parseqClient.createTask(new GreetingsBuilders().get().id(2L)
+        .addHeader("H1", "V2").build());
+
+    Task<?> task = Task.par(t1, t2);
+
+    runAndWait(getTestClassName() + ".testGetRequestsWithDifferentCustomHeadersNoBatching", task);
+    assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
+  }
+
+  @Test
+  public void testGetRequestsWithDifferentCustomHeadersNoBatching() {
+
+    Task<?> t1 = _parseqClient.createTask(new GreetingsBuilders().get().id(1L)
+        .addHeader("H1", "V1").build());
+
+    Task<?> t2 = _parseqClient.createTask(new GreetingsBuilders().get().id(2L)
+        .addHeader("H2", "V1").build());
+
+    Task<?> task = Task.par(t1, t2);
+
+    runAndWait(getTestClassName() + ".testGetRequestsWithDifferentCustomHeadersNoBatching", task);
+    assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
+  }
+
+  @Test
+  public void testGetRequestsWithDifferentCustomQueryParamsNoBatching() {
+
+    Task<?> t1 = _parseqClient.createTask(new GreetingsBuilders().get().id(1L)
+        .addParam("K1", "V1").build());
+
+    Task<?> t2 = _parseqClient.createTask(new GreetingsBuilders().get().id(2L)
+        .addParam("K2", "V1").build());
+
+    Task<?> task = Task.par(t1, t2);
+
+    runAndWait(getTestClassName() + ".testGetRequestsWithDifferentCustomQueryParamsNoBatching", task);
+    assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
+  }
+
+  @Test
+  public void testGetRequestsWithError() {
     Task<String> task = Task.par(toMessage(greeting(1L)), toMessage(greeting(-1L)).recover(e -> "failed"))
         .map("combine", (x, y) -> x + y);
-    runAndWait(testName, task);
+    runAndWait(getTestClassName() + ".testGetRequestsWithError", task);
     assertEquals(task.get(), "Good morning!failed");
-    if (expectBatching) {
+    if (expectBatching()) {
       assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
     } else {
       assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
     }
   }
 
-  protected void testBatchGetRequests(String testName, boolean expectBatching) {
+  @Test
+  public void testBatchGetRequests() {
     Task<?> task = Task.par(greetings(1L, 2L), greetings(3L, 4L));
-    runAndWait(testName, task);
-    if (expectBatching) {
+    runAndWait(getTestClassName() + ".testBatchGetRequests", task);
+    if (expectBatching()) {
       assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
     } else {
       assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
     }
   }
 
-  protected void testGetAndBatchGetRequests(String testName, boolean expectBatching) {
+  @Test
+  public void testGetAndBatchGetRequests() {
     Task<?> task = Task.par(greeting(1L), greetings(2L, 3L));
-    runAndWait("testGetAndBatchGetRequestsAreBatched", task);
-    if (expectBatching) {
+    runAndWait(getTestClassName() + ".testGetAndBatchGetRequests", task);
+    if (expectBatching()) {
       assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
     } else {
       assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
     }
   }
 
-  protected void testSingleGetRequestIsNotBatched(String testName) {
+  @Test
+  public void testSingleGetRequestIsNotBatched() {
     Task<?> task = greeting(1L);
-    runAndWait(testName, task);
+    runAndWait(getTestClassName() + ".testSingleGetRequestIsNotBatched", task);
     assertFalse(hasTask("greetings batch_get(1)", task.getTrace()));
   }
 
-  protected void testDuplicateGetRequestIsNotBatched(String testName) {
+  @Test
+  public void testDuplicateGetRequestIsNotBatched() {
     Task<?> task = Task.par(greeting(1L), greeting(1L));
-    runAndWait(testName, task);
+    runAndWait(getTestClassName() + ".testDuplicateGetRequestIsNotBatched", task);
     assertFalse(hasTask("greetings batch_get(1)", task.getTrace()));
   }
 }
