@@ -140,7 +140,7 @@ function redraw(svg, vis, data, ancestors, transitionTime, rootCoords) {
       '0.5em');
 
   textEnter.append('tspan').text(function(d) {
-    return d.name + ' (' + util.alignMillis(d.totalMillis) + ' ms)';
+    return (d.name.length > 255 ? d.name.substring(0, 255) : d.name) + ' (' + util.alignMillis(d.totalMillis) + ' ms)';
   });
 
   bars.exit().each(function(d) {

@@ -34,7 +34,7 @@ public class TracevisServerJarMain {
       Enumeration<JarEntry> enums = jar.entries();
       while(enums.hasMoreElements()) {
         JarEntry entry = enums.nextElement();
-        if (entry.getName().startsWith("tracevis/")) {
+        if (entry.getName().startsWith("tracevis/") || entry.getName().startsWith("heapster/")) {
           if (entry.isDirectory()) {
             base.resolve(entry.getName()).toFile().mkdirs();
           } else {
@@ -43,7 +43,7 @@ public class TracevisServerJarMain {
         }
       }
 
-      new TracevisServer(dotLocation, port, base, Constants.DEFAULT_CACHE_SIZE, Constants.DEFAULT_TIMEOUT_MS)
+      new TracevisServer(dotLocation, port, base, base, Constants.DEFAULT_CACHE_SIZE, Constants.DEFAULT_TIMEOUT_MS)
         .start();
 
     } finally {
