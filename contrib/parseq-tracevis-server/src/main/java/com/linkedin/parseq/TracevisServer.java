@@ -1,27 +1,23 @@
 package com.linkedin.parseq;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-import javax.servlet.AsyncContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.server.handler.ContextHandler;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
+import org.eclipse.jetty.util.resource.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.linkedin.parseq.httpclient.HttpClient;
 
 
 public class TracevisServer {
@@ -29,18 +25,20 @@ public class TracevisServer {
   private static final Logger LOG = LoggerFactory.getLogger(TracevisServer.class);
 
   private final Path _staticContentLocation;
+  private final Path _heapsterContentLocation;
   private final Path _cacheLocation;
   private final int _cacheSize;
   private final long _timeoutMs;
   private final int _port;
   private final String _dotLocation;
-  private final GraphvizEngine _graphvizEngine;
+  final GraphvizEngine _graphvizEngine;
 
-  public TracevisServer(final String dotLocation, final int port, final Path baseLocation, final int cacheSize,
-      final long timeoutMs) {
+  public TracevisServer(final String dotLocation, final int port, final Path baseLocation, final Path heapsterLocation,
+      final int cacheSize, final long timeoutMs) {
     _dotLocation = dotLocation;
     _port = port;
     _staticContentLocation = baseLocation.resolve(Constants.TRACEVIS_SUBDIRECTORY);
+    _heapsterContentLocation = heapsterLocation.resolve(Constants.HEAPSTER_SUBDIRECTORY);
     _cacheLocation = _staticContentLocation.resolve(Constants.CACHE_SUBDIRECTORY);
     _cacheSize = cacheSize;
     _timeoutMs = timeoutMs;
@@ -51,7 +49,7 @@ public class TracevisServer {
 
   public void start()
       throws Exception {
-    LOG.info("TracevisServer base location: " + _staticContentLocation);
+    LOG.info("TracevisServer base location: " + _staticContentLocation + ", heapster location: " + _heapsterContentLocation);
     LOG.info("Starting TracevisServer on port: " + _port + ", graphviz location: " + _dotLocation + ", cache size: "
         + _cacheSize + ", graphviz timeout: " + _timeoutMs + "ms");
 
@@ -67,41 +65,29 @@ public class TracevisServer {
     _graphvizEngine.start();
 
     Server server = new Server(_port);
+    server.setAttribute("org.eclipse.jetty.server.Request.maxFormContentSize", -1);
 
-    ResourceHandler resource_handler = new ResourceHandler();
-    resource_handler.setDirectoriesListed(true);
-    resource_handler.setWelcomeFiles(new String[]{"trace.html"});
-    resource_handler.setResourceBase(_staticContentLocation.toString());
+    TracePostHandler tracePostHandler = new TracePostHandler(_staticContentLocation.toString());
 
-    final Handler dotHandler = new AbstractHandler() {
+    ResourceHandler traceHandler = new ResourceHandler();
+    traceHandler.setDirectoriesListed(true);
+    traceHandler.setWelcomeFiles(new String[]{"trace.html"});
+    traceHandler.setResourceBase(_staticContentLocation.toString());
 
-      @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException {
-        if (target.startsWith("/dot")) {
-          baseRequest.setHandled(true);
-          // Process request in async mode
-          final AsyncContext ctx = request.startAsync();
-          // Generate response
-          final Task responseTask = _graphvizEngine.build(request.getParameter("hash"), request.getInputStream())
-              .andThen("response", graphvizResponse -> {
-                // Set status
-                response.setStatus(graphvizResponse.getStatus());
-                // Write body
-                PrintWriter writer = response.getWriter();
-                writer.write(graphvizResponse.getBody());
-                // Complete async mode
-                ctx.complete();
-              });
-          // Execute
-          engine.run(responseTask);
-        }
-      }
-    };
+    ResourceHandler heapsterHandler = new ResourceHandler();
+    heapsterHandler.setDirectoriesListed(true);
+    heapsterHandler.setResourceBase(_heapsterContentLocation.toString());
 
     // Add the ResourceHandler to the server.
     HandlerList handlers = new HandlerList();
-    handlers.setHandlers(new Handler[]{dotHandler, resource_handler, new DefaultHandler()});
+    handlers.setHandlers(new Handler[]{
+        new DotHandler(_graphvizEngine, engine),
+        new JhatHandler(engine),
+        tracePostHandler,
+        traceHandler,
+        heapsterHandler,
+        new DefaultHandler()
+        });
     server.setHandler(handlers);
 
     try {
@@ -112,6 +98,7 @@ public class TracevisServer {
       _graphvizEngine.stop();
       engine.shutdown();
       scheduler.shutdownNow();
+      HttpClient.close();
     }
   }
 }

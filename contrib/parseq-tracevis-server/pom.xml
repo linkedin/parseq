@@ -6,11 +6,11 @@
   <artifactId>parseq-tracevis-server</artifactId>
   <version>2.3.5-SNAPSHOT</version>
   <packaging>jar</packaging>
- 
+
   <properties>
     <jettyVersion>9.3.0.v20150612</jettyVersion>
   </properties>
- 
+
     <distributionManagement>
         <snapshotRepository>
             <id>ossrh</id>
@@ -33,6 +33,11 @@
 			<artifactId>parseq-exec</artifactId>
 			<version>2.3.5-SNAPSHOT</version>
 		</dependency>
+        <dependency>
+            <groupId>com.linkedin.parseq</groupId>
+            <artifactId>parseq-http-client</artifactId>
+            <version>2.3.5-SNAPSHOT</version>
+        </dependency>
 		<dependency>
 			<groupId>com.linkedin.parseq</groupId>
 			<artifactId>parseq-tracevis</artifactId>
@@ -169,7 +174,7 @@
 			</plugin>
 		</plugins>
 	</build>
-	
+
   <scm>
   	<connection>scm:git:git://github.com/linkedin/parseq.git</connection>
   	<url>https://github.com/linkedin/parseq</url>
@@ -178,7 +183,7 @@
   <name>parseq-tracevis-server</name>
     <description>
       Serves tracevis tool capable of rendering graphviz diagrams
-    </description>    
+    </description>
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
@@ -192,6 +197,6 @@
             <name>Jaroslaw Odzga</name>
             <email>jodzga@linkedin.com</email>
         </developer>
-    </developers>    
-  
+    </developers>
+
 </project>
