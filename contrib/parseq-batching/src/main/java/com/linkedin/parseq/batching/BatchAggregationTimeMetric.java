@@ -16,8 +16,7 @@ public class BatchAggregationTimeMetric {
   private static final long HIGHEST_TRACKABLE_VALUE = TimeUnit.HOURS.toNanos(1);
   private static final int NUMBER_OF_FIGNIFICANT_VALUE_DIGITS = 3;
 
-  private final Recorder _recorder =
-      new Recorder(LOWEST_DISCERNIBLE_VALUE, HIGHEST_TRACKABLE_VALUE, NUMBER_OF_FIGNIFICANT_VALUE_DIGITS);
+  private Recorder _recorder = null;
 
   private Histogram _recycle;
 
@@ -42,7 +41,14 @@ public class BatchAggregationTimeMetric {
     return batchAggregationTimeNano;
   }
 
-  private void recordSafeValue(long batchAggregationTimeNano) {
+  private void initializeRecorder() {
+    if (_recorder == null) {
+      _recorder = new Recorder(LOWEST_DISCERNIBLE_VALUE, HIGHEST_TRACKABLE_VALUE, NUMBER_OF_FIGNIFICANT_VALUE_DIGITS);
+    }
+  }
+
+  private synchronized void recordSafeValue(long batchAggregationTimeNano) {
+    initializeRecorder();
     _recorder.recordValue(batchAggregationTimeNano);
   }
 
@@ -56,6 +62,7 @@ public class BatchAggregationTimeMetric {
    * @return a result of a passed in function
    */
   public synchronized <T> T harvest(Function<Histogram, T> consumer) {
+    initializeRecorder();
     _recycle = _recorder.getIntervalHistogram(_recycle);
     return consumer.apply(_recycle);
   }
