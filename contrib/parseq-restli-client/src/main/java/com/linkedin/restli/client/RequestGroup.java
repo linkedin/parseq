@@ -18,7 +18,7 @@ package com.linkedin.restli.client;
 
 import com.linkedin.data.template.RecordTemplate;
 import com.linkedin.parseq.batching.Batch;
-import com.linkedin.restli.client.config.BatchingConfig;
+import com.linkedin.restli.client.config.ResourceConfig;
 import com.linkedin.restli.common.ResourceMethod;
 
 
@@ -36,7 +36,7 @@ interface RequestGroup {
     }
   }
 
-  public static boolean isBatchable(final Request<?> request, BatchingConfig bathcingConfig) {
+  public static boolean isBatchable(final Request<?> request, ResourceConfig bathcingConfig) {
     return (request.getMethod().equals(ResourceMethod.GET) || request.getMethod().equals(ResourceMethod.BATCH_GET))
         && bathcingConfig.isBatchingEnabled();
   }

@@ -18,7 +18,7 @@ package com.linkedin.restli.client;
 
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.r2.message.RequestContext;
-import com.linkedin.restli.client.config.BatchingConfig;
+import com.linkedin.restli.client.config.ResourceConfig;
 
 
 class DryRunRestRequestBatchKey<T> extends RestRequestBatchKey {
@@ -26,8 +26,8 @@ class DryRunRestRequestBatchKey<T> extends RestRequestBatchKey {
   private final Promise<Response<T>> _promise;
 
   public DryRunRestRequestBatchKey(Request<Object> request, RequestContext requestContext,
-      BatchingConfig bathcingConfig, Promise<Response<T>> promise) {
-    super(request, requestContext, bathcingConfig);
+      ResourceConfig config, Promise<Response<T>> promise) {
+    super(request, requestContext, config);
     _promise = promise;
   }
 

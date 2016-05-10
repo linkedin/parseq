@@ -17,7 +17,7 @@
 package com.linkedin.restli.client;
 
 import com.linkedin.r2.message.RequestContext;
-import com.linkedin.restli.client.config.BatchingConfig;
+import com.linkedin.restli.client.config.ResourceConfig;
 
 /**
  * Class used for deduplication. Two requests are considered equal
@@ -26,9 +26,9 @@ import com.linkedin.restli.client.config.BatchingConfig;
 class RestRequestBatchKey {
   private final Request<Object> _request;
   private final RequestContext _requestContext;
-  private final BatchingConfig _bathcingConfig;
+  private final ResourceConfig _bathcingConfig;
 
-  public RestRequestBatchKey(Request<Object> request, RequestContext requestContext, BatchingConfig bathcingConfig) {
+  public RestRequestBatchKey(Request<Object> request, RequestContext requestContext, ResourceConfig bathcingConfig) {
     _request = request;
     _requestContext = requestContext;
     _bathcingConfig = bathcingConfig;
@@ -42,7 +42,7 @@ class RestRequestBatchKey {
     return _requestContext;
   }
 
-  public BatchingConfig getBathcingConfig() {
+  public ResourceConfig getResourceConfig() {
     return _bathcingConfig;
   }
 

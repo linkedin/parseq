@@ -43,7 +43,6 @@ import com.linkedin.r2.transport.common.Client;
 import com.linkedin.r2.transport.common.bridge.client.TransportClientAdapter;
 import com.linkedin.r2.transport.http.client.HttpClientFactory;
 import com.linkedin.r2.transport.http.server.HttpServer;
-import com.linkedin.restli.client.config.ParSeqRestClientConfig;
 import com.linkedin.restli.common.BatchResponse;
 import com.linkedin.restli.examples.RestLiIntTestServer;
 import com.linkedin.restli.examples.greetings.api.Greeting;
@@ -66,7 +65,7 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
 
   private ParSeqRestClient _parseqClient;
 
-  protected abstract ParSeqRestClientConfig getParSeqRestClientGonfig();
+  protected abstract Map<String, Object> getParSeqRestClientGonfig();
 
   protected abstract boolean expectBatching();
 
