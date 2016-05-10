@@ -1,34 +1,21 @@
 package com.linkedin.restli.client;
 
+import java.util.Map;
+
 import com.linkedin.parseq.batching.BatchingSupport;
 import com.linkedin.parseq.internal.ArgumentUtil;
-/*
- * Copyright 2016 LinkedIn, Inc
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
- */
-
-import com.linkedin.restli.client.config.ParSeqRestClientConfig;
+import com.linkedin.restli.client.config.ResourceConfigProvider;
 
 public class ParSeqRestClientBuilder {
 
   private RestClient _restClient;
-  private ParSeqRestClientConfig _config;
+  private Map<String, Object> _config;
   private BatchingSupport _batchingSupport;
+  private InboundRequestFinder _inboundRequestFinder;
 
   public ParSeqRestClient build() {
-    ParSeqRestClientImpl parseqClient = new ParSeqRestClientImpl(_restClient, _config != null ? _config :
-      ParSeqRestClientConfig.DEFAULT_PARSEQ_REST_CLIENT_CONFIG);
+    ResourceConfigProvider configProvider  = ResourceConfigProvider.fromMap(_config, _inboundRequestFinder);
+    ParSeqRestClientImpl parseqClient = new ParSeqRestClientImpl(_restClient, configProvider);
     if (_batchingSupport != null) {
       _batchingSupport.registerStrategy(parseqClient);
     }
@@ -50,14 +37,14 @@ public class ParSeqRestClientBuilder {
     return this;
   }
 
-  public ParSeqRestClientConfig getConfig() {
-    return _config;
-  }
-
-  public ParSeqRestClientBuilder setConfig(ParSeqRestClientConfig config) {
+  public ParSeqRestClientBuilder setConfig(Map<String, Object> config) {
     ArgumentUtil.requireNotNull(config, "config");
     _config = config;
     return this;
   }
 
+  public ParSeqRestClientBuilder setInboundRequestFinder(InboundRequestFinder inboundRequestFinder) {
+    _inboundRequestFinder = inboundRequestFinder;
+    return this;
+  }
 }

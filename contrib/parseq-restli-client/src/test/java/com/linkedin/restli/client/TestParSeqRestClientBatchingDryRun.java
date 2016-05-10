@@ -16,24 +16,18 @@
 
 package com.linkedin.restli.client;
 
-import java.util.Collections;
-import java.util.Optional;
-
-import org.testng.annotations.Test;
-
-import com.linkedin.restli.client.config.BatchingConfig;
-import com.linkedin.restli.client.config.ParSeqRestClientConfig;
-import com.linkedin.restli.client.config.ResourceConfig;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class TestParSeqRestClientBatchingDryRun extends ParSeqRestClientIntegrationTest {
 
   @Override
-  public ParSeqRestClientConfig getParSeqRestClientGonfig() {
-    //default batching config is: batching
-    BatchingConfig defaultBatchingConfig = new BatchingConfig(true, 1024, true);
-    ResourceConfig defaultResourceConfig = new ResourceConfig(Collections.emptyMap(), Optional.empty(), defaultBatchingConfig);
-    return new ParSeqRestClientConfig(Collections.emptyMap(), defaultResourceConfig);
+  public Map<String, Object> getParSeqRestClientGonfig() {
+    Map<String, Object> config = new HashMap<>();
+    config.put("*.*/*.*/batchingEnabled", Boolean.TRUE);
+    config.put("*.*/*.*/batchingDryRun", Boolean.TRUE);
+    return config;
   }
 
   @Override

@@ -27,9 +27,8 @@ import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 import com.linkedin.r2.message.RequestContext;
-import com.linkedin.restli.client.config.BatchingConfig;
-import com.linkedin.restli.client.config.ParSeqRestClientConfig;
 import com.linkedin.restli.client.config.ResourceConfig;
+import com.linkedin.restli.client.config.ResourceConfigProvider;
 import com.linkedin.restli.client.metrics.BatchingMetrics;
 import com.linkedin.restli.client.metrics.Metrics;
 import com.linkedin.restli.common.OperationNameGenerator;
@@ -45,9 +44,9 @@ class ParSeqRestClientImpl extends BatchingStrategy<RequestGroup, RestRequestBat
 
   private final RestClient _restClient;
   private final BatchingMetrics _batchingMetrics = new BatchingMetrics();
-  private final ParSeqRestClientConfig _clientConfig;
+  private final ResourceConfigProvider _clientConfig;
 
-  ParSeqRestClientImpl(final RestClient restClient, final ParSeqRestClientConfig config) {
+  ParSeqRestClientImpl(final RestClient restClient, final ResourceConfigProvider config) {
     ArgumentUtil.requireNotNull(restClient, "restClient");
     ArgumentUtil.requireNotNull(config, "config");
     _restClient = restClient;
@@ -95,12 +94,12 @@ class ParSeqRestClientImpl extends BatchingStrategy<RequestGroup, RestRequestBat
 
   @Override
   public <T> Task<Response<T>> createTask(final Request<T> request, final RequestContext requestContext) {
-    return createTask(request, requestContext, _clientConfig);
+    return createTask(request, requestContext, _clientConfig.apply(request));
   }
 
   @Override
   public <T> Task<Response<T>> createTask(Request<T> request, RequestContext requestContext,
-      ParSeqRestClientConfig config) {
+      ResourceConfig config) {
     return createTask(generateTaskName(request), request, requestContext, config);
   }
 
@@ -114,40 +113,33 @@ class ParSeqRestClientImpl extends BatchingStrategy<RequestGroup, RestRequestBat
         + OperationNameGenerator.generate(request.getMethod(), request.getMethodName());
   }
 
-  private <T> Task<Response<T>> createTask(final String name, final Request<T> request,
-      final RequestContext requestContext, ParSeqRestClientConfig config) {
-    ResourceConfig resourceConfig = config.getResourceConfig(request.getBaseUriTemplate());
-    BatchingConfig bathcingConfig = resourceConfig.getBatchingConfig(request.getMethod());
-    final Task<Response<T>> task = createTask(name, request, requestContext, bathcingConfig);
-    if (resourceConfig.getTimeoutNs().isPresent()) {
-      return task.withTimeout(resourceConfig.getTimeoutNs().get(), TimeUnit.NANOSECONDS);
-    } else {
-      return task;
-    }
+  private <T> Task<Response<T>> withTimeout(final Task<Response<T>> task, ResourceConfig config) {
+    //TODO log timeout, sensors etc
+    return task.withTimeout(config.getTimeoutNs(), TimeUnit.NANOSECONDS);
   }
 
   private <T> Task<Response<T>> createTask(final String name, final Request<T> request,
-      final RequestContext requestContext, BatchingConfig bathcingConfig) {
-    if (RequestGroup.isBatchable(request, bathcingConfig)) {
-      return createBatchableTask(name, request, requestContext, bathcingConfig);
+      final RequestContext requestContext, ResourceConfig config) {
+    if (RequestGroup.isBatchable(request, config)) {
+      return withTimeout(createBatchableTask(name, request, requestContext, config), config);
     } else {
-      return Task.async(name, () -> sendRequest(request, requestContext));
+      return withTimeout(Task.async(name, () -> sendRequest(request, requestContext)), config);
     }
   }
 
   private RestRequestBatchKey createKey(Request<Object> request, RequestContext requestContext,
-      BatchingConfig bathcingConfig) {
-    if (bathcingConfig.isDryRun()) {
-      return new DryRunRestRequestBatchKey<>(request, requestContext, bathcingConfig, sendRequest(request, requestContext));
+      ResourceConfig config) {
+    if (config.isBatchingDryRun()) {
+      return new DryRunRestRequestBatchKey<>(request, requestContext, config, sendRequest(request, requestContext));
     } else {
-      return new RestRequestBatchKey(request, requestContext, bathcingConfig);
+      return new RestRequestBatchKey(request, requestContext, config);
     }
   }
 
   @SuppressWarnings("unchecked")
   private <T> Task<Response<T>> createBatchableTask(String name, Request<T> request, RequestContext requestContext,
-      BatchingConfig bathcingConfig) {
-    return cast(batchable(name, createKey((Request<Object>) request, requestContext, bathcingConfig)));
+      ResourceConfig config) {
+    return cast(batchable(name, createKey((Request<Object>) request, requestContext, config)));
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -171,7 +163,7 @@ class ParSeqRestClientImpl extends BatchingStrategy<RequestGroup, RestRequestBat
   @Override
   public RequestGroup classify(RestRequestBatchKey key) {
     Request<Object> request = key.getRequest();
-    return RequestGroup.fromRequest(request, key.getBathcingConfig().isDryRun(), key.getBathcingConfig().getMaxBatchSize());
+    return RequestGroup.fromRequest(request, key.getResourceConfig().isBatchingDryRun(), key.getResourceConfig().getMaxBatchSize());
   }
 
   @Override
@@ -191,6 +183,11 @@ class ParSeqRestClientImpl extends BatchingStrategy<RequestGroup, RestRequestBat
   @Override
   public Metrics getMetrics() {
     return () -> _batchingMetrics;
+  }
+
+  @Override
+  public <T> ResourceConfig getResourceConfig(Request<T> request) {
+    return _clientConfig.apply(request);
   }
 
 }

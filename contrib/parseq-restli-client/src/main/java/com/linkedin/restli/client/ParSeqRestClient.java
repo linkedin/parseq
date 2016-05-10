@@ -19,7 +19,7 @@ package com.linkedin.restli.client;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.r2.message.RequestContext;
-import com.linkedin.restli.client.config.ParSeqRestClientConfig;
+import com.linkedin.restli.client.config.ResourceConfig;
 import com.linkedin.restli.client.metrics.Metrics;
 
 /**
@@ -79,12 +79,19 @@ public interface ParSeqRestClient {
    * @param config
    * @return Task that returns response
    */
-  public <T> Task<Response<T>> createTask(final Request<T> request, final RequestContext requestContext, final ParSeqRestClientConfig config);
+  public <T> Task<Response<T>> createTask(final Request<T> request, final RequestContext requestContext, final ResourceConfig config);
 
   /**
    * Returns ParSeq rest.li client's metrics.
    * @return metrics
    */
   public Metrics getMetrics();
+
+  /**
+   * Returns ResourceConfig for specified Request.
+   * @param request
+   * @return
+   */
+  public <T> ResourceConfig getResourceConfig(final Request<T> request);
 
 }

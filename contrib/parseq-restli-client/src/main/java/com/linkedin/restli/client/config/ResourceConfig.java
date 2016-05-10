@@ -16,37 +16,33 @@
 
 package com.linkedin.restli.client.config;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
-
-import com.linkedin.restli.common.ResourceMethod;
-
 public class ResourceConfig {
 
-  private final Map<ResourceMethod, BatchingConfig> _batchingConfig;
-  private final Optional<Long> _timeoutNs;
-  private final BatchingConfig _defaultBatchingConfig;
-  public static final ResourceConfig DEFAULT_RESOURCE_CONFIG =
-  new ResourceConfig(Collections.emptyMap(), Optional.empty(), BatchingConfig.DEFAULT_BATCHING_CONFIG);
+  private final long _timeoutNs;
+  private final boolean  _batchingEnabled;
+  private final int _maxBatchSize;
+  private final boolean _BatchingDryRun;
 
-  public ResourceConfig(Map<ResourceMethod, BatchingConfig> batchingConfig, Optional<Long> timeoutNs,
-      BatchingConfig defaultBatchingConfig) {
-    _batchingConfig = batchingConfig;
+  ResourceConfig(long timeoutNs, boolean batchingEnabled, int maxBatchSize, boolean batchingDryRun) {
     _timeoutNs = timeoutNs;
-    _defaultBatchingConfig = defaultBatchingConfig;
+    _batchingEnabled = batchingEnabled;
+    _maxBatchSize = maxBatchSize;
+    _BatchingDryRun = batchingDryRun;
   }
 
-  public BatchingConfig getBatchingConfig(ResourceMethod method) {
-    return _batchingConfig.getOrDefault(method, _defaultBatchingConfig);
-  }
-
-  public Map<ResourceMethod, BatchingConfig> getBatchingConfig() {
-    return Collections.unmodifiableMap(_batchingConfig);
-  }
-
-  public Optional<Long> getTimeoutNs() {
+  public long getTimeoutNs() {
     return _timeoutNs;
   }
 
+  public boolean isBatchingEnabled() {
+    return _batchingEnabled;
+  }
+
+  public int getMaxBatchSize() {
+    return _maxBatchSize;
+  }
+
+  public boolean isBatchingDryRun() {
+    return _BatchingDryRun;
+  }
 }
