@@ -59,6 +59,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.7.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>com.linkedin.parseq</groupId>
             <artifactId>parseq</artifactId>
             <version>2.3.5-SNAPSHOT</version>
@@ -106,6 +112,30 @@
 				</executions>
 				<configuration>
 					<outputDirectory>${basedir}/src/main/java</outputDirectory>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.google.code.maven-replacer-plugin</groupId>
+				<artifactId>maven-replacer-plugin</artifactId>
+				<version>1.4.1</version>
+				<executions>
+					<execution>
+						<phase>process-sources</phase>
+						<goals>
+							<goal>replace</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<includes>
+						<include>src/main/java/com/linkedin/restli/client/config/ResourceConfigKeyBaseListener.java</include>
+                        <include>src/main/java/com/linkedin/restli/client/config/ResourceConfigKeyLexer.java</include>
+                        <include>src/main/java/com/linkedin/restli/client/config/ResourceConfigKeyListener.java</include>
+                        <include>src/main/java/com/linkedin/restli/client/config/ResourceConfigKeyParser.java</include>
+					</includes>
+					<variableTokenValueMap>
+						public class=class,public interface=interface
+					</variableTokenValueMap>
 				</configuration>
 			</plugin>
 			<plugin>

@@ -1,6 +1,8 @@
 package com.linkedin.restli.client;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
 import com.linkedin.parseq.batching.BatchingSupport;
 import com.linkedin.parseq.internal.ArgumentUtil;
@@ -9,12 +11,18 @@ import com.linkedin.restli.client.config.ResourceConfigProvider;
 public class ParSeqRestClientBuilder {
 
   private RestClient _restClient;
-  private Map<String, Object> _config;
+  private Map<String, Map<String, Object>> _config;
   private BatchingSupport _batchingSupport;
-  private InboundRequestFinder _inboundRequestFinder;
+  private InboundRequestContextFinder _inboundRequestContextFinder;
 
+  /**
+   * This method may throw RuntimeException e.g. when there is a problem with configuration.
+   * @throws RuntimeException
+   */
   public ParSeqRestClient build() {
-    ResourceConfigProvider configProvider  = ResourceConfigProvider.fromMap(_config, _inboundRequestFinder);
+    ResourceConfigProvider configProvider =
+        ResourceConfigProvider.fromMap(_config == null ? Collections.emptyMap() : _config,
+            _inboundRequestContextFinder == null ? () -> Optional.empty() : _inboundRequestContextFinder);
     ParSeqRestClientImpl parseqClient = new ParSeqRestClientImpl(_restClient, configProvider);
     if (_batchingSupport != null) {
       _batchingSupport.registerStrategy(parseqClient);
@@ -37,14 +45,15 @@ public class ParSeqRestClientBuilder {
     return this;
   }
 
-  public ParSeqRestClientBuilder setConfig(Map<String, Object> config) {
+  public ParSeqRestClientBuilder setConfig(Map<String, Map<String, Object>> config) {
     ArgumentUtil.requireNotNull(config, "config");
     _config = config;
     return this;
   }
 
-  public ParSeqRestClientBuilder setInboundRequestFinder(InboundRequestFinder inboundRequestFinder) {
-    _inboundRequestFinder = inboundRequestFinder;
+  public ParSeqRestClientBuilder setInboundRequestFinder(InboundRequestContextFinder inboundRequestContextFinder) {
+    ArgumentUtil.requireNotNull(inboundRequestContextFinder, "inboundRequestContextFinder");
+    _inboundRequestContextFinder = inboundRequestContextFinder;
     return this;
   }
 }

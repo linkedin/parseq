@@ -18,13 +18,67 @@ package com.linkedin.restli.client.config;
 
 public class ResourceConfigBuilder {
 
-  private Long _timeoutNs;
-  private Boolean  _batchingEnabled;
-  private Integer _maxBatchSize;
-  private Boolean _BatchingDryRun;
+  private ConfigValue<Long> _timeoutMs;
+  private ConfigValue<Boolean>  _batchingEnabled;
+  private ConfigValue<Integer> _maxBatchSize;
+  private ConfigValue<Boolean> _batchingDryRun;
+
+  public ResourceConfigBuilder() {
+  }
+
+  public ResourceConfigBuilder(ResourceConfig config) {
+    _timeoutMs = config.getTimeoutMs();
+    _batchingEnabled = config.isBatchingEnabled();
+    _maxBatchSize = config.getMaxBatchSize();
+    _batchingDryRun = config.isBatchingDryRun();
+  }
 
   public ResourceConfig build() {
-    //TODO
-    return null;
+    return new ResourceConfigImpl(_timeoutMs, _batchingEnabled, _maxBatchSize, _batchingDryRun);
   }
+
+  public ConfigValue<Long> getTimeoutMs() {
+    return _timeoutMs;
+  }
+
+  public ResourceConfigBuilder setTimeoutMs(ConfigValue<Long> timeoutMs) {
+    _timeoutMs = timeoutMs;
+    return this;
+  }
+
+  public ConfigValue<Boolean> getBatchingEnabled() {
+    return _batchingEnabled;
+  }
+
+  public ResourceConfigBuilder setBatchingEnabled(ConfigValue<Boolean> batchingEnabled) {
+    _batchingEnabled = batchingEnabled;
+    return this;
+  }
+
+  public ConfigValue<Integer> getMaxBatchSize() {
+    return _maxBatchSize;
+  }
+
+  public ResourceConfigBuilder setMaxBatchSize(ConfigValue<Integer> maxBatchSize) {
+    _maxBatchSize = maxBatchSize;
+    return this;
+  }
+
+  public ConfigValue<Boolean> getBatchingDryRun() {
+    return _batchingDryRun;
+  }
+
+  public ResourceConfigBuilder setBatchingDryRun(ConfigValue<Boolean> batchingDryRun) {
+    _batchingDryRun = batchingDryRun;
+    return this;
+  }
+
+  public ResourceConfigBuilder applyOverrides(ResourceConfigOverrides configOverrides) {
+    configOverrides.getTimeoutMs().ifPresent(this::setTimeoutMs);
+    configOverrides.isBatchingEnabled().ifPresent(this::setBatchingEnabled);
+    configOverrides.getMaxBatchSize().ifPresent(this::setMaxBatchSize);
+    configOverrides.isBatchingDryRun().ifPresent(this::setBatchingDryRun);
+    return this;
+  }
+
 }

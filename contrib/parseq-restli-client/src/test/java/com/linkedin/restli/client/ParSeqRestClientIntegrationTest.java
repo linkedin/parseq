@@ -22,6 +22,7 @@ import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -65,7 +66,7 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
 
   private ParSeqRestClient _parseqClient;
 
-  protected abstract Map<String, Object> getParSeqRestClientGonfig();
+  protected abstract Map<String, Map<String, Object>> getParSeqRestClientConfig();
 
   protected abstract boolean expectBatching();
 
@@ -120,7 +121,7 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
     _parseqClient = new ParSeqRestClientBuilder()
         .setRestClient(_restClient)
         .setBatchingSupport(_batchingSupport)
-        .setConfig(getParSeqRestClientGonfig())
+        .setConfig(getParSeqRestClientConfig())
         .build();
   }
 
@@ -304,4 +305,10 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
     runAndWait(getTestClassName() + ".testDuplicateGetRequestIsNotBatched", task);
     assertFalse(hasTask("greetings batch_get(1)", task.getTrace()));
   }
+
+  protected static <T> void addProperty(Map<String, Map<String, Object>> config, String property, String key, T value) {
+    Map<String, Object> map = config.computeIfAbsent(property, k -> new HashMap<>());
+    map.put(key, value);
+  }
+
 }

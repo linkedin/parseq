@@ -19,26 +19,6 @@ public interface ResourceConfigKeyListener extends ParseTreeListener {
 	 */
 	void exitKey(ResourceConfigKeyParser.KeyContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link ResourceConfigKeyParser#property}.
-	 * @param ctx the parse tree
-	 */
-	void enterProperty(ResourceConfigKeyParser.PropertyContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link ResourceConfigKeyParser#property}.
-	 * @param ctx the parse tree
-	 */
-	void exitProperty(ResourceConfigKeyParser.PropertyContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link ResourceConfigKeyParser#path}.
-	 * @param ctx the parse tree
-	 */
-	void enterPath(ResourceConfigKeyParser.PathContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link ResourceConfigKeyParser#path}.
-	 * @param ctx the parse tree
-	 */
-	void exitPath(ResourceConfigKeyParser.PathContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link ResourceConfigKeyParser#inbound}.
 	 * @param ctx the parse tree
 	 */
@@ -59,15 +39,25 @@ public interface ResourceConfigKeyListener extends ParseTreeListener {
 	 */
 	void exitOutbound(ResourceConfigKeyParser.OutboundContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link ResourceConfigKeyParser#operation}.
+	 * Enter a parse tree produced by {@link ResourceConfigKeyParser#operationIn}.
 	 * @param ctx the parse tree
 	 */
-	void enterOperation(ResourceConfigKeyParser.OperationContext ctx);
+	void enterOperationIn(ResourceConfigKeyParser.OperationInContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link ResourceConfigKeyParser#operation}.
+	 * Exit a parse tree produced by {@link ResourceConfigKeyParser#operationIn}.
 	 * @param ctx the parse tree
 	 */
-	void exitOperation(ResourceConfigKeyParser.OperationContext ctx);
+	void exitOperationIn(ResourceConfigKeyParser.OperationInContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link ResourceConfigKeyParser#operationOut}.
+	 * @param ctx the parse tree
+	 */
+	void enterOperationOut(ResourceConfigKeyParser.OperationOutContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ResourceConfigKeyParser#operationOut}.
+	 * @param ctx the parse tree
+	 */
+	void exitOperationOut(ResourceConfigKeyParser.OperationOutContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link ResourceConfigKeyParser#simpleOp}.
 	 * @param ctx the parse tree
@@ -78,6 +68,16 @@ public interface ResourceConfigKeyListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitSimpleOp(ResourceConfigKeyParser.SimpleOpContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link ResourceConfigKeyParser#httpExtraOp}.
+	 * @param ctx the parse tree
+	 */
+	void enterHttpExtraOp(ResourceConfigKeyParser.HttpExtraOpContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ResourceConfigKeyParser#httpExtraOp}.
+	 * @param ctx the parse tree
+	 */
+	void exitHttpExtraOp(ResourceConfigKeyParser.HttpExtraOpContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link ResourceConfigKeyParser#complex}.
 	 * @param ctx the parse tree

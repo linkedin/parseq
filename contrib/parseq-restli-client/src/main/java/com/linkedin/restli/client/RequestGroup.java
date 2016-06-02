@@ -38,7 +38,7 @@ interface RequestGroup {
 
   public static boolean isBatchable(final Request<?> request, ResourceConfig bathcingConfig) {
     return (request.getMethod().equals(ResourceMethod.GET) || request.getMethod().equals(ResourceMethod.BATCH_GET))
-        && bathcingConfig.isBatchingEnabled();
+        && bathcingConfig.isBatchingEnabled().getValue();
   }
 
   <RT extends RecordTemplate> void executeBatch(RestClient restClient,

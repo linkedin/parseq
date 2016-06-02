@@ -20,6 +20,8 @@ import com.linkedin.parseq.Task;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.r2.message.RequestContext;
 import com.linkedin.restli.client.config.ResourceConfig;
+import com.linkedin.restli.client.config.ResourceConfigOverrides;
+import com.linkedin.restli.client.config.ResourceConfigOverridesBuilder;
 import com.linkedin.restli.client.metrics.Metrics;
 
 /**
@@ -73,13 +75,16 @@ public interface ParSeqRestClient {
 
   /**
    * Creates a task that makes rest.li request and returns response.
+   * <p>
+   * Passed in {@code configOverrides} will override any existing configuration. Not all properties need to be set.
+   * Use {@link ResourceConfigOverridesBuilder} to create instance of {@link ResourceConfigOverrides}.
    *
    * @param request
    * @param requestContext
    * @param config
    * @return Task that returns response
    */
-  public <T> Task<Response<T>> createTask(final Request<T> request, final RequestContext requestContext, final ResourceConfig config);
+  public <T> Task<Response<T>> createTask(final Request<T> request, final RequestContext requestContext, final ResourceConfigOverrides configOverrides);
 
   /**
    * Returns ParSeq rest.li client's metrics.
