@@ -190,7 +190,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
       runAndWait("AbstractTaskTest.testWithTimeoutFailure", failure);
       fail("should have failed!");
     } catch (Exception ex) {
-      assertSame(ex.getCause(), Exceptions.TIMEOUT_EXCEPTION);
+      assertEquals(ex.getCause().getClass(), Exceptions.TIMEOUT_EXCEPTION.getClass());
     }
     assertEquals(countTasks(failure.getTrace()), 5);
   }
@@ -203,7 +203,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
       runAndWait("AbstractTaskTest.testWithTimeoutTwiceFailure", failure);
       fail("should have failed!");
     } catch (Exception ex) {
-      assertSame(ex.getCause(), Exceptions.TIMEOUT_EXCEPTION);
+      assertEquals(ex.getCause().getClass(), Exceptions.TIMEOUT_EXCEPTION.getClass());
     }
     assertEquals(countTasks(failure.getTrace()), 7);
   }

@@ -16,33 +16,15 @@
 
 package com.linkedin.restli.client.config;
 
-public class ResourceConfig {
+public interface ResourceConfig {
 
-  private final long _timeoutNs;
-  private final boolean  _batchingEnabled;
-  private final int _maxBatchSize;
-  private final boolean _BatchingDryRun;
+  public ConfigValue<Long> getTimeoutMs();
 
-  ResourceConfig(long timeoutNs, boolean batchingEnabled, int maxBatchSize, boolean batchingDryRun) {
-    _timeoutNs = timeoutNs;
-    _batchingEnabled = batchingEnabled;
-    _maxBatchSize = maxBatchSize;
-    _BatchingDryRun = batchingDryRun;
-  }
+  public ConfigValue<Boolean> isBatchingEnabled();
 
-  public long getTimeoutNs() {
-    return _timeoutNs;
-  }
+  public ConfigValue<Integer> getMaxBatchSize();
 
-  public boolean isBatchingEnabled() {
-    return _batchingEnabled;
-  }
+  public ConfigValue<Boolean> isBatchingDryRun();
 
-  public int getMaxBatchSize() {
-    return _maxBatchSize;
-  }
-
-  public boolean isBatchingDryRun() {
-    return _BatchingDryRun;
-  }
+  public ResourceConfigBuilder copyToBuilder();
 }

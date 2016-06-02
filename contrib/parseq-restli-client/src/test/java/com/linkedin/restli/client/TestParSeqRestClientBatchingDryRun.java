@@ -23,10 +23,10 @@ import java.util.Map;
 public class TestParSeqRestClientBatchingDryRun extends ParSeqRestClientIntegrationTest {
 
   @Override
-  public Map<String, Object> getParSeqRestClientGonfig() {
-    Map<String, Object> config = new HashMap<>();
-    config.put("*.*/*.*/batchingEnabled", Boolean.TRUE);
-    config.put("*.*/*.*/batchingDryRun", Boolean.TRUE);
+  public Map<String, Map<String, Object>> getParSeqRestClientConfig() {
+    Map<String, Map<String, Object>> config = new HashMap<>();
+    addProperty(config, "batchingEnabled", "*.*/*.*", Boolean.TRUE);
+    addProperty(config, "batchingDryRun", "*.*/*.*", Boolean.TRUE);
     return config;
   }
 

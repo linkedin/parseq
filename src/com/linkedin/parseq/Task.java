@@ -745,6 +745,14 @@ public interface Task<T> extends Promise<T>, Cancellable {
   }
 
   /**
+   * Equivalent to {@code withTimeout(null, time, unit)}.
+   * @see #withTimeout(String, long, TimeUnit)
+   */
+  default Task<T> withTimeout(final long time, final TimeUnit unit) {
+    return withTimeout(null, time, unit);
+  }
+
+  /**
    * Creates a new task that has a timeout associated with it. If this task finishes
    * before the timeout occurs then returned task will be completed with the value of this task.
    * If this task does not complete in the given time then returned task will
@@ -755,18 +763,25 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * </pre></blockquote>
    * <img src="https://raw.githubusercontent.com/linkedin/parseq/master/src/com/linkedin/parseq/doc-files/withTimeout-1.png" height="150" width="318"/>
    *
+   * @param desc description of a timeout. There is no need to put timeout value here because it will be automatically
+   * included. Full description of a timeout will be: {@code "withTimeout " + time + " " + TimeUnitHelper.toString(unit) +
+   * (desc != null ? " " + desc : "")}. It is a good idea to put information that will help understand why the timeout
+   * was specified e.g. if timeout was specified by a configuration, the configuration parameter name would be a useful
+   * information
    * @param time the time to wait before timing out
    * @param unit the units for the time
    * @return the new task with a timeout
    */
-  default Task<T> withTimeout(final long time, final TimeUnit unit) {
+  default Task<T> withTimeout(final String desc, final long time, final TimeUnit unit) {
     final Task<T> that = this;
-    Task<T> withTimeout = async("withTimeout " + time + " " + TimeUnitHelper.toString(unit), ctx -> {
+    final String taskName = "withTimeout " + time + " " + TimeUnitHelper.toString(unit) +
+        (desc != null ? " " + desc : "");
+    Task<T> withTimeout = async(taskName, ctx -> {
       final AtomicBoolean committed = new AtomicBoolean();
       final SettablePromise<T> result = Promises.settable();
-      final Task<?> timeoutTask = Task.action("timeoutTimer", () -> {
+      final Task<?> timeoutTask = Task.action("timeout", () -> {
         if (committed.compareAndSet(false, true)) {
-          result.fail(Exceptions.TIMEOUT_EXCEPTION);
+          result.fail(Exceptions.timeoutException(taskName));
         }
       } );
       //timeout tasks should run as early as possible
@@ -777,7 +792,6 @@ public interface Task<T> extends Promise<T>, Cancellable {
           Promises.propagateResult(that, result);
         }
       } );
-
       //we want to schedule this task as soon as possible
       //because timeout timer has started ticking
       that.setPriority(Priority.MAX_PRIORITY);

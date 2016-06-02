@@ -64,4 +64,12 @@ public class Exceptions {
     }
   }
 
+  public static Exception timeoutException(String desc) {
+    if (desc == null || desc.isEmpty()) {
+      return TIMEOUT_EXCEPTION;
+    } else {
+      return new TimeoutException(desc);
+    }
+  }
+
 }

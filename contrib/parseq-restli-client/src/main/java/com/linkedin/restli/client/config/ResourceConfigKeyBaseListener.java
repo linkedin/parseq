@@ -29,30 +29,6 @@ public class ResourceConfigKeyBaseListener implements ResourceConfigKeyListener 
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterProperty(ResourceConfigKeyParser.PropertyContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitProperty(ResourceConfigKeyParser.PropertyContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterPath(ResourceConfigKeyParser.PathContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitPath(ResourceConfigKeyParser.PathContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterInbound(ResourceConfigKeyParser.InboundContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -77,13 +53,25 @@ public class ResourceConfigKeyBaseListener implements ResourceConfigKeyListener 
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterOperation(ResourceConfigKeyParser.OperationContext ctx) { }
+	@Override public void enterOperationIn(ResourceConfigKeyParser.OperationInContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitOperation(ResourceConfigKeyParser.OperationContext ctx) { }
+	@Override public void exitOperationIn(ResourceConfigKeyParser.OperationInContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterOperationOut(ResourceConfigKeyParser.OperationOutContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitOperationOut(ResourceConfigKeyParser.OperationOutContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -96,6 +84,18 @@ public class ResourceConfigKeyBaseListener implements ResourceConfigKeyListener 
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitSimpleOp(ResourceConfigKeyParser.SimpleOpContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterHttpExtraOp(ResourceConfigKeyParser.HttpExtraOpContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitHttpExtraOp(ResourceConfigKeyParser.HttpExtraOpContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

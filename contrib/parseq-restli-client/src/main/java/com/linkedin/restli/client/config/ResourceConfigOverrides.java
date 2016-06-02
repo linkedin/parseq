@@ -14,22 +14,17 @@
  * the License.
  */
 
-package com.linkedin.restli.client;
+package com.linkedin.restli.client.config;
 
-import java.util.Collections;
-import java.util.Map;
+import java.util.Optional;
 
+public interface ResourceConfigOverrides {
 
-public class TestParSeqRestClientNoBatching extends ParSeqRestClientIntegrationTest {
+  public Optional<ConfigValue<Long>> getTimeoutMs();
 
-  @Override
-  public Map<String, Map<String, Object>> getParSeqRestClientConfig() {
-    return Collections.emptyMap();
-  }
+  public Optional<ConfigValue<Boolean>> isBatchingEnabled();
 
-  @Override
-  protected boolean expectBatching() {
-    return false;
-  }
+  public Optional<ConfigValue<Integer>> getMaxBatchSize();
 
+  public Optional<ConfigValue<Boolean>> isBatchingDryRun();
 }
