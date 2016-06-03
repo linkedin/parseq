@@ -41,6 +41,7 @@ import com.linkedin.r2.transport.common.Client;
 import com.linkedin.r2.transport.common.bridge.client.TransportClientAdapter;
 import com.linkedin.r2.transport.http.client.HttpClientFactory;
 import com.linkedin.r2.transport.http.server.HttpServer;
+import com.linkedin.restli.client.config.ResourceConfigOverrides;
 import com.linkedin.restli.common.BatchResponse;
 import com.linkedin.restli.common.EmptyRecord;
 import com.linkedin.restli.examples.RestLiIntTestServer;
@@ -143,12 +144,24 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
     return _parseqClient.createTask(new GreetingsBuilders().get().id(id).build());
   }
 
+  protected Task<Response<Greeting>> greetingGet(Long id, ResourceConfigOverrides configOverrides) {
+    return _parseqClient.createTask(new GreetingsBuilders().get().id(id).build(), configOverrides);
+  }
+
   protected Task<Response<EmptyRecord>> greetingDel(Long id) {
     return _parseqClient.createTask(new GreetingsBuilders().delete().id(id).build());
   }
 
+  protected Task<Response<EmptyRecord>> greetingDel(Long id, ResourceConfigOverrides configOverrides) {
+    return _parseqClient.createTask(new GreetingsBuilders().delete().id(id).build(), configOverrides);
+  }
+
   protected Task<Response<BatchResponse<Greeting>>> greetings(Long... ids) {
     return _parseqClient.createTask(new GreetingsBuilders().batchGet().ids(ids).build());
+  }
+
+  protected Task<Response<BatchResponse<Greeting>>> greetings(ResourceConfigOverrides configOverrides, Long... ids) {
+    return _parseqClient.createTask(new GreetingsBuilders().batchGet().ids(ids).build(), configOverrides);
   }
 
   protected boolean hasTask(final String name, final Trace trace) {

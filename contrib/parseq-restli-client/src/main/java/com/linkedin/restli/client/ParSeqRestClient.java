@@ -66,6 +66,18 @@ public interface ParSeqRestClient {
 
   /**
    * Creates a task that makes rest.li request and returns response.
+   * <p>
+   * Passed in {@code configOverrides} will override any existing configuration. Not all properties need to be set.
+   * Use {@link ResourceConfigOverridesBuilder} to create instance of {@link ResourceConfigOverrides}.
+   *
+   * @param request
+   * @param configOverrides
+   * @return Task that returns response
+   */
+  public <T> Task<Response<T>> createTask(final Request<T> request, final ResourceConfigOverrides configOverrides);
+
+  /**
+   * Creates a task that makes rest.li request and returns response.
    *
    * @param request
    * @param requestContext
@@ -82,6 +94,7 @@ public interface ParSeqRestClient {
    * @param request
    * @param requestContext
    * @param config
+   * @param configOverrides
    * @return Task that returns response
    */
   public <T> Task<Response<T>> createTask(final Request<T> request, final RequestContext requestContext, final ResourceConfigOverrides configOverrides);
