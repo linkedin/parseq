@@ -25,6 +25,4 @@ public interface ResourceConfig {
   public ConfigValue<Integer> getMaxBatchSize();
 
   public ConfigValue<Boolean> isBatchingDryRun();
-
-  public ResourceConfigBuilder copyToBuilder();
 }
