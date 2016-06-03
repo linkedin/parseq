@@ -1,24 +1,20 @@
 package com.linkedin.restli.client.config;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.linkedin.restli.client.InboundRequestContextFinder;
+import com.linkedin.restli.client.ParSeqRestClientConfig;
+import com.linkedin.restli.client.ParSeqRestClientConfigBuilder;
 
 class ResourceConfigProviderBuilder {
 
-  private final Map<String, Map<String, Object>> _config = new HashMap<>();
+  private final ParSeqRestClientConfigBuilder _config = new ParSeqRestClientConfigBuilder();
   private InboundRequestContextFinder _inboundRequestFinder;
 
   public ResourceConfigProvider build() throws ResourceConfigKeyParsingException {
-    return new ResourceConfigProviderImpl(_inboundRequestFinder, _config);
+    return new ResourceConfigProviderImpl(_inboundRequestFinder, _config.build());
   }
 
-  public ResourceConfigProviderBuilder add(Map<String, Map<String, Object>> config) {
-    config.forEach((property, map) -> {
-      Map<String, Object> cfgMap = _config.computeIfAbsent(property, k -> new HashMap<>());
-      cfgMap.putAll(map);
-    });
+  public ResourceConfigProviderBuilder addConfig(ParSeqRestClientConfig config) {
+    _config.addConfig(config);
     return this;
   }
 

@@ -774,7 +774,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   default Task<T> withTimeout(final String desc, final long time, final TimeUnit unit) {
     final Task<T> that = this;
-    final String taskName = "withTimeout " + time + " " + TimeUnitHelper.toString(unit) +
+    final String taskName = "withTimeout " + time + TimeUnitHelper.toString(unit) +
         (desc != null ? " " + desc : "");
     Task<T> withTimeout = async(taskName, ctx -> {
       final AtomicBoolean committed = new AtomicBoolean();

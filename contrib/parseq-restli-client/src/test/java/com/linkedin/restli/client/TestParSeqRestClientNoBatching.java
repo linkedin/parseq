@@ -16,15 +16,11 @@
 
 package com.linkedin.restli.client;
 
-import java.util.Collections;
-import java.util.Map;
-
-
-public class TestParSeqRestClientNoBatching extends ParSeqRestClientIntegrationTest {
+public class TestParSeqRestClientNoBatching extends ParSeqRestClientBatchingIntegrationTest {
 
   @Override
-  public Map<String, Map<String, Object>> getParSeqRestClientConfig() {
-    return Collections.emptyMap();
+  public ParSeqRestClientConfig getParSeqRestClientConfig() {
+    return new ParSeqRestClientConfigBuilder().build();
   }
 
   @Override

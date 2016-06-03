@@ -3,24 +3,24 @@ package com.linkedin.restli.client.config;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 import org.testng.annotations.Test;
 
 import com.linkedin.restli.client.InboundRequestContext;
 import com.linkedin.restli.client.InboundRequestContextFinder;
+import com.linkedin.restli.client.ParSeqRestClientConfigBuilder;
 import com.linkedin.restli.common.ResourceMethod;
 import com.linkedin.restli.examples.greetings.client.GreetingsBuilders;
 import com.linkedin.restli.examples.groups.client.GroupsBuilders;
+
 
 public class TestResourceConfigProvider {
 
   @Test
   public void testFromEmptyMap() throws ResourceConfigKeyParsingException {
-    ResourceConfigProvider provider = ResourceConfigProvider.fromMap(Collections.emptyMap(), () -> Optional.empty());
+    ResourceConfigProvider provider =
+        ResourceConfigProvider.build(new ParSeqRestClientConfigBuilder().build(), () -> Optional.empty());
     ResourceConfig rc = provider.apply(new GreetingsBuilders().get().id(0L).build());
     assertNotNull(rc);
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(10000L));
@@ -31,12 +31,12 @@ public class TestResourceConfigProvider {
 
   @Test
   public void testFromEmptyMapOverrideDefault() throws ResourceConfigKeyParsingException {
-    Map<String, Map<String, Object>> config = new HashMap<>();
-    addProperty(config, "timeoutMs", "*.*/*.*", 1000L);
-    addProperty(config, "maxBatchSize", "*.*/*.*", 4096);
-    addProperty(config, "batchingEnabled", "*.*/*.*", true);
-    addProperty(config, "batchingDryRun", "*.*/*.*", true);
-    ResourceConfigProvider provider = ResourceConfigProvider.fromMap(config, () -> Optional.empty());
+    ParSeqRestClientConfigBuilder configBuilder = new ParSeqRestClientConfigBuilder();
+    configBuilder.addTimeoutMs("*.*/*.*", 1000L);
+    configBuilder.addMaxBatchSize("*.*/*.*", 4096);
+    configBuilder.addBatchingEnabled("*.*/*.*", true);
+    configBuilder.addBatchingDryRun("*.*/*.*", true);
+    ResourceConfigProvider provider = ResourceConfigProvider.build(configBuilder.build(), () -> Optional.empty());
     ResourceConfig rc = provider.apply(new GreetingsBuilders().get().id(0L).build());
     assertNotNull(rc);
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(1000L));
@@ -47,9 +47,9 @@ public class TestResourceConfigProvider {
 
   @Test
   public void testOutboundOp() throws ResourceConfigKeyParsingException {
-    Map<String, Map<String, Object>> config = new HashMap<>();
-    addProperty(config, "timeoutMs", "*.*/*.GET", 1000L);
-    ResourceConfigProvider provider = ResourceConfigProvider.fromMap(config, () -> Optional.empty());
+    ParSeqRestClientConfigBuilder configBuilder = new ParSeqRestClientConfigBuilder();
+    configBuilder.addTimeoutMs("*.*/*.GET", 1000L);
+    ResourceConfigProvider provider = ResourceConfigProvider.build(configBuilder.build(), () -> Optional.empty());
     ResourceConfig rc = provider.apply(new GreetingsBuilders().get().id(0L).build());
     assertNotNull(rc);
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(1000L));
@@ -67,9 +67,9 @@ public class TestResourceConfigProvider {
 
   @Test
   public void testOutboundName() throws ResourceConfigKeyParsingException {
-    Map<String, Map<String, Object>> config = new HashMap<>();
-    addProperty(config, "timeoutMs", "*.*/greetings.*", 1000L);
-    ResourceConfigProvider provider = ResourceConfigProvider.fromMap(config, () -> Optional.empty());
+    ParSeqRestClientConfigBuilder configBuilder = new ParSeqRestClientConfigBuilder();
+    configBuilder.addTimeoutMs("*.*/greetings.*", 1000L);
+    ResourceConfigProvider provider = ResourceConfigProvider.build(configBuilder.build(), () -> Optional.empty());
     ResourceConfig rc = provider.apply(new GreetingsBuilders().get().id(0L).build());
     assertNotNull(rc);
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(1000L));
@@ -87,14 +87,14 @@ public class TestResourceConfigProvider {
 
   @Test
   public void testTimeoutForGetManyConfigs() throws ResourceConfigKeyParsingException {
-    Map<String, Map<String, Object>> config = new HashMap<>();
-    addProperty(config, "timeoutMs", "*.*/*.GET", 1000L);
-    addProperty(config, "timeoutMs", "x.GET/*.GET", 1000L);
-    addProperty(config, "timeoutMs", "y.GET/x1.GET", 1000L);
-    addProperty(config, "timeoutMs", "y.GET/x2.GET", 1000L);
-    addProperty(config, "timeoutMs", "*.GET/x.GET", 1000L);
-    addProperty(config, "timeoutMs", "*.GET/x2.GET", 1000L);
-    ResourceConfigProvider provider = ResourceConfigProvider.fromMap(config, () -> Optional.empty());
+    ParSeqRestClientConfigBuilder configBuilder = new ParSeqRestClientConfigBuilder();
+    configBuilder.addTimeoutMs("*.*/*.GET", 1000L);
+    configBuilder.addTimeoutMs("x.GET/*.GET", 1000L);
+    configBuilder.addTimeoutMs("y.GET/x1.GET", 1000L);
+    configBuilder.addTimeoutMs("y.GET/x2.GET", 1000L);
+    configBuilder.addTimeoutMs("*.GET/x.GET", 1000L);
+    configBuilder.addTimeoutMs("*.GET/x2.GET", 1000L);
+    ResourceConfigProvider provider = ResourceConfigProvider.build(configBuilder.build(), () -> Optional.empty());
     ResourceConfig rc = provider.apply(new GreetingsBuilders().get().id(0L).build());
     assertNotNull(rc);
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(1000L));
@@ -112,23 +112,24 @@ public class TestResourceConfigProvider {
 
   @Test
   public void testPrioritiesWithInboundAndOutboundMatch() throws ResourceConfigKeyParsingException {
-    Map<String, Map<String, Object>> config = new HashMap<>();
-    addProperty(config, "timeoutMs", "*.*/*.GET", 1000L);
-    addProperty(config, "timeoutMs", "x.GET/*.GET", 1000L);
-    addProperty(config, "timeoutMs", "y.GET/x1.GET", 1000L);
-    addProperty(config, "timeoutMs", "y.GET/x2.GET", 1000L);
-    addProperty(config, "timeoutMs", "*.GET/x.GET", 1000L);
-    addProperty(config, "timeoutMs", "*.GET/x2.GET", 1000L);
-    addProperty(config, "timeoutMs", "*.GET/greetings.GET", 1000L);
-    addProperty(config, "timeoutMs", "greetings.GET/*.GET", 1000L);
-    addProperty(config, "timeoutMs", "greetings.GET/greetings.GET", 100L);
-    addProperty(config, "timeoutMs", "*.*/greetings.DELETE", 1000L);
-    addProperty(config, "timeoutMs", "greetings.*/greetings.DELETE", 1000L);
-    addProperty(config, "timeoutMs", "*.GET/greetings.DELETE", 1000L);
-    addProperty(config, "timeoutMs", "greetings.GET/greetings.DELETE", 500L);
+    ParSeqRestClientConfigBuilder configBuilder = new ParSeqRestClientConfigBuilder();
+    configBuilder.addTimeoutMs("*.*/*.GET", 1000L);
+    configBuilder.addTimeoutMs("x.GET/*.GET", 1000L);
+    configBuilder.addTimeoutMs("y.GET/x1.GET", 1000L);
+    configBuilder.addTimeoutMs("y.GET/x2.GET", 1000L);
+    configBuilder.addTimeoutMs("*.GET/x.GET", 1000L);
+    configBuilder.addTimeoutMs("*.GET/x2.GET", 1000L);
+    configBuilder.addTimeoutMs("*.GET/greetings.GET", 1000L);
+    configBuilder.addTimeoutMs("greetings.GET/*.GET", 1000L);
+    configBuilder.addTimeoutMs("greetings.GET/greetings.GET", 100L);
+    configBuilder.addTimeoutMs("*.*/greetings.DELETE", 1000L);
+    configBuilder.addTimeoutMs("greetings.*/greetings.DELETE", 1000L);
+    configBuilder.addTimeoutMs("*.GET/greetings.DELETE", 1000L);
+    configBuilder.addTimeoutMs("greetings.GET/greetings.DELETE", 500L);
 
-    ResourceConfigProvider provider = ResourceConfigProvider.fromMap(config,
-        requestContextFinder("greetings", ResourceMethod.GET.toString().toUpperCase(), Optional.empty(), Optional.empty()));
+    ResourceConfigProvider provider =
+        ResourceConfigProvider.build(configBuilder.build(), requestContextFinder("greetings",
+            ResourceMethod.GET.toString().toUpperCase(), Optional.empty(), Optional.empty()));
     ResourceConfig rc = provider.apply(new GreetingsBuilders().get().id(0L).build());
     assertNotNull(rc);
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(100L));
@@ -145,23 +146,63 @@ public class TestResourceConfigProvider {
   }
 
   @Test
-  public void testPrioritiesWithHttpInboundAndOutboundMatch() throws ResourceConfigKeyParsingException {
-    Map<String, Map<String, Object>> config = new HashMap<>();
-    addProperty(config, "timeoutMs", "*.*/*.GET", 1000L);
-    addProperty(config, "timeoutMs", "x.GET/*.GET", 1000L);
-    addProperty(config, "timeoutMs", "y.GET/x1.GET", 1000L);
-    addProperty(config, "timeoutMs", "y.GET/x2.GET", 1000L);
-    addProperty(config, "timeoutMs", "*.GET/x.GET", 1000L);
-    addProperty(config, "timeoutMs", "*.GET/x2.GET", 1000L);
-    addProperty(config, "timeoutMs", "*.GET/greetings.GET", 1000L);
-    addProperty(config, "timeoutMs", "greetings.GET/*.GET", 1000L);
-    addProperty(config, "timeoutMs", "greetings.POST/greetings.GET", 100L);
-    addProperty(config, "timeoutMs", "*.*/greetings.DELETE", 1000L);
-    addProperty(config, "timeoutMs", "greetings.*/greetings.DELETE", 1000L);
-    addProperty(config, "timeoutMs", "*.GET/greetings.DELETE", 1000L);
-    addProperty(config, "timeoutMs", "greetings.POST/greetings.DELETE", 500L);
+  public void testPrioritiesWithInboundFinderAndOutboundMatch() throws ResourceConfigKeyParsingException {
+    ParSeqRestClientConfigBuilder configBuilder = new ParSeqRestClientConfigBuilder();
+    configBuilder.addTimeoutMs("*.*/*.GET", 1000L);
+    configBuilder.addTimeoutMs("x.GET/*.GET", 1000L);
+    configBuilder.addTimeoutMs("y.GET/x1.GET", 1000L);
+    configBuilder.addTimeoutMs("y.GET/x2.GET", 1000L);
+    configBuilder.addTimeoutMs("*.GET/x.GET", 1000L);
+    configBuilder.addTimeoutMs("*.GET/x2.GET", 1000L);
+    configBuilder.addTimeoutMs("*.GET/greetings.GET", 1000L);
+    configBuilder.addTimeoutMs("greetings.GET/*.GET", 1000L);
+    configBuilder.addTimeoutMs("greetings.GET/greetings.GET", 100L);
+    configBuilder.addTimeoutMs("*.*/greetings.DELETE", 1000L);
+    configBuilder.addTimeoutMs("greetings.*/greetings.DELETE", 1000L);
+    configBuilder.addTimeoutMs("*.GET/greetings.DELETE", 1000L);
+    configBuilder.addTimeoutMs("greetings.GET/greetings.DELETE", 500L);
+    configBuilder.addTimeoutMs("greetings.FINDER-*/greetings.GET", 500L);
+    configBuilder.addTimeoutMs("greetings.FINDER-*/greetings.DELETE", 500L);
+    configBuilder.addTimeoutMs("greetings.FINDER-foobar/greetings.GET", 500L);
+    configBuilder.addTimeoutMs("greetings.FINDER-foobar/greetings.DELETE", 500L);
+    configBuilder.addTimeoutMs("greetings.FINDER-findAll/greetings.GET", 400L);
+    configBuilder.addTimeoutMs("greetings.FINDER-findAll/greetings.DELETE", 300L);
 
-    ResourceConfigProvider provider = ResourceConfigProvider.fromMap(config,
+    ResourceConfigProvider provider = ResourceConfigProvider.build(configBuilder.build(),
+        requestContextFinder("greetings", "FINDER", Optional.of("findAll"), Optional.empty()));
+    ResourceConfig rc = provider.apply(new GreetingsBuilders().get().id(0L).build());
+    assertNotNull(rc);
+    assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(400L));
+    assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
+    assertEquals(rc.isBatchingDryRun().getValue(), Boolean.valueOf(false));
+    assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
+
+    rc = provider.apply(new GreetingsBuilders().delete().id(0L).build());
+    assertNotNull(rc);
+    assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(300L));
+    assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
+    assertEquals(rc.isBatchingDryRun().getValue(), Boolean.valueOf(false));
+    assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
+  }
+
+  @Test
+  public void testPrioritiesWithHttpInboundAndOutboundMatch() throws ResourceConfigKeyParsingException {
+    ParSeqRestClientConfigBuilder configBuilder = new ParSeqRestClientConfigBuilder();
+    configBuilder.addTimeoutMs("*.*/*.GET", 1000L);
+    configBuilder.addTimeoutMs("x.GET/*.GET", 1000L);
+    configBuilder.addTimeoutMs("y.GET/x1.GET", 1000L);
+    configBuilder.addTimeoutMs("y.GET/x2.GET", 1000L);
+    configBuilder.addTimeoutMs("*.GET/x.GET", 1000L);
+    configBuilder.addTimeoutMs("*.GET/x2.GET", 1000L);
+    configBuilder.addTimeoutMs("*.GET/greetings.GET", 1000L);
+    configBuilder.addTimeoutMs("greetings.GET/*.GET", 1000L);
+    configBuilder.addTimeoutMs("greetings.POST/greetings.GET", 100L);
+    configBuilder.addTimeoutMs("*.*/greetings.DELETE", 1000L);
+    configBuilder.addTimeoutMs("greetings.*/greetings.DELETE", 1000L);
+    configBuilder.addTimeoutMs("*.GET/greetings.DELETE", 1000L);
+    configBuilder.addTimeoutMs("greetings.POST/greetings.DELETE", 500L);
+
+    ResourceConfigProvider provider = ResourceConfigProvider.build(configBuilder.build(),
         requestContextFinder("greetings", "POST", Optional.empty(), Optional.empty()));
     ResourceConfig rc = provider.apply(new GreetingsBuilders().get().id(0L).build());
     assertNotNull(rc);
@@ -178,7 +219,8 @@ public class TestResourceConfigProvider {
     assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
   }
 
-  private InboundRequestContextFinder requestContextFinder(String name, String method, Optional<String> finderName, Optional<String> actionName) {
+  private InboundRequestContextFinder requestContextFinder(String name, String method, Optional<String> finderName,
+      Optional<String> actionName) {
     return new InboundRequestContextFinder() {
       @Override
       public Optional<InboundRequestContext> find() {
@@ -207,10 +249,4 @@ public class TestResourceConfigProvider {
       }
     };
   }
-
-  private static <T> void addProperty(Map<String, Map<String, Object>> config, String property, String key, T value) {
-    Map<String, Object> map = config.computeIfAbsent(property, k -> new HashMap<>());
-    map.put(key, value);
-  }
-
 }
