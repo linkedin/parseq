@@ -14,25 +14,23 @@ class ResourceConfigImpl implements ResourceConfig {
     _batchingDryRun = batchingDryRun;
   }
 
+  @Override
   public ConfigValue<Long> getTimeoutMs() {
     return _timeoutMs;
   }
 
+  @Override
   public ConfigValue<Boolean> isBatchingEnabled() {
     return _batchingEnabled;
   }
 
+  @Override
   public ConfigValue<Integer> getMaxBatchSize() {
     return _maxBatchSize;
   }
 
+  @Override
   public ConfigValue<Boolean> isBatchingDryRun() {
     return _batchingDryRun;
-  }
-
-  @Override
-  public ResourceConfigBuilder copyToBuilder() {
-    // TODO Auto-generated method stub
-    return null;
   }
 }
