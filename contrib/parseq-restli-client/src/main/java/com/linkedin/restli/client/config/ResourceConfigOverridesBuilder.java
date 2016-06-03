@@ -30,10 +30,6 @@ public class ResourceConfigOverridesBuilder {
         Optional.ofNullable(_maxBatchSize), Optional.ofNullable(_batchingDryRun));
   }
 
-  public ConfigValue<Long> getTimeoutMs() {
-    return _timeoutMs;
-  }
-
   public ResourceConfigOverridesBuilder setTimeoutMs(long timeoutMs, String source) {
     _timeoutMs = new ConfigValue<>(timeoutMs, source);
     return this;
@@ -42,10 +38,6 @@ public class ResourceConfigOverridesBuilder {
   public ResourceConfigOverridesBuilder setTimeoutMs(long timeoutMs) {
     _timeoutMs = new ConfigValue<>(timeoutMs, null);
     return this;
-  }
-
-  public ConfigValue<Boolean> getBatchingEnabled() {
-    return _batchingEnabled;
   }
 
   public ResourceConfigOverridesBuilder setBatchingEnabled(boolean batchingEnabled, String source) {
@@ -58,10 +50,6 @@ public class ResourceConfigOverridesBuilder {
     return this;
   }
 
-  public ConfigValue<Integer> getMaxBatchSize() {
-    return _maxBatchSize;
-  }
-
   public ResourceConfigOverridesBuilder setMaxBatchSize(int maxBatchSize, String source) {
     _maxBatchSize =  new ConfigValue<>(maxBatchSize, source);
     return this;
@@ -70,10 +58,6 @@ public class ResourceConfigOverridesBuilder {
   public ResourceConfigOverridesBuilder setMaxBatchSize(int maxBatchSize) {
     _maxBatchSize =  new ConfigValue<>(maxBatchSize, null);
     return this;
-  }
-
-  public ConfigValue<Boolean> getBatchingDryRun() {
-    return _batchingDryRun;
   }
 
   public ResourceConfigOverridesBuilder setBatchingDryRun(boolean batchingDryRun, String source) {

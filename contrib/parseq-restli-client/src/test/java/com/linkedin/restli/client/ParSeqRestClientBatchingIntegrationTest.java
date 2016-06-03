@@ -23,12 +23,18 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.Test;
 
 import com.linkedin.parseq.Task;
+import com.linkedin.restli.client.config.ResourceConfigOverrides;
+import com.linkedin.restli.client.config.ResourceConfigOverridesBuilder;
 import com.linkedin.restli.examples.greetings.client.GreetingsBuilders;
 
 
 public abstract class ParSeqRestClientBatchingIntegrationTest extends ParSeqRestClientIntegrationTest {
 
   protected abstract boolean expectBatching();
+
+  protected abstract boolean expectBatchingOverrides();
+
+  protected abstract ResourceConfigOverrides overrides();
 
   @Test
   public void testGetRequests() {
@@ -42,8 +48,18 @@ public abstract class ParSeqRestClientBatchingIntegrationTest extends ParSeqRest
   }
 
   @Test
-  public void testGetRequestsWithSameCustomHeaders() {
+  public void testGetRequestsOverrides() {
+    Task<?> task = Task.par(greetingGet(1L, overrides()), greetingGet(2L, overrides()));
+    runAndWait(getTestClassName() + ".testGetRequestsOverrides", task);
+    if (expectBatchingOverrides()) {
+      assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
+    } else {
+      assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
+    }
+  }
 
+  @Test
+  public void testGetRequestsWithSameCustomHeaders() {
     Task<?> t1 = _parseqClient.createTask(new GreetingsBuilders().get().id(1L)
         .addHeader("H1", "V1").build());
 
@@ -54,6 +70,24 @@ public abstract class ParSeqRestClientBatchingIntegrationTest extends ParSeqRest
 
     runAndWait(getTestClassName() + ".testGetRequestsWithSameCustomHeaders", task);
     if (expectBatching()) {
+      assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
+    } else {
+      assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
+    }
+  }
+
+  @Test
+  public void testGetRequestsWithSameCustomHeadersOverrides() {
+    Task<?> t1 = _parseqClient.createTask(new GreetingsBuilders().get().id(1L)
+        .addHeader("H1", "V1").build(), overrides());
+
+    Task<?> t2 = _parseqClient.createTask(new GreetingsBuilders().get().id(2L)
+        .addHeader("H1", "V1").build(), overrides());
+
+    Task<?> task = Task.par(t1, t2);
+
+    runAndWait(getTestClassName() + ".testGetRequestsWithSameCustomHeadersOverrides", task);
+    if (expectBatchingOverrides()) {
       assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
     } else {
       assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
@@ -80,6 +114,25 @@ public abstract class ParSeqRestClientBatchingIntegrationTest extends ParSeqRest
   }
 
   @Test
+  public void testGetRequestsWithSameQueryParamsOverrides() {
+
+    Task<?> t1 = _parseqClient.createTask(new GreetingsBuilders().get().id(1L)
+        .addParam("K1", "V1").build(), overrides());
+
+    Task<?> t2 = _parseqClient.createTask(new GreetingsBuilders().get().id(2L)
+        .addParam("K1", "V1").build(), overrides());
+
+    Task<?> task = Task.par(t1, t2);
+
+    runAndWait(getTestClassName() + ".testGetRequestsWithSameQueryParamsOverrides", task);
+    if (expectBatchingOverrides()) {
+      assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
+    } else {
+      assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
+    }
+  }
+
+  @Test
   public void testGetRequestsWithDifferentCustomQueryParamValuesNoBatching() {
 
     Task<?> t1 = _parseqClient.createTask(new GreetingsBuilders().get().id(1L)
@@ -91,6 +144,21 @@ public abstract class ParSeqRestClientBatchingIntegrationTest extends ParSeqRest
     Task<?> task = Task.par(t1, t2);
 
     runAndWait(getTestClassName() + ".testGetRequestsWithDifferentCustomQueryParamValuesNoBatching", task);
+    assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
+  }
+
+  @Test
+  public void testGetRequestsWithDifferentCustomQueryParamValuesNoBatchingOverrides() {
+
+    Task<?> t1 = _parseqClient.createTask(new GreetingsBuilders().get().id(1L)
+        .addParam("K1", "V1").build(), overrides());
+
+    Task<?> t2 = _parseqClient.createTask(new GreetingsBuilders().get().id(2L)
+        .addParam("K1", "V2").build(), overrides());
+
+    Task<?> task = Task.par(t1, t2);
+
+    runAndWait(getTestClassName() + ".testGetRequestsWithDifferentCustomQueryParamValuesNoBatchingOverrides", task);
     assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
   }
 
@@ -110,6 +178,21 @@ public abstract class ParSeqRestClientBatchingIntegrationTest extends ParSeqRest
   }
 
   @Test
+  public void testGetRequestsWithDifferentCustomHeaderValuesNoBatchingOverrides() {
+
+    Task<?> t1 = _parseqClient.createTask(new GreetingsBuilders().get().id(1L)
+        .addHeader("H1", "V1").build(), overrides());
+
+    Task<?> t2 = _parseqClient.createTask(new GreetingsBuilders().get().id(2L)
+        .addHeader("H1", "V2").build(), overrides());
+
+    Task<?> task = Task.par(t1, t2);
+
+    runAndWait(getTestClassName() + ".testGetRequestsWithDifferentCustomHeaderValuesNoBatchingOverrides", task);
+    assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
+  }
+
+  @Test
   public void testGetRequestsWithDifferentCustomHeadersNoBatching() {
 
     Task<?> t1 = _parseqClient.createTask(new GreetingsBuilders().get().id(1L)
@@ -121,6 +204,21 @@ public abstract class ParSeqRestClientBatchingIntegrationTest extends ParSeqRest
     Task<?> task = Task.par(t1, t2);
 
     runAndWait(getTestClassName() + ".testGetRequestsWithDifferentCustomHeadersNoBatching", task);
+    assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
+  }
+
+  @Test
+  public void testGetRequestsWithDifferentCustomHeadersNoBatchingOverrides() {
+
+    Task<?> t1 = _parseqClient.createTask(new GreetingsBuilders().get().id(1L)
+        .addHeader("H1", "V1").build(), overrides());
+
+    Task<?> t2 = _parseqClient.createTask(new GreetingsBuilders().get().id(2L)
+        .addHeader("H2", "V1").build(), overrides());
+
+    Task<?> task = Task.par(t1, t2);
+
+    runAndWait(getTestClassName() + ".testGetRequestsWithDifferentCustomHeadersNoBatchingOverrides", task);
     assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
   }
 
@@ -140,12 +238,40 @@ public abstract class ParSeqRestClientBatchingIntegrationTest extends ParSeqRest
   }
 
   @Test
+  public void testGetRequestsWithDifferentCustomQueryParamsNoBatchingOverrides() {
+
+    Task<?> t1 = _parseqClient.createTask(new GreetingsBuilders().get().id(1L)
+        .addParam("K1", "V1").build(), overrides());
+
+    Task<?> t2 = _parseqClient.createTask(new GreetingsBuilders().get().id(2L)
+        .addParam("K2", "V1").build(), overrides());
+
+    Task<?> task = Task.par(t1, t2);
+
+    runAndWait(getTestClassName() + ".testGetRequestsWithDifferentCustomQueryParamsNoBatchingOverrides", task);
+    assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
+  }
+
+  @Test
   public void testGetRequestsWithError() {
     Task<String> task = Task.par(toMessage(greetingGet(1L)), toMessage(greetingGet(-1L)).recover(e -> "failed"))
         .map("combine", (x, y) -> x + y);
     runAndWait(getTestClassName() + ".testGetRequestsWithError", task);
     assertEquals(task.get(), "Good morning!failed");
     if (expectBatching()) {
+      assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
+    } else {
+      assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
+    }
+  }
+
+  @Test
+  public void testGetRequestsWithErrorOverrides() {
+    Task<String> task = Task.par(toMessage(greetingGet(1L, overrides())), toMessage(greetingGet(-1L, overrides())).recover(e -> "failed"))
+        .map("combine", (x, y) -> x + y);
+    runAndWait(getTestClassName() + ".testGetRequestsWithErrorOverrides", task);
+    assertEquals(task.get(), "Good morning!failed");
+    if (expectBatchingOverrides()) {
       assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
     } else {
       assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
@@ -164,10 +290,32 @@ public abstract class ParSeqRestClientBatchingIntegrationTest extends ParSeqRest
   }
 
   @Test
+  public void testBatchGetRequestsOverrides() {
+    Task<?> task = Task.par(greetings(overrides(), 1L, 2L), greetings(overrides(), 3L, 4L));
+    runAndWait(getTestClassName() + ".testBatchGetRequestsOverrides", task);
+    if (expectBatchingOverrides()) {
+      assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
+    } else {
+      assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
+    }
+  }
+
+  @Test
   public void testGetAndBatchGetRequests() {
     Task<?> task = Task.par(greetingGet(1L), greetings(2L, 3L));
     runAndWait(getTestClassName() + ".testGetAndBatchGetRequests", task);
     if (expectBatching()) {
+      assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
+    } else {
+      assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
+    }
+  }
+
+  @Test
+  public void testGetAndBatchGetRequestsOverrides() {
+    Task<?> task = Task.par(greetingGet(1L, overrides()), greetings(overrides(), 2L, 3L));
+    runAndWait(getTestClassName() + ".testGetAndBatchGetRequestsOverrides", task);
+    if (expectBatchingOverrides()) {
       assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
     } else {
       assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
@@ -182,10 +330,23 @@ public abstract class ParSeqRestClientBatchingIntegrationTest extends ParSeqRest
   }
 
   @Test
+  public void testSingleGetRequestIsNotBatchedOverrides() {
+    Task<?> task = greetingGet(1L, overrides());
+    runAndWait(getTestClassName() + ".testSingleGetRequestIsNotBatchedOverrides", task);
+    assertFalse(hasTask("greetings batch_get(1)", task.getTrace()));
+  }
+
+  @Test
   public void testDuplicateGetRequestIsNotBatched() {
     Task<?> task = Task.par(greetingGet(1L), greetingGet(1L));
     runAndWait(getTestClassName() + ".testDuplicateGetRequestIsNotBatched", task);
     assertFalse(hasTask("greetings batch_get(1)", task.getTrace()));
   }
 
+  @Test
+  public void testDuplicateGetRequestIsNotBatchedOverrides() {
+    Task<?> task = Task.par(greetingGet(1L, overrides()), greetingGet(1L, overrides()));
+    runAndWait(getTestClassName() + ".testDuplicateGetRequestIsNotBatchedOverrides", task);
+    assertFalse(hasTask("greetings batch_get(1)", task.getTrace()));
+  }
 }

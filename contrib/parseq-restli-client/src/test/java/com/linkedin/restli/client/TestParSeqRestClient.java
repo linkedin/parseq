@@ -21,6 +21,7 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.Test;
 
 import com.linkedin.parseq.Task;
+import com.linkedin.restli.client.config.ResourceConfigOverridesBuilder;
 
 public class TestParSeqRestClient extends ParSeqRestClientIntegrationTest {
 
@@ -41,7 +42,25 @@ public class TestParSeqRestClient extends ParSeqRestClientIntegrationTest {
   public void testConfiguredTimeoutOutbound() {
       Task<?> task = greetingGet(1L);
       runAndWait(getTestClassName() + ".testConfiguredTimeoutOutbound", task);
-      assertTrue(hasTask("withTimeout 9999ms config: *.*/greetings.GET", task.getTrace()));
+      assertTrue(hasTask("withTimeout 9999ms src: *.*/greetings.GET", task.getTrace()));
+  }
+
+  @Test
+  public void testConfiguredTimeoutOutboundOverride() {
+      Task<?> task = greetingGet(1L, new ResourceConfigOverridesBuilder()
+          .setTimeoutMs(5555L, "overriden")
+          .build());
+      runAndWait(getTestClassName() + ".testConfiguredTimeoutOutbound", task);
+      assertTrue(hasTask("withTimeout 5555ms src: overriden", task.getTrace()));
+  }
+
+  @Test
+  public void testConfiguredTimeoutOutboundOverrideNoSrc() {
+      Task<?> task = greetingGet(1L, new ResourceConfigOverridesBuilder()
+          .setTimeoutMs(5555L)
+          .build());
+      runAndWait(getTestClassName() + ".testConfiguredTimeoutOutbound", task);
+      assertTrue(hasTask("withTimeout 5555ms", task.getTrace()));
   }
 
   @Test
@@ -53,7 +72,7 @@ public class TestParSeqRestClient extends ParSeqRestClientIntegrationTest {
           .build());
       Task<?> task = greetingGet(1L);
       runAndWait(getTestClassName() + ".testConfiguredTimeoutInboundAndOutbound", task);
-      assertTrue(hasTask("withTimeout 10004ms config: foo.GET/greetings.GET", task.getTrace()));
+      assertTrue(hasTask("withTimeout 10004ms src: foo.GET/greetings.GET", task.getTrace()));
     } finally {
       clearInboundRequestContext();
     }
@@ -68,7 +87,7 @@ public class TestParSeqRestClient extends ParSeqRestClientIntegrationTest {
           .build());
       Task<?> task = greetingGet(1L);
       runAndWait(getTestClassName() + ".testConfiguredTimeoutMismatchedInboundOutbound", task);
-      assertTrue(hasTask("withTimeout 9999ms config: *.*/greetings.GET", task.getTrace()));
+      assertTrue(hasTask("withTimeout 9999ms src: *.*/greetings.GET", task.getTrace()));
     } finally {
       clearInboundRequestContext();
     }
@@ -84,7 +103,7 @@ public class TestParSeqRestClient extends ParSeqRestClientIntegrationTest {
           .build());
       Task<?> task = greetingGet(1L);
       runAndWait(getTestClassName() + ".testConfiguredTimeoutFullActionAndOutbound", task);
-      assertTrue(hasTask("withTimeout 10006ms config: foo.ACTION-bar/greetings.GET", task.getTrace()));
+      assertTrue(hasTask("withTimeout 10006ms src: foo.ACTION-bar/greetings.GET", task.getTrace()));
     } finally {
       clearInboundRequestContext();
     }
@@ -99,7 +118,7 @@ public class TestParSeqRestClient extends ParSeqRestClientIntegrationTest {
           .build());
       Task<?> task = greetingGet(1L);
       runAndWait(getTestClassName() + ".testConfiguredTimeoutPartialActionAndOutbound", task);
-      assertTrue(hasTask("withTimeout 10005ms config: foo.ACTION-*/greetings.GET", task.getTrace()));
+      assertTrue(hasTask("withTimeout 10005ms src: foo.ACTION-*/greetings.GET", task.getTrace()));
     } finally {
       clearInboundRequestContext();
     }
@@ -114,7 +133,7 @@ public class TestParSeqRestClient extends ParSeqRestClientIntegrationTest {
           .build());
       Task<?> task = greetingDel(9999L).toTry();
       runAndWait(getTestClassName() + ".testConfiguredTimeoutOutboundOp", task);
-      assertTrue(hasTask("withTimeout 10001ms config: *.*/greetings.*", task.getTrace()));
+      assertTrue(hasTask("withTimeout 10001ms src: *.*/greetings.*", task.getTrace()));
     } finally {
       clearInboundRequestContext();
     }

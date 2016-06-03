@@ -101,6 +101,11 @@ class ParSeqRestClientImpl extends BatchingStrategy<RequestGroup, RestRequestBat
   }
 
   @Override
+  public <T> Task<Response<T>> createTask(Request<T> request, ResourceConfigOverrides configOverrides) {
+    return createTask(request, new RequestContext(), configOverrides);
+  }
+
+  @Override
   public <T> Task<Response<T>> createTask(Request<T> request, RequestContext requestContext,
       ResourceConfigOverrides configOverrides) {
     ResourceConfig config = _clientConfig.apply(request);
@@ -123,7 +128,7 @@ class ParSeqRestClientImpl extends BatchingStrategy<RequestGroup, RestRequestBat
     ConfigValue<Long> timeout = config.getTimeoutMs();
     if (timeout.getValue() != null) {
       if (timeout.getSource().isPresent()) {
-        return task.withTimeout("config: " + timeout.getSource().get(), timeout.getValue(), TimeUnit.MILLISECONDS);
+        return task.withTimeout("src: " + timeout.getSource().get(), timeout.getValue(), TimeUnit.MILLISECONDS);
       } else {
         return task.withTimeout(timeout.getValue(), TimeUnit.MILLISECONDS);
       }

@@ -19,24 +19,23 @@ package com.linkedin.restli.client;
 import com.linkedin.restli.client.config.ResourceConfigOverrides;
 import com.linkedin.restli.client.config.ResourceConfigOverridesBuilder;
 
-public class TestParSeqRestClientBatchingDryRun extends ParSeqRestClientBatchingIntegrationTest {
+public class TestParSeqRestClientNoBatchingOverrides extends ParSeqRestClientBatchingIntegrationTest {
 
   @Override
   public ParSeqRestClientConfig getParSeqRestClientConfig() {
-    return new ParSeqRestClientConfigBuilder()
-        .addBatchingEnabled("*.*/*.*", Boolean.TRUE)
-        .addBatchingDryRun("*.*/*.*", Boolean.TRUE)
-        .build();
+    return new ParSeqRestClientConfigBuilder().build();
   }
 
   @Override
   protected boolean expectBatching() {
-    return true;
+    return false;
   }
 
   @Override
   protected ResourceConfigOverrides overrides() {
-    return new ResourceConfigOverridesBuilder().build();
+    return new ResourceConfigOverridesBuilder()
+        .setBatchingEnabled(true)
+        .build();
   }
 
   @Override
