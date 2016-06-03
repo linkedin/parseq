@@ -123,7 +123,7 @@ class ParSeqRestClientImpl extends BatchingStrategy<RequestGroup, RestRequestBat
     ConfigValue<Long> timeout = config.getTimeoutMs();
     if (timeout.getValue() != null) {
       if (timeout.getSource().isPresent()) {
-        return task.withTimeout(timeout.getSource().get(), timeout.getValue(), TimeUnit.MILLISECONDS);
+        return task.withTimeout("config: " + timeout.getSource().get(), timeout.getValue(), TimeUnit.MILLISECONDS);
       } else {
         return task.withTimeout(timeout.getValue(), TimeUnit.MILLISECONDS);
       }

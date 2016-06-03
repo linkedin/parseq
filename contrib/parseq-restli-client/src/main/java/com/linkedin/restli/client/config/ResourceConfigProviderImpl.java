@@ -2,7 +2,6 @@ package com.linkedin.restli.client.config;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -13,54 +12,60 @@ import org.slf4j.LoggerFactory;
 
 import com.linkedin.restli.client.InboundRequestContext;
 import com.linkedin.restli.client.InboundRequestContextFinder;
+import com.linkedin.restli.client.ParSeqRestClientConfig;
+import com.linkedin.restli.client.ParSeqRestClientConfigBuilder;
 import com.linkedin.restli.client.Request;
 
 class ResourceConfigProviderImpl implements ResourceConfigProvider {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ResourceConfigProviderImpl.class);
 
-  static final Map<String, Map<String, Object>> DEFAULT_CONFIG = createDefaultConfigMap();
+  static final ParSeqRestClientConfig DEFAULT_CONFIG = createDefaultConfig();
   private final InboundRequestContextFinder _inboundRequestContextFinder;
   private final ResourceConfigTree<Long> _timeoutMs = new ResourceConfigTree<>();
   private final ResourceConfigTree<Boolean> _batchingEnabled = new ResourceConfigTree<>();
   private final ResourceConfigTree<Integer> _maxBatchSize = new ResourceConfigTree<>();
   private final ResourceConfigTree<Boolean> _batchingDryRun = new ResourceConfigTree<>();
 
-  public ResourceConfigProviderImpl(InboundRequestContextFinder inboundRequestContextFinder, Map<String, Map<String, Object>> config) throws ResourceConfigKeyParsingException {
+  public ResourceConfigProviderImpl(InboundRequestContextFinder inboundRequestContextFinder, ParSeqRestClientConfig config) throws ResourceConfigKeyParsingException {
     _inboundRequestContextFinder = inboundRequestContextFinder;
     initialize(config);
   }
 
-  private void initialize(Map<String, Map<String, Object>> config) throws ResourceConfigKeyParsingException {
-    boolean failed = false;
-    List<String> properties = new ArrayList<>(config.keySet());
-    Collections.sort(properties);
-    for (String property: properties) {
-      List<ResourceConfigElement> elements = new ArrayList<>();
-      for (Map.Entry<String, Object> entry: config.get(property).entrySet()) {
-        try {
-          ResourceConfigElement element = ResourceConfigElement.parse(property, entry.getKey(), entry.getValue());
-          processConfigElement(element);
-          elements.add(element);
-        } catch (ResourceConfigKeyParsingException e) {
-          LOGGER.error("Configuration parsing error", e);
-          failed = true;
-        }
-      }
-      if (!failed) {
-        Collections.sort(elements);
-        StringBuilder sb = new StringBuilder();
-        sb.append("ParSeq RestLi Client Configuration for property " + property + " sorted by priority - first match gets applied:\n");
-        elements.forEach(el -> sb.append(el.getKey())
-                                 .append(" = ")
-                                 .append(el.getValue())
-                                 .append("\n"));
-        LOGGER.info(sb.toString());
-      }
-    }
+  private void initialize(ParSeqRestClientConfig config) throws ResourceConfigKeyParsingException {
+    boolean failed = initializeProperty(config.getTimeoutMsConfig(), "timeoutMs") ||
+                     initializeProperty(config.isBatchingEnabledConfig(), "batchingEnabled") ||
+                     initializeProperty(config.getMaxBatchSizeConfig(), "maxBatchSize") ||
+                     initializeProperty(config.isBatchingDryRunConfig(), "batchingDryRun");
     if (failed) {
       throw new ResourceConfigKeyParsingException("Configuration parsing error, see log file for details.");
     }
+  }
+
+  private boolean initializeProperty(Map<String, ?> config, String property) {
+    boolean failed = false;
+    List<ResourceConfigElement> elements = new ArrayList<>();
+    for (Map.Entry<String, ?> entry: config.entrySet()) {
+      try {
+        ResourceConfigElement element = ResourceConfigElement.parse(property, entry.getKey(), entry.getValue());
+        processConfigElement(element);
+        elements.add(element);
+      } catch (ResourceConfigKeyParsingException e) {
+        LOGGER.error("Configuration parsing error", e);
+        failed = true;
+      }
+    }
+    if (!failed) {
+      Collections.sort(elements);
+      StringBuilder sb = new StringBuilder();
+      sb.append("ParSeq RestLi Client Configuration for property " + property + " sorted by priority - first match gets applied:\n");
+      elements.forEach(el -> sb.append(el.getKey())
+                               .append(" = ")
+                               .append(el.getValue())
+                               .append("\n"));
+      LOGGER.info(sb.toString());
+    }
+    return failed;
   }
 
   private void processConfigElement(ResourceConfigElement element) throws ResourceConfigKeyParsingException {
@@ -91,18 +96,12 @@ class ResourceConfigProviderImpl implements ResourceConfigProvider {
   /**
    * Default configuration map must specify default values for all properties.
    */
-  private static Map<String, Map<String, Object>> createDefaultConfigMap() {
-    Map<String, Map<String, Object>> config = new HashMap<>();
-    addProperty(config, "timeoutMs", "*.*/*.*", TimeUnit.SECONDS.toMillis(10));
-    addProperty(config, "batchingEnabled", "*.*/*.*", Boolean.FALSE);
-    addProperty(config, "batchingDryRun", "*.*/*.*", Boolean.FALSE);
-    addProperty(config, "maxBatchSize", "*.*/*.*", 1024);
-    return Collections.unmodifiableMap(config);
+  private static ParSeqRestClientConfig createDefaultConfig() {
+    ParSeqRestClientConfigBuilder builder = new ParSeqRestClientConfigBuilder();
+    builder.addTimeoutMs("*.*/*.*", TimeUnit.SECONDS.toMillis(10));
+    builder.addBatchingEnabled("*.*/*.*", Boolean.FALSE);
+    builder.addMaxBatchSize("*.*/*.*", 1024);
+    builder.addBatchingDryRun("*.*/*.*", Boolean.FALSE);
+    return builder.build();
   }
-
-  private static <T> void addProperty(Map<String, Map<String, Object>> config, String property, String key, T value) {
-    Map<String, Object> map = config.computeIfAbsent(property, k -> new HashMap<>());
-    map.put(key, value);
-  }
-
 }

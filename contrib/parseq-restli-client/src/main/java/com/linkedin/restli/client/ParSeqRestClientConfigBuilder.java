@@ -10,6 +10,20 @@ public class ParSeqRestClientConfigBuilder {
   private final Map<String, Integer> _maxBatchSizeConfig = new HashMap<>();
   private final Map<String, Boolean> _batchingDryRunConfig = new HashMap<>();
 
+  public ParSeqRestClientConfigBuilder() {
+  }
+
+  public ParSeqRestClientConfigBuilder(ParSeqRestClientConfig config) {
+    addConfig(config);
+  }
+
+  public void addConfig(ParSeqRestClientConfig config) {
+    addTimeoutMsConfigMap(config.getTimeoutMsConfig());
+    addBatchingEnabledConfigMap(config.isBatchingEnabledConfig());
+    addMaxBatchSizeConfigMap(config.getMaxBatchSizeConfig());
+    addBatchingDryRunConfigMap(config.isBatchingDryRunConfig());
+  }
+
   public ParSeqRestClientConfig build() {
     return new ParSeqRestClientConfigImpl(_timeoutMsConfig, _batchingEnabledConfig, _maxBatchSizeConfig, _batchingDryRunConfig);
   }

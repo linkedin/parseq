@@ -16,18 +16,14 @@
 
 package com.linkedin.restli.client;
 
-import java.util.HashMap;
-import java.util.Map;
-
-
-public class TestParSeqRestClientBatchingDryRun extends ParSeqRestClientIntegrationTest {
+public class TestParSeqRestClientBatchingDryRun extends ParSeqRestClientBatchingIntegrationTest {
 
   @Override
-  public Map<String, Map<String, Object>> getParSeqRestClientConfig() {
-    Map<String, Map<String, Object>> config = new HashMap<>();
-    addProperty(config, "batchingEnabled", "*.*/*.*", Boolean.TRUE);
-    addProperty(config, "batchingDryRun", "*.*/*.*", Boolean.TRUE);
-    return config;
+  public ParSeqRestClientConfig getParSeqRestClientConfig() {
+    return new ParSeqRestClientConfigBuilder()
+        .addBatchingEnabled("*.*/*.*", Boolean.TRUE)
+        .addBatchingDryRun("*.*/*.*", Boolean.TRUE)
+        .build();
   }
 
   @Override

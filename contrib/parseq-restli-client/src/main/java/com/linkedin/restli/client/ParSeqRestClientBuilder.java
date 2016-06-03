@@ -1,7 +1,5 @@
 package com.linkedin.restli.client;
 
-import java.util.Collections;
-import java.util.Map;
 import java.util.Optional;
 
 import com.linkedin.parseq.batching.BatchingSupport;
@@ -11,7 +9,7 @@ import com.linkedin.restli.client.config.ResourceConfigProvider;
 public class ParSeqRestClientBuilder {
 
   private RestClient _restClient;
-  private Map<String, Map<String, Object>> _config;
+  private ParSeqRestClientConfig _config;
   private BatchingSupport _batchingSupport;
   private InboundRequestContextFinder _inboundRequestContextFinder;
 
@@ -21,7 +19,7 @@ public class ParSeqRestClientBuilder {
    */
   public ParSeqRestClient build() {
     ResourceConfigProvider configProvider =
-        ResourceConfigProvider.fromMap(_config == null ? Collections.emptyMap() : _config,
+        ResourceConfigProvider.build(_config,
             _inboundRequestContextFinder == null ? () -> Optional.empty() : _inboundRequestContextFinder);
     ParSeqRestClientImpl parseqClient = new ParSeqRestClientImpl(_restClient, configProvider);
     if (_batchingSupport != null) {
@@ -45,7 +43,7 @@ public class ParSeqRestClientBuilder {
     return this;
   }
 
-  public ParSeqRestClientBuilder setConfig(Map<String, Map<String, Object>> config) {
+  public ParSeqRestClientBuilder setConfig(ParSeqRestClientConfig config) {
     ArgumentUtil.requireNotNull(config, "config");
     _config = config;
     return this;
