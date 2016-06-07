@@ -21,7 +21,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import com.linkedin.common.callback.Callback;
 import com.linkedin.data.DataMap;
@@ -215,7 +214,8 @@ class GetRequestGroup implements RequestGroup {
         batch.entries().stream()
         .forEach(entry -> {
           try {
-            Request request = entry.getKey().getRequest();
+            RestRequestBatchKey rrbk = entry.getKey();
+            Request request = rrbk.getRequest();
             if (request instanceof GetRequest) {
               String idString = ((GetRequest) request).getObjectId().toString();
               Object id = ResponseUtils.convertKey(idString, request.getResourceSpec().getKeyType(),
@@ -223,8 +223,7 @@ class GetRequestGroup implements RequestGroup {
               Response rsp = unbatchResponse(batchGet, responseToBatch, id);
               entry.getValue().getPromise().done(rsp);
             } else if (request instanceof BatchGetKVRequest) {
-              BatchGetKVRequest batchGetKVRequest = (BatchGetKVRequest) request;
-              Set<String> ids = extractIds(batchGetKVRequest);
+              Set<String> ids = rrbk.ids();
               DataMap dm = filterIdsInBatchResult(responseToBatch.getEntity().data(), ids, true);
               BatchKVResponse br = new BatchKVResponse(dm, request.getResourceSpec().getKeyType(),
                   request.getResourceSpec().getValueType(), request.getResourceSpec().getKeyParts(),
@@ -233,14 +232,13 @@ class GetRequestGroup implements RequestGroup {
               entry.getValue().getPromise().done(rsp);
             } else if (request instanceof BatchGetRequest) {
               BatchGetRequest batchGetRequest = (BatchGetRequest) request;
-              Set<String> ids = extractIds(batchGetRequest);
+              Set<String> ids = rrbk.ids();
               DataMap dm = filterIdsInBatchResult(responseToBatch.getEntity().data(), ids, true);
               BatchResponse br = new BatchResponse<>(dm, batchGetRequest.getResponseDecoder().getEntityClass());
               Response rsp = new ResponseImpl(responseToBatch, br);
               entry.getValue().getPromise().done(rsp);
             } else if (request instanceof BatchGetEntityRequest) {
-              BatchGetEntityRequest batchGetEntityRequest = (BatchGetEntityRequest) request;
-              Set<String> ids = extractIds(batchGetEntityRequest);
+              Set<String> ids = rrbk.ids();
               DataMap dm = filterIdsInBatchResult(responseToBatch.getEntity().data(), ids, false);
               BatchKVResponse br = new BatchEntityResponse<>(dm, request.getResourceSpec().getKeyType(),
                   request.getResourceSpec().getValueType(), request.getResourceSpec().getKeyParts(),
@@ -324,10 +322,6 @@ class GetRequestGroup implements RequestGroup {
     return Tuples.tuple(ids, paths, a._3() || b._3());
   }
 
-  private <RT extends RecordTemplate> Set<String> extractIds(BatchRequest<RT> request) {
-    return request.getObjectIds().stream().map(Object::toString).collect(Collectors.toSet());
-  }
-
   @Override
   public <RT extends RecordTemplate> void executeBatch(final RestClient restClient, final Batch<RestRequestBatchKey, Response<Object>> batch) {
     doExecuteBatch(restClient, batch);
@@ -407,8 +401,8 @@ class GetRequestGroup implements RequestGroup {
 
   @Override
   public <K, V> String getBatchName(final Batch<K, V> batch) {
-    return _baseUriTemplate + " " + (batch.size() == 1 ? ResourceMethod.GET : (ResourceMethod.BATCH_GET +
-        "(" + batch.size() + ")"));
+    return _baseUriTemplate + " " + (batch.batchSize() == 1 ? ResourceMethod.GET : (ResourceMethod.BATCH_GET +
+        "(reqs: " + batch.keysSize() + ", ids: " + batch.batchSize() + ")"));
   }
 
   @Override
@@ -419,6 +413,11 @@ class GetRequestGroup implements RequestGroup {
   @Override
   public int getMaxBatchSize() {
     return _maxBatchSize;
+  }
+
+  @Override
+  public int keySize(RestRequestBatchKey key) {
+    return key.ids().size();
   }
 
 }

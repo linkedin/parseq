@@ -52,4 +52,6 @@ interface RequestGroup {
 
   int getMaxBatchSize();
 
+  int keySize(RestRequestBatchKey key);
+
 }

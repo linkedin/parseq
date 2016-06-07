@@ -16,6 +16,7 @@
 
 package com.linkedin.restli.client;
 
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
@@ -35,6 +36,8 @@ public class TestParSeqRestClient extends ParSeqRestClientIntegrationTest {
         .addTimeoutMs("foo.GET/greetings.GET", 10004L)
         .addTimeoutMs("foo.ACTION-*/greetings.GET", 10005L)
         .addTimeoutMs("foo.ACTION-bar/greetings.GET", 10006L)
+        .addBatchingEnabled("withBatching.*/*.*", true)
+        .addMaxBatchSize("withBatching.*/*.*", 3)
         .build();
   }
 
@@ -134,6 +137,48 @@ public class TestParSeqRestClient extends ParSeqRestClientIntegrationTest {
       Task<?> task = greetingDel(9999L).toTry();
       runAndWait(getTestClassName() + ".testConfiguredTimeoutOutboundOp", task);
       assertTrue(hasTask("withTimeout 10001ms src: *.*/greetings.*", task.getTrace()));
+    } finally {
+      clearInboundRequestContext();
+    }
+  }
+
+  @Test
+  public void testBatchingGetRequests() {
+    try {
+      setInboundRequestContext(new InboundRequestContextBuilder()
+          .setName("withBatching")
+          .build());
+      Task<?> task = Task.par(greetingGet(1L), greetingGet(2L), greetingGet(3L));
+      runAndWait(getTestClassName() + ".testBatchingGetRequests", task);
+      assertTrue(hasTask("greetings batch_get(reqs: 3, ids: 3)", task.getTrace()));
+    } finally {
+      clearInboundRequestContext();
+    }
+  }
+
+  @Test
+  public void testBatchingGetRequestsMaxExceeded() {
+    try {
+      setInboundRequestContext(new InboundRequestContextBuilder()
+          .setName("withBatching")
+          .build());
+      Task<?> task = Task.par(greetingGet(1L), greetingGet(2L), greetingGet(3L), greetingGet(4L));
+      runAndWait(getTestClassName() + ".testBatchingGetRequestsMaxExceeded", task);
+      assertTrue(hasTask("greetings batch_get(reqs: 3, ids: 3)", task.getTrace()));
+    } finally {
+      clearInboundRequestContext();
+    }
+  }
+
+  @Test
+  public void testBatchGetLargerThanMaxBatchSize() {
+    try {
+      setInboundRequestContext(new InboundRequestContextBuilder()
+          .setName("withBatching")
+          .build());
+      Task<?> task = greetings(1L, 2L, 3L, 4L);
+      runAndWait(getTestClassName() + ".testBatchGetLargerThanMaxBatchSize", task);
+      assertFalse(hasTask("greetings batch_get(reqs: 3, ids: 3)", task.getTrace()));
     } finally {
       clearInboundRequestContext();
     }
