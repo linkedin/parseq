@@ -6,7 +6,7 @@ import java.util.Optional;
 
 import com.linkedin.restli.common.ResourceMethod;
 
-class ResourceConfigTree<T> {
+class RequestConfigTree<T> {
 
   /**
    * Priorities:
@@ -21,7 +21,7 @@ class ResourceConfigTree<T> {
       new HashMap<>();
 
   @SuppressWarnings("unchecked")
-  void add(ResourceConfigElement element) {
+  void add(RequestConfigElement element) {
     _tree.computeIfAbsent(element.getOutboundName(), k -> new HashMap<>())
          .computeIfAbsent(element.getInboundName(), k -> new HashMap<>())
          .computeIfAbsent(element.getOutboundOp(), k -> new HashMap<>())
@@ -30,7 +30,7 @@ class ResourceConfigTree<T> {
          .putIfAbsent(element.getInboundOpName(), new ConfigValue<T>((T)element.getValue(), element.getKey()));
   }
 
-  Optional<ConfigValue<T>> resolveInboundOpName(ResourceConfigCacheKey cacheKeyd,
+  Optional<ConfigValue<T>> resolveInboundOpName(RequestConfigCacheKey cacheKeyd,
      Map<Optional<String>, ConfigValue<T>> map) {
     if (map != null) {
       Optional<String> inboundOpName = cacheKeyd.getInboundOpName();
@@ -46,7 +46,7 @@ class ResourceConfigTree<T> {
     }
   }
 
-  Optional<ConfigValue<T>> resolveInboundOp(ResourceConfigCacheKey cacheKeyd,
+  Optional<ConfigValue<T>> resolveInboundOp(RequestConfigCacheKey cacheKeyd,
       Map<Optional<String>, Map<Optional<String>, ConfigValue<T>>> map) {
     if (map != null) {
       Optional<String> inboundOp = cacheKeyd.getInboundOp();
@@ -62,7 +62,7 @@ class ResourceConfigTree<T> {
     }
   }
 
-  Optional<ConfigValue<T>> resolveOutboundOpName(ResourceConfigCacheKey cacheKeyd,
+  Optional<ConfigValue<T>> resolveOutboundOpName(RequestConfigCacheKey cacheKeyd,
       Map<Optional<String>, Map<Optional<String>, Map<Optional<String>, ConfigValue<T>>>> map) {
     if (map != null) {
       Optional<String> outboundOpName = cacheKeyd.getOutboundOpName();
@@ -78,7 +78,7 @@ class ResourceConfigTree<T> {
     }
   }
 
-  Optional<ConfigValue<T>> resolveOutboundOp(ResourceConfigCacheKey cacheKeyd,
+  Optional<ConfigValue<T>> resolveOutboundOp(RequestConfigCacheKey cacheKeyd,
       Map<Optional<ResourceMethod>, Map<Optional<String>, Map<Optional<String>, Map<Optional<String>, ConfigValue<T>>>>> map) {
     if (map != null) {
       Optional<ResourceMethod> outboundOp = Optional.of(cacheKeyd.getOutboundOp());
@@ -94,7 +94,7 @@ class ResourceConfigTree<T> {
     }
   }
 
-  Optional<ConfigValue<T>> resolveInboundName(ResourceConfigCacheKey cacheKeyd,
+  Optional<ConfigValue<T>> resolveInboundName(RequestConfigCacheKey cacheKeyd,
       Map<Optional<String>, Map<Optional<ResourceMethod>, Map<Optional<String>, Map<Optional<String>, Map<Optional<String>, ConfigValue<T>>>>>> map) {
     if (map != null) {
       Optional<String> inboundName = cacheKeyd.getInboundName();
@@ -110,7 +110,7 @@ class ResourceConfigTree<T> {
     }
   }
 
-  Optional<ConfigValue<T>> resolveOutboundName(ResourceConfigCacheKey cacheKeyd) {
+  Optional<ConfigValue<T>> resolveOutboundName(RequestConfigCacheKey cacheKeyd) {
     Optional<String> outboundName = Optional.of(cacheKeyd.getOutboundName());
     if (outboundName.isPresent()) {
       Optional<ConfigValue<T>> value = resolveInboundName(cacheKeyd, _tree.get(outboundName));
@@ -121,7 +121,7 @@ class ResourceConfigTree<T> {
     return resolveInboundName(cacheKeyd, _tree.get(Optional.empty()));
   }
 
-  ConfigValue<T> resolve(ResourceConfigCacheKey cacheKey) {
+  ConfigValue<T> resolve(RequestConfigCacheKey cacheKey) {
     return resolveOutboundName(cacheKey).get();
   }
 }

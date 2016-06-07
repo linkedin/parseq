@@ -2,13 +2,13 @@ package com.linkedin.restli.client.config;
 
 import java.util.Optional;
 
-class ResourceConfigOverridesImpl implements ResourceConfigOverrides {
+class RequestConfigOverridesImpl implements RequestConfigOverrides {
 
   private final Optional<ConfigValue<Long>> _timeoutMs;
   private final Optional<ConfigValue<Boolean>>  _batchingEnabled;
   private final Optional<ConfigValue<Integer>> _maxBatchSize;
 
-  ResourceConfigOverridesImpl(Optional<ConfigValue<Long>> timeoutMs, Optional<ConfigValue<Boolean>> batchingEnabled, Optional<ConfigValue<Integer>> maxBatchSize) {
+  RequestConfigOverridesImpl(Optional<ConfigValue<Long>> timeoutMs, Optional<ConfigValue<Boolean>> batchingEnabled, Optional<ConfigValue<Integer>> maxBatchSize) {
     _timeoutMs = timeoutMs;
     _batchingEnabled = batchingEnabled;
     _maxBatchSize = maxBatchSize;

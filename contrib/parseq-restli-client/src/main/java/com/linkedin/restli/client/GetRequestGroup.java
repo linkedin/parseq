@@ -22,6 +22,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.linkedin.common.callback.Callback;
 import com.linkedin.data.DataMap;
 import com.linkedin.data.schema.PathSpec;
@@ -44,6 +47,8 @@ import com.linkedin.restli.internal.common.ProtocolVersionUtil;
 import com.linkedin.restli.internal.common.ResponseUtils;
 
 class GetRequestGroup implements RequestGroup {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(GetRequestGroup.class);
 
   private final String _baseUriTemplate; //taken from first request, used to differentiate between groups
   private final ResourceSpec _resourceSpec;  //taken from first request
@@ -172,20 +177,6 @@ class GetRequestGroup implements RequestGroup {
       }
     } else {
       throw new RuntimeException("ParSeqRestClient could not handled this type of GET request: " + request.getClass().getName());
-    }
-  }
-
-  private <K, RT extends RecordTemplate> void doExecuteBatch(final RestClient restClient, final Batch<RestRequestBatchKey, Response<Object>> batch) {
-
-    final Tuple3<Set<Object>, Set<PathSpec>, Boolean> reductionResults = reduceRequests(batch);
-    final Set<Object> ids = reductionResults._1();
-    final Set<PathSpec> fields = reductionResults._2();
-    final boolean containsBatchGet = reductionResults._3();
-
-    if (ids.size() == 1 && !containsBatchGet) {
-      doExecuteGet(restClient, batch, ids, fields);
-    } else {
-      doExecuteBatchGet(restClient, batch, ids, fields);
     }
   }
 
@@ -322,7 +313,18 @@ class GetRequestGroup implements RequestGroup {
 
   @Override
   public <RT extends RecordTemplate> void executeBatch(final RestClient restClient, final Batch<RestRequestBatchKey, Response<Object>> batch) {
-    doExecuteBatch(restClient, batch);
+    final Tuple3<Set<Object>, Set<PathSpec>, Boolean> reductionResults = reduceRequests(batch);
+    final Set<Object> ids = reductionResults._1();
+    final Set<PathSpec> fields = reductionResults._2();
+    final boolean containsBatchGet = reductionResults._3();
+
+    LOGGER.debug("executeBatch, ids: '{}', fields: {}", ids, fields);
+
+    if (ids.size() == 1 && !containsBatchGet) {
+      doExecuteGet(restClient, batch, ids, fields);
+    } else {
+      doExecuteBatchGet(restClient, batch, ids, fields);
+    }
   }
 
   @Override

@@ -19,9 +19,8 @@ package com.linkedin.restli.client;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.r2.message.RequestContext;
-import com.linkedin.restli.client.config.ResourceConfig;
-import com.linkedin.restli.client.config.ResourceConfigOverrides;
-import com.linkedin.restli.client.config.ResourceConfigOverridesBuilder;
+import com.linkedin.restli.client.config.RequestConfigOverrides;
+import com.linkedin.restli.client.config.RequestConfigOverridesBuilder;
 import com.linkedin.restli.client.metrics.Metrics;
 
 /**
@@ -68,13 +67,13 @@ public interface ParSeqRestClient {
    * Creates a task that makes rest.li request and returns response.
    * <p>
    * Passed in {@code configOverrides} will override any existing configuration. Not all properties need to be set.
-   * Use {@link ResourceConfigOverridesBuilder} to create instance of {@link ResourceConfigOverrides}.
+   * Use {@link RequestConfigOverridesBuilder} to create instance of {@link RequestConfigOverrides}.
    *
    * @param request
    * @param configOverrides
    * @return Task that returns response
    */
-  public <T> Task<Response<T>> createTask(final Request<T> request, final ResourceConfigOverrides configOverrides);
+  public <T> Task<Response<T>> createTask(final Request<T> request, final RequestConfigOverrides configOverrides);
 
   /**
    * Creates a task that makes rest.li request and returns response.
@@ -89,7 +88,7 @@ public interface ParSeqRestClient {
    * Creates a task that makes rest.li request and returns response.
    * <p>
    * Passed in {@code configOverrides} will override any existing configuration. Not all properties need to be set.
-   * Use {@link ResourceConfigOverridesBuilder} to create instance of {@link ResourceConfigOverrides}.
+   * Use {@link RequestConfigOverridesBuilder} to create instance of {@link RequestConfigOverrides}.
    *
    * @param request
    * @param requestContext
@@ -97,19 +96,11 @@ public interface ParSeqRestClient {
    * @param configOverrides
    * @return Task that returns response
    */
-  public <T> Task<Response<T>> createTask(final Request<T> request, final RequestContext requestContext, final ResourceConfigOverrides configOverrides);
+  public <T> Task<Response<T>> createTask(final Request<T> request, final RequestContext requestContext, final RequestConfigOverrides configOverrides);
 
   /**
    * Returns ParSeq rest.li client's metrics.
    * @return metrics
    */
   public Metrics getMetrics();
-
-  /**
-   * Returns ResourceConfig for specified Request.
-   * @param request
-   * @return
-   */
-  public <T> ResourceConfig getResourceConfig(final Request<T> request);
-
 }

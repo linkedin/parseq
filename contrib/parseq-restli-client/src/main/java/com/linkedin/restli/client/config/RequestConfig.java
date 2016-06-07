@@ -16,13 +16,11 @@
 
 package com.linkedin.restli.client.config;
 
-import java.util.Optional;
+public interface RequestConfig {
 
-public interface ResourceConfigOverrides {
+  public ConfigValue<Long> getTimeoutMs();
 
-  public Optional<ConfigValue<Long>> getTimeoutMs();
+  public ConfigValue<Boolean> isBatchingEnabled();
 
-  public Optional<ConfigValue<Boolean>> isBatchingEnabled();
-
-  public Optional<ConfigValue<Integer>> getMaxBatchSize();
+  public ConfigValue<Integer> getMaxBatchSize();
 }

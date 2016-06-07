@@ -31,11 +31,11 @@ public class BatchSizeMetric {
 
   private int narrow(int batchSize) {
     if (batchSize < LOWEST_DISCERNIBLE_VALUE) {
-      LOGGER.warn("batch size lower than expected: " + batchSize + ", recording as: " + LOWEST_DISCERNIBLE_VALUE);
+      LOGGER.warn("batch size lower than expected: {}, recording as: ", batchSize, LOWEST_DISCERNIBLE_VALUE);
       return LOWEST_DISCERNIBLE_VALUE;
     }
     if (batchSize > HIGHEST_TRACKABLE_VALUE) {
-      LOGGER.warn("batch size greater than expected: " + batchSize + ", recording as: " + HIGHEST_TRACKABLE_VALUE);
+      LOGGER.warn("batch size greater than expected: {}, recording as: ", batchSize, HIGHEST_TRACKABLE_VALUE);
       return HIGHEST_TRACKABLE_VALUE;
     }
     return batchSize;

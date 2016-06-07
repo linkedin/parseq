@@ -22,7 +22,7 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.Test;
 
 import com.linkedin.parseq.Task;
-import com.linkedin.restli.client.config.ResourceConfigOverridesBuilder;
+import com.linkedin.restli.client.config.RequestConfigOverridesBuilder;
 
 public class TestParSeqRestClient extends ParSeqRestClientIntegrationTest {
 
@@ -50,7 +50,7 @@ public class TestParSeqRestClient extends ParSeqRestClientIntegrationTest {
 
   @Test
   public void testConfiguredTimeoutOutboundOverride() {
-      Task<?> task = greetingGet(1L, new ResourceConfigOverridesBuilder()
+      Task<?> task = greetingGet(1L, new RequestConfigOverridesBuilder()
           .setTimeoutMs(5555L, "overriden")
           .build());
       runAndWait(getTestClassName() + ".testConfiguredTimeoutOutbound", task);
@@ -59,7 +59,7 @@ public class TestParSeqRestClient extends ParSeqRestClientIntegrationTest {
 
   @Test
   public void testConfiguredTimeoutOutboundOverrideNoSrc() {
-      Task<?> task = greetingGet(1L, new ResourceConfigOverridesBuilder()
+      Task<?> task = greetingGet(1L, new RequestConfigOverridesBuilder()
           .setTimeoutMs(5555L)
           .build());
       runAndWait(getTestClassName() + ".testConfiguredTimeoutOutbound", task);

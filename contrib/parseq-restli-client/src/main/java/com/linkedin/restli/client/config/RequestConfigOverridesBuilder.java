@@ -18,43 +18,43 @@ package com.linkedin.restli.client.config;
 
 import java.util.Optional;
 
-public class ResourceConfigOverridesBuilder {
+public class RequestConfigOverridesBuilder {
 
   private ConfigValue<Long> _timeoutMs;
   private ConfigValue<Boolean>  _batchingEnabled;
   private ConfigValue<Integer> _maxBatchSize;
 
-  public ResourceConfigOverrides build() {
-    return new ResourceConfigOverridesImpl(Optional.ofNullable(_timeoutMs), Optional.ofNullable(_batchingEnabled),
+  public RequestConfigOverrides build() {
+    return new RequestConfigOverridesImpl(Optional.ofNullable(_timeoutMs), Optional.ofNullable(_batchingEnabled),
         Optional.ofNullable(_maxBatchSize));
   }
 
-  public ResourceConfigOverridesBuilder setTimeoutMs(long timeoutMs, String source) {
+  public RequestConfigOverridesBuilder setTimeoutMs(long timeoutMs, String source) {
     _timeoutMs = new ConfigValue<>(timeoutMs, source);
     return this;
   }
 
-  public ResourceConfigOverridesBuilder setTimeoutMs(long timeoutMs) {
+  public RequestConfigOverridesBuilder setTimeoutMs(long timeoutMs) {
     _timeoutMs = new ConfigValue<>(timeoutMs, null);
     return this;
   }
 
-  public ResourceConfigOverridesBuilder setBatchingEnabled(boolean batchingEnabled, String source) {
+  public RequestConfigOverridesBuilder setBatchingEnabled(boolean batchingEnabled, String source) {
     _batchingEnabled = new ConfigValue<>(batchingEnabled, source);
     return this;
   }
 
-  public ResourceConfigOverridesBuilder setBatchingEnabled(boolean batchingEnabled) {
+  public RequestConfigOverridesBuilder setBatchingEnabled(boolean batchingEnabled) {
     _batchingEnabled = new ConfigValue<>(batchingEnabled, null);
     return this;
   }
 
-  public ResourceConfigOverridesBuilder setMaxBatchSize(int maxBatchSize, String source) {
+  public RequestConfigOverridesBuilder setMaxBatchSize(int maxBatchSize, String source) {
     _maxBatchSize =  new ConfigValue<>(maxBatchSize, source);
     return this;
   }
 
-  public ResourceConfigOverridesBuilder setMaxBatchSize(int maxBatchSize) {
+  public RequestConfigOverridesBuilder setMaxBatchSize(int maxBatchSize) {
     _maxBatchSize =  new ConfigValue<>(maxBatchSize, null);
     return this;
   }
