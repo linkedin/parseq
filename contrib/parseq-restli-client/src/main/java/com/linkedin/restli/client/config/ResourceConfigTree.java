@@ -4,11 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import com.linkedin.restli.client.InboundRequestContext;
-import com.linkedin.restli.client.Request;
 import com.linkedin.restli.common.ResourceMethod;
-import com.linkedin.restli.common.RestConstants;
-import com.linkedin.restli.internal.common.URIParamUtils;
 
 class ResourceConfigTree<T> {
 
@@ -34,31 +30,10 @@ class ResourceConfigTree<T> {
          .putIfAbsent(element.getInboundOpName(), new ConfigValue<T>((T)element.getValue(), element.getKey()));
   }
 
-  private Optional<String> getOpInName(Optional<InboundRequestContext> inboundRequestContext, String method) {
-    if (method.equals(ResourceMethod.ACTION.toString().toUpperCase())) {
-      return inboundRequestContext.flatMap(InboundRequestContext::getActionName);
-    } else if (method.equals(ResourceMethod.FINDER.toString().toUpperCase())) {
-      return inboundRequestContext.flatMap(InboundRequestContext::getFinderName);
-    } else {
-      return Optional.empty();
-    }
-  }
-
-  private Optional<String> getOpOutName(Request<?> request) {
-    if (request.getMethod() == ResourceMethod.ACTION) {
-      return Optional.of((String)request.getQueryParamsObjects().get(RestConstants.ACTION_PARAM));
-    } else if (request.getMethod() == ResourceMethod.FINDER) {
-      return Optional.of((String)request.getQueryParamsObjects().get(RestConstants.QUERY_TYPE_PARAM));
-    } else {
-      return Optional.empty();
-    }
-  }
-
-  Optional<ConfigValue<T>> resolveInboundOpName(Optional<InboundRequestContext> inbound, Request<?> outbound,
+  Optional<ConfigValue<T>> resolveInboundOpName(ResourceConfigCacheKey cacheKeyd,
      Map<Optional<String>, ConfigValue<T>> map) {
     if (map != null) {
-      Optional<String> inboundOp = inbound.map(r -> r.getMethod());
-      Optional<String> inboundOpName = inboundOp.flatMap(method -> getOpInName(inbound, method));
+      Optional<String> inboundOpName = cacheKeyd.getInboundOpName();
       if (inboundOpName.isPresent()) {
         ConfigValue<T> value = map.get(inboundOpName);
         if (value != null) {
@@ -71,82 +46,82 @@ class ResourceConfigTree<T> {
     }
   }
 
-  Optional<ConfigValue<T>> resolveInboundOp(Optional<InboundRequestContext> inbound, Request<?> outbound,
+  Optional<ConfigValue<T>> resolveInboundOp(ResourceConfigCacheKey cacheKeyd,
       Map<Optional<String>, Map<Optional<String>, ConfigValue<T>>> map) {
     if (map != null) {
-      Optional<String> inboundOp = inbound.map(r -> r.getMethod());
+      Optional<String> inboundOp = cacheKeyd.getInboundOp();
       if (inboundOp.isPresent()) {
-        Optional<ConfigValue<T>> value = resolveInboundOpName(inbound, outbound, map.get(inboundOp));
+        Optional<ConfigValue<T>> value = resolveInboundOpName(cacheKeyd, map.get(inboundOp));
         if (value.isPresent()) {
           return value;
         }
       }
-      return resolveInboundOpName(inbound, outbound, map.get(Optional.empty()));
+      return resolveInboundOpName(cacheKeyd, map.get(Optional.empty()));
     } else {
       return Optional.empty();
     }
   }
 
-  Optional<ConfigValue<T>> resolveOutboundOpName(Optional<InboundRequestContext> inbound, Request<?> outbound,
+  Optional<ConfigValue<T>> resolveOutboundOpName(ResourceConfigCacheKey cacheKeyd,
       Map<Optional<String>, Map<Optional<String>, Map<Optional<String>, ConfigValue<T>>>> map) {
     if (map != null) {
-      Optional<String> outboundOpName = getOpOutName(outbound);
+      Optional<String> outboundOpName = cacheKeyd.getOutboundOpName();
       if (outboundOpName.isPresent()) {
-        Optional<ConfigValue<T>> value = resolveInboundOp(inbound, outbound, map.get(outboundOpName));
+        Optional<ConfigValue<T>> value = resolveInboundOp(cacheKeyd, map.get(outboundOpName));
         if (value.isPresent()) {
           return value;
         }
       }
-      return resolveInboundOp(inbound, outbound, map.get(Optional.empty()));
+      return resolveInboundOp(cacheKeyd, map.get(Optional.empty()));
     } else {
       return Optional.empty();
     }
   }
 
-  Optional<ConfigValue<T>> resolveOutboundOp(Optional<InboundRequestContext> inbound, Request<?> outbound,
+  Optional<ConfigValue<T>> resolveOutboundOp(ResourceConfigCacheKey cacheKeyd,
       Map<Optional<ResourceMethod>, Map<Optional<String>, Map<Optional<String>, Map<Optional<String>, ConfigValue<T>>>>> map) {
     if (map != null) {
-      Optional<ResourceMethod> outboundOp = Optional.of(outbound.getMethod());
+      Optional<ResourceMethod> outboundOp = Optional.of(cacheKeyd.getOutboundOp());
       if (outboundOp.isPresent()) {
-        Optional<ConfigValue<T>> value = resolveOutboundOpName(inbound, outbound, map.get(outboundOp));
+        Optional<ConfigValue<T>> value = resolveOutboundOpName(cacheKeyd, map.get(outboundOp));
         if (value.isPresent()) {
           return value;
         }
       }
-      return resolveOutboundOpName(inbound, outbound, map.get(Optional.empty()));
+      return resolveOutboundOpName(cacheKeyd, map.get(Optional.empty()));
     } else {
       return Optional.empty();
     }
   }
 
-  Optional<ConfigValue<T>> resolveInboundName(Optional<InboundRequestContext> inbound, Request<?> outbound,
+  Optional<ConfigValue<T>> resolveInboundName(ResourceConfigCacheKey cacheKeyd,
       Map<Optional<String>, Map<Optional<ResourceMethod>, Map<Optional<String>, Map<Optional<String>, Map<Optional<String>, ConfigValue<T>>>>>> map) {
     if (map != null) {
-      Optional<String> inboundName = inbound.map(r -> r.getName());
+      Optional<String> inboundName = cacheKeyd.getInboundName();
       if (inboundName.isPresent()) {
-        Optional<ConfigValue<T>> value = resolveOutboundOp(inbound, outbound, map.get(inboundName));
+        Optional<ConfigValue<T>> value = resolveOutboundOp(cacheKeyd, map.get(inboundName));
         if (value.isPresent()) {
           return value;
         }
       }
-      return resolveOutboundOp(inbound, outbound, map.get(Optional.empty()));
+      return resolveOutboundOp(cacheKeyd, map.get(Optional.empty()));
     } else {
       return Optional.empty();
     }
   }
 
-  Optional<ConfigValue<T>> resolveOutboundName(Optional<InboundRequestContext> inbound, Request<?> outbound) {
-    Optional<String> outboundName = Optional.of(URIParamUtils.extractPathComponentsFromUriTemplate(outbound.getBaseUriTemplate())[0]);
+  Optional<ConfigValue<T>> resolveOutboundName(ResourceConfigCacheKey cacheKeyd) {
+    Optional<String> outboundName = Optional.of(cacheKeyd.getOutboundName());
     if (outboundName.isPresent()) {
-      Optional<ConfigValue<T>> value = resolveInboundName(inbound, outbound, _tree.get(outboundName));
+      Optional<ConfigValue<T>> value = resolveInboundName(cacheKeyd, _tree.get(outboundName));
       if (value.isPresent()) {
         return value;
       }
     }
-    return resolveInboundName(inbound, outbound, _tree.get(Optional.empty()));
+    return resolveInboundName(cacheKeyd, _tree.get(Optional.empty()));
   }
 
-  ConfigValue<T> resolve(Optional<InboundRequestContext> inbound, Request<?> outbound) {
-    return resolveOutboundName(inbound, outbound).get();
+  ConfigValue<T> resolve(ResourceConfigCacheKey cacheKey) {
+    return resolveOutboundName(cacheKey).get();
   }
 }

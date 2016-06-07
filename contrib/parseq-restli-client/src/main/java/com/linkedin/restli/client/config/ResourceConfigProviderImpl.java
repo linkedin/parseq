@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.linkedin.restli.client.InboundRequestContext;
 import com.linkedin.restli.client.InboundRequestContextFinder;
 import com.linkedin.restli.client.ParSeqRestClientConfig;
 import com.linkedin.restli.client.ParSeqRestClientConfigBuilder;
@@ -26,6 +26,7 @@ class ResourceConfigProviderImpl implements ResourceConfigProvider {
   private final ResourceConfigTree<Boolean> _batchingEnabled = new ResourceConfigTree<>();
   private final ResourceConfigTree<Integer> _maxBatchSize = new ResourceConfigTree<>();
   private final ResourceConfigTree<Boolean> _batchingDryRun = new ResourceConfigTree<>();
+  private final ConcurrentMap<ResourceConfigCacheKey, ResourceConfig> _cache = new ConcurrentHashMap<>();
 
   public ResourceConfigProviderImpl(InboundRequestContextFinder inboundRequestContextFinder, ParSeqRestClientConfig config) throws ResourceConfigKeyParsingException {
     _inboundRequestContextFinder = inboundRequestContextFinder;
@@ -80,16 +81,16 @@ class ResourceConfigProviderImpl implements ResourceConfigProvider {
 
   @Override
   public ResourceConfig apply(Request<?> request) {
-    //TODO cache result
-    return resolve(_inboundRequestContextFinder.find(), request);
+    ResourceConfigCacheKey cacheKey = new ResourceConfigCacheKey(_inboundRequestContextFinder.find(), request);
+    return _cache.computeIfAbsent(cacheKey, this::resolve);
   }
 
-  private ResourceConfig resolve(Optional<InboundRequestContext> inbound, Request<?> outbound) {
+  private ResourceConfig resolve(ResourceConfigCacheKey cacheKey) {
     return new ResourceConfigBuilder()
-      .setTimeoutMs(_timeoutMs.resolve(inbound, outbound))
-      .setBatchingEnabled(_batchingEnabled.resolve(inbound, outbound))
-      .setMaxBatchSize(_maxBatchSize.resolve(inbound, outbound))
-      .setBatchingDryRun(_batchingDryRun.resolve(inbound, outbound))
+      .setTimeoutMs(_timeoutMs.resolve(cacheKey))
+      .setBatchingEnabled(_batchingEnabled.resolve(cacheKey))
+      .setMaxBatchSize(_maxBatchSize.resolve(cacheKey))
+      .setBatchingDryRun(_batchingDryRun.resolve(cacheKey))
       .build();
   }
 
