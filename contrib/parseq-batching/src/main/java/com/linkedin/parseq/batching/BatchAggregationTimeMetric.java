@@ -32,11 +32,11 @@ public class BatchAggregationTimeMetric {
 
   private long narrow(long batchAggregationTimeNano) {
     if (batchAggregationTimeNano < LOWEST_DISCERNIBLE_VALUE) {
-      LOGGER.warn("batch aggregation time lower than expected: " + batchAggregationTimeNano + ", recording as: " + LOWEST_DISCERNIBLE_VALUE);
+      LOGGER.warn("batch aggregation time lower than expected: {}, recording as: {}", batchAggregationTimeNano, LOWEST_DISCERNIBLE_VALUE);
       return LOWEST_DISCERNIBLE_VALUE;
     }
     if (batchAggregationTimeNano > HIGHEST_TRACKABLE_VALUE) {
-      LOGGER.warn("batch aggregation time greater than expected: " + batchAggregationTimeNano + ", recording as: " + HIGHEST_TRACKABLE_VALUE);
+      LOGGER.warn("batch aggregation time greater than expected: {}, recording as: {}", batchAggregationTimeNano, HIGHEST_TRACKABLE_VALUE);
       return HIGHEST_TRACKABLE_VALUE;
     }
     return batchAggregationTimeNano;

@@ -23,7 +23,7 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.Test;
 
 import com.linkedin.parseq.Task;
-import com.linkedin.restli.client.config.ResourceConfigOverrides;
+import com.linkedin.restli.client.config.RequestConfigOverrides;
 import com.linkedin.restli.examples.greetings.client.GreetingsBuilders;
 
 
@@ -33,7 +33,7 @@ public abstract class ParSeqRestClientBatchingIntegrationTest extends ParSeqRest
 
   protected abstract boolean expectBatchingOverrides();
 
-  protected abstract ResourceConfigOverrides overrides();
+  protected abstract RequestConfigOverrides overrides();
 
   @Test
   public void testGetRequests() {

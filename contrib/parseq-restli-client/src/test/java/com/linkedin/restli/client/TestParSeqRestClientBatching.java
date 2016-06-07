@@ -16,8 +16,8 @@
 
 package com.linkedin.restli.client;
 
-import com.linkedin.restli.client.config.ResourceConfigOverrides;
-import com.linkedin.restli.client.config.ResourceConfigOverridesBuilder;
+import com.linkedin.restli.client.config.RequestConfigOverrides;
+import com.linkedin.restli.client.config.RequestConfigOverridesBuilder;
 
 public class TestParSeqRestClientBatching extends ParSeqRestClientBatchingIntegrationTest {
 
@@ -34,8 +34,8 @@ public class TestParSeqRestClientBatching extends ParSeqRestClientBatchingIntegr
   }
 
   @Override
-  protected ResourceConfigOverrides overrides() {
-    return new ResourceConfigOverridesBuilder().build();
+  protected RequestConfigOverrides overrides() {
+    return new RequestConfigOverridesBuilder().build();
   }
 
   @Override

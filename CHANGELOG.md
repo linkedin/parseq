@@ -1,11 +1,12 @@
 v3.0.0
 ------
 
+* Added flexible timeout and batching configuration to ParSeqRestClient
 * Changed Engine and ParSeqRestClient to interfaces
-* Refactored configuration of ParSeqRestClient
-* logging in timeout
+* Allow adding description to timeout task and TimeoutException
 * TODO other backwards incompatible changes e.g. https://github.com/linkedin/parseq/issues/22
 * Error handling: catching Throwable and declare throwing Exception is inconsistent e.g. .recover()
+* TODO add debug logging to both batching and parseq rest client
 
 v2.3.4
 ------

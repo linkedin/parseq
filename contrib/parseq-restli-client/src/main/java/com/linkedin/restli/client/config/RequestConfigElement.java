@@ -7,15 +7,15 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import com.linkedin.restli.client.config.ResourceConfigKeyParser.InboundContext;
-import com.linkedin.restli.client.config.ResourceConfigKeyParser.KeyContext;
-import com.linkedin.restli.client.config.ResourceConfigKeyParser.OperationInContext;
-import com.linkedin.restli.client.config.ResourceConfigKeyParser.OperationOutContext;
-import com.linkedin.restli.client.config.ResourceConfigKeyParser.OutboundContext;
+import com.linkedin.restli.client.config.RequestConfigKeyParser.InboundContext;
+import com.linkedin.restli.client.config.RequestConfigKeyParser.KeyContext;
+import com.linkedin.restli.client.config.RequestConfigKeyParser.OperationInContext;
+import com.linkedin.restli.client.config.RequestConfigKeyParser.OperationOutContext;
+import com.linkedin.restli.client.config.RequestConfigKeyParser.OutboundContext;
 import com.linkedin.restli.common.ResourceMethod;
 
 
-class ResourceConfigElement implements Comparable<ResourceConfigElement> {
+class RequestConfigElement implements Comparable<RequestConfigElement> {
 
   private final String _key;
   private final Object _value;
@@ -27,7 +27,7 @@ class ResourceConfigElement implements Comparable<ResourceConfigElement> {
   private final Optional<String> _inboundOp;
   private final Optional<ResourceMethod> _outboundOp;
 
-  private ResourceConfigElement(String key, Object value, String property, Optional<String> inboundName,
+  private RequestConfigElement(String key, Object value, String property, Optional<String> inboundName,
       Optional<String> outboundName, Optional<String> inboundOpName, Optional<String> outboundOpName,
       Optional<String> inboundOp, Optional<ResourceMethod> outboundOp) {
     _key = key;
@@ -85,14 +85,14 @@ class ResourceConfigElement implements Comparable<ResourceConfigElement> {
     }
   }
 
-  static ResourceConfigElement parse(String property, String key, Object value) throws ResourceConfigKeyParsingException {
-    ResourceConfigKeyParsingErrorListener errorListener = new ResourceConfigKeyParsingErrorListener();
+  static RequestConfigElement parse(String property, String key, Object value) throws RequestConfigKeyParsingException {
+    RequestConfigKeyParsingErrorListener errorListener = new RequestConfigKeyParsingErrorListener();
     ANTLRInputStream input = new ANTLRInputStream(key);
-    ResourceConfigKeyLexer lexer = new ResourceConfigKeyLexer(input);
+    RequestConfigKeyLexer lexer = new RequestConfigKeyLexer(input);
     lexer.removeErrorListeners();
     lexer.addErrorListener(errorListener);
     CommonTokenStream tokens = new CommonTokenStream(lexer);
-    ResourceConfigKeyParser parser = new ResourceConfigKeyParser(tokens);
+    RequestConfigKeyParser parser = new RequestConfigKeyParser(tokens);
     parser.removeErrorListeners();
     parser.addErrorListener(errorListener);
     KeyContext keyTree = parser.key();
@@ -107,16 +107,16 @@ class ResourceConfigElement implements Comparable<ResourceConfigElement> {
       Optional<String> inboundOpName = inboundOp.flatMap(method -> getOpInName(method, inbound.operationIn()));
       Optional<String> outboundOpName = outboundOp.flatMap(method -> getOpOutName(method, outbound.operationOut()));
 
-      return new ResourceConfigElement(key, coerceValue(property, value), property, inboundName, outboundName,
+      return new RequestConfigElement(key, coerceValue(property, value), property, inboundName, outboundName,
           inboundOpName, outboundOpName, inboundOp, outboundOp);
 
     } else {
-      throw new ResourceConfigKeyParsingException(
+      throw new RequestConfigKeyParsingException(
           "Error" + ((errorListener.errorsSize() > 1) ? "s" : "") + " parsing key: " + key + "\n" + errorListener);
     }
   }
 
-  private static Object coerceValue(String property, Object value) throws ResourceConfigKeyParsingException {
+  private static Object coerceValue(String property, Object value) throws RequestConfigKeyParsingException {
     try {
       switch(property) {
         case "timeoutMs":
@@ -126,10 +126,10 @@ class ResourceConfigElement implements Comparable<ResourceConfigElement> {
         case "maxBatchSize":
           return ConfigValueCoercers.INTEGER.apply(value);
         default:
-          throw new ResourceConfigKeyParsingException("Internal error: parsed config contains unsupported property: " + property);
+          throw new RequestConfigKeyParsingException("Internal error: parsed config contains unsupported property: " + property);
       }
     } catch (Exception e) {
-      throw new ResourceConfigKeyParsingException(e);
+      throw new RequestConfigKeyParsingException(e);
     }
   }
 
@@ -185,9 +185,9 @@ class ResourceConfigElement implements Comparable<ResourceConfigElement> {
     }
   }
 
-  private static BiFunction<ResourceConfigElement, ResourceConfigElement, Integer> chain(
-      BiFunction<ResourceConfigElement, ResourceConfigElement, Integer> f1,
-      BiFunction<ResourceConfigElement, ResourceConfigElement, Integer> f2) {
+  private static BiFunction<RequestConfigElement, RequestConfigElement, Integer> chain(
+      BiFunction<RequestConfigElement, RequestConfigElement, Integer> f1,
+      BiFunction<RequestConfigElement, RequestConfigElement, Integer> f2) {
     return (e1, e2) -> {
       int f1Result = f1.apply(e1, e2);
       if (f1Result != 0) {
@@ -199,7 +199,7 @@ class ResourceConfigElement implements Comparable<ResourceConfigElement> {
   }
 
   @Override
-  public int compareTo(ResourceConfigElement o) {
+  public int compareTo(RequestConfigElement o) {
     return
       chain(
           chain(

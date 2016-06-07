@@ -1,4 +1,4 @@
-// Generated from com/linkedin/restli/client/config/ResourceConfigKey.g4 by ANTLR 4.5
+// Generated from com/linkedin/restli/client/config/RequestConfigKey.g4 by ANTLR 4.5
 package com.linkedin.restli.client.config;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
@@ -10,7 +10,7 @@ import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.misc.*;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast"})
-public class ResourceConfigKeyLexer extends Lexer {
+public class RequestConfigKeyLexer extends Lexer {
 	static { RuntimeMetaData.checkVersion("4.5", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
@@ -75,13 +75,13 @@ public class ResourceConfigKeyLexer extends Lexer {
 	}
 
 
-	public ResourceConfigKeyLexer(CharStream input) {
+	public RequestConfigKeyLexer(CharStream input) {
 		super(input);
 		_interp = new LexerATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
 	}
 
 	@Override
-	public String getGrammarFileName() { return "ResourceConfigKey.g4"; }
+	public String getGrammarFileName() { return "RequestConfigKey.g4"; }
 
 	@Override
 	public String[] getRuleNames() { return ruleNames; }

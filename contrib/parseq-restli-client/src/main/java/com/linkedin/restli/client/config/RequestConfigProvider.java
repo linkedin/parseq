@@ -7,26 +7,26 @@ import com.linkedin.restli.client.ParSeqRestClientConfig;
 import com.linkedin.restli.client.Request;
 
 @FunctionalInterface
-public interface ResourceConfigProvider extends Function<Request<?>, ResourceConfig> {
+public interface RequestConfigProvider extends Function<Request<?>, RequestConfig> {
 
   /**
    * @throws RuntimeException
    */
-  public static ResourceConfigProvider build(ParSeqRestClientConfig config, InboundRequestContextFinder inboundRequestContextFinder) {
+  public static RequestConfigProvider build(ParSeqRestClientConfig config, InboundRequestContextFinder inboundRequestContextFinder) {
     try {
-      ResourceConfigProviderBuilder builder = new ResourceConfigProviderBuilder();
+      RequestConfigProviderBuilder builder = new RequestConfigProviderBuilder();
       builder.setInboundRequestFinder(inboundRequestContextFinder)
         .addConfig(getDefaultConfigMap());
       if (config != null) {
         builder.addConfig(config);
       }
       return builder.build();
-    } catch (ResourceConfigKeyParsingException e) {
+    } catch (RequestConfigKeyParsingException e) {
       throw new RuntimeException(e);
     }
   }
 
   public static ParSeqRestClientConfig getDefaultConfigMap() {
-    return ResourceConfigProviderImpl.DEFAULT_CONFIG;
+    return RequestConfigProviderImpl.DEFAULT_CONFIG;
   }
 }

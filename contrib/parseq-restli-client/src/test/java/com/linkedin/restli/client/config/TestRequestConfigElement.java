@@ -8,11 +8,11 @@ import org.testng.annotations.Test;
 
 import com.linkedin.restli.common.ResourceMethod;
 
-public class TestResourceConfigElement {
+public class TestRequestConfigElement {
 
   @Test
-  public void testParsingFallback() throws ResourceConfigKeyParsingException {
-    ResourceConfigElement el = ResourceConfigElement.parse("timeoutMs", "*.*/*.*", 100L);
+  public void testParsingFallback() throws RequestConfigKeyParsingException {
+    RequestConfigElement el = RequestConfigElement.parse("timeoutMs", "*.*/*.*", 100L);
     assertEquals(el.getInboundName(), Optional.empty());
     assertEquals(el.getInboundOp(), Optional.empty());
     assertEquals(el.getInboundOpName(), Optional.empty());
@@ -24,8 +24,8 @@ public class TestResourceConfigElement {
   }
 
   @Test
-  public void testParsingFullSimpleSpec() throws ResourceConfigKeyParsingException {
-    ResourceConfigElement el = ResourceConfigElement.parse("batchingEnabled", "profileView.GET/profile.BATCH_GET", true);
+  public void testParsingFullSimpleSpec() throws RequestConfigKeyParsingException {
+    RequestConfigElement el = RequestConfigElement.parse("batchingEnabled", "profileView.GET/profile.BATCH_GET", true);
     assertEquals(el.getInboundName().get(), "profileView");
     assertEquals(el.getInboundOp().get(), ResourceMethod.GET.toString().toUpperCase());
     assertEquals(el.getInboundOpName(), Optional.empty());
@@ -37,8 +37,8 @@ public class TestResourceConfigElement {
   }
 
   @Test
-  public void testParsingFullComplexSpec() throws ResourceConfigKeyParsingException {
-    ResourceConfigElement el = ResourceConfigElement.parse("batchingEnabled", "profileView.ACTION-doIt/profile.FINDER-all", true);
+  public void testParsingFullComplexSpec() throws RequestConfigKeyParsingException {
+    RequestConfigElement el = RequestConfigElement.parse("batchingEnabled", "profileView.ACTION-doIt/profile.FINDER-all", true);
     assertEquals(el.getInboundName().get(), "profileView");
     assertEquals(el.getInboundOp().get(), ResourceMethod.ACTION.toString().toUpperCase());
     assertEquals(el.getInboundOpName().get(), "doIt");
@@ -49,23 +49,23 @@ public class TestResourceConfigElement {
     assertEquals(el.getValue(), true);
   }
 
-  @Test(expectedExceptions = {ResourceConfigKeyParsingException.class})
-  public void testParsingMissingComplexOpName() throws ResourceConfigKeyParsingException {
-    ResourceConfigElement.parse("timeoutMs", "*.*/*.FINDER", 100L);
+  @Test(expectedExceptions = {RequestConfigKeyParsingException.class})
+  public void testParsingMissingComplexOpName() throws RequestConfigKeyParsingException {
+    RequestConfigElement.parse("timeoutMs", "*.*/*.FINDER", 100L);
   }
 
-  @Test(expectedExceptions = {ResourceConfigKeyParsingException.class})
-  public void testParsingInvalidProperty() throws ResourceConfigKeyParsingException {
-    ResourceConfigElement.parse("blah", "*.*/*.*", 100L);
+  @Test(expectedExceptions = {RequestConfigKeyParsingException.class})
+  public void testParsingInvalidProperty() throws RequestConfigKeyParsingException {
+    RequestConfigElement.parse("blah", "*.*/*.*", 100L);
   }
 
-  @Test(expectedExceptions = {ResourceConfigKeyParsingException.class})
-  public void testParsingInvalidValue() throws ResourceConfigKeyParsingException {
-    ResourceConfigElement.parse("timeoutMs", "*.*/*.*", true);
+  @Test(expectedExceptions = {RequestConfigKeyParsingException.class})
+  public void testParsingInvalidValue() throws RequestConfigKeyParsingException {
+    RequestConfigElement.parse("timeoutMs", "*.*/*.*", true);
   }
 
-  @Test(expectedExceptions = {ResourceConfigKeyParsingException.class})
-  public void testParsingInvalidKey() throws ResourceConfigKeyParsingException {
-    ResourceConfigElement.parse("timeoutMs", "greetings.POST/greetings.DELETE/timeoutMs", 100L);
+  @Test(expectedExceptions = {RequestConfigKeyParsingException.class})
+  public void testParsingInvalidKey() throws RequestConfigKeyParsingException {
+    RequestConfigElement.parse("timeoutMs", "greetings.POST/greetings.DELETE/timeoutMs", 100L);
   }
 }

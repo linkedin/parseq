@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 
 import com.linkedin.data.template.RecordTemplate;
 import com.linkedin.r2.message.RequestContext;
-import com.linkedin.restli.client.config.ResourceConfig;
+import com.linkedin.restli.client.config.RequestConfig;
 
 /**
  * Class used for deduplication. Two requests are considered equal
@@ -31,10 +31,10 @@ import com.linkedin.restli.client.config.ResourceConfig;
 class RestRequestBatchKey {
   private final Request<?> _request;
   private final RequestContext _requestContext;
-  private final ResourceConfig _bathcingConfig;
+  private final RequestConfig _bathcingConfig;
   private Set<String> _extractedIds;
 
-  public RestRequestBatchKey(Request<Object> request, RequestContext requestContext, ResourceConfig bathcingConfig) {
+  public RestRequestBatchKey(Request<Object> request, RequestContext requestContext, RequestConfig bathcingConfig) {
     _request = request;
     _requestContext = requestContext;
     _bathcingConfig = bathcingConfig;
@@ -48,7 +48,7 @@ class RestRequestBatchKey {
     return _requestContext;
   }
 
-  public ResourceConfig getResourceConfig() {
+  public RequestConfig getRequestConfig() {
     return _bathcingConfig;
   }
 

@@ -16,30 +16,30 @@
 
 package com.linkedin.restli.client.config;
 
-public class ResourceConfigBuilder {
+public class RequestConfigBuilder {
 
   private ConfigValue<Long> _timeoutMs;
   private ConfigValue<Boolean>  _batchingEnabled;
   private ConfigValue<Integer> _maxBatchSize;
 
-  public ResourceConfigBuilder() {
+  public RequestConfigBuilder() {
   }
 
-  public ResourceConfigBuilder(ResourceConfig config) {
+  public RequestConfigBuilder(RequestConfig config) {
     _timeoutMs = config.getTimeoutMs();
     _batchingEnabled = config.isBatchingEnabled();
     _maxBatchSize = config.getMaxBatchSize();
   }
 
-  public ResourceConfig build() {
-    return new ResourceConfigImpl(_timeoutMs, _batchingEnabled, _maxBatchSize);
+  public RequestConfig build() {
+    return new RequestConfigImpl(_timeoutMs, _batchingEnabled, _maxBatchSize);
   }
 
   public ConfigValue<Long> getTimeoutMs() {
     return _timeoutMs;
   }
 
-  public ResourceConfigBuilder setTimeoutMs(ConfigValue<Long> timeoutMs) {
+  public RequestConfigBuilder setTimeoutMs(ConfigValue<Long> timeoutMs) {
     _timeoutMs = timeoutMs;
     return this;
   }
@@ -48,7 +48,7 @@ public class ResourceConfigBuilder {
     return _batchingEnabled;
   }
 
-  public ResourceConfigBuilder setBatchingEnabled(ConfigValue<Boolean> batchingEnabled) {
+  public RequestConfigBuilder setBatchingEnabled(ConfigValue<Boolean> batchingEnabled) {
     _batchingEnabled = batchingEnabled;
     return this;
   }
@@ -57,12 +57,12 @@ public class ResourceConfigBuilder {
     return _maxBatchSize;
   }
 
-  public ResourceConfigBuilder setMaxBatchSize(ConfigValue<Integer> maxBatchSize) {
+  public RequestConfigBuilder setMaxBatchSize(ConfigValue<Integer> maxBatchSize) {
     _maxBatchSize = maxBatchSize;
     return this;
   }
 
-  public ResourceConfigBuilder applyOverrides(ResourceConfigOverrides configOverrides) {
+  public RequestConfigBuilder applyOverrides(RequestConfigOverrides configOverrides) {
     configOverrides.getTimeoutMs().ifPresent(this::setTimeoutMs);
     configOverrides.isBatchingEnabled().ifPresent(this::setBatchingEnabled);
     configOverrides.getMaxBatchSize().ifPresent(this::setMaxBatchSize);

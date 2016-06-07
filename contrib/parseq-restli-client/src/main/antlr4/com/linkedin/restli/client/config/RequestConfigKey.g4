@@ -1,4 +1,4 @@
-grammar ResourceConfigKey;
+grammar RequestConfigKey;
 
 key 			: inbound '/' outbound EOF;
 inbound			: ( Name | '*' ) '.' ( operationIn | '*' );

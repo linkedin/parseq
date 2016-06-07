@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import com.linkedin.parseq.batching.BatchingSupport;
 import com.linkedin.parseq.internal.ArgumentUtil;
-import com.linkedin.restli.client.config.ResourceConfigProvider;
+import com.linkedin.restli.client.config.RequestConfigProvider;
 
 public class ParSeqRestClientBuilder {
 
@@ -18,8 +18,8 @@ public class ParSeqRestClientBuilder {
    * @throws RuntimeException
    */
   public ParSeqRestClient build() {
-    ResourceConfigProvider configProvider =
-        ResourceConfigProvider.build(_config,
+    RequestConfigProvider configProvider =
+        RequestConfigProvider.build(_config,
             _inboundRequestContextFinder == null ? () -> Optional.empty() : _inboundRequestContextFinder);
     ParSeqRestClientImpl parseqClient = new ParSeqRestClientImpl(_restClient, configProvider);
     if (_batchingSupport != null) {

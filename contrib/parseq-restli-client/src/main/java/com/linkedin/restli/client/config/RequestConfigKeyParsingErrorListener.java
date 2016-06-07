@@ -9,7 +9,7 @@ import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 
-class ResourceConfigKeyParsingErrorListener extends BaseErrorListener {
+class RequestConfigKeyParsingErrorListener extends BaseErrorListener {
 
   private final List<String> _errors = new ArrayList<>();
 

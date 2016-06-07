@@ -1,4 +1,4 @@
-// Generated from com/linkedin/restli/client/config/ResourceConfigKey.g4 by ANTLR 4.5
+// Generated from com/linkedin/restli/client/config/RequestConfigKey.g4 by ANTLR 4.5
 package com.linkedin.restli.client.config;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
@@ -10,7 +10,7 @@ import java.util.Iterator;
 import java.util.ArrayList;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast"})
-public class ResourceConfigKeyParser extends Parser {
+public class RequestConfigKeyParser extends Parser {
 	static { RuntimeMetaData.checkVersion("4.5", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
@@ -74,7 +74,7 @@ public class ResourceConfigKeyParser extends Parser {
 	}
 
 	@Override
-	public String getGrammarFileName() { return "ResourceConfigKey.g4"; }
+	public String getGrammarFileName() { return "RequestConfigKey.g4"; }
 
 	@Override
 	public String[] getRuleNames() { return ruleNames; }
@@ -85,7 +85,7 @@ public class ResourceConfigKeyParser extends Parser {
 	@Override
 	public ATN getATN() { return _ATN; }
 
-	public ResourceConfigKeyParser(TokenStream input) {
+	public RequestConfigKeyParser(TokenStream input) {
 		super(input);
 		_interp = new ParserATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
 	}
@@ -96,18 +96,18 @@ public class ResourceConfigKeyParser extends Parser {
 		public OutboundContext outbound() {
 			return getRuleContext(OutboundContext.class,0);
 		}
-		public TerminalNode EOF() { return getToken(ResourceConfigKeyParser.EOF, 0); }
+		public TerminalNode EOF() { return getToken(RequestConfigKeyParser.EOF, 0); }
 		public KeyContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_key; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ResourceConfigKeyListener ) ((ResourceConfigKeyListener)listener).enterKey(this);
+			if ( listener instanceof RequestConfigKeyListener ) ((RequestConfigKeyListener)listener).enterKey(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ResourceConfigKeyListener ) ((ResourceConfigKeyListener)listener).exitKey(this);
+			if ( listener instanceof RequestConfigKeyListener ) ((RequestConfigKeyListener)listener).exitKey(this);
 		}
 	}
 
@@ -139,7 +139,7 @@ public class ResourceConfigKeyParser extends Parser {
 	}
 
 	public static class InboundContext extends ParserRuleContext {
-		public TerminalNode Name() { return getToken(ResourceConfigKeyParser.Name, 0); }
+		public TerminalNode Name() { return getToken(RequestConfigKeyParser.Name, 0); }
 		public OperationInContext operationIn() {
 			return getRuleContext(OperationInContext.class,0);
 		}
@@ -149,11 +149,11 @@ public class ResourceConfigKeyParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_inbound; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ResourceConfigKeyListener ) ((ResourceConfigKeyListener)listener).enterInbound(this);
+			if ( listener instanceof RequestConfigKeyListener ) ((RequestConfigKeyListener)listener).enterInbound(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ResourceConfigKeyListener ) ((ResourceConfigKeyListener)listener).exitInbound(this);
+			if ( listener instanceof RequestConfigKeyListener ) ((RequestConfigKeyListener)listener).exitInbound(this);
 		}
 	}
 
@@ -222,7 +222,7 @@ public class ResourceConfigKeyParser extends Parser {
 	}
 
 	public static class OutboundContext extends ParserRuleContext {
-		public TerminalNode Name() { return getToken(ResourceConfigKeyParser.Name, 0); }
+		public TerminalNode Name() { return getToken(RequestConfigKeyParser.Name, 0); }
 		public OperationOutContext operationOut() {
 			return getRuleContext(OperationOutContext.class,0);
 		}
@@ -232,11 +232,11 @@ public class ResourceConfigKeyParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_outbound; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ResourceConfigKeyListener ) ((ResourceConfigKeyListener)listener).enterOutbound(this);
+			if ( listener instanceof RequestConfigKeyListener ) ((RequestConfigKeyListener)listener).enterOutbound(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ResourceConfigKeyListener ) ((ResourceConfigKeyListener)listener).exitOutbound(this);
+			if ( listener instanceof RequestConfigKeyListener ) ((RequestConfigKeyListener)listener).exitOutbound(this);
 		}
 	}
 
@@ -315,11 +315,11 @@ public class ResourceConfigKeyParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_operationIn; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ResourceConfigKeyListener ) ((ResourceConfigKeyListener)listener).enterOperationIn(this);
+			if ( listener instanceof RequestConfigKeyListener ) ((RequestConfigKeyListener)listener).enterOperationIn(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ResourceConfigKeyListener ) ((ResourceConfigKeyListener)listener).exitOperationIn(this);
+			if ( listener instanceof RequestConfigKeyListener ) ((RequestConfigKeyListener)listener).exitOperationIn(this);
 		}
 	}
 
@@ -394,11 +394,11 @@ public class ResourceConfigKeyParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_operationOut; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ResourceConfigKeyListener ) ((ResourceConfigKeyListener)listener).enterOperationOut(this);
+			if ( listener instanceof RequestConfigKeyListener ) ((RequestConfigKeyListener)listener).enterOperationOut(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ResourceConfigKeyListener ) ((ResourceConfigKeyListener)listener).exitOperationOut(this);
+			if ( listener instanceof RequestConfigKeyListener ) ((RequestConfigKeyListener)listener).exitOperationOut(this);
 		}
 	}
 
@@ -456,11 +456,11 @@ public class ResourceConfigKeyParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_simpleOp; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ResourceConfigKeyListener ) ((ResourceConfigKeyListener)listener).enterSimpleOp(this);
+			if ( listener instanceof RequestConfigKeyListener ) ((RequestConfigKeyListener)listener).enterSimpleOp(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ResourceConfigKeyListener ) ((ResourceConfigKeyListener)listener).exitSimpleOp(this);
+			if ( listener instanceof RequestConfigKeyListener ) ((RequestConfigKeyListener)listener).exitSimpleOp(this);
 		}
 	}
 
@@ -498,11 +498,11 @@ public class ResourceConfigKeyParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_httpExtraOp; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ResourceConfigKeyListener ) ((ResourceConfigKeyListener)listener).enterHttpExtraOp(this);
+			if ( listener instanceof RequestConfigKeyListener ) ((RequestConfigKeyListener)listener).enterHttpExtraOp(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ResourceConfigKeyListener ) ((ResourceConfigKeyListener)listener).exitHttpExtraOp(this);
+			if ( listener instanceof RequestConfigKeyListener ) ((RequestConfigKeyListener)listener).exitHttpExtraOp(this);
 		}
 	}
 
@@ -537,18 +537,18 @@ public class ResourceConfigKeyParser extends Parser {
 		public ComplexOpContext complexOp() {
 			return getRuleContext(ComplexOpContext.class,0);
 		}
-		public TerminalNode Name() { return getToken(ResourceConfigKeyParser.Name, 0); }
+		public TerminalNode Name() { return getToken(RequestConfigKeyParser.Name, 0); }
 		public ComplexContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_complex; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ResourceConfigKeyListener ) ((ResourceConfigKeyListener)listener).enterComplex(this);
+			if ( listener instanceof RequestConfigKeyListener ) ((RequestConfigKeyListener)listener).enterComplex(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ResourceConfigKeyListener ) ((ResourceConfigKeyListener)listener).exitComplex(this);
+			if ( listener instanceof RequestConfigKeyListener ) ((RequestConfigKeyListener)listener).exitComplex(this);
 		}
 	}
 
@@ -590,11 +590,11 @@ public class ResourceConfigKeyParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_complexOp; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ResourceConfigKeyListener ) ((ResourceConfigKeyListener)listener).enterComplexOp(this);
+			if ( listener instanceof RequestConfigKeyListener ) ((RequestConfigKeyListener)listener).enterComplexOp(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ResourceConfigKeyListener ) ((ResourceConfigKeyListener)listener).exitComplexOp(this);
+			if ( listener instanceof RequestConfigKeyListener ) ((RequestConfigKeyListener)listener).exitComplexOp(this);
 		}
 	}
 
