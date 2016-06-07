@@ -25,7 +25,6 @@ public class TestResourceConfigProvider {
     assertNotNull(rc);
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(10000L));
     assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
-    assertEquals(rc.isBatchingDryRun().getValue(), Boolean.valueOf(false));
     assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
   }
 
@@ -35,13 +34,11 @@ public class TestResourceConfigProvider {
     configBuilder.addTimeoutMs("*.*/*.*", 1000L);
     configBuilder.addMaxBatchSize("*.*/*.*", 4096);
     configBuilder.addBatchingEnabled("*.*/*.*", true);
-    configBuilder.addBatchingDryRun("*.*/*.*", true);
     ResourceConfigProvider provider = ResourceConfigProvider.build(configBuilder.build(), () -> Optional.empty());
     ResourceConfig rc = provider.apply(new GreetingsBuilders().get().id(0L).build());
     assertNotNull(rc);
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(1000L));
     assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(true));
-    assertEquals(rc.isBatchingDryRun().getValue(), Boolean.valueOf(true));
     assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(4096));
   }
 
@@ -54,14 +51,12 @@ public class TestResourceConfigProvider {
     assertNotNull(rc);
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(1000L));
     assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
-    assertEquals(rc.isBatchingDryRun().getValue(), Boolean.valueOf(false));
     assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
 
     rc = provider.apply(new GreetingsBuilders().delete().id(0L).build());
     assertNotNull(rc);
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(10000L));
     assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
-    assertEquals(rc.isBatchingDryRun().getValue(), Boolean.valueOf(false));
     assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
   }
 
@@ -74,14 +69,12 @@ public class TestResourceConfigProvider {
     assertNotNull(rc);
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(1000L));
     assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
-    assertEquals(rc.isBatchingDryRun().getValue(), Boolean.valueOf(false));
     assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
 
     rc = provider.apply(new GroupsBuilders().get().id(10).build());
     assertNotNull(rc);
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(10000L));
     assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
-    assertEquals(rc.isBatchingDryRun().getValue(), Boolean.valueOf(false));
     assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
   }
 
@@ -99,14 +92,12 @@ public class TestResourceConfigProvider {
     assertNotNull(rc);
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(1000L));
     assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
-    assertEquals(rc.isBatchingDryRun().getValue(), Boolean.valueOf(false));
     assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
 
     rc = provider.apply(new GreetingsBuilders().delete().id(0L).build());
     assertNotNull(rc);
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(10000L));
     assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
-    assertEquals(rc.isBatchingDryRun().getValue(), Boolean.valueOf(false));
     assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
   }
 
@@ -134,14 +125,12 @@ public class TestResourceConfigProvider {
     assertNotNull(rc);
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(100L));
     assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
-    assertEquals(rc.isBatchingDryRun().getValue(), Boolean.valueOf(false));
     assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
 
     rc = provider.apply(new GreetingsBuilders().delete().id(0L).build());
     assertNotNull(rc);
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(500L));
     assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
-    assertEquals(rc.isBatchingDryRun().getValue(), Boolean.valueOf(false));
     assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
   }
 
@@ -174,14 +163,12 @@ public class TestResourceConfigProvider {
     assertNotNull(rc);
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(400L));
     assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
-    assertEquals(rc.isBatchingDryRun().getValue(), Boolean.valueOf(false));
     assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
 
     rc = provider.apply(new GreetingsBuilders().delete().id(0L).build());
     assertNotNull(rc);
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(300L));
     assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
-    assertEquals(rc.isBatchingDryRun().getValue(), Boolean.valueOf(false));
     assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
   }
 
@@ -208,14 +195,12 @@ public class TestResourceConfigProvider {
     assertNotNull(rc);
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(100L));
     assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
-    assertEquals(rc.isBatchingDryRun().getValue(), Boolean.valueOf(false));
     assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
 
     rc = provider.apply(new GreetingsBuilders().delete().id(0L).build());
     assertNotNull(rc);
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(500L));
     assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
-    assertEquals(rc.isBatchingDryRun().getValue(), Boolean.valueOf(false));
     assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
   }
 

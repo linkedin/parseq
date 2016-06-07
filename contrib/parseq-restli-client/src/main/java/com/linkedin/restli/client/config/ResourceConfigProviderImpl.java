@@ -25,7 +25,6 @@ class ResourceConfigProviderImpl implements ResourceConfigProvider {
   private final ResourceConfigTree<Long> _timeoutMs = new ResourceConfigTree<>();
   private final ResourceConfigTree<Boolean> _batchingEnabled = new ResourceConfigTree<>();
   private final ResourceConfigTree<Integer> _maxBatchSize = new ResourceConfigTree<>();
-  private final ResourceConfigTree<Boolean> _batchingDryRun = new ResourceConfigTree<>();
   private final ConcurrentMap<ResourceConfigCacheKey, ResourceConfig> _cache = new ConcurrentHashMap<>();
 
   public ResourceConfigProviderImpl(InboundRequestContextFinder inboundRequestContextFinder, ParSeqRestClientConfig config) throws ResourceConfigKeyParsingException {
@@ -36,8 +35,7 @@ class ResourceConfigProviderImpl implements ResourceConfigProvider {
   private void initialize(ParSeqRestClientConfig config) throws ResourceConfigKeyParsingException {
     boolean failed = initializeProperty(config.getTimeoutMsConfig(), "timeoutMs") ||
                      initializeProperty(config.isBatchingEnabledConfig(), "batchingEnabled") ||
-                     initializeProperty(config.getMaxBatchSizeConfig(), "maxBatchSize") ||
-                     initializeProperty(config.isBatchingDryRunConfig(), "batchingDryRun");
+                     initializeProperty(config.getMaxBatchSizeConfig(), "maxBatchSize");
     if (failed) {
       throw new ResourceConfigKeyParsingException("Configuration parsing error, see log file for details.");
     }
@@ -73,7 +71,6 @@ class ResourceConfigProviderImpl implements ResourceConfigProvider {
     switch (element.getProperty()) {
       case "timeoutMs": _timeoutMs.add(element); break;
       case "batchingEnabled": _batchingEnabled.add(element); break;
-      case "batchingDryRun": _batchingDryRun.add(element); break;
       case "maxBatchSize": _maxBatchSize.add(element); break;
       default: throw new ResourceConfigKeyParsingException("Unrecognized property: " + element.getProperty());
     }
@@ -90,7 +87,6 @@ class ResourceConfigProviderImpl implements ResourceConfigProvider {
       .setTimeoutMs(_timeoutMs.resolve(cacheKey))
       .setBatchingEnabled(_batchingEnabled.resolve(cacheKey))
       .setMaxBatchSize(_maxBatchSize.resolve(cacheKey))
-      .setBatchingDryRun(_batchingDryRun.resolve(cacheKey))
       .build();
   }
 
@@ -102,7 +98,6 @@ class ResourceConfigProviderImpl implements ResourceConfigProvider {
     builder.addTimeoutMs("*.*/*.*", TimeUnit.SECONDS.toMillis(10));
     builder.addBatchingEnabled("*.*/*.*", Boolean.FALSE);
     builder.addMaxBatchSize("*.*/*.*", 1024);
-    builder.addBatchingDryRun("*.*/*.*", Boolean.FALSE);
     return builder.build();
   }
 }
