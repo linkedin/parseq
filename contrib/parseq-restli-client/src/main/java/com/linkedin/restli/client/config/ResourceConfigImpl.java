@@ -5,13 +5,11 @@ class ResourceConfigImpl implements ResourceConfig {
   private final ConfigValue<Long> _timeoutMs;
   private final ConfigValue<Boolean>  _batchingEnabled;
   private final ConfigValue<Integer> _maxBatchSize;
-  private final ConfigValue<Boolean> _batchingDryRun;
 
-  ResourceConfigImpl(ConfigValue<Long> timeoutMs, ConfigValue<Boolean> batchingEnabled, ConfigValue<Integer> maxBatchSize, ConfigValue<Boolean> batchingDryRun) {
+  ResourceConfigImpl(ConfigValue<Long> timeoutMs, ConfigValue<Boolean> batchingEnabled, ConfigValue<Integer> maxBatchSize) {
     _timeoutMs = timeoutMs;
     _batchingEnabled = batchingEnabled;
     _maxBatchSize = maxBatchSize;
-    _batchingDryRun = batchingDryRun;
   }
 
   @Override
@@ -27,10 +25,5 @@ class ResourceConfigImpl implements ResourceConfig {
   @Override
   public ConfigValue<Integer> getMaxBatchSize() {
     return _maxBatchSize;
-  }
-
-  @Override
-  public ConfigValue<Boolean> isBatchingDryRun() {
-    return _batchingDryRun;
   }
 }

@@ -148,11 +148,7 @@ class ParSeqRestClientImpl extends BatchingStrategy<RequestGroup, RestRequestBat
 
   private RestRequestBatchKey createKey(Request<Object> request, RequestContext requestContext,
       ResourceConfig config) {
-    if (config.isBatchingDryRun().getValue()) {
-      return new DryRunRestRequestBatchKey<>(request, requestContext, config, sendRequest(request, requestContext));
-    } else {
-      return new RestRequestBatchKey(request, requestContext, config);
-    }
+    return new RestRequestBatchKey(request, requestContext, config);
   }
 
   @SuppressWarnings("unchecked")
@@ -166,23 +162,18 @@ class ParSeqRestClientImpl extends BatchingStrategy<RequestGroup, RestRequestBat
     return (Task<X>) t;
   }
 
-  @SuppressWarnings({ "unchecked", "rawtypes" })
   @Override
   public void executeBatch(RequestGroup group, Batch<RestRequestBatchKey, Response<Object>> batch) {
     if (group instanceof GetRequestGroup) {
       _batchingMetrics.recordBatchSize(group.getBaseUriTemplate(), batch.batchSize());
     }
-    if (group.isDryRun()) {
-      batch.foreach((key, promise) -> Promises.propagateResult(((DryRunRestRequestBatchKey)key).getPromise(), promise));
-    } else {
-      group.executeBatch(_restClient, batch);
-    }
+    group.executeBatch(_restClient, batch);
   }
 
   @Override
   public RequestGroup classify(RestRequestBatchKey key) {
     Request<?> request = key.getRequest();
-    return RequestGroup.fromRequest(request, key.getResourceConfig().isBatchingDryRun().getValue(), key.getResourceConfig().getMaxBatchSize().getValue());
+    return RequestGroup.fromRequest(request, key.getResourceConfig().getMaxBatchSize().getValue());
   }
 
   @Override

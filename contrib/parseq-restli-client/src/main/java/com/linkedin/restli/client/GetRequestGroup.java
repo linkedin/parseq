@@ -50,17 +50,15 @@ class GetRequestGroup implements RequestGroup {
   private final Map<String, String> _headers; //taken from first request, used to differentiate between groups
   private final RestliRequestOptions _requestOptions; //taken from first request, used to differentiate between groups
   private final Map<String, Object> _queryParams; //taken from first request, used to differentiate between groups
-  private final boolean _dryRun;
   private final int _maxBatchSize;
 
   @SuppressWarnings("deprecation")
-  public GetRequestGroup(Request<?> request, boolean dryRun, int maxBatchSize) {
+  public GetRequestGroup(Request<?> request, int maxBatchSize) {
     _baseUriTemplate = request.getBaseUriTemplate();
     _headers = request.getHeaders();
     _queryParams = getQueryParamsForBatchingKey(request);
     _resourceSpec = request.getResourceSpec();
     _requestOptions = request.getRequestOptions();
-    _dryRun = dryRun;
     _maxBatchSize = maxBatchSize;
   }
 
@@ -395,19 +393,13 @@ class GetRequestGroup implements RequestGroup {
   @Override
   public String toString() {
     return "GetRequestGroup [_baseUriTemplate=" + _baseUriTemplate + ", _queryParams=" + _queryParams
-        + ", _requestOptions=" + _requestOptions + ", _headers=" + _headers
-        + ", _dryRun=" + _dryRun + ", _maxBatchSize=" + _maxBatchSize + "]";
+        + ", _requestOptions=" + _requestOptions + ", _headers=" + _headers + ", _maxBatchSize=" + _maxBatchSize + "]";
   }
 
   @Override
   public <K, V> String getBatchName(final Batch<K, V> batch) {
     return _baseUriTemplate + " " + (batch.batchSize() == 1 ? ResourceMethod.GET : (ResourceMethod.BATCH_GET +
         "(reqs: " + batch.keysSize() + ", ids: " + batch.batchSize() + ")"));
-  }
-
-  @Override
-  public boolean isDryRun() {
-    return _dryRun;
   }
 
   @Override

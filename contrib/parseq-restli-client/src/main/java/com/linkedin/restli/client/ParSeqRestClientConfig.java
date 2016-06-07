@@ -9,7 +9,4 @@ public interface ParSeqRestClientConfig {
   public Map<String, Boolean> isBatchingEnabledConfig();
 
   public Map<String, Integer> getMaxBatchSizeConfig();
-
-  public Map<String, Boolean> isBatchingDryRunConfig();
-
 }

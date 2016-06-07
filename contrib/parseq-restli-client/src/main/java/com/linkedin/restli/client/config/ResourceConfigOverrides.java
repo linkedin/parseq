@@ -25,6 +25,4 @@ public interface ResourceConfigOverrides {
   public Optional<ConfigValue<Boolean>> isBatchingEnabled();
 
   public Optional<ConfigValue<Integer>> getMaxBatchSize();
-
-  public Optional<ConfigValue<Boolean>> isBatchingDryRun();
 }

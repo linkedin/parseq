@@ -125,8 +125,6 @@ class ResourceConfigElement implements Comparable<ResourceConfigElement> {
           return ConfigValueCoercers.BOOLEAN.apply(value);
         case "maxBatchSize":
           return ConfigValueCoercers.INTEGER.apply(value);
-        case "batchingDryRun":
-          return ConfigValueCoercers.BOOLEAN.apply(value);
         default:
           throw new ResourceConfigKeyParsingException("Internal error: parsed config contains unsupported property: " + property);
       }

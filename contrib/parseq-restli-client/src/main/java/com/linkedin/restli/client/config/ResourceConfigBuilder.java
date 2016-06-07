@@ -21,7 +21,6 @@ public class ResourceConfigBuilder {
   private ConfigValue<Long> _timeoutMs;
   private ConfigValue<Boolean>  _batchingEnabled;
   private ConfigValue<Integer> _maxBatchSize;
-  private ConfigValue<Boolean> _batchingDryRun;
 
   public ResourceConfigBuilder() {
   }
@@ -30,11 +29,10 @@ public class ResourceConfigBuilder {
     _timeoutMs = config.getTimeoutMs();
     _batchingEnabled = config.isBatchingEnabled();
     _maxBatchSize = config.getMaxBatchSize();
-    _batchingDryRun = config.isBatchingDryRun();
   }
 
   public ResourceConfig build() {
-    return new ResourceConfigImpl(_timeoutMs, _batchingEnabled, _maxBatchSize, _batchingDryRun);
+    return new ResourceConfigImpl(_timeoutMs, _batchingEnabled, _maxBatchSize);
   }
 
   public ConfigValue<Long> getTimeoutMs() {
@@ -64,20 +62,10 @@ public class ResourceConfigBuilder {
     return this;
   }
 
-  public ConfigValue<Boolean> getBatchingDryRun() {
-    return _batchingDryRun;
-  }
-
-  public ResourceConfigBuilder setBatchingDryRun(ConfigValue<Boolean> batchingDryRun) {
-    _batchingDryRun = batchingDryRun;
-    return this;
-  }
-
   public ResourceConfigBuilder applyOverrides(ResourceConfigOverrides configOverrides) {
     configOverrides.getTimeoutMs().ifPresent(this::setTimeoutMs);
     configOverrides.isBatchingEnabled().ifPresent(this::setBatchingEnabled);
     configOverrides.getMaxBatchSize().ifPresent(this::setMaxBatchSize);
-    configOverrides.isBatchingDryRun().ifPresent(this::setBatchingDryRun);
     return this;
   }
 
