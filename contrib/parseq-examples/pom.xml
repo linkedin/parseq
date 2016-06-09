@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.linkedin.parseq</groupId>
     <artifactId>parseq-examples</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.0-SNAPSHOT</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -14,17 +14,17 @@
         <dependency>
             <groupId>com.linkedin.parseq</groupId>
             <artifactId>parseq</artifactId>
-            <version>3.0.0</version>
+            <version>3.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.linkedin.parseq</groupId>
             <artifactId>parseq-http-client</artifactId>
-            <version>3.0.0</version>
+            <version>3.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.linkedin.parseq</groupId>
             <artifactId>parseq-batching</artifactId>
-            <version>3.0.0</version>
+            <version>3.0.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
