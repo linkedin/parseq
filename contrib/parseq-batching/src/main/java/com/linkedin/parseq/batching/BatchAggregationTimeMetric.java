@@ -51,7 +51,8 @@ public class BatchAggregationTimeMetric {
    * Histogram passed to the consumer includes stable, consistent view
    * of all values accumulated since last harvest.
    * This method is thread safe.
-   * @param consumer
+   * @param consumer consumer for a harvested histogram
+   * @param <T> return type of a passed in function
    * @return a result of a passed in function
    */
   public synchronized <T> T harvest(Function<Histogram, T> consumer) {

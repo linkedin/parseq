@@ -47,7 +47,7 @@ public interface Batch<K, T> {
 
   /**
    * Returns size of this batch. This number is not necessarily equal to the number of keys belonging to this batch.
-   * This number might be different than number of keys if {@link BatchingStrategy#keySize(G group, K key)} is
+   * This number might be different than number of keys if {@link BatchingStrategy#keySize(Object, Object)} is
    * defined.
    * @return size of this batch.
    */
