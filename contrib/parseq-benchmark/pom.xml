@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.linkedin.parseq</groupId>
     <artifactId>parseq-benchmark</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <prerequisites>
@@ -26,7 +26,7 @@
         <dependency>
             <groupId>com.linkedin.parseq</groupId>
             <artifactId>parseq</artifactId>
-            <version>3.0.0</version>
+            <version>3.0.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
