@@ -6,11 +6,15 @@ import com.linkedin.restli.client.InboundRequestContextFinder;
 import com.linkedin.restli.client.ParSeqRestClientConfig;
 import com.linkedin.restli.client.Request;
 
+import scala.annotation.meta.param;
+
 @FunctionalInterface
 public interface RequestConfigProvider extends Function<Request<?>, RequestConfig> {
 
   /**
-   * @throws RuntimeException
+   * @param config configuration
+   * @param inboundRequestContextFinder request config finder
+   * @throws RuntimeException throws exception if config provider could not be built
    */
   public static RequestConfigProvider build(ParSeqRestClientConfig config, InboundRequestContextFinder inboundRequestContextFinder) {
     try {
