@@ -258,10 +258,9 @@ public abstract class BatchingStrategy<G, K, T> {
    * Overriding this method allows specifying size of the key for a given group.
    * Default value is 1. This method is used when calculating batch size and making sure
    * that it does not exceed max batch size for a group.
-   * @param group
-   * @param key
-   * @return
-   * @see #maxBatchSizeForGroup(G group)
+   * @param group group
+   * @return max batch size for this group
+   * @see #maxBatchSizeForGroup(Object)
    */
   public int keySize(G group, K key) {
     return DEFAULT_KEY_SIZE;
