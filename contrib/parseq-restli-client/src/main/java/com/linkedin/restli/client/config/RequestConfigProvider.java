@@ -13,6 +13,7 @@ public interface RequestConfigProvider extends Function<Request<?>, RequestConfi
    * @param config configuration
    * @param inboundRequestContextFinder request config finder
    * @throws RuntimeException throws exception if config provider could not be built
+   * @return instance of RequestConfigProvider
    */
   public static RequestConfigProvider build(ParSeqRestClientConfig config, InboundRequestContextFinder inboundRequestContextFinder) {
     try {
