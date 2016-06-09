@@ -4,6 +4,8 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
@@ -65,6 +67,7 @@ public class TestBatch {
   public void testBatch() {
 
     final AtomicInteger counter = new AtomicInteger(0);
+    final Set<String> keys = new HashSet<>();
 
     final Function<String, BatchPromise<String>> createPromise = expected -> {
       BatchPromise<String> promise = new BatchPromise<>();
@@ -73,7 +76,10 @@ public class TestBatch {
           counter.incrementAndGet();
         }
       });
-      promise.trigger();
+      if (!keys.contains(expected)) {
+        promise.trigger();
+        keys.add(expected);
+      }
       return promise;
     };
 
