@@ -6,8 +6,6 @@ import com.linkedin.restli.client.InboundRequestContextFinder;
 import com.linkedin.restli.client.ParSeqRestClientConfig;
 import com.linkedin.restli.client.Request;
 
-import scala.annotation.meta.param;
-
 @FunctionalInterface
 public interface RequestConfigProvider extends Function<Request<?>, RequestConfig> {
 
