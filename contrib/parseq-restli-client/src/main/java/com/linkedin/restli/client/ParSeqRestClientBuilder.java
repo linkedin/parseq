@@ -15,7 +15,8 @@ public class ParSeqRestClientBuilder {
 
   /**
    * This method may throw RuntimeException e.g. when there is a problem with configuration.
-   * @throws RuntimeException
+   * @throws RuntimeException e.g. when there is a problem with configuration
+   * @return instance of ParSeqRestClient
    */
   public ParSeqRestClient build() {
     RequestConfigProvider configProvider =
