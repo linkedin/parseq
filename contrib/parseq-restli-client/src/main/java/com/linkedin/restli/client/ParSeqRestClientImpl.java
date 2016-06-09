@@ -45,6 +45,7 @@ import com.linkedin.restli.common.OperationNameGenerator;
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  *
  */
+@SuppressWarnings("deprecation")
 class ParSeqRestClientImpl extends BatchingStrategy<RequestGroup, RestRequestBatchKey, Response<Object>>
     implements ParSeqRestClient {
 
