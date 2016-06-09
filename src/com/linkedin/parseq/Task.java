@@ -1142,7 +1142,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * </pre></blockquote>
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
-   * In this case returned task will be resolved with error from the first of failing tasks.
+   * In this case returned task will be resolved with error from the first of failing tasks and other
+   * tasks will be cancelled (if possible).
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1167,7 +1168,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * </pre></blockquote>
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
-   * In this case returned task will be resolved with error from the first of failing tasks.
+   * In this case returned task will be resolved with error from the first of failing tasks and other
+   * tasks will be cancelled (if possible).
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1194,7 +1196,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * </pre></blockquote>
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
-   * In this case returned task will be resolved with error from the first of failing tasks.
+   * In this case returned task will be resolved with error from the first of failing tasks and other
+   * tasks will be cancelled (if possible).
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1222,7 +1225,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * </pre></blockquote>
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
-   * In this case returned task will be resolved with error from the first of failing tasks.
+   * In this case returned task will be resolved with error from the first of failing tasks and other
+   * tasks will be cancelled (if possible).
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1251,7 +1255,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * </pre></blockquote>
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
-   * In this case returned task will be resolved with error from the first of failing tasks.
+   * In this case returned task will be resolved with error from the first of failing tasks and other
+   * tasks will be cancelled (if possible).
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1281,7 +1286,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * </pre></blockquote>
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
-   * In this case returned task will be resolved with error from the first of failing tasks.
+   * In this case returned task will be resolved with error from the first of failing tasks and other
+   * tasks will be cancelled (if possible).
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1313,7 +1319,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * </pre></blockquote>
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
-   * In this case returned task will be resolved with error from the first of failing tasks.
+   * In this case returned task will be resolved with error from the first of failing tasks and other
+   * tasks will be cancelled (if possible).
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1346,7 +1353,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * </pre></blockquote>
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
-   * In this case returned task will be resolved with error from the first of failing tasks.
+   * In this case returned task will be resolved with error from the first of failing tasks and other
+   * tasks will be cancelled (if possible).
    * <p>
    * @return task that will run given tasks in parallel
    */
