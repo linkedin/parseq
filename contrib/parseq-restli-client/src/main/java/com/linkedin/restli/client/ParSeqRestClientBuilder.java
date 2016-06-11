@@ -50,7 +50,7 @@ public class ParSeqRestClientBuilder {
     return this;
   }
 
-  public ParSeqRestClientBuilder setInboundRequestFinder(InboundRequestContextFinder inboundRequestContextFinder) {
+  public ParSeqRestClientBuilder setInboundRequestContextFinder(InboundRequestContextFinder inboundRequestContextFinder) {
     ArgumentUtil.requireNotNull(inboundRequestContextFinder, "inboundRequestContextFinder");
     _inboundRequestContextFinder = inboundRequestContextFinder;
     return this;
