@@ -132,7 +132,7 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
         .setRestClient(_restClient)
         .setBatchingSupport(_batchingSupport)
         .setConfig(getParSeqRestClientConfig())
-        .setInboundRequestFinder(() -> Optional.ofNullable(_inboundRequestContext.get()))
+        .setInboundRequestContextFinder(() -> Optional.ofNullable(_inboundRequestContext.get()))
         .build();
   }
 
