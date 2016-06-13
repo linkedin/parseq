@@ -327,6 +327,54 @@ public class TestParTask extends BaseEngineTest {
   }
 
   @Test
+  public void testNoFastFailInPar() throws InterruptedException {
+
+    final SettablePromise<String> promise1 = Promises.settable();
+    final SettablePromise<String> promise2 = Promises.settable();
+
+    final Task<String> task1 = new BaseTask<String>() {
+      @Override
+      public Promise<String> run(final Context context) throws Exception {
+        return promise1;
+      }
+    };
+    final Task<String> task2 = new BaseTask<String>() {
+      @Override
+      public Promise<String> run(final Context context) throws Exception {
+        return promise2;
+      }
+    };
+
+    List<Task<String>> taskList = new ArrayList<Task<String>>();
+    taskList.add(task1);
+    taskList.add(task2);
+
+    final ParTask<String> par = par(taskList);
+    getEngine().run(par);
+
+    promise2.fail(new Exception()); //This failure does not complete tha par
+    Thread.sleep(100);
+    assertFalse(par.isDone());
+    promise1.done("done1");
+    assertTrue(par.await(5, TimeUnit.SECONDS));
+    if (!par.isFailed()) {
+      fail("par should have failed.");
+    }
+
+    List<String> successful = par.getSuccessful();
+    List<Task<String>> tasks = par.getTasks();
+
+    assertEquals("Should have a size 1 for exceptions", 1, ((MultiException) par.getError()).getCauses().size());
+    assertEquals(1, successful.size());
+    assertEquals("done1", successful.get(0));
+    assertEquals(2, tasks.size());
+    assertEquals(false, tasks.get(0).isFailed());
+    assertEquals(true, tasks.get(1).isFailed());
+    assertEquals("done1", tasks.get(0).get());
+  }
+
+
+  @Test
   public void testAllEarlyFinishTaskInPar() throws InterruptedException {
     final SettablePromise<String> promise1 = Promises.settable();
     final SettablePromise<String> promise2 = Promises.settable();

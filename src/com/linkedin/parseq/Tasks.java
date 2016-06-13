@@ -352,7 +352,7 @@ public class Tasks {
 
   /**
    * Creates a new task that will run each of the supplied tasks in parallel (e.g.
-   * tasks[0] can be run at the same time as task2). This is a type-safe,
+   * tasks[0] can be run at the same time as tasks[1]). This is a type-safe,
    * collection-based alternative to {@link #vapar(Task[])}.
    * <p>
    * When all tasks complete successfully, you can use
@@ -361,6 +361,10 @@ public class Tasks {
    * {@link com.linkedin.parseq.ParTask#getTasks()} or
    * {@link com.linkedin.parseq.ParTask#getSuccessful()} to get results in this
    * case.
+   * <p>
+   * Note that resulting task does not fast-fail e.g. if one of the tasks fail others
+   * are not cancelled. This is different behavior than {@link Task#par(Task, Task)} where
+   * resulting task fast-fails.
    *
    * @param tasks the tasks to run in parallel
    * @return The results of the tasks
