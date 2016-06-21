@@ -168,16 +168,6 @@ public class ContextImpl implements Context, Cancellable {
           }
         }, promises);
       }
-
-      @Override
-      public void runSideEffect(final Task<?> task) {
-        InternalUtil.after(new PromiseListener<Object>() {
-          @Override
-          public void onResolved(Promise<Object> resolvedPromise) {
-            runSideEffectSubTask(task, predecessorTasks);
-          }
-        }, promises);
-      }
     };
   }
 
@@ -209,14 +199,12 @@ public class ContextImpl implements Context, Cancellable {
   }
 
   private void runSideEffectSubTask(final Task<?> taskWrapper, final List<Task<?>> predecessors) {
-    //don't run side-effect if any of the predecessors failed or were cancelled
-    for (Task<?> predecessor : predecessors) {
-      if (predecessor.isFailed()) {
-        return;
-      }
+    PlanContext subPlan = _planContext.fork(taskWrapper);
+    if (subPlan != null) {
+      new ContextImpl(subPlan, taskWrapper, _task, predecessors).runTask();
+    } else {
+      taskWrapper.cancel(new IllegalStateException("Plan is already completed"));
     }
-    final ContextImpl subContext = createSubContext(taskWrapper, predecessors);
-    subContext.runTask();
   }
 
   private boolean isDone() {

@@ -210,11 +210,13 @@ public class TestTaskToTrace extends BaseEngineTest {
   @Test
   public void testSideEffectsPredecessorTrace() throws InterruptedException, IOException {
     final Task<String> baseTask = value("base", "baseValue");
-    final Task<String> sideEffect = value("sideEffect", "sideEffectValue");
+    final Task<String> sideEffect = delayedValue("sideEffectValue", 1, TimeUnit.SECONDS);
 
     final Task<String> withSideEffect = baseTask.withSideEffect(x -> sideEffect);
-    runAndWait("TestTaskToTrace.testSideEffectsPredecessorTrace", withSideEffect);
+    runAndWait("TestTaskToTrace.testSideEffectsPredecessorTrace", withSideEffect.andThen(System.out::println));
     assertTrue(sideEffect.await(5, TimeUnit.SECONDS));
+
+    logTracingResults("sideEffect", withSideEffect);
 
     assertEquals(2, getRelationships(withSideEffect.getTrace(), withSideEffect.getId()).size());
 

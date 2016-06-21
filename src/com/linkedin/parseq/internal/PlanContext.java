@@ -3,6 +3,7 @@ package com.linkedin.parseq.internal;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,8 @@ public class PlanContext {
 
   private final String _planClass;
 
+  private final Task<?> _root;
+
   /**
    *  An executor that provides two guarantees:
    *
@@ -44,10 +47,17 @@ public class PlanContext {
 
   private final TraceBuilder _relationshipsBuilder;
 
+  private final PlanCompletionListener _planCompletionListener;
+
+  /** The number of uncompleted plans forked from this plan (including itself). */
+  private final AtomicInteger _pending;
+
   public PlanContext(final Engine engine, final Executor taskExecutor, final DelayedExecutor timerExecutor,
       final ILoggerFactory loggerFactory, final Logger allLogger, final Logger rootLogger, final String planClass,
-      Task<?> root, final int maxRelationshipsPerTrace, final PlanDeactivationListener planDeactivationListener) {
+      Task<?> root, final int maxRelationshipsPerTrace, final PlanDeactivationListener planDeactivationListener,
+      PlanCompletionListener planCompletionListener) {
     _id = IdGenerator.getNextId();
+    _root = root;
     _relationshipsBuilder = new TraceBuilder(maxRelationshipsPerTrace, planClass, _id);
     _engine = engine;
     _taskExecutor = new SerialExecutor(taskExecutor, new CancelPlanRejectionHandler(root), () -> {
@@ -61,6 +71,31 @@ public class PlanContext {
     final Logger planLogger = loggerFactory.getLogger(Engine.LOGGER_BASE + ":planClass=" + planClass);
     _taskLogger = new TaskLogger(_id, root.getId(), allLogger, rootLogger, planLogger);
     _planClass = planClass;
+    _planCompletionListener = planCompletionListener;
+    _pending = new AtomicInteger(1);
+    _root.addListener(p -> done());
+  }
+
+  private PlanContext(Task<?> root,
+      Long id,
+      Engine engine,
+      SerialExecutor serialExecutor,
+      DelayedExecutor scheduler,
+      String planClass,
+      TaskLogger taskLogger,
+      TraceBuilder relationshipsBuilder,
+      PlanCompletionListener planCompletionListener) {
+    _root = root;
+    _id = id;
+    _engine = engine;
+    _taskExecutor = serialExecutor;
+    _timerScheduler = scheduler;
+    _planClass = planClass;
+    _taskLogger = taskLogger;
+    _relationshipsBuilder = relationshipsBuilder;
+    _planCompletionListener = planCompletionListener;
+    _pending = new AtomicInteger(1);
+    _root.addListener(p -> done());
   }
 
   public Long getId() {
@@ -89,6 +124,43 @@ public class PlanContext {
 
   public String getPlanClass() {
     return _planClass;
+  }
+
+  public Task<?> getRootTask() {
+    return _root;
+  }
+
+  /**
+   * Creates a new {@link PlanContext} from the current plan for the given root
+   * {@link Task}. The new plan can be completed independently from the current plan.
+   *
+   * @param root root task of the sub plan
+   * @return a new PlanContext if this plan is not completed. Otherwise, returns null.
+   */
+  public PlanContext fork(Task<?> root) {
+    int pending;
+    while ((pending = _pending.get()) > 0) {
+      if (_pending.compareAndSet(pending, pending + 1)) {
+        return new PlanContext(root, IdGenerator.getNextId(), _engine, _taskExecutor,
+            _timerScheduler, _planClass, _taskLogger, _relationshipsBuilder, p -> done());
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Decrements the pending count by 1. Invokes {@link #_planCompletionListener}
+   * if there is no more pending (sub-)plans.
+   */
+  private void done() {
+    int pending;
+    do {
+      pending = _pending.get();
+    } while (!_pending.compareAndSet(pending, --pending));
+
+    if (pending == 0) {
+      _planCompletionListener.onPlanCompleted(this);
+    }
   }
 
   private static class CancelPlanRejectionHandler implements RejectedSerialExecutionHandler {

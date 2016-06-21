@@ -152,7 +152,8 @@ public class EngineBuilder {
     }
     return new EngineImpl(_taskExecutor, new IndirectDelayedExecutor(_timerScheduler),
         _loggerFactory != null ? _loggerFactory : new CachedLoggerFactory(LoggerFactory.getILoggerFactory()),
-        _properties, _planDeactivationListener != null ? _planDeactivationListener : planContext -> {});
+        _properties, _planDeactivationListener != null ? _planDeactivationListener : planContext -> {},
+        planContext -> {});
   }
 
   /**
