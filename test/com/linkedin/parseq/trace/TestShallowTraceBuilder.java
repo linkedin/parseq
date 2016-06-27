@@ -18,72 +18,106 @@ package com.linkedin.parseq.trace;
 
 import org.testng.annotations.Test;
 
+import com.linkedin.parseq.internal.IdGenerator;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.fail;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
+ * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class TestShallowTraceBuilder
-{
+public class TestShallowTraceBuilder {
   @Test
-  public void testEarlyFinishWithValue()
-  {
-    final ShallowTraceBuilder builder = new ShallowTraceBuilder("test", ResultType.EARLY_FINISH);
+  public void testEarlyFinishWithValue() {
+    final ShallowTraceBuilder builder = new ShallowTraceBuilder(IdGenerator.getNextId());
+    builder.setName("test");
+    builder.setResultType(ResultType.EARLY_FINISH);
     builder.setValue("non-null-value");
 
-    try
-    {
+    try {
       builder.build();
       fail("Expected IllegalArgumentException");
-    }
-    catch (IllegalArgumentException e)
-    {
+    } catch (IllegalArgumentException e) {
       // Expected case
     }
   }
 
   @Test
-  public void testUninishedWithValue()
-  {
-    final ShallowTraceBuilder builder = new ShallowTraceBuilder("test", ResultType.UNFINISHED);
+  public void testUninishedWithValue() {
+    final ShallowTraceBuilder builder = new ShallowTraceBuilder(IdGenerator.getNextId());
+    builder.setName("test");
+    builder.setResultType(ResultType.UNFINISHED);
     builder.setValue("non-null-value");
 
-    try
-    {
+    try {
       builder.build();
       fail("Expected IllegalArgumentException");
-    }
-    catch (IllegalArgumentException e)
-    {
+    } catch (IllegalArgumentException e) {
       // Expected case
     }
   }
 
   @Test
-  public void testEquals()
-  {
-    final ShallowTraceBuilder builder = new ShallowTraceBuilder("test", ResultType.SUCCESS);
+  public void testCopyconstructor() {
+    final ShallowTraceBuilder builder = new ShallowTraceBuilder(IdGenerator.getNextId());
+    builder.setName("test");
+    builder.setResultType(ResultType.SUCCESS);
+    builder.setValue("value");
+    builder.setStartNanos(123L);
+    builder.setPendingNanos(234L);
+    builder.setEndNanos(345L);
+    builder.addAttribute("test", "value");
+    final ShallowTraceBuilder copied = new ShallowTraceBuilder(builder.build());
+    assertEquals(builder.build(), copied.build());
+  }
+
+  @Test
+  public void testEquals() {
+    final ShallowTraceBuilder builder = new ShallowTraceBuilder(100L);
+    builder.setName("test");
+    builder.setResultType(ResultType.SUCCESS);
     builder.setValue("value");
     builder.setStartNanos(123L);
     builder.setPendingNanos(234L);
     builder.setEndNanos(345L);
 
-    ShallowTraceBuilder builderCopy = new ShallowTraceBuilder(builder);
+    ShallowTraceBuilder builderCopy = new ShallowTraceBuilder(100L);
+    builderCopy.setName("test");
+    builderCopy.setResultType(ResultType.SUCCESS);
+    builderCopy.setValue("value");
+    builderCopy.setStartNanos(123L);
+    builderCopy.setPendingNanos(234L);
+    builderCopy.setEndNanos(345L);
     assertEquals(builder.build(), builderCopy.build());
 
-    builderCopy = new ShallowTraceBuilder(builder)
-        .setName("not-test");
+    builderCopy = new ShallowTraceBuilder(100L);
+    builderCopy.setName("no-test");
+    builderCopy.setResultType(ResultType.SUCCESS);
+    builderCopy.setValue("value");
+    builderCopy.setStartNanos(123L);
+    builderCopy.setPendingNanos(234L);
+    builderCopy.setEndNanos(345L);
     assertFalse(builder.build().equals(builderCopy.build()));
 
-    builderCopy = new ShallowTraceBuilder(builder)
-        .setValue(null);
+    builderCopy = new ShallowTraceBuilder(100L);
+    builderCopy.setName("test");
+    builderCopy.setResultType(ResultType.SUCCESS);
+    builderCopy.setStartNanos(123L);
+    builderCopy.setPendingNanos(234L);
+    builderCopy.setEndNanos(345L);
     assertFalse(builder.build().equals(builderCopy.build()));
 
-
-    builderCopy = new ShallowTraceBuilder(builder)
-        .setResultType(ResultType.ERROR);
+    builderCopy = new ShallowTraceBuilder(100L);
+    builderCopy.setName("no-test");
+    builderCopy.setResultType(ResultType.SUCCESS);
+    builderCopy.setValue("value");
+    builderCopy.setStartNanos(123L);
+    builderCopy.setPendingNanos(234L);
+    builderCopy.setEndNanos(345L);
+    builderCopy.setResultType(ResultType.ERROR);
     assertFalse(builder.build().equals(builderCopy.build()));
   }
 }

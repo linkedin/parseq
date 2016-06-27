@@ -18,30 +18,27 @@ package com.linkedin.parseq.promise;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+
 /**
  * Sets a value on a {@link SettablePromise} after this listener has been
  * notified of a specified number of promise resolutions.
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class CountDownPromiseListener<T> implements PromiseListener<T>
-{
+public class CountDownPromiseListener<T> implements PromiseListener<T> {
   private final AtomicInteger _counter;
   private final SettablePromise<T> _promise;
   private final T _value;
 
-  public CountDownPromiseListener(final int count, final SettablePromise<T> promise, final T value)
-  {
+  public CountDownPromiseListener(final int count, final SettablePromise<T> promise, final T value) {
     _counter = new AtomicInteger(count);
     _promise = promise;
     _value = value;
   }
 
   @Override
-  public void onResolved(Promise<T> resolvedPromise)
-  {
-    if (_counter.decrementAndGet() == 0)
-    {
+  public void onResolved(Promise<T> resolvedPromise) {
+    if (_counter.decrementAndGet() == 0) {
       _promise.done(_value);
     }
   }

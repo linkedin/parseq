@@ -23,17 +23,14 @@ package com.linkedin.parseq;
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class EarlyFinishException extends Exception
-{
+public class EarlyFinishException extends Exception {
   private static final long serialVersionUID = 0L;
 
-  public EarlyFinishException()
-  {
+  public EarlyFinishException() {
     super();
   }
 
-  public EarlyFinishException(final String message)
-  {
+  public EarlyFinishException(final String message) {
     super(message);
   }
 }

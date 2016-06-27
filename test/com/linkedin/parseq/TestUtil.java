@@ -16,102 +16,46 @@
 
 package com.linkedin.parseq;
 
-import com.linkedin.parseq.promise.Promise;
-import com.linkedin.parseq.promise.Promises;
+import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.fail;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.spi.LoggerRepository;
 
-import static com.linkedin.parseq.Tasks.action;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
 
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class TestUtil
-{
-  private TestUtil() {}
-
-  public static Task<?> noop()
-  {
-    return action("noop", new Runnable()
-    {
-      @Override
-      public void run()
-      {
-      }
-    });
+public class TestUtil {
+  private TestUtil() {
   }
 
-  public static <T> Task<T> errorTask(final String name, final Exception error)
-  {
-    return new BaseTask<T>(name)
-    {
-      @Override
-      public Promise<T> run(final Context context) throws Exception
-      {
-        throw error;
-      }
-    };
+  public static Task<?> noop() {
+    return Task.action("noop", () -> {
+    } );
   }
 
-  public static void assertThrows(final Class<? extends Exception> exceptionClass,
-                                  final ThrowingRunnable runnable)
-  {
-    try
-    {
+  public static void assertThrows(final Class<? extends Exception> exceptionClass, final ThrowingRunnable runnable) {
+    try {
       runnable.run();
-    }
-    catch (Exception e)
-    {
+    } catch (Exception e) {
       assertTrue("Expected exception: " + exceptionClass.getName() + " but got: " + e.getClass().getName(),
-                 exceptionClass.isInstance(e));
+          exceptionClass.isInstance(e));
       return;
     }
     fail("Should have thrown " + exceptionClass.getName());
   }
 
-  public static <T> Task<T> value(final T value)
-  {
-    return value("value", value);
-  }
-
-  public static <T> Task<T> value(final String name, final T value)
-  {
-    return new ValueTask<T>(name, value);
-  }
-
-  public static void withDisabledLogging(final Runnable r)
-  {
+  public static void withDisabledLogging(final Runnable r) {
     // Note: this assumes we're using Log4J and needs to be fixed up if this changes.
     final LoggerRepository loggerRepo = LogManager.getLoggerRepository();
     final Level oldLevel = loggerRepo.getThreshold();
     loggerRepo.setThreshold(Level.OFF);
-    try
-    {
+    try {
       r.run();
-    }
-    finally
-    {
+    } finally {
       loggerRepo.setThreshold(oldLevel);
-    }
-  }
-
-  private static class ValueTask<T> extends BaseTask<T>
-  {
-    private final T _value;
-
-    public ValueTask(final String name, final T value)
-    {
-      super(name);
-      _value = value;
-    }
-
-    @Override
-    protected Promise<? extends T> run(final Context context) throws Exception
-    {
-      return Promises.value(_value);
     }
   }
 }

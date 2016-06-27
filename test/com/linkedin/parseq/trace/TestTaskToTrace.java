@@ -16,231 +16,150 @@
 
 package com.linkedin.parseq.trace;
 
-import com.linkedin.parseq.BaseEngineTest;
-import com.linkedin.parseq.BaseTask;
-import com.linkedin.parseq.Context;
-import com.linkedin.parseq.Task;
-import com.linkedin.parseq.TestUtil;
-import com.linkedin.parseq.promise.Promise;
-import com.linkedin.parseq.promise.Promises;
-import com.linkedin.parseq.promise.SettablePromise;
-import org.testng.annotations.Test;
+import static com.linkedin.parseq.Task.value;
+import static org.testng.AssertJUnit.*;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static com.linkedin.parseq.Tasks.par;
-import static com.linkedin.parseq.Tasks.seq;
-import static com.linkedin.parseq.Tasks.withSideEffect;
-import static com.linkedin.parseq.TestUtil.value;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
+import org.testng.annotations.Test;
+
+import com.linkedin.parseq.BaseEngineTest;
+import com.linkedin.parseq.BaseTask;
+import com.linkedin.parseq.Context;
+import com.linkedin.parseq.Exceptions;
+import com.linkedin.parseq.Task;
+import com.linkedin.parseq.Tasks;
+import com.linkedin.parseq.promise.Promise;
+import com.linkedin.parseq.promise.Promises;
+import com.linkedin.parseq.promise.SettablePromise;
+
 
 /**
  * @author Chris Pettitt
  * @author Chi Chan
+ * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class TestTaskToTrace extends BaseEngineTest
-{
+public class TestTaskToTrace extends BaseEngineTest {
   @Test
-  public void testUnstartedTrace()
-  {
+  public void testUnstartedTrace() {
     final Task<?> task = value("taskName", "value");
 
     // We don't run the task
 
-    final Trace trace = task.getTrace();
-    assertShallowTraceMatches(task, trace);
+    verifyShallowTrace(task);
   }
 
   @Test
-  public void testSuccessfulTrace() throws InterruptedException
-  {
+  public void testSuccessfulTrace() throws InterruptedException {
     final Task<String> task = value("taskName", "value");
 
-    getEngine().run(task);
-    assertTrue(task.await(5, TimeUnit.SECONDS));
+    runAndWait("TestTaskToTrace.testSuccessfulTrace", task);
 
-    final Trace trace = task.getTrace();
-    assertShallowTraceMatches(task, trace);
+    verifyShallowTrace(task);
   }
 
   @Test
-  public void testSuccessfulTraceWithNullValue() throws InterruptedException
-  {
+  public void testSuccessfulTraceWithNullValue() throws InterruptedException {
     final Task<String> task = value("taskName", null);
 
-    getEngine().run(task);
-    assertTrue(task.await(5, TimeUnit.SECONDS));
+    runAndWait("TestTaskToTrace.testSuccessfulTraceWithNullValue", task);
 
-    final Trace trace = task.getTrace();
-    assertShallowTraceMatches(task, trace);
+    verifyShallowTrace(task);
   }
 
   @Test
-  public void testErrorTrace() throws InterruptedException
-  {
-    final Task<?> task = TestUtil.errorTask("taskName", new Exception("error message"));
+  public void testErrorTrace() throws InterruptedException {
+    final Exception exception = new Exception("error message");
+    final Task<?> task = Task.failure("taskName", exception);
 
-    getEngine().run(task);
-    assertTrue(task.await(5, TimeUnit.SECONDS));
+    try {
+      runAndWait("TestTaskToTrace.testErrorTrace", task);
+      fail("task should finish with Exception");
+    } catch (Throwable t) {
+      assertEquals(exception, task.getError());
+    }
 
-    final Trace trace = task.getTrace();
-    assertShallowTraceMatches(task, trace);
+    verifyShallowTrace(task);
   }
 
   @Test
-  public void testSeqSystemHiddenTrace() throws InterruptedException
-  {
-    final Task<String> task1 = value("taskName1", "value");
-    final Task<String> task2 = value("taskName2", "value2");
-
-    final Task<?> seq1 = seq(task1, task2);
-    getEngine().run(seq1);
-    assertTrue(seq1.await(5, TimeUnit.SECONDS));
-
-    assertTrue(seq1.getTrace().getSystemHidden());
-
-    final Task<String> task3 = value("taskName3", "value3");
-    final Task<String> task4 = value("taskName4", "value4");
-    final Task<?> seq2 = seq(task3, task4);
-
-    assertTrue(seq2.getTrace().getSystemHidden());
-  }
-
-  @Test
-  public void testParSystemHiddenTrace() throws InterruptedException
-  {
-    final Task<String> task1 = value("taskName1", "value");
-    final Task<String> task2 = value("taskName2", "value2");
-
-
-    final Task<?> par1 = par(task1, task2);
-
-    getEngine().run(par1);
-    assertTrue(par1.await(5, TimeUnit.SECONDS));
-
-    assertTrue(par1.getTrace().getSystemHidden());
-
-    final Task<String> task3 = value("taskName3", "value3");
-    final Task<String> task4 = value("taskName4", "value4");
-    final Task<?> par2 = par(task3, task4);
-
-    assertTrue(par2.getTrace().getSystemHidden());
-  }
-
-  @Test
-  public void testSideEffectSystemTrace() throws InterruptedException
-  {
-    final Task<String> task1 = value("taskName1", "value1");
-    final Task<String> task2 = value("taskName2", "value2");
-
-    final Task<String> withSideEffects = withSideEffect(task1, task2);
-    getEngine().run(withSideEffects);
-    withSideEffects.await();
-
-    assertTrue(withSideEffects.getTrace().getSystemHidden());
-  }
-
-  @Test
-  public void testNotHiddenTrace() throws InterruptedException
-  {
-    final Task<String> task1 = new BaseTask<String>()
-    {
+  public void testNotHiddenTrace() throws InterruptedException {
+    final Task<String> task1 = new BaseTask<String>() {
       @Override
-      protected Promise<? extends String> run(Context context) throws Exception
-      {
-        return  Promises.value("task1");
+      protected Promise<? extends String> run(Context context) throws Exception {
+        return Promises.value("task1");
       }
     };
 
-    final Task<String> task2 = new BaseTask<String>()
-    {
+    final Task<String> task2 = new BaseTask<String>() {
       @Override
-      protected Promise<? extends String> run(Context context) throws Exception
-      {
-        return  Promises.value("task2");
+      protected Promise<? extends String> run(Context context) throws Exception {
+        return Promises.value("task2");
       }
     };
 
-    final Task<?> par1 = par(task1, task2);
-    getEngine().run(par1);
-    assertTrue(par1.await(5, TimeUnit.SECONDS));
+    final Task<?> par1 = Task.par(task1, task2);
+    runAndWait("TestTaskToTrace.testNotHiddenTrace", par1);
 
-    assertFalse(par1.getTrace().getHidden());
-    assertFalse(task1.getTrace().getHidden());
-    assertFalse(task1.getTrace().getHidden());
+    assertFalse(par1.getShallowTrace().getHidden());
+    assertFalse(task1.getShallowTrace().getHidden());
+    assertFalse(task1.getShallowTrace().getHidden());
   }
 
   @Test
-  public void testUserHiddenTrace() throws InterruptedException
-  {
-    final Task<String> task1 = new BaseTask<String>()
-    {
+  public void testUserHiddenTrace() throws InterruptedException {
+    final Task<String> task1 = new BaseTask<String>() {
       @Override
-      protected Promise<? extends String> run(Context context) throws Exception
-      {
-        return  Promises.value("task1");
+      protected Promise<? extends String> run(Context context) throws Exception {
+        return Promises.value("task1");
       }
 
       @Override
-      public ShallowTrace getShallowTrace()
-      {
-        ShallowTrace shallowTrace = super.getShallowTrace();
-        ShallowTraceBuilder builder = new ShallowTraceBuilder(shallowTrace);
-        builder.setHidden(true);
-        return builder.build();
+      public ShallowTrace getShallowTrace() {
+        _shallowTraceBuilder.setHidden(true);
+        return super.getShallowTrace();
       }
     };
 
-    final Task<String> task2 = new BaseTask<String>()
-    {
+    final Task<String> task2 = new BaseTask<String>() {
       @Override
-      protected Promise<? extends String> run(Context context) throws Exception
-      {
-        return  Promises.value("task2");
+      protected Promise<? extends String> run(Context context) throws Exception {
+        return Promises.value("task2");
       }
 
       @Override
-      public ShallowTrace getShallowTrace()
-      {
-        ShallowTrace shallowTrace = super.getShallowTrace();
-        ShallowTraceBuilder builder = new ShallowTraceBuilder(shallowTrace);
-        builder.setHidden(true);
-        return builder.build();
+      public ShallowTrace getShallowTrace() {
+        _shallowTraceBuilder.setHidden(true);
+        return super.getShallowTrace();
       }
     };
 
-    final Task<?> par1 = par(task1, task2);
-    getEngine().run(par1);
-    assertTrue(par1.await(5, TimeUnit.SECONDS));
+    final Task<?> par1 = Task.par(task1, task2);
+    runAndWait("TestTaskToTrace.testUserHiddenTrace", par1);
 
-    assertFalse(par1.getTrace().getHidden());
-    assertTrue(task1.getTrace().getHidden());
-    assertTrue(task1.getTrace().getHidden());
+    assertFalse(par1.getShallowTrace().getHidden());
+    assertTrue(task1.getShallowTrace().getHidden());
+    assertTrue(task1.getShallowTrace().getHidden());
   }
 
   @Test
-  public void testUnfinishedTrace() throws InterruptedException
-  {
+  public void testUnfinishedTrace() throws InterruptedException {
     // Used to ensure that the task has started running
     final CountDownLatch cdl = new CountDownLatch(1);
 
     final SettablePromise<Void> promise = Promises.settable();
 
-    final Task<Void> task = new BaseTask<Void>()
-    {
+    final Task<Void> task = new BaseTask<Void>() {
       @Override
-      public Promise<Void> run(final Context context) throws Exception
-      {
+      public Promise<Void> run(final Context context) throws Exception {
         cdl.countDown();
 
         // Return a promise that won't be satisfied until after out test
@@ -251,113 +170,83 @@ public class TestTaskToTrace extends BaseEngineTest
     getEngine().run(task);
 
     assertTrue(cdl.await(5, TimeUnit.SECONDS));
+    logTracingResults("TestTaskToTrace.testUnfinishedTrace", task);
 
-    final Trace trace = task.getTrace();
-    assertShallowTraceMatches(task, trace);
+    verifyShallowTrace(task);
 
     // Finish task
     promise.done(null);
   }
 
+  private Set<TraceRelationship> getRelationships(Trace trace, long id) {
+    Set<TraceRelationship> result = new HashSet<>();
+    for (TraceRelationship rel : trace.getRelationships()) {
+      if (rel.getFrom() == id || rel.getTo() == id) {
+        result.add(rel);
+      }
+    }
+    return result;
+  }
+
   @Test
-  public void testTraceWithPredecessorTrace() throws InterruptedException
-  {
+  public void testTraceWithPredecessorTrace() throws InterruptedException {
     final Task<String> predecessor = value("predecessor", "predecessorValue");
     final Task<String> successor = value("successor", "successorValue");
 
-    final Task<?> seq = seq(predecessor, successor);
-    getEngine().run(seq);
-    assertTrue(seq.await(5, TimeUnit.SECONDS));
+    final Task<?> seq = predecessor.andThen(successor);
+    runAndWait("TestTaskToTrace.testTraceWithPredecessorTrace", seq);
 
-    final ComparableTrace sucTrace = new ComparableTraceBuilder(successor.getTrace()).build();
-    assertShallowTraceMatches(successor, sucTrace);
+    verifyShallowTrace(successor);
+    verifyShallowTrace(predecessor);
 
-    final ComparableTrace predTrace = new ComparableTraceBuilder(predecessor.getTrace()).build();
-    assertShallowTraceMatches(predecessor, predTrace);
+    assertEquals(predecessor.getTrace(), successor.getTrace());
 
-    final Set<Related<Trace>> related = sucTrace.getRelated();
-    assertEquals(1,related.size());
-    assertEquals(new Related<Trace>(Relationship.SUCCESSOR_OF, predTrace),
-      sucTrace.getRelated().iterator().next());
+    //expected relationship: PARENT_OF and SUCCESSOR_OF
+    assertEquals(2, getRelationships(successor.getTrace(), successor.getId()).size());
+    assertTrue(successor.getTrace().getRelationships()
+        .contains(new TraceRelationship(successor.getId(), predecessor.getId(), Relationship.SUCCESSOR_OF)));
   }
 
   @Test
-  public void testSideEffectsPredecessorTrace() throws InterruptedException, IOException
-  {
+  public void testSideEffectsPredecessorTrace() throws InterruptedException, IOException {
     final Task<String> baseTask = value("base", "baseValue");
     final Task<String> sideEffect = value("sideEffect", "sideEffectValue");
 
-    final Task<String> withSideEffect = withSideEffect(baseTask, sideEffect);
-    getEngine().run(withSideEffect);
-    withSideEffect.await();
-    sideEffect.await();
+    final Task<String> withSideEffect = baseTask.withSideEffect(x -> sideEffect);
+    runAndWait("TestTaskToTrace.testSideEffectsPredecessorTrace", withSideEffect);
+    assertTrue(sideEffect.await(5, TimeUnit.SECONDS));
 
-    final ComparableTrace wseTrace = new ComparableTraceBuilder(withSideEffect.getTrace()).build();
-    final Set<Related<Trace>> wseRelated = wseTrace.getRelated();
-    assertEquals(2, wseRelated.size());
+    assertEquals(2, getRelationships(withSideEffect.getTrace(), withSideEffect.getId()).size());
 
-    final ComparableTrace seTrace = new ComparableTraceBuilder(sideEffect.getTrace()).build();
-    assertShallowTraceMatches(sideEffect, seTrace);
+    verifyShallowTrace(sideEffect);
+    verifyShallowTrace(baseTask);
 
-    final ComparableTrace baseTrace = new ComparableTraceBuilder(baseTask.getTrace()).build();
-    assertShallowTraceMatches(baseTask, baseTrace);
-
-    boolean foundBase = false;
-    boolean foundSide = false;
-    for (Related<Trace> related : wseRelated)
-    {
-      if (related.equals(new Related<Trace>(Relationship.PARENT_OF, baseTrace)))
-      {
-        foundBase = true;
-      }
-      else
-      {
-        Set<Related<Trace>> relatedToSideEffectWrapper = related.getRelated().getRelated();
-        for (Related<Trace> possibleSideEffect : relatedToSideEffectWrapper)
-        {
-          if (possibleSideEffect.equals(new Related<Trace>(Relationship.PARENT_OF, seTrace)))
-          {
-            foundSide = true;
-          }
-        }
-      }
-    }
-
-    assertTrue(foundBase);
-    assertTrue(foundSide);
+    assertTrue(withSideEffect.getTrace().getRelationships().toString(), withSideEffect.getTrace().getRelationships()
+        .contains(new TraceRelationship(withSideEffect.getId(), baseTask.getId(), Relationship.PARENT_OF)));
   }
 
+  @SuppressWarnings("deprecation")
   @Test
-  public void testTraceWithSuccessChild() throws InterruptedException
-  {
+  public void testTraceWithSuccessChild() throws InterruptedException {
     final Task<String> task = value("taskName", "value");
 
-    @SuppressWarnings("unchecked")
-    final Task<?> seq = seq(Arrays.asList(task));
-    getEngine().run(seq);
-    assertTrue(seq.await(5, TimeUnit.SECONDS));
+    final Task<?> seq = Tasks.seq(Arrays.asList(task));
+    runAndWait("TestTaskToTrace.testTraceWithSuccessChild", seq);
 
-    final ComparableTrace taskTrace = new ComparableTraceBuilder(task.getTrace()).build();
-    assertShallowTraceMatches(task, taskTrace);
+    verifyShallowTrace(task);
+    verifyShallowTrace(seq);
 
-    final ComparableTrace seqTrace = new ComparableTraceBuilder(seq.getTrace()).build();
-    assertShallowTraceMatches(seq, seqTrace);
-
-    final Set<Related<Trace>> related = seqTrace.getRelated();
-    assertEquals(1, related.size());
-    assertEquals(new Related<Trace>(Relationship.PARENT_OF, taskTrace),
-      related.iterator().next());
+    assertEquals(1, getRelationships(seq.getTrace(), seq.getId()).size());
+    assertTrue(seq.getTrace().getRelationships()
+        .contains(new TraceRelationship(seq.getId(), task.getId(), Relationship.PARENT_OF)));
   }
 
   @Test
-  public void testTraceWithEarlyFinish() throws InterruptedException
-  {
+  public void testTraceWithEarlyFinish() throws InterruptedException {
     final Task<String> innerTask = value("xyz");
-    final Task<String> task = new BaseTask<String>()
-    {
+    final Task<String> task = new BaseTask<String>() {
       @Override
-      protected Promise<? extends String> run(final Context context) throws Exception
-      {
+      protected Promise<? extends String> run(final Context context) throws Exception {
         // We kick off a task that won't finish before the containing task
         // (this task) is finished.
         context.run(innerTask);
@@ -366,32 +255,21 @@ public class TestTaskToTrace extends BaseEngineTest
       }
     };
 
-    getEngine().run(task);
-    assertTrue(task.await(5, TimeUnit.SECONDS));
+    runAndWait("TestTaskToTrace.testTraceWithEarlyFinish", task);
 
-    final ComparableTrace taskTrace = new ComparableTraceBuilder(task.getTrace()).build();
-    final ComparableTrace innerTaskTrace = new ComparableTraceBuilder(innerTask.getTrace()).build();
-
-    assertTrue(taskTrace.getRelated().iterator().hasNext());
-    Related<Trace> traceRelated = taskTrace.getRelated().iterator().next();
-    assertShallowTraceMatches(task, taskTrace);
-    assertShallowTraceMatches(innerTask, innerTaskTrace);
-    assertEquals(innerTaskTrace,traceRelated.getRelated());
-    assertEquals(Relationship.PARENT_OF.name(), traceRelated.getRelationship());
-    assertEquals(ResultType.EARLY_FINISH, innerTaskTrace.getResultType());
+    assertEquals(1, getRelationships(task.getTrace(), task.getId()).size());
+    assertTrue(task.getTrace().getRelationships()
+        .contains(new TraceRelationship(task.getId(), innerTask.getId(), Relationship.POTENTIAL_PARENT_OF)));
+    assertEquals(ResultType.EARLY_FINISH, task.getTrace().getTraceMap().get(innerTask.getId()).getResultType());
   }
 
   @Test
-  public void testTraceIsAddedBeforeAwaitCompletes() throws InterruptedException
-  {
-    for (int i = 0 ;i < 100; i++)
-    {
+  public void testTraceIsAddedBeforeAwaitCompletes() throws InterruptedException {
+    for (int i = 0; i < 100; i++) {
       final Task<String> innerTask = value("xyz");
-      final Task<String> task = new BaseTask<String>()
-      {
+      final Task<String> task = new BaseTask<String>() {
         @Override
-        protected Promise<? extends String> run(final Context context) throws Exception
-        {
+        protected Promise<? extends String> run(final Context context) throws Exception {
           // We kick off a task that won't finish before the containing task
           // (this task) is finished.
           context.run(innerTask);
@@ -400,146 +278,114 @@ public class TestTaskToTrace extends BaseEngineTest
         }
       };
 
-      getEngine().run(task);
-      assertTrue(task.await(5, TimeUnit.SECONDS));
+      runAndWait("TestTaskToTrace.testTraceIsAddedBeforeAwaitCompletes", task);
 
-      assertTrue(task.getTrace().getRelated().iterator().hasNext());
+      assertTrue(task.getTrace().getRelationships().size() > 0);
     }
   }
 
   @Test
-  public void testTraceWithMultiplePotentialParent() throws InterruptedException
-  {
+  public void testTraceWithMultiplePotentialParentsPar() throws InterruptedException {
     final Task<String> innerTask = value("xyz");
-    final Task<String> task1 = new BaseTask<String>()
-    {
+    final Task<String> task1 = new BaseTask<String>("task1") {
       @Override
-      protected Promise<? extends String> run(final Context context) throws Exception
-      {
+      protected Promise<? extends String> run(final Context context) throws Exception {
         context.run(innerTask);
         return Promises.value("value1");
       }
     };
 
-    final Task<String> task2 = new BaseTask<String>()
-    {
+    final Task<String> task2 = new BaseTask<String>("task2") {
       @Override
-      protected Promise<? extends String> run(final Context context) throws Exception
-      {
+      protected Promise<? extends String> run(final Context context) throws Exception {
         context.run(innerTask);
         return Promises.value("value2");
       }
     };
 
-    Task<?> par = par(task1, task2);
-    getEngine().run(par);
-    assertTrue(par.await(5, TimeUnit.SECONDS));
+    Task<?> par = Task.par(task1, task2);
+    runAndWait("TestTaskToTrace.testTraceWithMultiplePotentialParentsPar", par);
 
-    final ComparableTrace parTrace = new ComparableTraceBuilder(par.getTrace()).build();
-    final ComparableTrace innerTaskTrace = new ComparableTraceBuilder(innerTask.getTrace()).build();
-    final ComparableTrace task1Trace = new ComparableTraceBuilder(task1.getTrace()).build();
-    final ComparableTrace task2Trace = new ComparableTraceBuilder(task2.getTrace()).build();
-
-    Set<Trace> tracesWithParent = new HashSet<Trace>();
-    Map<Trace, Integer> traceWithPotentialParent = new HashMap<Trace, Integer>();
-    assertAndFindParent(parTrace, tracesWithParent, traceWithPotentialParent);
-    assertEquals(3, tracesWithParent.size());
-    assertEquals((Integer)1, traceWithPotentialParent.get(innerTaskTrace));
-    assertEquals(1, traceWithPotentialParent.size());
-    assertTrue(tracesWithParent.contains(task1Trace));
-    assertTrue(tracesWithParent.contains(task2Trace));
-    assertTrue(tracesWithParent.contains(innerTaskTrace));
-    assertShallowTraceMatches(task1, task1Trace);
-    assertShallowTraceMatches(task2, task2Trace);
-    assertShallowTraceMatches(innerTask, innerTaskTrace);
-    assertEquals(ResultType.EARLY_FINISH, innerTaskTrace.getResultType());
+    Set<Long> tasksWithParent = new HashSet<>();
+    Map<Long, Integer> tasksWithPotentialParent = new HashMap<>();
+    assertAndFindParent(par.getTrace(), tasksWithParent, tasksWithPotentialParent);
+    assertEquals(2, tasksWithParent.size());
+    assertEquals((Integer) 2, tasksWithPotentialParent.get(innerTask.getId()));
+    assertEquals(1, tasksWithPotentialParent.size());
+    assertTrue(tasksWithParent.contains(task1.getId()));
+    assertTrue(tasksWithParent.contains(task2.getId()));
+    verifyShallowTrace(task1);
+    verifyShallowTrace(task2);
+    verifyShallowTrace(innerTask);
+    assertEquals(ResultType.EARLY_FINISH, innerTask.getTrace().getTraceMap().get(innerTask.getId()).getResultType());
   }
 
   @Test
-  public void testTraceWithMultiplePotentialParentAndParent() throws InterruptedException
-  {
+  public void testTraceWithMultiplePotentialParentsSeq() throws InterruptedException {
     final SettablePromise<String> promise1 = Promises.settable();
 
-    final Task<String> innerTask = new BaseTask<String>()
-    {
+    final Task<String> innerTask = new BaseTask<String>("innerTask") {
       @Override
-      protected Promise<? extends String> run(Context context) throws Exception
-      {
+      protected Promise<? extends String> run(Context context) throws Exception {
         promise1.done("inner");
         return promise1;
       }
     };
 
-    final Task<String> task1 = new BaseTask<String>()
-    {
+    final Task<String> task1 = new BaseTask<String>("task1") {
       @Override
-      protected Promise<? extends String> run(final Context context) throws Exception
-      {
+      protected Promise<? extends String> run(final Context context) throws Exception {
         context.run(innerTask);
         return Promises.value("value1");
       }
     };
 
-    final Task<String> task2 = new BaseTask<String>()
-    {
+    final Task<String> task2 = new BaseTask<String>("task2") {
       @Override
-      protected Promise<? extends String> run(final Context context) throws Exception
-      {
+      protected Promise<? extends String> run(final Context context) throws Exception {
         context.run(innerTask);
         return Promises.value("value2");
       }
     };
 
-    final Task<String> task3 = new BaseTask<String>()
-    {
+    final Task<String> task3 = new BaseTask<String>("task2") {
       @Override
-      protected Promise<? extends String> run(Context context) throws Exception
-      {
+      protected Promise<? extends String> run(Context context) throws Exception {
         context.run(innerTask);
-
         return Promises.value("value3");
       }
     };
 
-    Task<?> seq = seq(task1, task2, task3);
-    getEngine().run(seq);
-    assertTrue(seq.await(5, TimeUnit.SECONDS));
+    Task<?> seq = task1.andThen(task2).andThen(task3);
+    runAndWait("TestTaskToTrace.testTraceWithMultiplePotentialParentsSeq", seq);
 
-    final ComparableTrace seqTrace = new ComparableTraceBuilder(seq.getTrace()).build();
-    final ComparableTrace innerTaskTrace = new ComparableTraceBuilder(innerTask.getTrace()).build();
-    final ComparableTrace task1Trace = new ComparableTraceBuilder(task1.getTrace()).build();
-    final ComparableTrace task2Trace = new ComparableTraceBuilder(task2.getTrace()).build();
-    final ComparableTrace task3Trace = new ComparableTraceBuilder(task3.getTrace()).build();
+    Set<Long> tasksWithParent = new HashSet<>();
+    Map<Long, Integer> tasksWithPotentialParent = new HashMap<>();
+    assertAndFindParent(seq.getTrace(), tasksWithParent, tasksWithPotentialParent);
 
-    Set<Trace> tracesWithParent = new HashSet<Trace>();
-    Map<Trace, Integer> traceWithPotentialParent = new HashMap<Trace, Integer>();
-    assertAndFindParent(seqTrace, tracesWithParent, traceWithPotentialParent);
-    assertEquals(4, tracesWithParent.size());
-    assertEquals(1, traceWithPotentialParent.size());
-    assertEquals((Integer) 2, traceWithPotentialParent.get(innerTaskTrace));
-    assertTrue(tracesWithParent.contains(task1Trace));
-    assertTrue(tracesWithParent.contains(task2Trace));
-    assertTrue(tracesWithParent.contains(task3Trace));
-    assertTrue(tracesWithParent.contains(innerTaskTrace));
-    assertShallowTraceMatches(task1, task1Trace);
-    assertShallowTraceMatches(task2, task2Trace);
-    assertShallowTraceMatches(task3, task3Trace);
-    assertShallowTraceMatches(innerTask, innerTaskTrace);
+    assertEquals(4, tasksWithParent.size());
+    assertEquals((Integer) 3, tasksWithPotentialParent.get(innerTask.getId()));
+    assertEquals(1, tasksWithPotentialParent.size());
+    assertTrue(tasksWithParent.contains(task1.getId()));
+    assertTrue(tasksWithParent.contains(task2.getId()));
+    assertTrue(tasksWithParent.contains(task3.getId()));
+    verifyShallowTrace(task1);
+    verifyShallowTrace(task2);
+    verifyShallowTrace(task3);
+    verifyShallowTrace(innerTask);
+    assertEquals(ResultType.EARLY_FINISH, innerTask.getTrace().getTraceMap().get(innerTask.getId()).getResultType());
   }
 
   @Test
-  public void testTraceWithDiamond() throws InterruptedException
-  {
+  public void testTraceWithDiamond() throws InterruptedException {
     final Task<String> a = value("valueA");
     final Task<String> b = value("valueB");
     final Task<String> c = value("valueC");
     final Task<String> d = value("valueD");
 
-    final Task<String> parent = new BaseTask<String>()
-    {
+    final Task<String> parent = new BaseTask<String>() {
       @Override
-      protected Promise<? extends String> run(final Context context) throws Exception
-      {
+      protected Promise<? extends String> run(final Context context) throws Exception {
         context.after(a).run(b);
         context.after(a).run(c);
         context.after(b, c).run(d);
@@ -548,72 +394,92 @@ public class TestTaskToTrace extends BaseEngineTest
       }
     };
 
-    getEngine().run(parent);
-    assertTrue(parent.await(5, TimeUnit.SECONDS));
+    runAndWait("TestTaskToTrace.testTraceWithDiamond", parent);
 
-    final ComparableTrace parentTrace = new ComparableTraceBuilder(parent.getTrace()).build();
-    final ComparableTrace traceA = new ComparableTraceBuilder(a.getTrace()).build();
-    final ComparableTrace traceB = new ComparableTraceBuilder(b.getTrace()).build();
-    final ComparableTrace traceC = new ComparableTraceBuilder(c.getTrace()).build();
-    final ComparableTrace traceD = new ComparableTraceBuilder(d.getTrace()).build();
+    verifyShallowTrace(parent);
+    verifyShallowTrace(a);
+    verifyShallowTrace(b);
+    verifyShallowTrace(c);
+    verifyShallowTrace(d);
 
-    assertShallowTraceMatches(parent, parentTrace);
-    assertShallowTraceMatches(a, traceA);
-    assertShallowTraceMatches(b, traceB);
-    assertShallowTraceMatches(c, traceC);
-    assertShallowTraceMatches(d, traceD);
+    assertTrue(parent.getTrace().getRelationships()
+        .contains(new TraceRelationship(parent.getId(), a.getId(), Relationship.PARENT_OF)));
+    assertTrue(parent.getTrace().getRelationships()
+        .contains(new TraceRelationship(parent.getId(), b.getId(), Relationship.PARENT_OF)));
+    assertTrue(parent.getTrace().getRelationships()
+        .contains(new TraceRelationship(parent.getId(), c.getId(), Relationship.PARENT_OF)));
+    assertTrue(parent.getTrace().getRelationships()
+        .contains(new TraceRelationship(parent.getId(), d.getId(), Relationship.PARENT_OF)));
 
-    assertTrue(parentTrace.getRelated().contains(new Related<Trace>(Relationship.PARENT_OF, traceA)));
-    assertTrue(parentTrace.getRelated().contains(new Related<Trace>(Relationship.PARENT_OF, traceB)));
-    assertTrue(parentTrace.getRelated().contains(new Related<Trace>(Relationship.PARENT_OF, traceC)));
-    assertTrue(parentTrace.getRelated().contains(new Related<Trace>(Relationship.PARENT_OF, traceD)));
-
-    assertTrue(traceD.getRelated().contains(new Related<Trace>(Relationship.SUCCESSOR_OF, traceB)));
-    assertTrue(traceD.getRelated().contains(new Related<Trace>(Relationship.SUCCESSOR_OF, traceC)));
-    assertTrue(traceB.getRelated().contains(new Related<Trace>(Relationship.SUCCESSOR_OF, traceA)));
-    assertTrue(traceC.getRelated().contains(new Related<Trace>(Relationship.SUCCESSOR_OF, traceA)));
+    assertTrue(parent.getTrace().getRelationships()
+        .contains(new TraceRelationship(d.getId(), b.getId(), Relationship.SUCCESSOR_OF)));
+    assertTrue(parent.getTrace().getRelationships()
+        .contains(new TraceRelationship(d.getId(), c.getId(), Relationship.SUCCESSOR_OF)));
+    assertTrue(parent.getTrace().getRelationships()
+        .contains(new TraceRelationship(b.getId(), a.getId(), Relationship.SUCCESSOR_OF)));
+    assertTrue(parent.getTrace().getRelationships()
+        .contains(new TraceRelationship(c.getId(), a.getId(), Relationship.SUCCESSOR_OF)));
   }
 
-  private void assertAndFindParent(Trace trace, Set<Trace> tracesWithParent, Map<Trace, Integer> traceWithPotentialParent)
-  {
-    for(Related<Trace> relatedTrace : trace.getRelated())
-    {
-      if (relatedTrace.getRelationship().equals(Relationship.PARENT_OF.name()))
-      {
-        assertFalse(tracesWithParent.contains(relatedTrace.getRelated()));
-        tracesWithParent.add(relatedTrace.getRelated());
-        assertAndFindParent(relatedTrace.getRelated(), tracesWithParent, traceWithPotentialParent);
-      }
-      else if (relatedTrace.getRelationship().equals(Relationship.POTENTIAL_PARENT_OF.name()))
-      {
-        if (!traceWithPotentialParent.containsKey(relatedTrace.getRelated()))
-        {
-          traceWithPotentialParent.put(relatedTrace.getRelated(), 0);
+  /**
+   * Populates sets with ids of tasks that have parent and ids of tasks that have potential
+   * parents with number of potential parents.
+   * Validates that task can have only one parent but many potential parents.
+   */
+  private void assertAndFindParent(Trace trace, Set<Long> tasksWithParent,
+      Map<Long, Integer> tasksWithPotentialParent) {
+    for (TraceRelationship rel : trace.getRelationships()) {
+      if (rel.getRelationhsip() == Relationship.PARENT_OF) {
+        assertFalse(tasksWithParent.contains(rel.getTo()));
+        tasksWithParent.add(rel.getTo());
+      } else if (rel.getRelationhsip() == Relationship.POTENTIAL_PARENT_OF) {
+        if (!tasksWithPotentialParent.containsKey(rel.getTo())) {
+          tasksWithPotentialParent.put(rel.getTo(), 0);
         }
-        traceWithPotentialParent.put(relatedTrace.getRelated(), traceWithPotentialParent.get(relatedTrace.getRelated()) + 1);
-        assertAndFindParent(relatedTrace.getRelated(), tracesWithParent, traceWithPotentialParent);
+        tasksWithPotentialParent.put(rel.getTo(), tasksWithPotentialParent.get(rel.getTo()) + 1);
       }
     }
   }
 
-  private void assertShallowTraceMatches(final Task<?> task, final Trace trace)
-  {
+  private Long getChild(TraceRelationship rel, Long parent) {
+    if ((rel.getRelationhsip() == Relationship.PARENT_OF || rel.getRelationhsip() == Relationship.POTENTIAL_PARENT_OF) &&
+        rel.getFrom().equals(parent)) {
+      return rel.getTo();
+    }
+    if (rel.getRelationhsip() == Relationship.POTENTIAL_CHILD_OF &&  rel.getTo().equals(parent)) {
+      return rel.getFrom();
+    }
+    return null;
+  }
+
+  private ShallowTrace findPossiblyFusedTrace(final Task<?> task) {
+    final ShallowTrace main = task.getShallowTrace();
+    if (main.getName().equals("fused")) {
+      final Trace trace = task.getTrace();
+      Optional<Long> child = trace.getRelationships().stream()
+                               .map(rel -> getChild(rel, main.getId()))
+                               .filter(id-> id != null)
+                               .findFirst();
+      if (child.isPresent()) {
+        return trace.getTraceMap().get(child.get());
+      }
+    }
+    return main;
+  }
+
+  private void verifyShallowTrace(final Task<?> task) {
+    final ShallowTrace trace = findPossiblyFusedTrace(task);
     assertEquals(task.getName(), trace.getName());
     assertEquals(ResultType.fromTask(task), trace.getResultType());
-    assertEquals(task.getShallowTrace().getStartNanos(), trace.getStartNanos());
 
     // If the task has not been started then we expect the endNanos to be null.
     // If the task has started but has not been finished then endNanos is set
     // to the time that the trace was taken. If the task was finished then the
     // task end time and trace end time should match.
-    if (trace.getResultType().equals(ResultType.UNFINISHED))
-    {
-      if (trace.getStartNanos() == null)
-      {
+    if (trace.getResultType().equals(ResultType.UNFINISHED)) {
+      if (trace.getStartNanos() == null) {
         assertNull(trace.getEndNanos());
-      }
-      else
-      {
+      } else {
         // Trace will have the end time set to the time the trace was taken
         assertTrue(trace.getEndNanos() <= System.nanoTime());
 
@@ -622,28 +488,14 @@ public class TestTaskToTrace extends BaseEngineTest
         assertTrue(trace.getEndNanos() > trace.getStartNanos());
       }
     }
-    else
-    {
-      assertEquals(task.getShallowTrace().getEndNanos(), trace.getEndNanos());
-    }
-
-    switch (ResultType.fromTask(task))
-    {
-      case SUCCESS:
-        Object value = task.get();
-        assertEquals(value == null ? null : value.toString(), trace.getValue());
-        break;
-      case ERROR:
-        assertTrue(trace.getValue().contains(task.getError().toString()));
-        break;
-      case UNFINISHED:
+    if (task.isDone()) {
+      if (task.isFailed() && !(Exceptions.isEarlyFinish(task.getError()))) {
+        assertNotNull(trace.getValue());
+      } else {
         assertNull(trace.getValue());
-        break;
-      case EARLY_FINISH:
-        assertNull(trace.getValue());
-        break;
+      }
+    } else {
+      assertNull(trace.getValue());
     }
   }
 }
-
-

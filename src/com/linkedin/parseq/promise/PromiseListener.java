@@ -23,10 +23,11 @@ package com.linkedin.parseq.promise;
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Chi Chan (ckchan@linkedin.com)
+ * @author Jaroslaw Odzga (jodzga@linkedin.com)
  * @see Promise#addListener(PromiseListener)
  */
-public interface PromiseListener<P>
-{
+@FunctionalInterface
+public interface PromiseListener<P> {
   /**
    * A callback method that is invoked when the promise completes. The code
    * in this method should not block.

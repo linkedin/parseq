@@ -1,8 +1,8 @@
 package com.linkedin.parseq.internal;
 
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import static org.testng.Assert.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -10,28 +10,32 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
-public class TestSerialExecutor
-{
+import com.linkedin.parseq.internal.SerialExecutor.DeactivationListener;
+
+
+public class TestSerialExecutor {
   private ExecutorService _executorService;
   private CapturingRejectionHandler _rejectionHandler;
   private SerialExecutor _serialExecutor;
+  private CapturingActivityListener _capturingDeactivationListener;
 
   @BeforeMethod
-  public void setUp()
-  {
-    _executorService = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS,
-        new ArrayBlockingQueue<Runnable>(1), new ThreadPoolExecutor.AbortPolicy());
+  public void setUp() {
+    _executorService = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(1),
+        new ThreadPoolExecutor.AbortPolicy());
     _rejectionHandler = new CapturingRejectionHandler();
-    _serialExecutor = new SerialExecutor(_executorService, _rejectionHandler);
+    _capturingDeactivationListener = new CapturingActivityListener();
+    _serialExecutor = new SerialExecutor(_executorService, _rejectionHandler, _capturingDeactivationListener);
   }
 
   @AfterMethod
-  public void tearDown() throws InterruptedException
-  {
+  public void tearDown() throws InterruptedException {
     _serialExecutor = null;
     _rejectionHandler = null;
     _executorService.shutdownNow();
@@ -40,24 +44,22 @@ public class TestSerialExecutor
   }
 
   @Test
-  public void testExecuteOneStepPlan() throws InterruptedException
-  {
+  public void testExecuteOneStepPlan() throws InterruptedException {
     final LatchedRunnable runnable = new LatchedRunnable();
     _serialExecutor.execute(runnable);
     assertTrue(runnable.await(5, TimeUnit.SECONDS));
     assertFalse(_rejectionHandler.wasExecuted());
+    assertTrue(_capturingDeactivationListener.await(5, TimeUnit.SECONDS));
+    assertEquals(_capturingDeactivationListener.getDeactivatedCount(), 1);
   }
 
   @Test
-  public void testExecuteTwoStepPlan() throws InterruptedException
-  {
+  public void testExecuteTwoStepPlan() throws InterruptedException {
     final LatchedRunnable inner = new LatchedRunnable();
 
-    final Runnable outer = new Runnable()
-    {
+    final Runnable outer = new Runnable() {
       @Override
-      public void run()
-      {
+      public void run() {
         _serialExecutor.execute(inner);
       }
     };
@@ -65,11 +67,12 @@ public class TestSerialExecutor
     _executorService.execute(outer);
     assertTrue(inner.await(5, TimeUnit.SECONDS));
     assertFalse(_rejectionHandler.wasExecuted());
+    assertTrue(_capturingDeactivationListener.await(5, TimeUnit.SECONDS));
+    assertEquals(_capturingDeactivationListener.getDeactivatedCount(), 1);
   }
 
   @Test
-  public void testRejectOnFirstExecute() throws InterruptedException
-  {
+  public void testRejectOnFirstExecute() throws InterruptedException {
     // First fill up the underlying executor service so that a subsequent
     // submission of an execution loop by the serial executor will fail.
     _executorService.execute(new NeverEndingRunnable());
@@ -81,27 +84,23 @@ public class TestSerialExecutor
     // throw RejectedExecutionException and the rejectionRunnable should run.
     _serialExecutor.execute(new NeverEndingRunnable());
     assertTrue(_rejectionHandler.await(5, TimeUnit.SECONDS));
-    assertTrue("Expected " + _rejectionHandler.getLastError() + " to be instance of " + RejectedExecutionException.class.getName(),
-               _rejectionHandler.getLastError() instanceof RejectedExecutionException);
+    assertTrue(
+        "Expected " + _rejectionHandler.getLastError() + " to be instance of "
+            + RejectedExecutionException.class.getName(),
+        _rejectionHandler.getLastError() instanceof RejectedExecutionException);
   }
 
   @Test
-  public void testRejectOnLoop() throws InterruptedException
-  {
+  public void testRejectOnLoop() throws InterruptedException {
     final CountDownLatch innerLatch = new CountDownLatch(1);
     final LatchedRunnable innerRunnable = new LatchedRunnable();
-    final LatchedRunnable outer = new LatchedRunnable()
-    {
+    final LatchedRunnable outer = new LatchedRunnable() {
       @Override
-      public void run()
-      {
-        try
-        {
+      public void run() {
+        try {
           innerLatch.await();
           _serialExecutor.execute(innerRunnable);
-        }
-        catch (InterruptedException e)
-        {
+        } catch (InterruptedException e) {
           // Shouldn't happen
         }
         super.run();
@@ -123,66 +122,75 @@ public class TestSerialExecutor
     innerLatch.countDown();
 
     assertTrue(_rejectionHandler.await(5, TimeUnit.SECONDS));
-    assertTrue("Expected " + _rejectionHandler.getLastError() + " to be instance of " + RejectedExecutionException.class.getName(),
-               _rejectionHandler.getLastError() instanceof RejectedExecutionException);
+    assertTrue(
+        "Expected " + _rejectionHandler.getLastError() + " to be instance of "
+            + RejectedExecutionException.class.getName(),
+        _rejectionHandler.getLastError() instanceof RejectedExecutionException);
   }
 
-  private static class NeverEndingRunnable implements Runnable
-  {
+  private static class NeverEndingRunnable implements Runnable {
     @Override
-    public void run()
-    {
-      try
-      {
+    public void run() {
+      try {
         new CountDownLatch(1).await();
-      }
-      catch (InterruptedException e)
-      {
+      } catch (InterruptedException e) {
         // This is our shutdown mechanism.
       }
     }
   }
 
-  private static class CapturingRejectionHandler implements RejectedSerialExecutionHandler
-  {
+  private static class CapturingActivityListener implements DeactivationListener {
+
+    private AtomicInteger _deactivatedCount = new AtomicInteger();
+    private final CountDownLatch _latch = new CountDownLatch(1);
+
+    @Override
+    public void deactivated() {
+      _deactivatedCount.incrementAndGet();
+      _latch.countDown();
+    }
+
+    public int getDeactivatedCount() {
+      return _deactivatedCount.get();
+    }
+
+    public boolean await(long timeout, TimeUnit unit) throws InterruptedException {
+      return _latch.await(timeout, unit);
+    }
+  }
+
+  private static class CapturingRejectionHandler implements RejectedSerialExecutionHandler {
     private final CountDownLatch _latch = new CountDownLatch(1);
     private volatile Throwable _lastError;
 
     @Override
-    public void rejectedExecution(Throwable error)
-    {
+    public void rejectedExecution(Throwable error) {
       _lastError = error;
       _latch.countDown();
     }
 
-    public boolean await(long timeout, TimeUnit unit) throws InterruptedException
-    {
+    public boolean await(long timeout, TimeUnit unit) throws InterruptedException {
       return _latch.await(timeout, unit);
     }
 
-    public boolean wasExecuted()
-    {
+    public boolean wasExecuted() {
       return _latch.getCount() == 0;
     }
 
-    public Throwable getLastError()
-    {
+    public Throwable getLastError() {
       return _lastError;
     }
   }
 
-  private static class LatchedRunnable implements Runnable
-  {
+  private static class LatchedRunnable implements Runnable {
     private final CountDownLatch _latch = new CountDownLatch(1);
 
     @Override
-    public void run()
-    {
+    public void run() {
       _latch.countDown();
     }
 
-    public boolean await(long timeout, TimeUnit unit) throws InterruptedException
-    {
+    public boolean await(long timeout, TimeUnit unit) throws InterruptedException {
       return _latch.await(timeout, unit);
     }
   }

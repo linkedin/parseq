@@ -20,14 +20,13 @@ import org.testng.annotations.Test;
 
 import static org.testng.AssertJUnit.*;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class TestPromises
-{
+public class TestPromises {
   @Test
-  public void testValue()
-  {
+  public void testValue() {
     final String value = "value";
     final Promise<String> promise = Promises.value(value);
 
@@ -37,8 +36,7 @@ public class TestPromises
   }
 
   @Test
-  public void testError()
-  {
+  public void testError() {
     final Exception error = new Exception();
     final Promise<?> promise = Promises.error(error);
 
@@ -48,8 +46,7 @@ public class TestPromises
   }
 
   @Test
-  public void testPropagateValue()
-  {
+  public void testPropagateValue() {
     final String value = "value";
     final SettablePromise<String> source = Promises.settable();
     final SettablePromise<String> dest = Promises.settable();
@@ -66,8 +63,7 @@ public class TestPromises
   }
 
   @Test
-  public void testPropagateError()
-  {
+  public void testPropagateError() {
     final Exception error = new Exception();
     final SettablePromise<String> source = Promises.settable();
     final SettablePromise<String> dest = Promises.settable();

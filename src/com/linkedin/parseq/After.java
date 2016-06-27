@@ -16,14 +16,17 @@
 
 package com.linkedin.parseq;
 
+import java.util.function.Supplier;
+
+
 /**
  * An object that invokes tasks after as set of
  * {@link com.linkedin.parseq.promise.Promise}s and {@link Task}s have completed.
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
+ * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public interface After
-{
+public interface After {
   /**
    * When all promises and tasks have been resolved then the given task is
    * run.
@@ -33,11 +36,11 @@ public interface After
   void run(Task<?> task);
 
   /**
-   * When all promises and tasks have been resolved successfully, the given
-   * task is run as a side effect.
+   * When all promises and tasks have been resolved then task provided by
+   * given Supplier is run. Supplier will be called with After semantics e.g.
+   * when all Promises are resolved.
    *
-   * @param task the task to be run as a side effect.
-   * @return the wrapper task for the side effect
+   * @param taskSupplier the supplier of a task to run
    */
-  Task<?> runSideEffect(Task<?> task);
+  void run(Supplier<Task<?>> taskSupplier);
 }

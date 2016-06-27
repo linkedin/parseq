@@ -60,6 +60,9 @@ function extractPotentialParents(graph) {
 
 function rewriteNodes(g, parents) {
   g.eachNode(function(u, value) { if (value === undefined) { g.node(u, {}); } });
+  
+  //limit displayed name of nodes to 64 characters to avoid exploding graph size
+  g.eachNode(function(u, value) { if (value.name && value.name.length > 64) { value.name = value.name.substring(0, 61) + "..." } });
 
   var minStartNanos = Math.min.apply(Math, g.nodes().map(function(u) { return g.node(u).startNanos; }));
   g.eachNode(function(u, value) {
@@ -76,9 +79,10 @@ function rewriteNodes(g, parents) {
         label: value.name + ' (' + start + ', ' + run + ', ' + total + ')',
         labeljust: 'l',
         style:     'dashed',
-        color:     '#aaaaaa',
+        color:     '#cccccc',
         fillcolor: fillcolor(value.resultType),
-        resultType: value.resultType
+        resultType: value.resultType,
+        tooltip: value.name
       });
     } else {
       g.node(u, {
@@ -86,7 +90,8 @@ function rewriteNodes(g, parents) {
         shape: 'Mrecord',
         style: 'filled',
         fillcolor: fillcolor(value.resultType),
-        resultType: value.resultType
+        resultType: value.resultType,
+        tooltip: value.name
       });
     }
   });
@@ -117,7 +122,8 @@ function expandClusters(g, parents) {
     g.addNode(source, {
       shape: 'circle',
       style: 'filled',
-      label: '&nbsp;'
+      label: '&nbsp;',
+      tooltip: value.tooltip
     });
     g.parent(source, u);
 
@@ -125,7 +131,8 @@ function expandClusters(g, parents) {
       shape: 'doublecircle',
       style: 'filled',
       fillcolor: g.node(u).fillcolor,
-      label: '&nbsp;'
+      label: '&nbsp;',
+      tooltip: value.tooltip
     });
     g.parent(sink, u);
 
@@ -185,26 +192,24 @@ function addSourceSinkEdges(g, potentialParents, parents, originalG) {
           addInvisEdge(g, closestPred, u);
         }
       }
+    }
+    if (u in potentialParents) {
+      potentialParents[u].forEach(function(potentialParent) {
+        var ppValue = g.node(potentialParent),
+            ppSource = ppValue.source,
+            ppSink = ppValue.sink,
+            ppChildren = originalG.children(potentialParent);
 
-      if (u in potentialParents) {
-        potentialParents[u].forEach(function(potentialParent) {
-          var ppValue = g.node(potentialParent),
-              ppSource = ppValue.source,
-              ppSink = ppValue.sink,
-              ppChildren = originalG.children(potentialParent);
-
-          if (!hasPathToSet(u, ppChildren, paths)) {
-            if (wasFinished(uValue) && wasFinished(ppValue)) {
-              addSolidEdge(g, u, ppSink);
-            } else {
-              addDashedEdge(g, u, ppSink);
-            }
+        if (!hasPathToSet(u, ppChildren, paths)) {
+          if (wasFinished(uValue) && wasFinished(ppValue)) {
+            addSolidEdge(g, u, ppSink);
+          } else {
+            addDashedEdge(g, u, ppSink);            }
           }
-          if (!hasPathFromSet(ppChildren, u, paths)) {
-            addDashedEdge(g, ppSource, u);
-          }
-        });
-      }
+        if (!hasPathFromSet(ppChildren, u, paths)) {
+          addDashedEdge(g, ppSource, u);
+        }
+      });
     }
   });
 
@@ -338,7 +343,7 @@ function fillcolor(resultType) {
     case 'SUCCESS':      return '#e0ffe0';
     case 'ERROR':        return '#ffe0e0';
     case 'EARLY_FINISH': return '#fffacd';
-    default:             return '#aaaaaa';
+    default:             return '#cccccc';
   }
 }
 

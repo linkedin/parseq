@@ -16,23 +16,26 @@
 
 package com.linkedin.parseq;
 
+import com.linkedin.parseq.internal.TaskLogger;
 import com.linkedin.parseq.promise.Promise;
+import com.linkedin.parseq.trace.ShallowTraceBuilder;
+import com.linkedin.parseq.trace.TraceBuilder;
 
 import java.util.concurrent.TimeUnit;
+
 
 /**
  * A context provides an API to {@link Task}s for the purpose of scheduling
  * other tasks. Each task gets its own context, but contexts are hierarchical
  * such that any state changes made from this context are visible to other
  * contexts in the hierarchy.
- * <p/>
+ * <p>
  * If a task finished while it still has pending timers or tasks, those
  * timers and tasks will be cancelled - they are guaranteed not to execute.
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public interface Context
-{
+public interface Context {
   /**
    * Creates a timer that will invoke the given task if the calling task has
    * not yet finished.
@@ -50,6 +53,8 @@ public interface Context
    * @param tasks the tasks to run
    */
   void run(Task<?>... tasks);
+
+  void runSideEffect(Task<?>... tasks);
 
   /**
    * Provides a mechanism of ordering the execution of some child tasks after
@@ -71,4 +76,16 @@ public interface Context
    * @return The engine related property which has been stored with this key.
    */
   Object getEngineProperty(String key);
+
+  ShallowTraceBuilder getShallowTraceBuilder();
+
+  TraceBuilder getTraceBuilder();
+
+  Long getPlanId();
+
+  String getPlanClass();
+
+  Long getTaskId();
+
+  TaskLogger getTaskLogger();
 }

@@ -22,76 +22,55 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
+
 /**
- * TODO extend BlockingQueue
- *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class FIFOPriorityQueue<T>
-{
+public class FIFOPriorityQueue<T> {
   private final BlockingQueue<Entry<T>> _queue = new PriorityBlockingQueue<Entry<T>>();
   private final AtomicLong _sequenceNumber = new AtomicLong();
 
   private final int _defaultPriority;
 
-  public FIFOPriorityQueue()
-  {
+  public FIFOPriorityQueue() {
     this(Priority.DEFAULT_PRIORITY);
   }
 
-  public FIFOPriorityQueue(int defaultPriority)
-  {
+  public FIFOPriorityQueue(int defaultPriority) {
     _defaultPriority = defaultPriority;
   }
 
-  public void add(T value)
-  {
-    final int priority = value instanceof Prioritizable
-        ? ((Prioritizable)value).getPriority()
-        : _defaultPriority;
+  public void add(T value) {
+    final int priority = value instanceof Prioritizable ? ((Prioritizable) value).getPriority() : _defaultPriority;
     _queue.add(new Entry<T>(_sequenceNumber.getAndIncrement(), priority, value));
   }
 
-  public T poll()
-  {
+  public T poll() {
     final Entry<T> entry = _queue.poll();
-    return entry == null
-        ? null
-        : entry._value;
+    return entry == null ? null : entry._value;
   }
 
-  private static class Entry<T> implements Comparable<Entry<T>>
-  {
+  private static class Entry<T> implements Comparable<Entry<T>> {
     private final long _sequenceNumber;
     private final int _priority;
     private final T _value;
 
-    private Entry(final long sequenceNumber,
-                  final int priority,
-                  final T value)
-    {
+    private Entry(final long sequenceNumber, final int priority, final T value) {
       _sequenceNumber = sequenceNumber;
       _priority = priority;
       _value = value;
     }
 
     @Override
-    public int compareTo(final Entry<T> o)
-    {
+    public int compareTo(final Entry<T> o) {
       final int comp = compare(o._priority, _priority);
-      return comp == 0
-          ? compare(_sequenceNumber, o._sequenceNumber)
-          : comp;
+      return comp == 0 ? compare(_sequenceNumber, o._sequenceNumber) : comp;
     }
 
-    private int compare(final long lhs, final long rhs)
-    {
-      if (lhs < rhs)
-      {
+    private int compare(final long lhs, final long rhs) {
+      if (lhs < rhs) {
         return -1;
-      }
-      else if (lhs > rhs)
-      {
+      } else if (lhs > rhs) {
         return 1;
       }
       return 0;

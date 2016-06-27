@@ -22,12 +22,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+
 /**
  * Interface for encoding/decoding the {@link com.linkedin.parseq.trace.Trace}
  * @author Chi Chan (ckchan@linkedin.com)
  */
-public interface TraceCodec
-{
+public interface TraceCodec {
   /**
    * Decode the InputStream to an Trace.
    *

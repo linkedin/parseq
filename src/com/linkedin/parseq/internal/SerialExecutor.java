@@ -19,15 +19,16 @@ package com.linkedin.parseq.internal;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
+
 /**
  * An executor that provides the following guarantees:
- * <p/>
- * 1. Only one task may be executed at a time
- * 2. The completion of a task happens-before the execution of the next task
- * <p/>
+ * <p>
+ * 1. Only one Runnable may be executed at a time
+ * 2. The completion of a Runnable happens-before the execution of the next Runnable
+ * <p>
  * For more on the happens-before constraint see the {@code java.util.concurrent}
  * package documentation.
- * <p/>
+ * <p>
  * It is possible for the underlying executor to throw an exception signaling
  * that it is not able to accept new work. For example, this can occur with an
  * executor that has a bounded queue size and an
@@ -36,75 +37,115 @@ import java.util.concurrent.atomic.AtomicInteger;
  * to a layer that can more appropriate handle this event.
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
+ * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class SerialExecutor implements Executor
-{
+public class SerialExecutor implements Executor {
+
+  /*
+   * Below is a proof and description of a mechanism that ensures that
+   * "completion of a Runnable happens-before the execution of the next Runnable".
+   * Let's call the above proposition P from now on.
+   *
+   * A Runnable can only be executed by tryExecuteLoop. tryExecuteLoop makes sure that
+   * there is a happens-before relationship between the current thread that executes
+   * tryExecuteLoop and the execution of the next Runnable. Lets call this property HB.
+   *
+   * tryExecuteLoop can be invoked in two ways:
+   *
+   * 1) Recursively from within the ExecutorLoop.run method after completion of a Runnable
+   * on a thread belonging to the underlying executor.
+   * In this case HB ensures that P is true.
+   *
+   * 2) Through the SerialExecutor.execute method on an arbitrary thread.
+   * There are two cases:
+   * a) The submitted Runnable is the first Runnable executed by this SerialExecutor. In this case P is trivially true.
+   * b) The submitted Runnable is not the first Runnable executed by this SerialExecutor. In this case the thread that executed
+   * the last runnable, after it's completion, must have invoked _pendingCount.decrementAndGet, and got 0. Since the
+   * thread executing SerialExecutor.execute invoked _pendingCount.getAndIncrement, and got the value 0, it means
+   * that there is a happens-before relationship between the thread completing last Runnable and the current thread
+   * executing SerialExecutor.execute. Combined with HB1 this means that P is true.
+   */
+
   private final Executor _executor;
   private final RejectedSerialExecutionHandler _rejectionHandler;
   private final ExecutorLoop _executorLoop = new ExecutorLoop();
   private final FIFOPriorityQueue<Runnable> _queue = new FIFOPriorityQueue<Runnable>();
   private final AtomicInteger _pendingCount = new AtomicInteger();
+  private final DeactivationListener _deactivationListener;
 
-  public SerialExecutor(final Executor executor, final RejectedSerialExecutionHandler rejectionHandler)
-  {
-    assert executor != null;
-    assert rejectionHandler != null;
+  public SerialExecutor(final Executor executor,
+      final RejectedSerialExecutionHandler rejectionHandler,
+      final DeactivationListener deactivationListener) {
+    ArgumentUtil.requireNotNull(executor, "executor");
+    ArgumentUtil.requireNotNull(rejectionHandler, "rejectionHandler" );
+    ArgumentUtil.requireNotNull(deactivationListener, "deactivationListener" );
 
     _executor = executor;
     _rejectionHandler = rejectionHandler;
+    _deactivationListener = deactivationListener;
   }
 
-  public void execute(final Runnable runnable)
-  {
+  public void execute(final Runnable runnable) {
     _queue.add(runnable);
-    if (_pendingCount.getAndIncrement() == 0)
-    {
+    // Guarantees that execution loop is scheduled only once to the underlying executor.
+    // Also makes sure that all memory effects of last Runnable are visible to the next Runnable
+    // in case value returned by decrementAndGet == 0.
+    if (_pendingCount.getAndIncrement() == 0) {
       tryExecuteLoop();
     }
   }
 
-  private void tryExecuteLoop()
-  {
-    try
-    {
+  /*
+   * This method acts as a happen-before relation between current thread and next Runnable that will
+   * be executed by this executor because of properties of underlying _executor.execute().
+   */
+  private void tryExecuteLoop() {
+    try {
       _executor.execute(_executorLoop);
-    }
-    catch (Throwable t)
-    {
+    } catch (Throwable t) {
       _rejectionHandler.rejectedExecution(t);
     }
   }
 
-  private class ExecutorLoop implements Runnable
-  {
+  private class ExecutorLoop implements Runnable {
     @Override
-    public void run()
-    {
-      // This runnable is only scheduled when the queue is non-empty.
-      final Runnable runnable = _queue.poll();
+    public void run() {
+      // Entering state:
+      // - _queue.size() > 0
+      // - _pendingCount.get() > 0
 
-      // This seemingly unnecessary call ensures that we have full visibility
-      // of any changes that occurred since the last task executed. It, in
-      // combination with _pendingCount.decrementAndGet() below, effectively
-      // causes this code to have memory consistency similar to entering and
-      // exiting a monitor without the associated mutual exclusion. We need
-      // this because there is no other happens-before guarantee when a new
-      // task is added while this executor is currently processing a task.
-      _pendingCount.get();
-      try
-      {
+      final Runnable runnable = _queue.poll();
+      try {
         runnable.run();
-      }
-      finally
-      {
-        // In addition to its obvious use, this CAS operation acts like an
-        // exit from a monitor for memory consistency purposes. See the note
-        // above for more details.
-        if (_pendingCount.decrementAndGet() > 0)
-        {
+
+        // Deactivation listener is called before _pendingCount.decrementAndGet() so that
+        // it does not run concurrently with any other Runnable submitted to this Executor.
+        // _pendingCount.get() == 1 means that there are no more Runnables submitted to this
+        // executor waiting to be executed. Since _pendingCount can be changed in other threads
+        // in is possible to get _pendingCount.get() == 1 and _pendingCount.decrementAndGet() > 0
+        // to be true few lines below.
+        if (_pendingCount.get() == 1) {
+          _deactivationListener.deactivated();
+        }
+      } finally {
+        // Guarantees that execution loop is scheduled only once to the underlying executor.
+        // Also makes sure that all memory effects of last Runnable are visible to the next Runnable
+        // in case value returned by decrementAndGet == 0.
+        if (_pendingCount.decrementAndGet() > 0) {
+          // Aside from it's obvious intent it also makes sure that all memory effects are visible
+          // to the next Runnable
           tryExecuteLoop();
         }
       }
     }
+  }
+
+  /*
+   * Deactivation listener is notified when this executor finished executing a Runnable
+   * and there are no other Runnables waiting in queue.
+   * It is executed sequentially with respect to other Runnables executed by this Executor.
+   */
+  static interface DeactivationListener {
+    void deactivated();
   }
 }

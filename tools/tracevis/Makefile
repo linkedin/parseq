@@ -24,6 +24,8 @@ TEST_UNIT_COV = build/coverage/unit
 TEST_INT_COV = build/coverage/int
 TEST_ALL_COV = build/coverage/all
 
+include ../../version.properties
+
 # Targets
 .PHONY: all \
 		test test-unit test-int lint coverage \
@@ -42,13 +44,13 @@ build/$(MODULE_JS): browser.js node_modules $(SRC_FILES)
 build/$(MODULE_MIN_JS): build/$(MODULE_JS)
 	$(UGLIFY) $(UGLIFY_OPTS) $< > $@
 
-build/tracevis: bootstrap css trace.html | build/tracevis/js
+build/tracevis: bootstrap css img trace.html | build/tracevis/js
 	mkdir -p $@
 	cp -r $^ $@
-	sed -e "s|node_modules/d3/d3.js|js/d3.min.js|" -e "s|build/$(MODULE_JS)|js/$(MODULE_MIN_JS)|" trace.html > build/tracevis/trace.html
+	sed -e "s|vX.X.X|v$(version)|" -e "s|node_modules/d3/d3.js|js/d3.min.js|" -e "s|node_modules/svg-injector/svg-injector.js|js/svg-injector.min.js|" -e "s|node_modules/svg-pan-zoom/dist/svg-pan-zoom.js|js/svg-pan-zoom.min.js|" -e "s|build/$(MODULE_JS)|js/$(MODULE_MIN_JS)|" trace.html > build/tracevis/trace.html
 	@echo
 
-build/tracevis/js: build/$(MODULE_JS) build/$(MODULE_MIN_JS) node_modules/d3/d3.min.js
+build/tracevis/js: build/$(MODULE_JS) build/$(MODULE_MIN_JS) node_modules/d3/d3.min.js js/d3.slider.js node_modules/svg-injector/dist/svg-injector.min.js node_modules/svg-injector/dist/svg-injector.map.js node_modules/svg-pan-zoom/dist/svg-pan-zoom.min.js
 	rm -rf $@
 	mkdir -p $@
 	cp $^ $@

@@ -19,7 +19,6 @@ package com.linkedin.parseq;
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public interface ThrowingRunnable
-{
+public interface ThrowingRunnable {
   void run() throws Exception;
 }

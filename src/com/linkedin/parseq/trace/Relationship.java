@@ -22,8 +22,7 @@ package com.linkedin.parseq.trace;
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Chi Chan (ckchan@linkedin.com)
  */
-public enum Relationship
-{
+public enum Relationship {
   PARENT_OF,
   SUCCESSOR_OF,
   POSSIBLE_SUCCESSOR_OF,

@@ -17,46 +17,41 @@
 package com.linkedin.parseq;
 
 import com.linkedin.parseq.internal.InternalUtil;
-import com.linkedin.parseq.internal.SystemHiddenTask;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 import com.linkedin.parseq.trace.ResultType;
-import com.linkedin.parseq.trace.ShallowTrace;
-import com.linkedin.parseq.trace.ShallowTraceBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+
 /**
  * A {@link Task} that will run all of the constructor-supplied tasks in parallel.
- * <p/>
+ * <p>
  * Use {@link Tasks#par(Task[])} or {@link Tasks#par(Iterable)} to create an
  * instance of this class.
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Chi Chan (ckchan@linkedin.com)
+ * @see Task#par(Task, Task) Task.par
  */
-/* package private */ class ParTaskImpl<T> extends SystemHiddenTask<List<T>> implements ParTask<T>
-{
+/* package private */ class ParTaskImpl<T> extends BaseTask<List<T>>implements ParTask<T> {
   private final List<Task<T>> _tasks;
 
-  public ParTaskImpl(final String name, final Iterable<? extends Task<? extends T>> tasks)
-  {
+  public ParTaskImpl(final String name, final Iterable<? extends Task<? extends T>> tasks) {
     super(name);
     List<Task<T>> taskList = new ArrayList<Task<T>>();
-    for(Task<? extends T> task : tasks)
-    {
+    for (Task<? extends T> task : tasks) {
       // Safe to coerce Task<? extends T> to Task<T>
       @SuppressWarnings("unchecked")
-      final Task<T> coercedTask = (Task<T>)task;
+      final Task<T> coercedTask = (Task<T>) task;
       taskList.add(coercedTask);
     }
 
-    if (taskList.isEmpty())
-    {
+    if (taskList.isEmpty()) {
       throw new IllegalArgumentException("No tasks to parallelize!");
     }
 
@@ -65,40 +60,30 @@ import java.util.List;
   }
 
   @Override
-  protected Promise<List<T>> run(final Context context) throws Exception
-  {
+  protected Promise<List<T>> run(final Context context) throws Exception {
     final SettablePromise<List<T>> result = Promises.settable();
 
-    final PromiseListener<?> listener = new PromiseListener<Object>()
-    {
+    final PromiseListener<?> listener = new PromiseListener<Object>() {
       @Override
-      public void onResolved(Promise<Object> resolvedPromise)
-      {
+      public void onResolved(Promise<Object> resolvedPromise) {
         boolean allEarlyFinish = true;
         final List<T> taskResult = new ArrayList<T>();
         final List<Throwable> errors = new ArrayList<Throwable>();
 
-        for (Task<? extends T> task : _tasks)
-        {
-          if (task.isFailed())
-          {
-            if (allEarlyFinish && ResultType.fromTask(task) != ResultType.EARLY_FINISH)
-            {
+        for (Task<? extends T> task : _tasks) {
+          if (task.isFailed()) {
+            if (allEarlyFinish && ResultType.fromTask(task) != ResultType.EARLY_FINISH) {
               allEarlyFinish = false;
             }
             errors.add(task.getError());
-          }
-          else
-          {
+          } else {
             taskResult.add(task.get());
           }
         }
-        if (!errors.isEmpty())
-        {
-          result.fail(allEarlyFinish ? errors.get(0) : new MultiException("Multiple errors in 'ParTask' task.", errors));
-        }
-        else
-        {
+        if (!errors.isEmpty()) {
+          result
+              .fail(allEarlyFinish ? errors.get(0) : new MultiException("Multiple errors in 'ParTask' task.", errors));
+        } else {
           result.done(taskResult);
         }
       }
@@ -106,8 +91,7 @@ import java.util.List;
 
     InternalUtil.after(listener, _tasks.toArray(new Task<?>[_tasks.size()]));
 
-    for (Task<?> task : _tasks)
-    {
+    for (Task<?> task : _tasks) {
       context.run(task);
     }
 
@@ -115,24 +99,19 @@ import java.util.List;
   }
 
   @Override
-  public List<Task<T>> getTasks()
-  {
+  public List<Task<T>> getTasks() {
     return _tasks;
   }
 
   @Override
-  public List<T> getSuccessful()
-  {
-    if(!this.isFailed())
-    {
+  public List<T> getSuccessful() {
+    if (!this.isFailed()) {
       return this.get();
     }
 
     final List<T> taskResult = new ArrayList<T>();
-    for (Task<? extends T> task : _tasks)
-    {
-      if (!task.isFailed())
-      {
+    for (Task<? extends T> task : _tasks) {
+      if (!task.isFailed()) {
         taskResult.add(task.get());
       }
     }

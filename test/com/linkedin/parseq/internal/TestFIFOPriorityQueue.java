@@ -21,35 +21,32 @@ import org.testng.annotations.Test;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class TestFIFOPriorityQueue
-{
+public class TestFIFOPriorityQueue {
   @Test
-  public void testPollOnEmpty()
-  {
+  public void testPollOnEmpty() {
     final FIFOPriorityQueue<Object> queue = new FIFOPriorityQueue<Object>();
     assertNull(queue.poll());
   }
 
   @Test
-  public void testPollOnUnprioritizedSequence()
-  {
+  public void testPollOnUnprioritizedSequence() {
     final FIFOPriorityQueue<Integer> queue = new FIFOPriorityQueue<Integer>();
     queue.add(1);
     queue.add(2);
     queue.add(3);
 
-    assertEquals((Integer)1, queue.poll());
-    assertEquals((Integer)2, queue.poll());
-    assertEquals((Integer)3, queue.poll());
+    assertEquals((Integer) 1, queue.poll());
+    assertEquals((Integer) 2, queue.poll());
+    assertEquals((Integer) 3, queue.poll());
     assertNull(queue.poll());
   }
 
   @Test
-  public void testPollWithPriority()
-  {
+  public void testPollWithPriority() {
     final FIFOPriorityQueue<Int> queue = new FIFOPriorityQueue<Int>();
     queue.add(new PrioritizableInt(-5, 1));
     queue.add(new PrioritizableInt(10, 2));
@@ -61,8 +58,7 @@ public class TestFIFOPriorityQueue
   }
 
   @Test
-  public void testPollWithOverlappingPriorities()
-  {
+  public void testPollWithOverlappingPriorities() {
     final FIFOPriorityQueue<Int> queue = new FIFOPriorityQueue<Int>();
     queue.add(new PrioritizableInt(-5, 1));
     queue.add(new PrioritizableInt(10, 2));
@@ -80,8 +76,7 @@ public class TestFIFOPriorityQueue
   }
 
   @Test
-  public void testPollWithDefaultPriority()
-  {
+  public void testPollWithDefaultPriority() {
     final FIFOPriorityQueue<Int> queue = new FIFOPriorityQueue<Int>();
     queue.add(new PrioritizableInt(-5, 1));
     queue.add(new PrioritizableInt(10, 2));
@@ -92,33 +87,27 @@ public class TestFIFOPriorityQueue
     assertEquals(1, queue.poll().getValue());
   }
 
-  private static class Int
-  {
+  private static class Int {
     private final int _value;
 
-    private Int(final int value)
-    {
+    private Int(final int value) {
       _value = value;
     }
 
-    public int getValue()
-    {
+    public int getValue() {
       return _value;
     }
   }
 
-  private static class PrioritizableInt extends Int implements Prioritizable
-  {
+  private static class PrioritizableInt extends Int implements Prioritizable {
     private final int _priority;
 
-    private PrioritizableInt(final int priority, final int value)
-    {
+    private PrioritizableInt(final int priority, final int value) {
       super(value);
       _priority = priority;
     }
 
-    public int getPriority()
-    {
+    public int getPriority() {
       return _priority;
     }
   }

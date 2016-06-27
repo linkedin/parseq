@@ -14,8 +14,7 @@
  * the License.
  */
 
-var d3Treeify = require('../trace/d3Treeify'),
-    util = require('../trace/util');
+var d3Treeify = require('../trace/d3Treeify'), util = require('../trace/util');
 
 module.exports = render;
 
@@ -33,8 +32,8 @@ function render(root, graph) {
  * element.
  */
 function createTable(root) {
-  var table = root.append('table').attr('class', 'table table-bordered'),
-      thead = table.append('thead');
+  var table = root.append('table').attr('class', 'table table-bordered'), thead = table
+      .append('thead');
 
   thead.append('th').text('Name');
   thead.append('th').html('Start (ms)');
@@ -47,9 +46,9 @@ function createTable(root) {
 }
 
 function redraw(table, data) {
-  var rows,           // All rows as a d3 selection
-      rowsEnter,      // All new rows as a d3 selection
-      col;            // All columns as a d3 selection
+  var rows, // All rows as a d3 selection
+  rowsEnter, // All new rows as a d3 selection
+  col; // All columns as a d3 selection
 
   function toggleExpand(d) {
     if (d.children) {
@@ -63,85 +62,75 @@ function redraw(table, data) {
   }
 
   var nodes = d3.layout.hierarchy()
-    // Tell D3 not to overwrite our 'value' property
-    .value(undefined)
-    .sort(function(a, b) { return a.order - b.order; })
-    (data);
+  // Tell D3 not to overwrite our 'value' property
+  .value(undefined).sort(function(a, b) {
+    return a.order - b.order;
+  })(data);
 
-  nodes = nodes.filter(function(d) { return d.id !== null; });
+  nodes = nodes.filter(function(d) {
+    return d.id !== null;
+  });
 
-  rows = table
-    .selectAll('tr')
-    .classed('hidden', false)
-    .data(nodes, function(d) { return d.id; });
+  rows = table.selectAll('tr').classed('hidden', false).data(nodes,
+      function(d) {
+        return d.id;
+      });
 
-  rowsEnter = rows
-    .enter()
-    .append('tr')
-      .attr('id', function(d) { return 'trace-' + d.id; });
-  rows
-    .exit()
-    .classed('hidden', true);
+  rowsEnter = rows.enter().append('tr').attr('id', function(d) {
+    return 'trace-' + d.id;
+  });
+  rows.exit().classed('hidden', true);
 
-  col = rowsEnter
-    .append('td')
-      .style('padding-left', function(d) { return (d.depth * DEPTH_PADDING_EM + 0.5) + 'em'; });
+  col = rowsEnter.append('td').style('padding-left', function(d) {
+    return (d.depth * DEPTH_PADDING_EM + 0.5) + 'em';
+  });
 
-  col
-    .append('span')
-      .on('click', toggleExpand)
-      .classed('expandable', true)
+  col.append('span').on('click', toggleExpand).classed('expandable', true)
       .text('[-] ');
 
-  col
-    .append('span')
-      .classed('composite', function(d) { return d.children && d.children.length; })
-      .text(function(d) { return d.name; });
+  col.append('span').classed('composite', function(d) {
+    return d.children && d.children.length;
+  }).text(function(d) {
+    return d.name;
+  });
 
-  rowsEnter
-    .append('td')
-      .classed('numeric', true)
-      .html(function(d) { return '<br/>' + util.alignMillis(d.startMillis); });
-  rowsEnter
-    .append('td')
-      .classed('numeric', true)
-      .html(function(d) {
+  rowsEnter.append('td').classed('numeric', true).html(function(d) {
+    return '<br/>' + util.alignMillis(d.startMillis);
+  });
+  rowsEnter.append('td').classed('numeric', true).html(
+      function(d) {
         if ('runMillis' in d) {
-          return '+' + util.alignMillis(d.runMillis) + '<br/>' +
-                 util.alignMillis(d.startMillis + d.runMillis);
+          return '+' + util.alignMillis(d.runMillis) + '<br/>'
+              + util.alignMillis(d.startMillis + d.runMillis);
         }
         return '?';
       });
-  rowsEnter
-    .append('td')
-      .classed('numeric', true)
-      .html(function(d) {
-        return '+' + util.alignMillis(d.totalMillis) + '<br/>' +
-               util.alignMillis(d.startMillis + d.totalMillis);
+  rowsEnter.append('td').classed('numeric', true).html(
+      function(d) {
+        return '+' + util.alignMillis(d.totalMillis) + '<br/>'
+            + util.alignMillis(d.startMillis + d.totalMillis);
       });
-  rowsEnter
-    .append('td')
-      .attr('class', function(d) { return d.resultType.toLowerCase(); })
-      .text(function(d) { return d.resultType; });
-  rowsEnter
-    .append('td')
-      .classed('value', true)
-      .append('textarea')
-        .attr('rows', 2)
-        .text(function(d) { return d.value; });
+  rowsEnter.append('td').attr('class', function(d) {
+    return d.resultType.toLowerCase();
+  }).text(function(d) {
+    return d.resultType;
+  });
+  rowsEnter.append('td').classed('value', true).append('textarea').attr('rows',
+      2).text(function(d) {
+    return d.value;
+  });
 
-  rows
-    .selectAll('.expandable')
-    .text(function(d) {
-      if (d.children && d.children.length) {
-        return '[-] ';
-      } else if (d._children) {
-        return '[+] ';
-      } else {
-        return '';
-      }
-    });
+  rows.selectAll('.expandable').text(function(d) {
+    if (d.children && d.children.length) {
+      return '[-] ';
+    } else if (d._children) {
+      return '[+] ';
+    } else {
+      return '';
+    }
+  });
 
-  rows.filter(':not(.hidden)')
-    .classed('oddrow', function(_, i) { return i % 2; });
+  rows.filter(':not(.hidden)').classed('oddrow', function(_, i) {
+    return i % 2;
+  });
 }

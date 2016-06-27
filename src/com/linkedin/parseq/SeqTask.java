@@ -25,30 +25,35 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+
 /**
  * A {@link Task} that will run the constructor-supplied tasks one after the other.
- * <p/>
+ * <p>
  * Use {@link Tasks#seq(Iterable)} or {@link Tasks#seq(java.lang.Iterable)} to create
  * instances of this class.
  *
+ * @deprecated  As of 2.0.0, replaced by {@link Task#map(String, com.linkedin.parseq.function.Function1) Task.map},
+ * {@link Task#flatMap(String, com.linkedin.parseq.function.Function1) Task.flatMap},
+ * {@link Task#andThen(String, Task) Task.andThen} and other methods in {@link Task}.
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Chi Chan (ckchan@linkedin.com)
+ * @see Task#map(String, com.linkedin.parseq.function.Function1) Task.map
+ * @see Task#flatMap(String, com.linkedin.parseq.function.Function1) Task.flatMap
+ * @see Task#andThen(String, Task) Task.andThen
+ * @see Task
  */
-/* package private */ class SeqTask<T> extends SystemHiddenTask<T>
-{
+@Deprecated
+/* package private */ class SeqTask<T> extends SystemHiddenTask<T> {
   private volatile List<Task<?>> _tasks;
 
-  public SeqTask(final String name, final Iterable<? extends Task<?>> tasks)
-  {
+  public SeqTask(final String name, final Iterable<? extends Task<?>> tasks) {
     super(name);
     List<Task<?>> taskList = new ArrayList<Task<?>>();
-    for(Task<?> task : tasks)
-    {
+    for (Task<?> task : tasks) {
       taskList.add(task);
     }
 
-    if (taskList.size() == 0)
-    {
+    if (taskList.size() == 0) {
       throw new IllegalArgumentException("No tasks to sequence!");
     }
 
@@ -56,13 +61,11 @@ import java.util.List;
   }
 
   @Override
-  protected Promise<? extends T> run(final Context context) throws Exception
-  {
+  protected Promise<? extends T> run(final Context context) throws Exception {
     final SettablePromise<T> result = Promises.settable();
 
     Task<?> prevTask = _tasks.get(0);
-    for (int i = 1; i < _tasks.size(); i++)
-    {
+    for (int i = 1; i < _tasks.size(); i++) {
       final Task<?> currTask = _tasks.get(i);
       context.after(prevTask).run(currTask);
       prevTask = currTask;
@@ -71,7 +74,7 @@ import java.util.List;
     // This is unsafe, but we don't have the ability to do type checking
     // with varargs.
     @SuppressWarnings("unchecked")
-    final Task<T> typedPrevTask = (Task<T>)prevTask;
+    final Task<T> typedPrevTask = (Task<T>) prevTask;
     Promises.propagateResult(typedPrevTask, result);
     context.run(_tasks.get(0));
 

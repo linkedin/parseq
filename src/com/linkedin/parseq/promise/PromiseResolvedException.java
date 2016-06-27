@@ -23,12 +23,10 @@ package com.linkedin.parseq.promise;
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class PromiseResolvedException extends PromiseException
-{
+public class PromiseResolvedException extends PromiseException {
   private static final long serialVersionUID = 1L;
 
-  public PromiseResolvedException(final String message)
-  {
+  public PromiseResolvedException(final String message) {
     super(message);
   }
 }

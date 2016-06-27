@@ -22,17 +22,14 @@ package com.linkedin.parseq.promise;
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class PromiseException extends RuntimeException
-{
+public class PromiseException extends RuntimeException {
   private static final long serialVersionUID = 1L;
 
-  public PromiseException(final String message)
-  {
+  public PromiseException(final String message) {
     super(message);
   }
 
-  public PromiseException(final Throwable cause)
-  {
+  public PromiseException(final Throwable cause) {
     super(cause);
   }
 }

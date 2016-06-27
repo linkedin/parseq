@@ -19,10 +19,12 @@
 <meta charset="utf-8"/>
 <title>ParSeq JSON Trace Viewer</title>
 
+<link rel="shortcut icon" href="img/icon.png">
 <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
 
 <link rel="stylesheet" href="css/table.css">
 <link rel="stylesheet" href="css/waterfall.css">
+<link rel="stylesheet" href="css/d3.slider.css">
 
 <style>
 .btnCenter {
@@ -36,19 +38,17 @@ textarea {
 textarea.error {
   color: red;
 }
+
 </style>
 
-<div class="container-fluid">
+<div class="container-fluid" id="app-container">
   <div class="row-fluid">
-    <div class="page-header">
-      <h1>ParSeq JSON Trace Viewer</h1>
+    <div class="page-header label label-info">
+      <h4 style="text-align: center;">ParSeq JSON Trace Viewer vX.X.X</h4>
     </div>
   </div>
 
   <div class="row-fluid">
-    <div class="page-header">
-      <h2>View Configuration</h2>
-    </div>
     <form action="javascript:void(0);">
       <fieldset>
         <div class="span2">
@@ -60,33 +60,34 @@ textarea.error {
           </ul>
         </div>
         <div class="span10">
-          <textarea id="jsonText" rows=3 placeholder="Insert JSON trace here" onkeyup="refreshView();"></textarea>
-          <label class="checkbox">
-            <input id="checkboxExcludeUser" type="checkbox" checked="checked" onclick="refreshView();">Don't show <em>user</em> hidden tasks
+          <textarea id="jsonText" rows=3 placeholder="Insert JSON trace here" spellcheck="false"></textarea>
+        </div>
+        <div class="span10">
+          <label class="checkbox inline">
+            <input id="checkboxExcludeUser" type="checkbox" onclick="refreshView();"><em>User</em> hidden tasks
           </label>
-          <label class="checkbox">
-            <input id="checkboxExcludeSystem" type="checkbox" checked="checked" onclick="refreshView();">Don't show <em>system</em> hidden tasks
+          <label class="checkbox inline">
+            <input id="checkboxExcludeSystem" type="checkbox" onclick="refreshView();"><em>System</em> hidden tasks
           </label>
-          <label class="checkbox">
-            <input id="checkboxExcludeParent" type="checkbox" onclick="refreshView();">Don't show parent tasks
+          <label class="checkbox inline">
+            <input id="checkboxExcludeParent" type="checkbox" checked="checked" onclick="refreshView();">Parent tasks
           </label>
         </div>
       </fieldset>
     </form>
+    <hr/>
   </div>
 
-  <div class="row-fluid">
-    <div class="page-header">
-      <h2>Trace View</h2>
-    </div>
-  </div>
-
-  <div id="resultView" class="row-fluid">
-  </div>
 </div>
+
+
+<div id="resultView" class="row-fluid"/>
 
 <script src="node_modules/d3/d3.js"></script>
 <script src="build/parseq-tracevis.js"></script>
+<script src="node_modules/svg-injector/svg-injector.js"></script>
+<script src="node_modules/svg-pan-zoom/dist/svg-pan-zoom.js"></script>
+<script src="js/d3.slider.js"></script>
 
 <script>
   var
@@ -151,17 +152,19 @@ function refreshView() {
   }
 
   var g = parseqTracevis.trace.parse(json);
-  if (d3.select("#checkboxExcludeUser").property("checked")) {
+  if (!d3.select("#checkboxExcludeUser").property("checked")) {
     parseqTracevis.trace.excludeUserTasks(g);
   }
-  if (d3.select("#checkboxExcludeSystem").property("checked")) {
+  if (!d3.select("#checkboxExcludeSystem").property("checked")) {
     parseqTracevis.trace.excludeSystemTasks(g);
   }
-  if (d3.select("#checkboxExcludeParent").property("checked")) {
+  if (!d3.select("#checkboxExcludeParent").property("checked")) {
     parseqTracevis.trace.excludeParentTasks(g);
   }
   view(d3.select("#resultView").attr('class', 'row-fluid'), g);
 }
+
+inputJSON.node().addEventListener('input', refreshView, false);
 
 /**
  * This is a utility that abstracts the details of how to programmatically load

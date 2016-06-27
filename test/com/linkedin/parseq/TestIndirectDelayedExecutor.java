@@ -12,36 +12,31 @@ import java.util.concurrent.TimeUnit;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+
 /**
  * @author Chris Pettitt
  */
-public class TestIndirectDelayedExecutor
-{
+public class TestIndirectDelayedExecutor {
   private ScheduledExecutorService _executorService;
   private IndirectDelayedExecutor _executor;
 
   @BeforeMethod
-  public void setUp()
-  {
+  public void setUp() {
     _executorService = Executors.newScheduledThreadPool(4);
     _executor = new IndirectDelayedExecutor(new DelayedExecutorAdapter(_executorService));
   }
 
   @AfterMethod
-  public void tearDown()
-  {
+  public void tearDown() {
     _executorService.shutdownNow();
   }
 
   @Test
-  public void testSchedule() throws InterruptedException
-  {
+  public void testSchedule() throws InterruptedException {
     final CountDownLatch latch = new CountDownLatch(1);
-    final Cancellable cancellable = _executor.schedule(50, TimeUnit.MILLISECONDS, new Runnable()
-    {
+    final Cancellable cancellable = _executor.schedule(50, TimeUnit.MILLISECONDS, new Runnable() {
       @Override
-      public void run()
-      {
+      public void run() {
         latch.countDown();
       }
     });
@@ -53,14 +48,11 @@ public class TestIndirectDelayedExecutor
   }
 
   @Test
-  public void testCancel() throws InterruptedException
-  {
+  public void testCancel() throws InterruptedException {
     final CountDownLatch latch = new CountDownLatch(1);
-    final Cancellable cancellable = _executor.schedule(100, TimeUnit.MILLISECONDS, new Runnable()
-    {
+    final Cancellable cancellable = _executor.schedule(100, TimeUnit.MILLISECONDS, new Runnable() {
       @Override
-      public void run()
-      {
+      public void run() {
         latch.countDown();
       }
     });

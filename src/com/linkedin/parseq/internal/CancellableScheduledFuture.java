@@ -20,21 +20,19 @@ import com.linkedin.parseq.Cancellable;
 
 import java.util.concurrent.ScheduledFuture;
 
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class CancellableScheduledFuture implements Cancellable
-{
+public class CancellableScheduledFuture implements Cancellable {
   private final ScheduledFuture<?> _future;
 
-  public CancellableScheduledFuture(final ScheduledFuture<?> future)
-  {
+  public CancellableScheduledFuture(final ScheduledFuture<?> future) {
     _future = future;
   }
 
   @Override
-  public boolean cancel(final Exception reason)
-  {
+  public boolean cancel(final Exception reason) {
     return _future.cancel(false);
   }
 }

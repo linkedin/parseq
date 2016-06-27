@@ -18,13 +18,15 @@ package com.linkedin.parseq;
 
 import java.util.concurrent.TimeUnit;
 
+import com.linkedin.parseq.Cancellable;
+
+
 /**
  * An object that allows a task to be scheduled for execution after some delay.
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public interface DelayedExecutor
-{
+public interface DelayedExecutor {
   /**
    * Schedules a command to execute after some period of delay.
    *

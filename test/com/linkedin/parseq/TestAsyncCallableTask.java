@@ -12,19 +12,17 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static com.linkedin.parseq.Tasks.par;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
+
 
 /**
  * @author wfender
  * @version $Revision:$
  */
-public class TestAsyncCallableTask extends BaseEngineTest
-{
+public class TestAsyncCallableTask extends BaseEngineTest {
+  @SuppressWarnings("deprecation")
   @Test
-  public void testConcurrentTasks() throws InterruptedException
-  {
+  public void testConcurrentTasks() throws InterruptedException {
     // This test ensures that a single plan can run more than one blocking task
     // at a time if the AsyncCallableTask feature is used.
 
@@ -32,15 +30,12 @@ public class TestAsyncCallableTask extends BaseEngineTest
     final CountDownLatch latch = new CountDownLatch(size);
 
     final List<AsyncCallableTask<Void>> tasks = new ArrayList<AsyncCallableTask<Void>>(size);
-    for (int counter = 0; counter < size; counter++)
-    {
+    for (int counter = 0; counter < size; counter++) {
       tasks.add(counter, new AsyncCallableTask<Void>(new Callable<Void>() {
         @Override
-        public Void call() throws Exception
-        {
+        public Void call() throws Exception {
           latch.countDown();
-          if (!latch.await(5, TimeUnit.SECONDS))
-          {
+          if (!latch.await(5, TimeUnit.SECONDS)) {
             throw new TimeoutException("Latch should have reached 0 before timeout");
           }
           return null;
@@ -49,62 +44,53 @@ public class TestAsyncCallableTask extends BaseEngineTest
     }
 
     final ParTask<Void> par = par(tasks);
-    getEngine().run(par);
-
-    assertTrue(par.await(5, TimeUnit.SECONDS));
+    runAndWait("TestAsyncCallableTask.testConcurrentTasks", par);
 
     assertEquals(2, par.getSuccessful().size());
     assertEquals(2, par.getTasks().size());
     assertEquals(2, par.get().size());
 
-    for (int counter = 0; counter < size; counter++)
-    {
+    for (int counter = 0; counter < size; counter++) {
       assertTrue(tasks.get(counter).isDone());
       assertFalse(tasks.get(counter).isFailed());
     }
   }
 
+  @SuppressWarnings("deprecation")
   @Test
-  public void testThrowingCallable() throws InterruptedException
-  {
+  public void testThrowingCallable() throws InterruptedException {
     // Ensures that if a callable wrapped in an AsyncCallableTask throws that
     // the wrapping task correctly reports the error state.
     final Error error = new Error();
-    final Task<Void> task = new AsyncCallableTask<Void>(new Callable<Void>()
-    {
+    final Task<Void> task = new AsyncCallableTask<Void>(new Callable<Void>() {
       @Override
-      public Void call() throws Exception
-      {
+      public Void call() throws Exception {
         throw error;
       }
     });
 
-    getEngine().run(task);
-
-    assertTrue(task.await(5, TimeUnit.SECONDS));
+    try {
+      runAndWait("TestAsyncCallableTask.testThrowingCallable", task);
+      fail("task should finish with Error");
+    } catch (Throwable t) {
+      assertEquals(error, task.getError());
+    }
 
     assertTrue(task.isDone());
     assertTrue(task.isFailed());
-    assertEquals(error, task.getError());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
-  public void testTaskWithoutExecutor() throws InterruptedException
-  {
+  public void testTaskWithoutExecutor() throws InterruptedException {
     final int numCores = Runtime.getRuntime().availableProcessors();
     final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(numCores + 1);
-    final Engine engine = new EngineBuilder()
-        .setTaskExecutor(scheduler)
-        .setTimerScheduler(scheduler)
-        .build();
+    final Engine engine = new EngineBuilder().setTaskExecutor(scheduler).setTimerScheduler(scheduler).build();
 
-    try
-    {
-      final Task<Integer> task = new AsyncCallableTask<Integer>(new Callable<Integer>()
-      {
+    try {
+      final Task<Integer> task = new AsyncCallableTask<Integer>(new Callable<Integer>() {
         @Override
-        public Integer call() throws Exception
-        {
+        public Integer call() throws Exception {
           return 1;
         }
       });
@@ -114,9 +100,7 @@ public class TestAsyncCallableTask extends BaseEngineTest
 
       assertTrue(task.isFailed());
       assertTrue(task.getError() instanceof IllegalStateException);
-    }
-    finally
-    {
+    } finally {
       engine.shutdown();
       engine.awaitTermination(1, TimeUnit.SECONDS);
       scheduler.shutdownNow();

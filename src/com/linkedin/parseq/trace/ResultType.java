@@ -16,16 +16,16 @@
 
 package com.linkedin.parseq.trace;
 
-import com.linkedin.parseq.EarlyFinishException;
+import com.linkedin.parseq.Exceptions;
 import com.linkedin.parseq.Task;
+
 
 /**
  * An enumeration that classifies the state of a Task.
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public enum ResultType
-{
+public enum ResultType {
   /**
    * Indicates that the task completed without error.
    */
@@ -53,16 +53,11 @@ public enum ResultType
    * @param task the task to classify
    * @return the result type classification for the task
    */
-  public static ResultType fromTask(final Task<?> task)
-  {
-    if (!task.isDone())
-    {
+  public static ResultType fromTask(final Task<?> task) {
+    if (!task.isDone()) {
       return UNFINISHED;
-    }
-    else if (task.isFailed())
-    {
-      if (task.getError() instanceof EarlyFinishException)
-      {
+    } else if (task.isFailed()) {
+      if (Exceptions.isEarlyFinish(task.getError())) {
         return EARLY_FINISH;
       }
 

@@ -16,167 +16,148 @@
 
 package com.linkedin.parseq;
 
-import com.linkedin.parseq.promise.Promise;
-import com.linkedin.parseq.promise.PromiseListener;
-import com.linkedin.parseq.promise.Promises;
-import org.testng.annotations.Test;
-
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static com.linkedin.parseq.Tasks.withSideEffect;
-import static com.linkedin.parseq.TestUtil.value;
+import static com.linkedin.parseq.Task.value;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
+
+import org.testng.annotations.Test;
+
+import com.linkedin.parseq.promise.Promise;
+import com.linkedin.parseq.promise.PromiseListener;
+import com.linkedin.parseq.promise.Promises;
+import com.linkedin.parseq.promise.SettablePromise;
+
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Chi Chan (ckchan@linkedin.com)
  */
-public class TestTasks extends BaseEngineTest
-{
+public class TestTasks extends BaseEngineTest {
 
   @Test
-  public void testTaskThatThrows() throws InterruptedException
-  {
+  public void testTaskThatThrows() throws InterruptedException {
     final Exception error = new Exception();
 
-    final Task<?> task = new BaseTask<Object>()
-    {
+    final Task<Object> task = new BaseTask<Object>() {
       @Override
-      protected Promise<Object> run(final Context context) throws Exception
-      {
+      protected Promise<Object> run(final Context context) throws Exception {
         throw error;
       }
     };
 
-    getEngine().run(task);
-
-    assertTrue(task.await(5, TimeUnit.SECONDS));
+    try {
+      runAndWait("TestTasks.testTaskThatThrows", task);
+      fail("task should finish with Exception");
+    } catch (Throwable t) {
+      assertEquals(error, task.getError());
+    }
 
     assertTrue(task.isFailed());
-    assertEquals(error, task.getError());
   }
 
   @Test
-  public void testAwait() throws InterruptedException
-  {
+  public void testAwait() throws InterruptedException {
     final String value = "value";
     final Task<String> task = value("value", value);
     final AtomicReference<Boolean> resultRef = new AtomicReference<Boolean>(false);
 
-    task.addListener(new PromiseListener<String>()
-    {
+    task.addListener(new PromiseListener<String>() {
       @Override
-      public void onResolved(Promise<String> stringPromise)
-      {
-        try
-        {
+      public void onResolved(Promise<String> stringPromise) {
+        try {
           Thread.sleep(100);
-        } catch (InterruptedException e)
-        {
+        } catch (InterruptedException e) {
           //ignore
-        } finally
-        {
+        } finally {
           resultRef.set(true);
         }
       }
     });
 
-    getEngine().run(task);
-    assertTrue(task.await(5, TimeUnit.SECONDS));
+    runAndWait("TestTasks.testAwait", task);
     assertEquals(Boolean.TRUE, resultRef.get());
   }
 
   @Test
-  public void testSideEffectPartialCompletion() throws InterruptedException
-  {
+  public void testSideEffectPartialCompletion() throws InterruptedException {
     // ensure that the whole can finish before the individual side effect task finishes.
-    Task<String> fastTask = new BaseTask<String>()
-    {
+    Task<String> fastTask = new BaseTask<String>() {
       @Override
-      protected Promise<? extends String> run(Context context) throws Exception
-      {
+      protected Promise<? extends String> run(Context context) throws Exception {
         return Promises.value("fast");
       }
     };
 
     // this task will not complete.
-    Task<String> settableTask = new BaseTask<String>()
-    {
+    Task<String> settableTask = new BaseTask<String>() {
       @Override
-      protected Promise<? extends String> run(Context context) throws Exception
-      {
+      protected Promise<? extends String> run(Context context) throws Exception {
         return Promises.settable();
       }
     };
 
-    Task<String> withSideEffect = withSideEffect(fastTask, settableTask);
-    getEngine().run(withSideEffect);
-    withSideEffect.await();
+    Task<String> withSideEffect = fastTask.withSideEffect(x -> settableTask);
+    runAndWait("TestTasks.testSideEffectPartialCompletion", withSideEffect);
     assertTrue(withSideEffect.isDone());
     assertTrue(fastTask.isDone());
     assertFalse(settableTask.isDone());
   }
 
   @Test
-  public void testSideEffectFullCompletion() throws InterruptedException
-  {
+  public void testSideEffectFullCompletion() throws InterruptedException {
     // ensure that the individual side effect task will be run
-    Task<String> taskOne = new BaseTask<String>()
-    {
+    Task<String> taskOne = new BaseTask<String>() {
       @Override
-      protected Promise<? extends String> run(Context context) throws Exception
-      {
+      protected Promise<? extends String> run(Context context) throws Exception {
         return Promises.value("one");
       }
     };
 
-    Task<String> taskTwo = new BaseTask<String>()
-    {
+    Task<String> taskTwo = new BaseTask<String>() {
       @Override
-      protected Promise<? extends String> run(Context context) throws Exception
-      {
+      protected Promise<? extends String> run(Context context) throws Exception {
         return Promises.value("two");
       }
     };
 
-    Task<String> withSideEffect = withSideEffect(taskOne, taskTwo);
-    getEngine().run(withSideEffect);
-    withSideEffect.await();
+    Task<String> withSideEffect = taskOne.withSideEffect(x -> taskTwo);
+    runAndWait("TestTasks.testSideEffectFullCompletion", withSideEffect);
     taskTwo.await();
     assertTrue(withSideEffect.isDone());
     assertTrue(taskTwo.isDone());
   }
 
   @Test
-  public void testSideEffectCancelled() throws InterruptedException
-  {
+  public void testSideEffectCancelled() throws InterruptedException {
     // this task will not complete.
-    Task<String> settableTask = new BaseTask<String>()
-    {
+    Task<String> settableTask = new BaseTask<String>() {
       @Override
-      protected Promise<? extends String> run(Context context) throws Exception
-      {
+      protected Promise<? extends String> run(Context context) throws Exception {
         return Promises.settable();
       }
     };
 
-    Task<String> fastTask = new BaseTask<String>()
-    {
+    Task<String> fastTask = new BaseTask<String>() {
       @Override
-      protected Promise<? extends String> run(Context context) throws Exception
-      {
+      protected Promise<? extends String> run(Context context) throws Exception {
         return Promises.value("fast");
       }
     };
 
-    Task<String> withSideEffect = withSideEffect(settableTask, fastTask);
-    getEngine().run(withSideEffect);
+    Task<String> withSideEffect = settableTask.withSideEffect(x -> fastTask);
+    // add 10 ms delay so that we can cancel settableTask reliably
+    getEngine().run(delayedValue("value", 10, TimeUnit.MILLISECONDS).andThen(withSideEffect));
     assertTrue(settableTask.cancel(new Exception("task cancelled")));
     withSideEffect.await();
     fastTask.await(10, TimeUnit.MILLISECONDS);
@@ -185,54 +166,42 @@ public class TestTasks extends BaseEngineTest
   }
 
   @Test
-  public void testTimeoutTaskWithTimeout() throws InterruptedException
-  {
+  public void testTimeoutTaskWithTimeout() throws InterruptedException {
     // This task will not complete on its own, which allows us to test the timeout
-    final Task<String> task = new BaseTask<String>("task")
-    {
+    final Task<String> task = new BaseTask<String>("task") {
       @Override
-      protected Promise<? extends String> run(
-          final Context context) throws Exception
-      {
+      protected Promise<? extends String> run(final Context context) throws Exception {
         return Promises.settable();
       }
     };
 
-    final Task<String> timeoutTask = Tasks.timeoutWithError(200, TimeUnit.MILLISECONDS, task);
+    final Task<String> timeoutTask = task.withTimeout(200, TimeUnit.MILLISECONDS);
 
-    getEngine().run(timeoutTask);
-
-    assertTrue(timeoutTask.await(5, TimeUnit.SECONDS));
+    try {
+      runAndWait("TestTasks.testTimeoutTaskWithTimeout", timeoutTask);
+      fail("task should finish with Error");
+    } catch (Throwable t) {
+      assertTrue(timeoutTask.getError() instanceof TimeoutException);
+    }
 
     assertTrue(timeoutTask.isFailed());
-    assertTrue(timeoutTask.getError() instanceof TimeoutException);
 
     assertTrue(task.await(5, TimeUnit.SECONDS));
 
     // The original task should also be failed - this time with an early finish
     // exception.
     assertTrue(task.isFailed());
-    assertTrue(task.getError() instanceof EarlyFinishException);
+    assertTrue(Exceptions.isEarlyFinish(task.getError()));
   }
 
   @Test
-  public void testTimeoutTaskWithoutTimeout() throws InterruptedException
-  {
+  public void testTimeoutTaskWithoutTimeout() throws InterruptedException {
     final String value = "value";
-    final Task<String> task = Tasks.callable("task", new Callable<String>()
-    {
-      @Override
-      public String call() throws Exception
-      {
-        return value;
-      }
-    });
+    final Task<String> task = Task.callable("task", () -> value);
 
-    final Task<String> timeoutTask = Tasks.timeoutWithError(200, TimeUnit.MILLISECONDS, task);
+    final Task<String> timeoutTask = task.withTimeout(200, TimeUnit.MILLISECONDS);
 
-    getEngine().run(timeoutTask);
-
-    assertTrue(timeoutTask.await(5, TimeUnit.SECONDS));
+    runAndWait("TestTasks.testTimeoutTaskWithoutTimeout", timeoutTask);
 
     assertEquals(value, task.get());
 
@@ -241,19 +210,13 @@ public class TestTasks extends BaseEngineTest
   }
 
   @Test
-  public void testTimeoutTaskWithError() throws InterruptedException
-  {
+  public void testTimeoutTaskWithError() throws InterruptedException {
     final Exception error = new Exception();
-    final Task<String> task = Tasks.callable("task", new Callable<String>()
-    {
-      @Override
-      public String call() throws Exception
-      {
-        throw error;
-      }
-    });
+    final Task<String> task = Task.callable("task", () -> {
+      throw error;
+    } );
 
-    final Task<String> timeoutTask = Tasks.timeoutWithError(2000, TimeUnit.MILLISECONDS, task);
+    final Task<String> timeoutTask = task.withTimeout(2000, TimeUnit.MILLISECONDS);
 
     getEngine().run(timeoutTask);
 
@@ -264,43 +227,75 @@ public class TestTasks extends BaseEngineTest
     assertEquals(error, timeoutTask.getError());
   }
 
+  /**
+   * Test scenario in which there are many TimeoutWithErrorTasks scheduled for execution
+   * e.g. by using Tasks.par().
+   */
   @Test
-  public void testSetPriorityBelowMinValue()
-  {
-    try
-    {
+  public void testManyTimeoutTaskWithoutTimeoutOnAQueue() throws InterruptedException, IOException {
+    final String value = "value";
+    final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+    List<Task<String>> tasks = new ArrayList<Task<String>>();
+    for (int i = 0; i < 50; i++) {
+
+      // Task which simulates doing something for 0.5ms and setting response
+      // asynchronously after 5ms.
+      Task<String> t = new BaseTask<String>("test") {
+        @Override
+        protected Promise<? extends String> run(Context context) throws Throwable {
+          final SettablePromise<String> result = Promises.settable();
+          Thread.sleep(0, 500000);
+          scheduler.schedule(new Runnable() {
+            @Override
+            public void run() {
+              result.done(value);
+            }
+          }, 5, TimeUnit.MILLISECONDS);
+          return result;
+        }
+      };
+      tasks.add(t.withTimeout(50, TimeUnit.MILLISECONDS));
+    }
+
+    // final task runs all the tasks in parallel
+    final Task<?> timeoutTask = Tasks.par(tasks);
+
+    runAndWait("TestTasks.testManyTimeoutTaskWithoutTimeoutOnAQueue", timeoutTask);
+
+    scheduler.shutdown();
+
+    //tasks should not time out
+    assertEquals(false, timeoutTask.isFailed());
+  }
+
+  @Test
+  public void testSetPriorityBelowMinValue() {
+    try {
       TestUtil.noop().setPriority(Priority.MIN_PRIORITY - 1);
       fail("Should have thrown IllegalArgumentException");
-    }
-    catch (IllegalArgumentException e)
-    {
+    } catch (IllegalArgumentException e) {
       // Expected case
     }
   }
 
   @Test
-  public void testSetPriorityAboveMaxValue()
-  {
-    try
-    {
+  public void testSetPriorityAboveMaxValue() {
+    try {
       TestUtil.noop().setPriority(Priority.MAX_PRIORITY + 1);
       fail("Should have thrown IllegalArgumentException");
-    }
-    catch (IllegalArgumentException e)
-    {
+    } catch (IllegalArgumentException e) {
       // Expected case
     }
   }
 
+  @SuppressWarnings("deprecation")
   @Test
-  public void testThrowableCallableNoError() throws InterruptedException
-  {
+  public void testThrowableCallableNoError() throws InterruptedException {
     final Integer magic = 0x5f3759df;
-    final ThrowableCallable<Integer> callable = new ThrowableCallable<Integer>()
-    {
+    final ThrowableCallable<Integer> callable = new ThrowableCallable<Integer>() {
       @Override
-      public Integer call() throws Throwable
-      {
+      public Integer call() throws Throwable {
         return magic;
       }
     };
@@ -315,15 +310,13 @@ public class TestTasks extends BaseEngineTest
     assertEquals("magic", task.getName());
   }
 
+  @SuppressWarnings("deprecation")
   @Test
-  public void testThrowableCallableWithError() throws InterruptedException
-  {
+  public void testThrowableCallableWithError() throws InterruptedException {
     final Throwable throwable = new Throwable();
-    final ThrowableCallable<Integer> callable = new ThrowableCallable<Integer>()
-    {
+    final ThrowableCallable<Integer> callable = new ThrowableCallable<Integer>() {
       @Override
-      public Integer call() throws Throwable
-      {
+      public Integer call() throws Throwable {
         throw throwable;
       }
     };
@@ -338,4 +331,3 @@ public class TestTasks extends BaseEngineTest
     assertEquals("error", task.getName());
   }
 }
-

@@ -20,10 +20,11 @@ import java.util.List;
 
 /**
  * A ParTask will execute the list of tasks in parallel and contains the result of the complete set.
+ *
  * @author Chi Chan (ckchan@linkedin.com)
+ * @see Task#par(Task, Task) Task.par
  */
-public interface ParTask<T> extends Task<List<T>>
-{
+public interface ParTask<T> extends Task<List<T>> {
 
   /**
    * Return the list of tasks that were related to this task.
@@ -32,13 +33,11 @@ public interface ParTask<T> extends Task<List<T>>
    */
   List<Task<T>> getTasks();
 
-
   /**
    * Get the list of successful values. Any task failure will not be included in the list. Therefore the results ordering
    * will not match the ordering of the tasks if any failure has occurred.
    * @return The list of successful values.
    */
   List<T> getSuccessful();
-
 
 }
