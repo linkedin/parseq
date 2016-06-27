@@ -43,12 +43,4 @@ public interface After {
    * @param taskSupplier the supplier of a task to run
    */
   void run(Supplier<Task<?>> taskSupplier);
-
-  /**
-   * When all promises and tasks have been resolved successfully, the given
-   * task is run as a side effect.
-   *
-   * @param task the task to be run as a side effect.
-   */
-  void runSideEffect(Task<?> task);
 }

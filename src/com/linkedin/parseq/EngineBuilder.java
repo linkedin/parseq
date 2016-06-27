@@ -16,6 +16,7 @@
 
 package com.linkedin.parseq;
 
+import com.linkedin.parseq.internal.PlanCompletionListener;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -45,6 +46,7 @@ public class EngineBuilder {
   private DelayedExecutor _timerScheduler;
   private ILoggerFactory _loggerFactory;
   private PlanDeactivationListener _planDeactivationListener;
+  private PlanCompletionListener _planCompletionListener;
 
   private Map<String, Object> _properties = new HashMap<String, Object>();
 
@@ -65,6 +67,12 @@ public class EngineBuilder {
   public EngineBuilder setPlanDeactivationListener(PlanDeactivationListener planDeactivationListener) {
     ArgumentUtil.requireNotNull(planDeactivationListener, "planDeactivationListener");
     _planDeactivationListener = planDeactivationListener;
+    return this;
+  }
+
+  public EngineBuilder setPlanCompletionListener(PlanCompletionListener planCompletionListener) {
+    ArgumentUtil.requireNotNull(planCompletionListener, "planCompletionListener");
+    _planCompletionListener = planCompletionListener;
     return this;
   }
 
@@ -152,7 +160,8 @@ public class EngineBuilder {
     }
     return new EngineImpl(_taskExecutor, new IndirectDelayedExecutor(_timerScheduler),
         _loggerFactory != null ? _loggerFactory : new CachedLoggerFactory(LoggerFactory.getILoggerFactory()),
-        _properties, _planDeactivationListener != null ? _planDeactivationListener : planContext -> {});
+        _properties, _planDeactivationListener != null ? _planDeactivationListener : planContext -> {},
+        _planCompletionListener != null ? _planCompletionListener : planContext -> {});
   }
 
   /**

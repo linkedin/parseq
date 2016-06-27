@@ -269,14 +269,19 @@ public interface Task<T> extends Promise<T>, Cancellable {
     ArgumentUtil.requireNotNull(func, "function");
     final Task<T> that = this;
     return async("withSideEffect", context -> {
-      final Task<?> sideEffectWrapper = async(desc, ctx -> {
-        Task<?> sideEffect = func.apply(that.get());
-        ctx.run(sideEffect);
-        return sideEffect;
+      final Task<T> sideEffectWrapper = async(desc, ctx -> {
+        SettablePromise<T> promise = Promises.settable();
+        if (!that.isFailed()) {
+          Task<?> sideEffect = func.apply(that.get());
+          ctx.runSideEffect(sideEffect);
+        }
+        Promises.propagateResult(that, promise);
+        return promise;
       });
-      context.after(that).runSideEffect(sideEffectWrapper);
+
+      context.after(that).run(sideEffectWrapper);
       context.run(that);
-      return that;
+      return sideEffectWrapper;
     });
   }
 
