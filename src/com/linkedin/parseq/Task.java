@@ -19,6 +19,7 @@ package com.linkedin.parseq;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -1095,6 +1096,13 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * executed on specified {@link Executor}. It means that callable
    * does not get any special memory consistency guarantees and should not
    * attempt to use shared state.
+   * <p>
+   * In order to avoid creating tasks that never complete the Executor passed in as a
+   * parameter <b>must</b> signal execution rejection by throwing an exception.
+   * <p>
+   * In order to prevent blocking ParSeq threads the Executor passed in as a
+   * parameter <b>must not</b> use {@link ThreadPoolExecutor.CallerRunsPolicy}
+   * as a rejection policy.
    *
    * @param <T> the type of the return value for this task
    * @param name a name that describes the task, it will show up in a trace
