@@ -1,5 +1,7 @@
 package com.linkedin.restli.client;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 
 import com.linkedin.parseq.batching.BatchingSupport;
@@ -10,6 +12,9 @@ public class ParSeqRestClientBuilder {
 
   private RestClient _restClient;
   private ParSeqRestClientConfig _config;
+  Map<? extends Enum<?>, ParSeqRestClientConfig> _configs;
+  ParSeqRestClientConfigChooser<? extends Enum<?>> _configChooser;
+
   private BatchingSupport _batchingSupport;
   private InboundRequestContextFinder _inboundRequestContextFinder;
 
@@ -19,9 +24,25 @@ public class ParSeqRestClientBuilder {
    * @return instance of ParSeqRestClient
    */
   public ParSeqRestClient build() {
-    RequestConfigProvider configProvider =
-        RequestConfigProvider.build(_config,
-            _inboundRequestContextFinder == null ? () -> Optional.empty() : _inboundRequestContextFinder);
+
+    InboundRequestContextFinder inboundRequestContextFinder = _inboundRequestContextFinder == null ?
+        () -> Optional.empty() : _inboundRequestContextFinder;
+
+    if (_config != null) {
+      _configs = Collections.singletonMap(DefaultConfigChoice.defaultconfig, _config);
+      _configChooser = new ParSeqRestClientConfigChooser<DefaultConfigChoice>() {
+        @Override
+        public DefaultConfigChoice apply(Optional<InboundRequestContext> onbound, Request<?> oubound) {
+          return DefaultConfigChoice.defaultconfig;
+        }
+      };
+    } else if (_configs == null) {
+      throw new IllegalStateException("One type of config has to be specified using either setConfig() or setMultipleConfigs().");
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    RequestConfigProvider configProvider = new MultipleRequestConfigProvider(_configs, _configChooser, inboundRequestContextFinder);
+
     ParSeqRestClientImpl parseqClient = new ParSeqRestClientImpl(_restClient, configProvider);
     if (_batchingSupport != null) {
       _batchingSupport.registerStrategy(parseqClient);
@@ -46,7 +67,22 @@ public class ParSeqRestClientBuilder {
 
   public ParSeqRestClientBuilder setConfig(ParSeqRestClientConfig config) {
     ArgumentUtil.requireNotNull(config, "config");
+    if (_configs != null) {
+      throw new IllegalArgumentException("setMultipleConfigs() has already been called. Only one type of config can be specified using either setConfig() or setMultipleConfigs() but not both.");
+    }
     _config = config;
+    return this;
+  }
+
+  public <T extends Enum<T>> ParSeqRestClientBuilder setMultipleConfigs(Map<T, ParSeqRestClientConfig> configs,
+      ParSeqRestClientConfigChooser<T> chooser) {
+    ArgumentUtil.requireNotNull(configs, "configs");
+    ArgumentUtil.requireNotNull(chooser, "chooser");
+    if (_configs != null) {
+      throw new IllegalArgumentException("setConfig() has already been called. Only one type of config can be specified using either setConfig() or setMultipleConfigs() but not both.");
+    }
+    _configs = configs;
+    _configChooser = chooser;
     return this;
   }
 
@@ -54,5 +90,9 @@ public class ParSeqRestClientBuilder {
     ArgumentUtil.requireNotNull(inboundRequestContextFinder, "inboundRequestContextFinder");
     _inboundRequestContextFinder = inboundRequestContextFinder;
     return this;
+  }
+
+  private static enum DefaultConfigChoice  {
+    defaultconfig;
   }
 }
