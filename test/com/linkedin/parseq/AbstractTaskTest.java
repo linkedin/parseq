@@ -390,6 +390,20 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
     assertEquals(flat.getError().getMessage(), TASK_ERROR_MESSAGE);
   }
 
+  @Test
+  public void testTaskNameTruncation() {
+    Task<?> t = Task.value(times("x", 4096), "hello");
+    assertEquals(t.getName(), times("x", 1024));
+  }
+
+  private String times(String s, int times) {
+    StringBuilder sb = new StringBuilder();
+    for (int i=0; i < times; i++) {
+      sb.append(s);
+    }
+    return sb.toString();
+  }
+
   protected static final String TASK_VALUE = "value";
   protected static final String TASK_ERROR_MESSAGE = "error";
 
