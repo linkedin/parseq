@@ -3,8 +3,11 @@ v3.0.0
 
 * Added flexible timeout and batching configuration to ParSeqRestClient
 * Changed Engine and ParSeqRestClient to interfaces
-* Allow adding description to timeout task and TimeoutException, renamed "timeoutTimer" task to "timeout"
+* Allow adding description to timeout task and TimeoutException
+* Renamed "timeoutTimer" task to "timeout"
+* Started truncating task names to 1024 characters
 * Decoupled batch size from number of keys in the batch
+* Improved javadoc
 
 v2.3.4
 ------
