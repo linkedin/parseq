@@ -10,10 +10,12 @@ import com.linkedin.restli.client.config.RequestConfigProvider;
 
 public class ParSeqRestClientBuilder {
 
+  private static final String DEFAULT_CONFIG = "default";
+
   private RestClient _restClient;
   private ParSeqRestClientConfig _config;
-  Map<? extends Enum<?>, ParSeqRestClientConfig> _configs;
-  ParSeqRestClientConfigChooser<? extends Enum<?>> _configChooser;
+  Map<String, ParSeqRestClientConfig> _configs;
+  ParSeqRestClientConfigChooser _configChooser;
 
   private BatchingSupport _batchingSupport;
   private InboundRequestContextFinder _inboundRequestContextFinder;
@@ -29,18 +31,12 @@ public class ParSeqRestClientBuilder {
         () -> Optional.empty() : _inboundRequestContextFinder;
 
     if (_config != null) {
-      _configs = Collections.singletonMap(DefaultConfigChoice.defaultconfig, _config);
-      _configChooser = new ParSeqRestClientConfigChooser<DefaultConfigChoice>() {
-        @Override
-        public DefaultConfigChoice apply(Optional<InboundRequestContext> onbound, Request<?> oubound) {
-          return DefaultConfigChoice.defaultconfig;
-        }
-      };
+      _configs = Collections.singletonMap(DEFAULT_CONFIG, _config);
+      _configChooser = (irc, r) -> DEFAULT_CONFIG;
     } else if (_configs == null) {
       throw new IllegalStateException("One type of config has to be specified using either setConfig() or setMultipleConfigs().");
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
     RequestConfigProvider configProvider = new MultipleRequestConfigProvider(_configs, _configChooser, inboundRequestContextFinder);
 
     ParSeqRestClientImpl parseqClient = new ParSeqRestClientImpl(_restClient, configProvider);
@@ -74,8 +70,8 @@ public class ParSeqRestClientBuilder {
     return this;
   }
 
-  public <T extends Enum<T>> ParSeqRestClientBuilder setMultipleConfigs(Map<T, ParSeqRestClientConfig> configs,
-      ParSeqRestClientConfigChooser<T> chooser) {
+  public ParSeqRestClientBuilder setMultipleConfigs(Map<String, ParSeqRestClientConfig> configs,
+      ParSeqRestClientConfigChooser chooser) {
     ArgumentUtil.requireNotNull(configs, "configs");
     ArgumentUtil.requireNotNull(chooser, "chooser");
     if (_configs != null) {
@@ -90,9 +86,5 @@ public class ParSeqRestClientBuilder {
     ArgumentUtil.requireNotNull(inboundRequestContextFinder, "inboundRequestContextFinder");
     _inboundRequestContextFinder = inboundRequestContextFinder;
     return this;
-  }
-
-  private static enum DefaultConfigChoice  {
-    defaultconfig;
   }
 }
