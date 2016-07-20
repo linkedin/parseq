@@ -26,6 +26,11 @@ exports.parentTasks = function(g) {
   excludeTasks(g, function(u) { return g.children(u).length; });
 };
 
+exports.nonCriticalTasks = function(g) {
+  var path = parseqTracevis.trace.criticalPath(g);
+  excludeTasks(g, function(u) { return !path.hasOwnProperty(u); }); 
+};
+
 function excludeTasks(g, predicate) {
   g.eachNode(function(u) {
     if (predicate(u)) {
