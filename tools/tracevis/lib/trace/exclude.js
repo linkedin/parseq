@@ -26,8 +26,8 @@ exports.parentTasks = function(g) {
   excludeTasks(g, function(u) { return g.children(u).length; });
 };
 
-exports.nonCriticalTasks = function(g) {
-  var path = parseqTracevis.trace.criticalPath(g);
+exports.nonCriticalTasks = function(trace, g) {
+  var path = trace.criticalPath(g);
   excludeTasks(g, function(u) { return !path.hasOwnProperty(u); }); 
 };
 

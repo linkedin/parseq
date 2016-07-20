@@ -248,9 +248,9 @@ function extractCriticalPath(executionUnits) {
   for (var x = 0; x < items.length; ++x) {
     var id;
     if (items[x].indexOf(':') != -1) {
-      id = parseInt(items[x].substring(0, items[x].indexOf(':')));
+      id = items[x].substring(0, items[x].indexOf(':'));
     } else {
-      id = parseInt(items[x]);
+      id = items[x];
     }
     result[id] = true;
   }
