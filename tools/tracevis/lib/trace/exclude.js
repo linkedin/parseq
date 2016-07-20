@@ -28,7 +28,7 @@ exports.parentTasks = function(g) {
 
 exports.nonCriticalTasks = function(trace, g) {
   var path = trace.criticalPath(g);
-  excludeTasks(g, function(u) { return !path.hasOwnProperty(u); }); 
+  excludeTasks(g, function(u) { return !path.hasOwnProperty(u.toString()); }); 
 };
 
 function excludeTasks(g, predicate) {

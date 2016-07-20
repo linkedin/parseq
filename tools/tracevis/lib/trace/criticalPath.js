@@ -70,8 +70,8 @@ function splitParent(key, executionUnits) {
   var parent = executionUnits[key];
 
   // Computation of first start and last end of children
-  var minStartTime = Number.MAX_SAFE_INTEGER;
-  var maxEndTime = Number.MIN_SAFE_INTEGER;
+  var minStartTime = Number.MAX_VALUE;
+  var maxEndTime = Number.MIN_VALUE;
 
   for (var x in parent._children) {
     if (executionUnits[x]._start < minStartTime) {
