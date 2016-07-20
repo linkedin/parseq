@@ -73,7 +73,7 @@ textarea.error {
             <input id="checkboxExcludeParent" type="checkbox" checked="checked" onclick="refreshView();">Parent tasks
           </label>
           <label class="checkbox inline">
-            <input id="checkboxExcludeNonCritical" type="checkbox" checked="checked" onclick="refreshView();">Tasks outside of the critical path
+            <input id="checkboxExcludeNonCritical" type="checkbox" onclick="refreshView();">Critical path
           </label>
         </div>
       </fieldset>
@@ -164,7 +164,7 @@ function refreshView() {
   if (!d3.select("#checkboxExcludeParent").property("checked")) {
     parseqTracevis.trace.excludeParentTasks(g);
   }
-  if (!d3.select("#checkboxExcludeNonCritical").property("checked")) {
+  if (d3.select("#checkboxExcludeNonCritical").property("checked")) {
     parseqTracevis.trace.excludeNonCriticalTasks(parseqTracevis.trace, g);
   }
   view(d3.select("#resultView").attr('class', 'row-fluid'), g);
