@@ -14,6 +14,43 @@
  * the License.
  */
 
+/*
+ * Computes critical path in the Parseq plan
+ *
+ * The algorithm performs these steps:
+ *
+ * 1) Traces are translated to execution units. Therefore the original graph never changes. During
+ * this translation we ignore potential parent pointers, potential successor pointers and traces
+ * without start or end timestamp. Graph of execution units records only start and end timestamps
+ * of each trace, predecessor-successor and parent-child relations.
+ *
+ * 2) Each execution unit representing a non-leaf trace (has at least on child) is divided into two
+ * new execution units - front and back. Front represents the time between start of the original
+ * unit and start of its first child, second represents the time between end of its last child and
+ * end of the original unit. Front inherits predecessors, second part successors, both inherit
+ * eventual parent of the original execution unit. Children of the original unit which had no
+ * predecessors, become successors of front, children of the original unit which had no successors,
+ * become predecessors of back. The original unit is deleted. This way we translate all parent and
+ * child pointers to predecessor and successor pointers retaining original timing constaints.
+ *
+ * 3) We find topological sorting of our new graph using this algorithm:
+ * https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search
+ *
+ * 4) We assign to each task its start offset and end offset. Start offset is the earliest duration
+ * from the begging of parseq plan when the task could start. End offset is the earliest duration
+ * when the task could end. End offset is the start offset plus the difference between end and
+ * start timestamps. We compute start offsets by linear traversing of the graph along its
+ * topological order and assigning the highest end offset of any of its predecessors. End offset of
+ * all predecessors must have been already computed because of the topological ordering. When
+ * assigning the start offset, we also remember the predecessor with the highest end offset for
+ * reconstruction of the critical path.
+ *
+ * 5) The task with highest end offset is the end of critical path. We just follow the sequence
+ * of predecessors on the critical path created in step (4) until we find a unit with no
+ * predecessors and startOffset zero. This way we extract whole critical path.
+ * Execution units which are on the critical path are mapped back to original task keys and
+ * inserted to an associative array which is read by the NonCriticalTasks exclusion handler.
+ */
 function ExecutionUnit(id, start, end) {
   this._id = id;
   this._start = start;
