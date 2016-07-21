@@ -31,7 +31,7 @@
  * eventual parent of the original execution unit. Children of the original unit which had no
  * predecessors, become successors of front, children of the original unit which had no successors,
  * become predecessors of back. The original unit is deleted. This way we translate all parent and
- * child pointers to predecessor and successor pointers retaining original timing constaints.
+ * child pointers to predecessor and successor pointers retaining original timing constraints.
  *
  * 3) We find topological sorting of our new graph using this algorithm:
  * https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search
