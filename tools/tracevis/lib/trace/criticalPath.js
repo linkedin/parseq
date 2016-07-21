@@ -24,10 +24,10 @@
  * without start or end timestamp. Graph of execution units records only start and end timestamps
  * of each trace, predecessor-successor and parent-child relations.
  *
- * 2) Each execution unit representing a non-leaf trace (has at least on child) is divided into two
+ * 2) Each execution unit representing a non-leaf trace (has at least one child) is divided into two
  * new execution units - front and back. Front represents the time between start of the original
- * unit and start of its first child, second represents the time between end of its last child and
- * end of the original unit. Front inherits predecessors, second part successors, both inherit
+ * unit and start of its first child, back represents the time between end of its last child and
+ * end of the original unit. Front inherits predecessors, back inherits successors, both inherit
  * eventual parent of the original execution unit. Children of the original unit which had no
  * predecessors, become successors of front, children of the original unit which had no successors,
  * become predecessors of back. The original unit is deleted. This way we translate all parent and
