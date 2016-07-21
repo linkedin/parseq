@@ -36,8 +36,8 @@
  * 3) We find topological sorting of our new graph using this algorithm:
  * https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search
  *
- * 4) We assign to each task its start offset and end offset. Start offset is the earliest duration
- * from the begging of parseq plan when the task could start. End offset is the earliest duration
+ * 4) We assign to each task its start offset and end offset. Start offset is the earliest time 
+ * from the begging of parseq plan when the task could start. End offset is the earliest time
  * when the task could end. End offset is the start offset plus the difference between end and
  * start timestamps. We compute start offsets by linear traversing of the graph along its
  * topological order and assigning the highest end offset of any of its predecessors. End offset of
