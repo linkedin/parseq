@@ -16,6 +16,7 @@
 
 package com.linkedin.restli.client;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -61,12 +62,16 @@ class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequestBatchKe
     _clientConfig = config;
   }
 
+  /**
+   * Creates new ParSeqRestClient with default configuration.
+   *
+   * @deprecated Please use {@link ParSeqRestliClientBuilder} to create instances.
+   */
   @Deprecated
   public ParSeqRestClient(final RestClient restClient) {
     ArgumentUtil.requireNotNull(restClient, "restClient");
-    //TODO for backwards compatibility
     _restClient = restClient;
-    _clientConfig = null; //TODO
+    _clientConfig = RequestConfigProvider.build(new ParSeqRestliClientConfigBuilder().build(), () -> Optional.empty());
   }
 
   @Override
@@ -114,8 +119,8 @@ class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequestBatchKe
   }
 
   /**
-   * TODO document deprecation
-   *
+   * @deprecated ParSeqRestClient generates consistent names for tasks based on request parameters and it is
+   * recommended to us default names.
    */
   @Deprecated
   public <T> Task<Response<T>> createTask(final String name, final Request<T> request, final RequestContext requestContext) {
