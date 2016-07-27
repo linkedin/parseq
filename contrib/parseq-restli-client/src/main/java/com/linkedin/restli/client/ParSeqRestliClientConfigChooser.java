@@ -4,5 +4,5 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 
 @FunctionalInterface
-public interface ParSeqRestClientConfigChooser extends BiFunction<Optional<InboundRequestContext>, Request<?>, String> {
+public interface ParSeqRestliClientConfigChooser extends BiFunction<Optional<InboundRequestContext>, Request<?>, String> {
 }

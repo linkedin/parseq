@@ -22,8 +22,8 @@ import com.linkedin.restli.client.config.RequestConfigOverridesBuilder;
 public class TestParSeqRestClientBatching extends ParSeqRestClientBatchingIntegrationTest {
 
   @Override
-  public ParSeqRestClientConfig getParSeqRestClientConfig() {
-    return new ParSeqRestClientConfigBuilder()
+  public ParSeqRestliClientConfig getParSeqRestClientConfig() {
+    return new ParSeqRestliClientConfigBuilder()
         .addBatchingEnabled("*.*/*.*", Boolean.TRUE)
         .build();
   }

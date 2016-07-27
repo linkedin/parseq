@@ -142,7 +142,7 @@ class GetRequestGroup implements RequestGroup {
     } else if (request instanceof BatchRequest) {
       return Tuples.tuple(state._1(), state._2(), true);
     } else {
-      throw new RuntimeException("ParSeqRestClient could not handled this type of GET request: " + request.getClass().getName());
+      throw unsupportedGetRequestType(request);
     }
   }
 
@@ -158,7 +158,7 @@ class GetRequestGroup implements RequestGroup {
       state._1().addAll(batchRequest.getObjectIds());
       return state;
     } else {
-      throw new RuntimeException("ParSeqRestClient could not handled this type of GET request: " + request.getClass().getName());
+      throw unsupportedGetRequestType(request);
     }
   }
 
@@ -176,7 +176,7 @@ class GetRequestGroup implements RequestGroup {
         return Tuples.tuple(state._1(), null, state._3());
       }
     } else {
-      throw new RuntimeException("ParSeqRestClient could not handled this type of GET request: " + request.getClass().getName());
+      throw unsupportedGetRequestType(request);
     }
   }
 
@@ -235,8 +235,7 @@ class GetRequestGroup implements RequestGroup {
               Response rsp = new ResponseImpl(responseToBatch, br);
               entry.getValue().getPromise().done(rsp);
             } else {
-              entry.getValue().getPromise().fail(new Exception(
-                  "ParSeqRestClient could not handle this type of GET request: " + request.getClass().getName()));
+              entry.getValue().getPromise().fail(unsupportedGetRequestType(request));
             }
           } catch (RemoteInvocationException e) {
             entry.getValue().getPromise().fail(e);
@@ -250,6 +249,10 @@ class GetRequestGroup implements RequestGroup {
       }
 
     });
+  }
+
+  private static RuntimeException unsupportedGetRequestType(Request request) {
+    return new RuntimeException("ParSeqRestliClient could not handle this type of GET request: " + request.getClass().getName());
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -282,8 +285,7 @@ class GetRequestGroup implements RequestGroup {
           if (request instanceof GetRequest) {
             entry.getValue().getPromise().done(new ResponseImpl<>(responseToGet, responseToGet.getEntity()));
           } else {
-            entry.getValue().getPromise().fail(new Exception(
-                "ParSeqRestClient could not handle this type of GET request: " + request.getClass().getName()));
+            entry.getValue().getPromise().fail(unsupportedGetRequestType(request));
           }
         });
       }

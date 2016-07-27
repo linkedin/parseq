@@ -9,14 +9,14 @@ import com.linkedin.restli.client.config.RequestConfigProvider;
 
 class MultipleRequestConfigProvider implements RequestConfigProvider {
 
-  private final Map<String, ParSeqRestClientConfig> _configs;
-  private final ParSeqRestClientConfigChooser _chooser;
+  private final Map<String, ParSeqRestliClientConfig> _configs;
+  private final ParSeqRestliClientConfigChooser _chooser;
   private final InboundRequestContextFinder _inboundRequestContextFinder;
 
   private final ConcurrentHashMap<String, RequestConfigProvider> _providers = new ConcurrentHashMap<>();
 
-  public MultipleRequestConfigProvider(Map<String, ParSeqRestClientConfig> configs,
-      ParSeqRestClientConfigChooser chooser, InboundRequestContextFinder inboundRequestContextFinder) {
+  public MultipleRequestConfigProvider(Map<String, ParSeqRestliClientConfig> configs,
+      ParSeqRestliClientConfigChooser chooser, InboundRequestContextFinder inboundRequestContextFinder) {
     _configs = configs;
     _chooser = chooser;
     _inboundRequestContextFinder = inboundRequestContextFinder;

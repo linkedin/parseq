@@ -12,27 +12,27 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.linkedin.restli.client.InboundRequestContextFinder;
-import com.linkedin.restli.client.ParSeqRestClientConfig;
-import com.linkedin.restli.client.ParSeqRestClientConfigBuilder;
+import com.linkedin.restli.client.ParSeqRestliClientConfig;
+import com.linkedin.restli.client.ParSeqRestliClientConfigBuilder;
 import com.linkedin.restli.client.Request;
 
 class RequestConfigProviderImpl implements RequestConfigProvider {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RequestConfigProviderImpl.class);
 
-  static final ParSeqRestClientConfig DEFAULT_CONFIG = createDefaultConfig();
+  static final ParSeqRestliClientConfig DEFAULT_CONFIG = createDefaultConfig();
   private final InboundRequestContextFinder _inboundRequestContextFinder;
   private final RequestConfigTree<Long> _timeoutMs = new RequestConfigTree<>();
   private final RequestConfigTree<Boolean> _batchingEnabled = new RequestConfigTree<>();
   private final RequestConfigTree<Integer> _maxBatchSize = new RequestConfigTree<>();
   private final ConcurrentMap<RequestConfigCacheKey, RequestConfig> _cache = new ConcurrentHashMap<>();
 
-  public RequestConfigProviderImpl(InboundRequestContextFinder inboundRequestContextFinder, ParSeqRestClientConfig config) throws RequestConfigKeyParsingException {
+  public RequestConfigProviderImpl(InboundRequestContextFinder inboundRequestContextFinder, ParSeqRestliClientConfig config) throws RequestConfigKeyParsingException {
     _inboundRequestContextFinder = inboundRequestContextFinder;
     initialize(config);
   }
 
-  private void initialize(ParSeqRestClientConfig config) throws RequestConfigKeyParsingException {
+  private void initialize(ParSeqRestliClientConfig config) throws RequestConfigKeyParsingException {
     boolean failed = initializeProperty(config.getTimeoutMsConfig(), "timeoutMs") ||
                      initializeProperty(config.isBatchingEnabledConfig(), "batchingEnabled") ||
                      initializeProperty(config.getMaxBatchSizeConfig(), "maxBatchSize");
@@ -93,8 +93,8 @@ class RequestConfigProviderImpl implements RequestConfigProvider {
   /**
    * Default configuration map must specify default values for all properties.
    */
-  private static ParSeqRestClientConfig createDefaultConfig() {
-    ParSeqRestClientConfigBuilder builder = new ParSeqRestClientConfigBuilder();
+  private static ParSeqRestliClientConfig createDefaultConfig() {
+    ParSeqRestliClientConfigBuilder builder = new ParSeqRestliClientConfigBuilder();
     builder.addTimeoutMs("*.*/*.*", TimeUnit.SECONDS.toMillis(10));
     builder.addBatchingEnabled("*.*/*.*", Boolean.FALSE);
     builder.addMaxBatchSize("*.*/*.*", 1024);

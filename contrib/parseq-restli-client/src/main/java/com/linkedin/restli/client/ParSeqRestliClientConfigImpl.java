@@ -2,13 +2,13 @@ package com.linkedin.restli.client;
 
 import java.util.Map;
 
-class ParSeqRestClientConfigImpl implements ParSeqRestClientConfig {
+class ParSeqRestliClientConfigImpl implements ParSeqRestliClientConfig {
 
   private final Map<String, Long> _timeoutMsConfig;
   private final Map<String, Boolean> _batchingEnabledConfig;
   private final Map<String, Integer> _maxBatchSizeConfig;
 
-  public ParSeqRestClientConfigImpl(Map<String, Long> timeoutMsConfig, Map<String, Boolean> batchingEnabledConfig,
+  public ParSeqRestliClientConfigImpl(Map<String, Long> timeoutMsConfig, Map<String, Boolean> batchingEnabledConfig,
       Map<String, Integer> maxBatchSizeConfig) {
     _timeoutMsConfig = timeoutMsConfig;
     _batchingEnabledConfig = batchingEnabledConfig;
