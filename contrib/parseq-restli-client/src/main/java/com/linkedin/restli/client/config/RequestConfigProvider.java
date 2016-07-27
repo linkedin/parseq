@@ -19,7 +19,7 @@ public interface RequestConfigProvider extends Function<Request<?>, RequestConfi
     try {
       RequestConfigProviderBuilder builder = new RequestConfigProviderBuilder();
       builder.setInboundRequestFinder(inboundRequestContextFinder)
-        .addConfig(getDefaultConfigMap());
+        .addConfig(getDefaultConfig());
       if (config != null) {
         builder.addConfig(config);
       }
@@ -29,7 +29,7 @@ public interface RequestConfigProvider extends Function<Request<?>, RequestConfi
     }
   }
 
-  public static ParSeqRestliClientConfig getDefaultConfigMap() {
+  public static ParSeqRestliClientConfig getDefaultConfig() {
     return RequestConfigProviderImpl.DEFAULT_CONFIG;
   }
 }

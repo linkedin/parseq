@@ -251,7 +251,7 @@ class GetRequestGroup implements RequestGroup {
     });
   }
 
-  private static RuntimeException unsupportedGetRequestType(Request request) {
+  private static RuntimeException unsupportedGetRequestType(Request<?> request) {
     return new RuntimeException("ParSeqRestliClient could not handle this type of GET request: " + request.getClass().getName());
   }
 

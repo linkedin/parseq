@@ -4,11 +4,16 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.linkedin.parseq.batching.BatchingSupport;
 import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.restli.client.config.RequestConfigProvider;
 
 public class ParSeqRestliClientBuilder {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(ParSeqRestliClientBuilder.class);
 
   private static final String DEFAULT_CONFIG = "default";
 
@@ -22,28 +27,36 @@ public class ParSeqRestliClientBuilder {
 
   /**
    * This method may throw RuntimeException e.g. when there is a problem with configuration.
+   *
    * @throws RuntimeException e.g. when there is a problem with configuration
    * @return instance of ParSeqRestClient
    */
   public ParSeqRestClient build() {
 
-    //TODO add debug logging
-
+    if (_inboundRequestContextFinder == null) {
+      LOGGER.debug("InboundRequestContextFinder not specified, using default one");
+    }
     InboundRequestContextFinder inboundRequestContextFinder = _inboundRequestContextFinder == null ?
         () -> Optional.empty() : _inboundRequestContextFinder;
 
     if (_config != null) {
+      LOGGER.debug("One config specified");
       _configs = Collections.singletonMap(DEFAULT_CONFIG, _config);
       _configChooser = (irc, r) -> DEFAULT_CONFIG;
     } else if (_configs == null) {
       throw new IllegalStateException("One type of config has to be specified using either setConfig() or setMultipleConfigs().");
+    } else {
+      LOGGER.debug("Multiple configs specified");
     }
 
     RequestConfigProvider configProvider = new MultipleRequestConfigProvider(_configs, _configChooser, inboundRequestContextFinder);
 
     ParSeqRestClient parseqClient = new ParSeqRestClient(_restClient, configProvider);
     if (_batchingSupport != null) {
+      LOGGER.debug("Found batching support");
       _batchingSupport.registerStrategy(parseqClient);
+    } else {
+      LOGGER.debug("Did not find batching support");
     }
     return parseqClient;
   }
