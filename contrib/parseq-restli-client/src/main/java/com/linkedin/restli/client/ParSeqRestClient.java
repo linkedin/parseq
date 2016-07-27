@@ -46,7 +46,7 @@ import com.linkedin.restli.common.OperationNameGenerator;
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  *
  */
-class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequestBatchKey, Response<Object>>
+public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequestBatchKey, Response<Object>>
     implements ParSeqRestliClient {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ParSeqRestClient.class);
