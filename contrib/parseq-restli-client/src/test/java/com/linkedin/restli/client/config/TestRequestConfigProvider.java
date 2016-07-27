@@ -9,7 +9,7 @@ import org.testng.annotations.Test;
 
 import com.linkedin.restli.client.InboundRequestContext;
 import com.linkedin.restli.client.InboundRequestContextFinder;
-import com.linkedin.restli.client.ParSeqRestClientConfigBuilder;
+import com.linkedin.restli.client.ParSeqRestliClientConfigBuilder;
 import com.linkedin.restli.common.ResourceMethod;
 import com.linkedin.restli.examples.greetings.client.GreetingsBuilders;
 import com.linkedin.restli.examples.groups.client.GroupsBuilders;
@@ -20,7 +20,7 @@ public class TestRequestConfigProvider {
   @Test
   public void testFromEmptyMap() throws RequestConfigKeyParsingException {
     RequestConfigProvider provider =
-        RequestConfigProvider.build(new ParSeqRestClientConfigBuilder().build(), () -> Optional.empty());
+        RequestConfigProvider.build(new ParSeqRestliClientConfigBuilder().build(), () -> Optional.empty());
     RequestConfig rc = provider.apply(new GreetingsBuilders().get().id(0L).build());
     assertNotNull(rc);
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(10000L));
@@ -30,7 +30,7 @@ public class TestRequestConfigProvider {
 
   @Test
   public void testFromEmptyMapOverrideDefault() throws RequestConfigKeyParsingException {
-    ParSeqRestClientConfigBuilder configBuilder = new ParSeqRestClientConfigBuilder();
+    ParSeqRestliClientConfigBuilder configBuilder = new ParSeqRestliClientConfigBuilder();
     configBuilder.addTimeoutMs("*.*/*.*", 1000L);
     configBuilder.addMaxBatchSize("*.*/*.*", 4096);
     configBuilder.addBatchingEnabled("*.*/*.*", true);
@@ -44,7 +44,7 @@ public class TestRequestConfigProvider {
 
   @Test
   public void testOutboundOp() throws RequestConfigKeyParsingException {
-    ParSeqRestClientConfigBuilder configBuilder = new ParSeqRestClientConfigBuilder();
+    ParSeqRestliClientConfigBuilder configBuilder = new ParSeqRestliClientConfigBuilder();
     configBuilder.addTimeoutMs("*.*/*.GET", 1000L);
     RequestConfigProvider provider = RequestConfigProvider.build(configBuilder.build(), () -> Optional.empty());
     RequestConfig rc = provider.apply(new GreetingsBuilders().get().id(0L).build());
@@ -62,7 +62,7 @@ public class TestRequestConfigProvider {
 
   @Test
   public void testOutboundName() throws RequestConfigKeyParsingException {
-    ParSeqRestClientConfigBuilder configBuilder = new ParSeqRestClientConfigBuilder();
+    ParSeqRestliClientConfigBuilder configBuilder = new ParSeqRestliClientConfigBuilder();
     configBuilder.addTimeoutMs("*.*/greetings.*", 1000L);
     RequestConfigProvider provider = RequestConfigProvider.build(configBuilder.build(), () -> Optional.empty());
     RequestConfig rc = provider.apply(new GreetingsBuilders().get().id(0L).build());
@@ -80,7 +80,7 @@ public class TestRequestConfigProvider {
 
   @Test
   public void testTimeoutForGetManyConfigs() throws RequestConfigKeyParsingException {
-    ParSeqRestClientConfigBuilder configBuilder = new ParSeqRestClientConfigBuilder();
+    ParSeqRestliClientConfigBuilder configBuilder = new ParSeqRestliClientConfigBuilder();
     configBuilder.addTimeoutMs("*.*/*.GET", 1000L);
     configBuilder.addTimeoutMs("x.GET/*.GET", 1000L);
     configBuilder.addTimeoutMs("y.GET/x1.GET", 1000L);
@@ -103,7 +103,7 @@ public class TestRequestConfigProvider {
 
   @Test
   public void testPrioritiesWithInboundAndOutboundMatch() throws RequestConfigKeyParsingException {
-    ParSeqRestClientConfigBuilder configBuilder = new ParSeqRestClientConfigBuilder();
+    ParSeqRestliClientConfigBuilder configBuilder = new ParSeqRestliClientConfigBuilder();
     configBuilder.addTimeoutMs("*.*/*.GET", 1000L);
     configBuilder.addTimeoutMs("x.GET/*.GET", 1000L);
     configBuilder.addTimeoutMs("y.GET/x1.GET", 1000L);
@@ -136,7 +136,7 @@ public class TestRequestConfigProvider {
 
   @Test
   public void testPrioritiesWithInboundFinderAndOutboundMatch() throws RequestConfigKeyParsingException {
-    ParSeqRestClientConfigBuilder configBuilder = new ParSeqRestClientConfigBuilder();
+    ParSeqRestliClientConfigBuilder configBuilder = new ParSeqRestliClientConfigBuilder();
     configBuilder.addTimeoutMs("*.*/*.GET", 1000L);
     configBuilder.addTimeoutMs("x.GET/*.GET", 1000L);
     configBuilder.addTimeoutMs("y.GET/x1.GET", 1000L);
@@ -174,7 +174,7 @@ public class TestRequestConfigProvider {
 
   @Test
   public void testPrioritiesWithHttpInboundAndOutboundMatch() throws RequestConfigKeyParsingException {
-    ParSeqRestClientConfigBuilder configBuilder = new ParSeqRestClientConfigBuilder();
+    ParSeqRestliClientConfigBuilder configBuilder = new ParSeqRestliClientConfigBuilder();
     configBuilder.addTimeoutMs("*.*/*.GET", 1000L);
     configBuilder.addTimeoutMs("x.GET/*.GET", 1000L);
     configBuilder.addTimeoutMs("y.GET/x1.GET", 1000L);

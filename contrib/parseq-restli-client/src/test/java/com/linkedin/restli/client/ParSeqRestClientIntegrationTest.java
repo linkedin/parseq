@@ -68,9 +68,9 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
 
   private final ThreadLocal<InboundRequestContext> _inboundRequestContext = new ThreadLocal<>();
 
-  protected ParSeqRestClient _parseqClient;
+  protected ParSeqRestliClient _parseqClient;
 
-  protected abstract ParSeqRestClientConfig getParSeqRestClientConfig();
+  protected abstract ParSeqRestliClientConfig getParSeqRestClientConfig();
 
   protected void setInboundRequestContext(InboundRequestContext irc) {
     _inboundRequestContext.set(irc);
@@ -128,7 +128,7 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
     engineBuilder.setPlanDeactivationListener(_batchingSupport);
 
 
-    _parseqClient = new ParSeqRestClientBuilder()
+    _parseqClient = new ParSeqRestliClientBuilder()
         .setRestClient(_restClient)
         .setBatchingSupport(_batchingSupport)
         .setConfig(getParSeqRestClientConfig())

@@ -2,7 +2,7 @@ package com.linkedin.restli.client;
 
 import java.util.Map;
 
-public interface ParSeqRestClientConfig {
+public interface ParSeqRestliClientConfig {
 
   public Map<String, Long> getTimeoutMsConfig();
 

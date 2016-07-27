@@ -27,8 +27,8 @@ import com.linkedin.restli.client.config.RequestConfigOverridesBuilder;
 public class TestParSeqRestClient extends ParSeqRestClientIntegrationTest {
 
   @Override
-  public ParSeqRestClientConfig getParSeqRestClientConfig() {
-    return new ParSeqRestClientConfigBuilder()
+  public ParSeqRestliClientConfig getParSeqRestClientConfig() {
+    return new ParSeqRestliClientConfigBuilder()
         .addTimeoutMs("*.*/greetings.GET", 9999L)
         .addTimeoutMs("*.*/greetings.*", 10001L)
         .addTimeoutMs("*.*/*.GET", 10002L)

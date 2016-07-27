@@ -8,14 +8,14 @@ import com.linkedin.parseq.batching.BatchingSupport;
 import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.restli.client.config.RequestConfigProvider;
 
-public class ParSeqRestClientBuilder {
+public class ParSeqRestliClientBuilder {
 
   private static final String DEFAULT_CONFIG = "default";
 
   private RestClient _restClient;
-  private ParSeqRestClientConfig _config;
-  Map<String, ParSeqRestClientConfig> _configs;
-  ParSeqRestClientConfigChooser _configChooser;
+  private ParSeqRestliClientConfig _config;
+  Map<String, ParSeqRestliClientConfig> _configs;
+  ParSeqRestliClientConfigChooser _configChooser;
 
   private BatchingSupport _batchingSupport;
   private InboundRequestContextFinder _inboundRequestContextFinder;
@@ -26,6 +26,8 @@ public class ParSeqRestClientBuilder {
    * @return instance of ParSeqRestClient
    */
   public ParSeqRestClient build() {
+
+    //TODO add debug logging
 
     InboundRequestContextFinder inboundRequestContextFinder = _inboundRequestContextFinder == null ?
         () -> Optional.empty() : _inboundRequestContextFinder;
@@ -39,7 +41,7 @@ public class ParSeqRestClientBuilder {
 
     RequestConfigProvider configProvider = new MultipleRequestConfigProvider(_configs, _configChooser, inboundRequestContextFinder);
 
-    ParSeqRestClientImpl parseqClient = new ParSeqRestClientImpl(_restClient, configProvider);
+    ParSeqRestClient parseqClient = new ParSeqRestClient(_restClient, configProvider);
     if (_batchingSupport != null) {
       _batchingSupport.registerStrategy(parseqClient);
     }
@@ -50,18 +52,18 @@ public class ParSeqRestClientBuilder {
     return _restClient;
   }
 
-  public ParSeqRestClientBuilder setBatchingSupport(BatchingSupport batchingSupport) {
+  public ParSeqRestliClientBuilder setBatchingSupport(BatchingSupport batchingSupport) {
     _batchingSupport = batchingSupport;
     return this;
   }
 
-  public ParSeqRestClientBuilder setRestClient(RestClient restClient) {
+  public ParSeqRestliClientBuilder setRestClient(RestClient restClient) {
     ArgumentUtil.requireNotNull(restClient, "restClient");
     _restClient = restClient;
     return this;
   }
 
-  public ParSeqRestClientBuilder setConfig(ParSeqRestClientConfig config) {
+  public ParSeqRestliClientBuilder setConfig(ParSeqRestliClientConfig config) {
     ArgumentUtil.requireNotNull(config, "config");
     if (_configs != null) {
       throw new IllegalArgumentException("setMultipleConfigs() has already been called. Only one type of config can be specified using either setConfig() or setMultipleConfigs() but not both.");
@@ -70,8 +72,8 @@ public class ParSeqRestClientBuilder {
     return this;
   }
 
-  public ParSeqRestClientBuilder setMultipleConfigs(Map<String, ParSeqRestClientConfig> configs,
-      ParSeqRestClientConfigChooser chooser) {
+  public ParSeqRestliClientBuilder setMultipleConfigs(Map<String, ParSeqRestliClientConfig> configs,
+      ParSeqRestliClientConfigChooser chooser) {
     ArgumentUtil.requireNotNull(configs, "configs");
     ArgumentUtil.requireNotNull(chooser, "chooser");
     if (_configs != null) {
@@ -82,7 +84,7 @@ public class ParSeqRestClientBuilder {
     return this;
   }
 
-  public ParSeqRestClientBuilder setInboundRequestContextFinder(InboundRequestContextFinder inboundRequestContextFinder) {
+  public ParSeqRestliClientBuilder setInboundRequestContextFinder(InboundRequestContextFinder inboundRequestContextFinder) {
     ArgumentUtil.requireNotNull(inboundRequestContextFinder, "inboundRequestContextFinder");
     _inboundRequestContextFinder = inboundRequestContextFinder;
     return this;
