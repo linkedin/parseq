@@ -153,7 +153,7 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
 
   private <T> Task<Response<T>> withTimeout(final Task<Response<T>> task, RequestConfig config) {
     ConfigValue<Long> timeout = config.getTimeoutMs();
-    if (timeout.getValue() != null) {
+    if (timeout.getValue() != null && timeout.getValue() > 0) {
       if (timeout.getSource().isPresent()) {
         return task.withTimeout("src: " + timeout.getSource().get(), timeout.getValue(), TimeUnit.MILLISECONDS);
       } else {

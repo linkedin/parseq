@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +19,12 @@ class RequestConfigProviderImpl implements RequestConfigProvider {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RequestConfigProviderImpl.class);
 
+  static final int DEFAULT_MAX_BATCH_SIZE = 1024;
+  static final Boolean DEFAULT_BATCHING_ENABLED = Boolean.FALSE;
+  static final long DEFAULT_TIMEOUT = 0L;
+
   static final ParSeqRestliClientConfig DEFAULT_CONFIG = createDefaultConfig();
+
   private final InboundRequestContextFinder _inboundRequestContextFinder;
   private final RequestConfigTree<Long> _timeoutMs = new RequestConfigTree<>();
   private final RequestConfigTree<Boolean> _batchingEnabled = new RequestConfigTree<>();
@@ -95,9 +99,9 @@ class RequestConfigProviderImpl implements RequestConfigProvider {
    */
   private static ParSeqRestliClientConfig createDefaultConfig() {
     ParSeqRestliClientConfigBuilder builder = new ParSeqRestliClientConfigBuilder();
-    builder.addTimeoutMs("*.*/*.*", TimeUnit.SECONDS.toMillis(10));
-    builder.addBatchingEnabled("*.*/*.*", Boolean.FALSE);
-    builder.addMaxBatchSize("*.*/*.*", 1024);
+    builder.addTimeoutMs("*.*/*.*", DEFAULT_TIMEOUT);
+    builder.addBatchingEnabled("*.*/*.*", DEFAULT_BATCHING_ENABLED);
+    builder.addMaxBatchSize("*.*/*.*", DEFAULT_MAX_BATCH_SIZE);
     return builder.build();
   }
 }
