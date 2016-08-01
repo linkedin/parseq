@@ -161,7 +161,7 @@ public class JavadocExamples extends AbstractExample {
 
 //withtimeout-1
     final Task<Response> google = HttpClient.get("http://google.com").task()
-        .withTimeout(10, TimeUnit.MILLISECONDS);
+        .withTimeout("global limit", 10, TimeUnit.MILLISECONDS);
 
     engine.run(google);
 

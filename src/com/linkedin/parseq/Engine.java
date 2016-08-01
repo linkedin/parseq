@@ -16,20 +16,100 @@
 
 package com.linkedin.parseq;
 
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
+import org.slf4j.ILoggerFactory;
+import org.slf4j.Logger;
+
+import com.linkedin.parseq.internal.ArgumentUtil;
+import com.linkedin.parseq.internal.ContextImpl;
+import com.linkedin.parseq.internal.InternalUtil;
+import com.linkedin.parseq.internal.PlanDeactivationListener;
+import com.linkedin.parseq.internal.PlanContext;
+import com.linkedin.parseq.promise.PromiseListener;
 
 
 /**
- * An Engine can run a {@link Task}. Use {@link EngineBuilder} to
+ * An object that can run a set {@link Task}s. Use {@link EngineBuilder} to
  * create Engine instances.
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public interface Engine {
+public class Engine {
   public static final String LOGGER_BASE = Engine.class.getName();
 
-  public Object getProperty(String key);
+  public static final String MAX_RELATIONSHIPS_PER_TRACE = "_MaxRelationshipsPerTrace_";
+  private static final int DEFUALT_MAX_RELATIONSHIPS_PER_TRACE = 4096;
+
+  private static final State INIT = new State(StateName.RUN, 0);
+  private static final State TERMINATED = new State(StateName.TERMINATED, 0);
+
+  private static enum StateName {
+    RUN,
+    SHUTDOWN,
+    TERMINATED
+  }
+
+  private final Executor _taskExecutor;
+  private final DelayedExecutor _timerExecutor;
+  private final ILoggerFactory _loggerFactory;
+
+  private final AtomicReference<State> _stateRef = new AtomicReference<State>(INIT);
+  private final CountDownLatch _terminated = new CountDownLatch(1);
+
+  private final Map<String, Object> _properties;
+
+  private final int _maxRelationshipsPerTrace;
+
+  private final PlanDeactivationListener _planDeactivationListener;
+
+  private final PromiseListener<Object> _taskDoneListener = resolvedPromise -> {
+    assert _stateRef.get()._pendingCount > 0;
+    assert _stateRef.get()._stateName != StateName.TERMINATED;
+
+    State currState;
+    State newState;
+    do {
+      currState = _stateRef.get();
+      newState = new State(currState._stateName, currState._pendingCount - 1);
+    } while (!_stateRef.compareAndSet(currState, newState));
+
+    if (newState._stateName == StateName.SHUTDOWN && newState._pendingCount == 0) {
+      tryTransitionTerminate();
+    }
+  };
+
+  // Cache these, since we'll use them frequently and they can be precomputed.
+  private final Logger _allLogger;
+  private final Logger _rootLogger;
+
+  /* package private */ Engine(final Executor taskExecutor, final DelayedExecutor timerExecutor,
+      final ILoggerFactory loggerFactory, final Map<String, Object> properties,
+      final PlanDeactivationListener planActivityListener) {
+    _taskExecutor = taskExecutor;
+    _timerExecutor = timerExecutor;
+    _loggerFactory = loggerFactory;
+    _properties = properties;
+    _planDeactivationListener = planActivityListener;
+
+    _allLogger = loggerFactory.getLogger(LOGGER_BASE + ":all");
+    _rootLogger = loggerFactory.getLogger(LOGGER_BASE + ":root");
+
+    if (_properties.containsKey(MAX_RELATIONSHIPS_PER_TRACE)) {
+      _maxRelationshipsPerTrace = (Integer) getProperty(MAX_RELATIONSHIPS_PER_TRACE);
+    } else {
+      _maxRelationshipsPerTrace = DEFUALT_MAX_RELATIONSHIPS_PER_TRACE;
+    }
+  }
+
+  public Object getProperty(String key) {
+    return _properties.get(key);
+  }
 
   /**
    * Runs the given task with its own context. Use {@code Tasks.seq} and
@@ -37,7 +117,9 @@ public interface Engine {
    *
    * @param task the task to run
    */
-  public void run(final Task<?> task);
+  public void run(final Task<?> task) {
+    run(task, task.getClass().getName());
+  }
 
   /**
    * Runs the given task with its own context. Use {@code Tasks.seq} and
@@ -45,7 +127,26 @@ public interface Engine {
    *
    * @param task the task to run
    */
-  public void run(final Task<?> task, final String planClass);
+  public void run(final Task<?> task, final String planClass) {
+    ArgumentUtil.requireNotNull(task, "task");
+    ArgumentUtil.requireNotNull(planClass, "planClass");
+    State currState, newState;
+    do {
+      currState = _stateRef.get();
+      if (currState._stateName != StateName.RUN) {
+        task.cancel(new EngineShutdownException("Task submitted after engine shutdown"));
+        return;
+      }
+
+      newState = new State(StateName.RUN, currState._pendingCount + 1);
+    } while (!_stateRef.compareAndSet(currState, newState));
+
+    PlanContext planContext = new PlanContext(this, _taskExecutor, _timerExecutor, _loggerFactory, _allLogger,
+        _rootLogger, planClass, task, _maxRelationshipsPerTrace, _planDeactivationListener);
+    new ContextImpl(planContext, task).runTask();
+
+    InternalUtil.unwildcardTask(task).addListener(_taskDoneListener);
+  }
 
   /**
    * If the engine is currently running, this method will initiate an orderly
@@ -56,7 +157,11 @@ public interface Engine {
    * If the engine is already shutting down or stopped this method will have
    * no effect.
    */
-  public void shutdown();
+  public void shutdown() {
+    if (tryTransitionShutdown()) {
+      tryTransitionTerminate();
+    }
+  }
 
   /**
    * Returns {@code true} if engine shutdown has been started or if the engine
@@ -67,7 +172,9 @@ public interface Engine {
    * @return {@code true} if the engine has started shutting down or if it has
    *         finished shutting down.
    */
-  public boolean isShutdown();
+  public boolean isShutdown() {
+    return _stateRef.get()._stateName != StateName.RUN;
+  }
 
   /**
    * Returns {@code true} if the engine has completely stopped. Use
@@ -76,7 +183,9 @@ public interface Engine {
    *
    * @return {@code true} if the engine has completed stopped.
    */
-  public boolean isTerminated();
+  public boolean isTerminated() {
+    return _stateRef.get()._stateName == StateName.TERMINATED;
+  }
 
   /**
    * Waits for the engine to stop. Use {@link #shutdown()} to initiate
@@ -89,6 +198,41 @@ public interface Engine {
    * @throws InterruptedException if this thread is interrupted while waiting
    *         for the engine to stop.
    */
-  public boolean awaitTermination(final int time, final TimeUnit unit) throws InterruptedException;
+  public boolean awaitTermination(final int time, final TimeUnit unit) throws InterruptedException {
+    return _terminated.await(time, unit);
+  }
 
+  private boolean tryTransitionShutdown() {
+    State currState, newState;
+    do {
+      currState = _stateRef.get();
+      if (currState._stateName != StateName.RUN) {
+        return false;
+      }
+      newState = new State(StateName.SHUTDOWN, currState._pendingCount);
+    } while (!_stateRef.compareAndSet(currState, newState));
+    return true;
+  }
+
+  private void tryTransitionTerminate() {
+    State currState;
+    do {
+      currState = _stateRef.get();
+      if (currState._stateName != StateName.SHUTDOWN || currState._pendingCount != 0) {
+        return;
+      }
+    } while (!_stateRef.compareAndSet(currState, TERMINATED));
+
+    _terminated.countDown();
+  }
+
+  private static class State {
+    private final StateName _stateName;
+    private final long _pendingCount;
+
+    private State(final StateName stateName, final long pendingCount) {
+      _pendingCount = pendingCount;
+      _stateName = stateName;
+    }
+  }
 }

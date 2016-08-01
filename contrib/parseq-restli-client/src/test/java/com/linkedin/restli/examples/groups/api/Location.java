@@ -14,8 +14,8 @@ import com.linkedin.data.template.StringArray;
 
 
 /**
- * A Location record. TODO HIGH This should be in common.linkedin
- * 
+ * A Location record.
+ *
  */
 @Generated(value = "com.linkedin.pegasus.generator.JavaCodeUtil", comments = "Rest.li Data Template. Generated from /Users/jodzga/dev/pegasus_trunk/pegasus/restli-int-test-api/src/main/pegasus/com/linkedin/restli/examples/groups/api/Location.pdsc.", date = "Thu Mar 31 14:04:52 PDT 2016")
 public class Location
@@ -48,7 +48,7 @@ public class Location
 
     /**
      * Existence checker for countryCode
-     * 
+     *
      * @see Location.Fields#countryCode
      */
     public boolean hasCountryCode() {
@@ -57,7 +57,7 @@ public class Location
 
     /**
      * Remover for countryCode
-     * 
+     *
      * @see Location.Fields#countryCode
      */
     public void removeCountryCode() {
@@ -66,7 +66,7 @@ public class Location
 
     /**
      * Getter for countryCode
-     * 
+     *
      * @see Location.Fields#countryCode
      */
     public String getCountryCode(GetMode mode) {
@@ -75,7 +75,7 @@ public class Location
 
     /**
      * Getter for countryCode
-     * 
+     *
      * @see Location.Fields#countryCode
      */
     public String getCountryCode() {
@@ -84,7 +84,7 @@ public class Location
 
     /**
      * Setter for countryCode
-     * 
+     *
      * @see Location.Fields#countryCode
      */
     public Location setCountryCode(String value, SetMode mode) {
@@ -94,7 +94,7 @@ public class Location
 
     /**
      * Setter for countryCode
-     * 
+     *
      * @see Location.Fields#countryCode
      */
     public Location setCountryCode(String value) {
@@ -104,7 +104,7 @@ public class Location
 
     /**
      * Existence checker for postalCode
-     * 
+     *
      * @see Location.Fields#postalCode
      */
     public boolean hasPostalCode() {
@@ -113,7 +113,7 @@ public class Location
 
     /**
      * Remover for postalCode
-     * 
+     *
      * @see Location.Fields#postalCode
      */
     public void removePostalCode() {
@@ -122,7 +122,7 @@ public class Location
 
     /**
      * Getter for postalCode
-     * 
+     *
      * @see Location.Fields#postalCode
      */
     public String getPostalCode(GetMode mode) {
@@ -131,7 +131,7 @@ public class Location
 
     /**
      * Getter for postalCode
-     * 
+     *
      * @see Location.Fields#postalCode
      */
     public String getPostalCode() {
@@ -140,7 +140,7 @@ public class Location
 
     /**
      * Setter for postalCode
-     * 
+     *
      * @see Location.Fields#postalCode
      */
     public Location setPostalCode(String value, SetMode mode) {
@@ -150,7 +150,7 @@ public class Location
 
     /**
      * Setter for postalCode
-     * 
+     *
      * @see Location.Fields#postalCode
      */
     public Location setPostalCode(String value) {
@@ -160,7 +160,7 @@ public class Location
 
     /**
      * Existence checker for geoPostalCode
-     * 
+     *
      * @see Location.Fields#geoPostalCode
      */
     public boolean hasGeoPostalCode() {
@@ -169,7 +169,7 @@ public class Location
 
     /**
      * Remover for geoPostalCode
-     * 
+     *
      * @see Location.Fields#geoPostalCode
      */
     public void removeGeoPostalCode() {
@@ -178,7 +178,7 @@ public class Location
 
     /**
      * Getter for geoPostalCode
-     * 
+     *
      * @see Location.Fields#geoPostalCode
      */
     public String getGeoPostalCode(GetMode mode) {
@@ -187,7 +187,7 @@ public class Location
 
     /**
      * Getter for geoPostalCode
-     * 
+     *
      * @see Location.Fields#geoPostalCode
      */
     public String getGeoPostalCode() {
@@ -196,7 +196,7 @@ public class Location
 
     /**
      * Setter for geoPostalCode
-     * 
+     *
      * @see Location.Fields#geoPostalCode
      */
     public Location setGeoPostalCode(String value, SetMode mode) {
@@ -206,7 +206,7 @@ public class Location
 
     /**
      * Setter for geoPostalCode
-     * 
+     *
      * @see Location.Fields#geoPostalCode
      */
     public Location setGeoPostalCode(String value) {
@@ -216,7 +216,7 @@ public class Location
 
     /**
      * Existence checker for regionCode
-     * 
+     *
      * @see Location.Fields#regionCode
      */
     public boolean hasRegionCode() {
@@ -225,7 +225,7 @@ public class Location
 
     /**
      * Remover for regionCode
-     * 
+     *
      * @see Location.Fields#regionCode
      */
     public void removeRegionCode() {
@@ -234,7 +234,7 @@ public class Location
 
     /**
      * Getter for regionCode
-     * 
+     *
      * @see Location.Fields#regionCode
      */
     public Integer getRegionCode(GetMode mode) {
@@ -243,7 +243,7 @@ public class Location
 
     /**
      * Getter for regionCode
-     * 
+     *
      * @see Location.Fields#regionCode
      */
     public Integer getRegionCode() {
@@ -252,7 +252,7 @@ public class Location
 
     /**
      * Setter for regionCode
-     * 
+     *
      * @see Location.Fields#regionCode
      */
     public Location setRegionCode(Integer value, SetMode mode) {
@@ -262,7 +262,7 @@ public class Location
 
     /**
      * Setter for regionCode
-     * 
+     *
      * @see Location.Fields#regionCode
      */
     public Location setRegionCode(Integer value) {
@@ -272,7 +272,7 @@ public class Location
 
     /**
      * Setter for regionCode
-     * 
+     *
      * @see Location.Fields#regionCode
      */
     public Location setRegionCode(int value) {
@@ -282,7 +282,7 @@ public class Location
 
     /**
      * Existence checker for latitude
-     * 
+     *
      * @see Location.Fields#latitude
      */
     public boolean hasLatitude() {
@@ -291,7 +291,7 @@ public class Location
 
     /**
      * Remover for latitude
-     * 
+     *
      * @see Location.Fields#latitude
      */
     public void removeLatitude() {
@@ -300,7 +300,7 @@ public class Location
 
     /**
      * Getter for latitude
-     * 
+     *
      * @see Location.Fields#latitude
      */
     public Float getLatitude(GetMode mode) {
@@ -309,7 +309,7 @@ public class Location
 
     /**
      * Getter for latitude
-     * 
+     *
      * @see Location.Fields#latitude
      */
     public Float getLatitude() {
@@ -318,7 +318,7 @@ public class Location
 
     /**
      * Setter for latitude
-     * 
+     *
      * @see Location.Fields#latitude
      */
     public Location setLatitude(Float value, SetMode mode) {
@@ -328,7 +328,7 @@ public class Location
 
     /**
      * Setter for latitude
-     * 
+     *
      * @see Location.Fields#latitude
      */
     public Location setLatitude(Float value) {
@@ -338,7 +338,7 @@ public class Location
 
     /**
      * Setter for latitude
-     * 
+     *
      * @see Location.Fields#latitude
      */
     public Location setLatitude(float value) {
@@ -348,7 +348,7 @@ public class Location
 
     /**
      * Existence checker for longitude
-     * 
+     *
      * @see Location.Fields#longitude
      */
     public boolean hasLongitude() {
@@ -357,7 +357,7 @@ public class Location
 
     /**
      * Remover for longitude
-     * 
+     *
      * @see Location.Fields#longitude
      */
     public void removeLongitude() {
@@ -366,7 +366,7 @@ public class Location
 
     /**
      * Getter for longitude
-     * 
+     *
      * @see Location.Fields#longitude
      */
     public Float getLongitude(GetMode mode) {
@@ -375,7 +375,7 @@ public class Location
 
     /**
      * Getter for longitude
-     * 
+     *
      * @see Location.Fields#longitude
      */
     public Float getLongitude() {
@@ -384,7 +384,7 @@ public class Location
 
     /**
      * Setter for longitude
-     * 
+     *
      * @see Location.Fields#longitude
      */
     public Location setLongitude(Float value, SetMode mode) {
@@ -394,7 +394,7 @@ public class Location
 
     /**
      * Setter for longitude
-     * 
+     *
      * @see Location.Fields#longitude
      */
     public Location setLongitude(Float value) {
@@ -404,7 +404,7 @@ public class Location
 
     /**
      * Setter for longitude
-     * 
+     *
      * @see Location.Fields#longitude
      */
     public Location setLongitude(float value) {
@@ -414,7 +414,7 @@ public class Location
 
     /**
      * Existence checker for geoPlaceCodes
-     * 
+     *
      * @see Location.Fields#geoPlaceCodes
      */
     public boolean hasGeoPlaceCodes() {
@@ -423,7 +423,7 @@ public class Location
 
     /**
      * Remover for geoPlaceCodes
-     * 
+     *
      * @see Location.Fields#geoPlaceCodes
      */
     public void removeGeoPlaceCodes() {
@@ -432,7 +432,7 @@ public class Location
 
     /**
      * Getter for geoPlaceCodes
-     * 
+     *
      * @see Location.Fields#geoPlaceCodes
      */
     public StringArray getGeoPlaceCodes(GetMode mode) {
@@ -441,7 +441,7 @@ public class Location
 
     /**
      * Getter for geoPlaceCodes
-     * 
+     *
      * @see Location.Fields#geoPlaceCodes
      */
     public StringArray getGeoPlaceCodes() {
@@ -450,7 +450,7 @@ public class Location
 
     /**
      * Setter for geoPlaceCodes
-     * 
+     *
      * @see Location.Fields#geoPlaceCodes
      */
     public Location setGeoPlaceCodes(StringArray value, SetMode mode) {
@@ -460,7 +460,7 @@ public class Location
 
     /**
      * Setter for geoPlaceCodes
-     * 
+     *
      * @see Location.Fields#geoPlaceCodes
      */
     public Location setGeoPlaceCodes(StringArray value) {
@@ -470,7 +470,7 @@ public class Location
 
     /**
      * Existence checker for gmtOffset
-     * 
+     *
      * @see Location.Fields#gmtOffset
      */
     public boolean hasGmtOffset() {
@@ -479,7 +479,7 @@ public class Location
 
     /**
      * Remover for gmtOffset
-     * 
+     *
      * @see Location.Fields#gmtOffset
      */
     public void removeGmtOffset() {
@@ -488,7 +488,7 @@ public class Location
 
     /**
      * Getter for gmtOffset
-     * 
+     *
      * @see Location.Fields#gmtOffset
      */
     public Float getGmtOffset(GetMode mode) {
@@ -497,7 +497,7 @@ public class Location
 
     /**
      * Getter for gmtOffset
-     * 
+     *
      * @see Location.Fields#gmtOffset
      */
     public Float getGmtOffset() {
@@ -506,7 +506,7 @@ public class Location
 
     /**
      * Setter for gmtOffset
-     * 
+     *
      * @see Location.Fields#gmtOffset
      */
     public Location setGmtOffset(Float value, SetMode mode) {
@@ -516,7 +516,7 @@ public class Location
 
     /**
      * Setter for gmtOffset
-     * 
+     *
      * @see Location.Fields#gmtOffset
      */
     public Location setGmtOffset(Float value) {
@@ -526,7 +526,7 @@ public class Location
 
     /**
      * Setter for gmtOffset
-     * 
+     *
      * @see Location.Fields#gmtOffset
      */
     public Location setGmtOffset(float value) {
@@ -536,7 +536,7 @@ public class Location
 
     /**
      * Existence checker for usesDaylightSavings
-     * 
+     *
      * @see Location.Fields#usesDaylightSavings
      */
     public boolean hasUsesDaylightSavings() {
@@ -545,7 +545,7 @@ public class Location
 
     /**
      * Remover for usesDaylightSavings
-     * 
+     *
      * @see Location.Fields#usesDaylightSavings
      */
     public void removeUsesDaylightSavings() {
@@ -554,7 +554,7 @@ public class Location
 
     /**
      * Getter for usesDaylightSavings
-     * 
+     *
      * @see Location.Fields#usesDaylightSavings
      */
     public Boolean isUsesDaylightSavings(GetMode mode) {
@@ -563,7 +563,7 @@ public class Location
 
     /**
      * Getter for usesDaylightSavings
-     * 
+     *
      * @see Location.Fields#usesDaylightSavings
      */
     public Boolean isUsesDaylightSavings() {
@@ -572,7 +572,7 @@ public class Location
 
     /**
      * Setter for usesDaylightSavings
-     * 
+     *
      * @see Location.Fields#usesDaylightSavings
      */
     public Location setUsesDaylightSavings(Boolean value, SetMode mode) {
@@ -582,7 +582,7 @@ public class Location
 
     /**
      * Setter for usesDaylightSavings
-     * 
+     *
      * @see Location.Fields#usesDaylightSavings
      */
     public Location setUsesDaylightSavings(Boolean value) {
@@ -592,7 +592,7 @@ public class Location
 
     /**
      * Setter for usesDaylightSavings
-     * 
+     *
      * @see Location.Fields#usesDaylightSavings
      */
     public Location setUsesDaylightSavings(boolean value) {

@@ -20,10 +20,9 @@ import com.linkedin.restli.internal.common.URIParamUtils;
 
 
 /**
- * TODO Derive path, resourceClass and keyName from class names (GroupsResource => /groups, GroupResource.class, "groupId")
- * 
+ *
  * generated from: com.linkedin.restli.examples.groups.server.rest.impl.GroupsResource2
- * 
+ *
  */
 @Generated(value = "com.linkedin.pegasus.generator.JavaCodeUtil", comments = "Rest.li Request Builder. Generated from /Users/jodzga/dev/pegasus_trunk/pegasus/restli-int-test-api/src/main/idl/com.linkedin.restli.examples.groups.client.groups.restspec.json.", date = "Thu Mar 31 14:16:24 PDT 2016")
 public class GroupsBuilders {
@@ -118,7 +117,7 @@ public class GroupsBuilders {
 
     /**
      * Test the default value for various types
-     * 
+     *
      * @return
      *     builder for the resource method
      */

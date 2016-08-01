@@ -47,6 +47,9 @@ import com.linkedin.parseq.trace.TraceBuilder;
  * @author Chi Chan (ckchan@linkedin.com)
  */
 public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T> {
+
+  private static final int TASK_NAME_MAX_LENGTH = 1024;
+
   static final Logger LOGGER = LoggerFactory.getLogger(BaseTask.class);
 
   private static enum StateType {
@@ -101,12 +104,20 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
    */
   public BaseTask(final String name) {
     super(Promises.<T> settable());
-    _name = name;
+    _name = truncate(name);
     final State state = State.INIT;
     _shallowTraceBuilder = new ShallowTraceBuilder(_id);
     _shallowTraceBuilder.setName(getName());
     _shallowTraceBuilder.setResultType(ResultType.UNFINISHED);
     _stateRef = new AtomicReference<State>(state);
+  }
+
+  private String truncate(String name) {
+    if (name == null || name.length() <= TASK_NAME_MAX_LENGTH) {
+      return name;
+    } else {
+      return name.substring(0, TASK_NAME_MAX_LENGTH);
+    }
   }
 
   @Override

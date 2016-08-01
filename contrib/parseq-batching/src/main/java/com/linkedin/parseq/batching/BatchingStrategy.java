@@ -1,8 +1,12 @@
 package com.linkedin.parseq.batching;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +15,7 @@ import com.linkedin.parseq.Context;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.batching.BatchImpl.BatchBuilder;
 import com.linkedin.parseq.batching.BatchImpl.BatchEntry;
+import com.linkedin.parseq.batching.BatchImpl.BatchPromise;
 import com.linkedin.parseq.internal.ContextImpl;
 import com.linkedin.parseq.internal.PlanContext;
 import com.linkedin.parseq.promise.CountDownPromiseListener;
@@ -91,10 +96,12 @@ import com.linkedin.parseq.trace.TraceBuilder;
  */
 public abstract class BatchingStrategy<G, K, T> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(BatchingStrategy.class);
   public static final int DEFAULT_MAX_BATCH_SIZE = 1024;
 
-  private final ConcurrentHashMap<Long, GroupBatchBuilder> _batches =
+  private static final Logger LOGGER = LoggerFactory.getLogger(BatchingStrategy.class);
+  private static final int DEFAULT_KEY_SIZE = 1;
+
+  private final ConcurrentMap<Long, GroupBatchBuilder> _batches =
       new ConcurrentHashMap<>();
 
   private final BatchSizeMetric _batchSizeMetric = new BatchSizeMetric();
@@ -108,18 +115,20 @@ public abstract class BatchingStrategy<G, K, T> {
    */
   public Task<T> batchable(final String desc, final K key) {
     return Task.async(desc, ctx -> {
-      final SettablePromise<T> result = Promises.settable();
+      final BatchPromise<T> result = new BatchPromise<>();
       final Long planId = ctx.getPlanId();
       final GroupBatchBuilder builder = _batches.computeIfAbsent(planId, k -> new GroupBatchBuilder());
       final G group = classify(key);
-      Batch<K, T> fullBatch = builder.add(group, key, ctx.getShallowTraceBuilder(), result);
-      if (fullBatch != null) {
-        try {
-          ctx.run(taskForBatch(group, fullBatch));
-        } catch (Throwable t) {
-          //we don't care if some of promises have already been completed
-          //all we care is that all remaining promises have been failed
-          fullBatch.failAll(t);
+      List<Batch<K, T>> fullBatches = builder.add(group, key, ctx.getShallowTraceBuilder(), result);
+      if (fullBatches != null) {
+        for (Batch<K, T> fullBatch: fullBatches) {
+          try {
+            ctx.run(taskForBatch(group, fullBatch, true));
+          } catch (Throwable t) {
+            //we don't care if some of promises have already been completed
+            //all we care is that all remaining promises have been failed
+            fullBatch.failAll(t);
+          }
         }
       }
       return result;
@@ -135,26 +144,30 @@ public abstract class BatchingStrategy<G, K, T> {
     return batchable("batchableTaskForKey: " + key.toString(), key);
   }
 
-  private Task<?> taskForBatch(final G group, final Batch<K, T> batch) {
-    _batchSizeMetric.record(batch.size());
+  private Task<?> taskForBatch(final G group, final Batch<K, T> batch, final boolean hasParent) {
+    _batchSizeMetric.record(batch.batchSize());
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug(debugInfo(group, batch));
     }
     return Task.async(getBatchName(group, batch), ctx -> {
       final SettablePromise<T> result = Promises.settable();
       final PromiseListener<T> countDownListener =
-          new CountDownPromiseListener<T>(batch.size(), result, null);
+          new CountDownPromiseListener<T>(batch.keysSize(), result, null);
 
-      //one of the batchable tasks becomes a parent of batch task
-      //all other tasks become potential parents
+      boolean assignedParent = false;
       final TraceBuilder traceBuilder = ctx.getTraceBuilder();
-      Relationship rel = Relationship.PARENT_OF;
       for (BatchEntry<T> entry : batch.values()) {
         for (ShallowTraceBuilder shallowTraceBuilder: entry.getShallowTraceBuilders()) {
-          traceBuilder.addRelationship(rel, shallowTraceBuilder, ctx.getShallowTraceBuilder());
-          rel = Relationship.POTENTIAL_PARENT_OF;
+          if (!assignedParent && !hasParent) {
+            traceBuilder.addRelationship(Relationship.CHILD_OF, ctx.getShallowTraceBuilder(), shallowTraceBuilder);
+            assignedParent = true;
+          } else {
+            traceBuilder.addRelationship(Relationship.POTENTIAL_CHILD_OF, ctx.getShallowTraceBuilder(), shallowTraceBuilder);
+          }
         }
-        entry.getPromise().addListener(countDownListener);
+        BatchPromise<T> promise = entry.getPromise();
+        promise.getInternal().addListener(countDownListener);
+        result.addListener(v -> promise.trigger());
       }
 
       try {
@@ -171,7 +184,7 @@ public abstract class BatchingStrategy<G, K, T> {
 
   private void runBatch(final PlanContext planContext, G group, final Batch<K, T> batch) {
     try {
-      new ContextImpl(planContext, taskForBatch(group, batch)).runTask();
+      new ContextImpl(planContext, taskForBatch(group, batch, false)).runTask();
     } catch (Throwable t) {
       //we don't care if some of promises have already been completed
       //all we care is that all remaining promises have been failed
@@ -225,7 +238,7 @@ public abstract class BatchingStrategy<G, K, T> {
   /**
    * Classify the {@code K Key} and by doing so assign it to a {@code G group}.
    * If two keys are classified by the same group then they will belong to the same {@code Batch}.
-   * For each batch {@link #executeBatch(Object, Batch)} will be .
+   * This method needs to be thread safe.
    * @param key key to be classified
    * @return Group that represents a batch the key will belong to
    */
@@ -242,6 +255,18 @@ public abstract class BatchingStrategy<G, K, T> {
   }
 
   /**
+   * Overriding this method allows specifying size of the key for a given group.
+   * Default value is 1. This method is used when calculating batch size and making sure
+   * that it does not exceed max batch size for a group.
+   * @param group group
+   * @return max batch size for this group
+   * @see #maxBatchSizeForGroup(Object)
+   */
+  public int keySize(G group, K key) {
+    return DEFAULT_KEY_SIZE;
+  }
+
+  /**
    * Overriding this method allows providing custom name for a batch. Name will appear in the
    * ParSeq trace as a description of the task that executes the batch.
    * @param batch batch to be described
@@ -249,7 +274,7 @@ public abstract class BatchingStrategy<G, K, T> {
    * @return name for the batch and group
    */
   public String getBatchName(G group, Batch<K, T> batch) {
-    return "batch(" + batch.size() + ")";
+    return "batch(keys: " + batch.keysSize() + ", size: " + batch.batchSize() + ")";
   }
 
   private class GroupBatchBuilder {
@@ -261,17 +286,33 @@ public abstract class BatchingStrategy<G, K, T> {
      * that batch if it is full.
      * @return full batch if new entry made batch full or null otherwise
      */
-    Batch<K, T> add(G group, K key, ShallowTraceBuilder traceBuilder, SettablePromise<T> promise) {
+    List<Batch<K, T>> add(G group, K key, ShallowTraceBuilder traceBuilder, BatchPromise<T> promise) {
+      final int size = keySize(group, key);
       BatchBuilder<K, T> builder =
-        _batchesByGroup.computeIfAbsent(group, k -> Batch.builder(maxBatchSizeForGroup(group), _batchAggregationTimeMetric));
+        _batchesByGroup.computeIfAbsent(group, x -> new BatchBuilder<>(maxBatchSizeForGroup(group), _batchAggregationTimeMetric));
       //invariant: builder is not full - it is maintained by the fact that max batch size >= 1
       //and that we remove builder from the map after adding to it entry that makes it full
-      builder.add(key, traceBuilder, promise);
-      if (builder.isFull()) {
-        _batchesByGroup.remove(group);
-        return builder.build();
+      if (builder.add(key, traceBuilder, promise, size)) {
+        if (builder.isFull()) {
+          _batchesByGroup.remove(group);
+          return Collections.singletonList(builder.build());
+        } else {
+          return null;
+        }
+      } else {
+        BatchBuilder<K, T> newBuilder = new BatchBuilder<>(maxBatchSizeForGroup(group), _batchAggregationTimeMetric);
+        //this will be successful because builder is empty and first add is always successful as per builder contract
+        newBuilder.add(key, traceBuilder, promise, size);
+        if (newBuilder.isFull()) {
+          List<Batch<K, T>> list = new ArrayList<>(2);
+          list.add(builder.build());
+          list.add(newBuilder.build());
+          return list;
+        } else {
+          _batchesByGroup.put(group, newBuilder);
+          return Collections.singletonList(builder.build());
+        }
       }
-      return null;
     }
 
     Map<G, BatchBuilder<K, T>> batches() {

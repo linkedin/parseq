@@ -16,25 +16,31 @@
 
 package com.linkedin.restli.client;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.linkedin.data.template.RecordTemplate;
 import com.linkedin.r2.message.RequestContext;
-import com.linkedin.restli.client.config.BatchingConfig;
+import com.linkedin.restli.client.config.RequestConfig;
 
 /**
  * Class used for deduplication. Two requests are considered equal
  * when Request and RequestContext objects are equal.
  */
 class RestRequestBatchKey {
-  private final Request<Object> _request;
+  private final Request<?> _request;
   private final RequestContext _requestContext;
-  private final BatchingConfig _bathcingConfig;
+  private final RequestConfig _bathcingConfig;
+  private Set<String> _extractedIds;
 
-  public RestRequestBatchKey(Request<Object> request, RequestContext requestContext, BatchingConfig bathcingConfig) {
+  public RestRequestBatchKey(Request<Object> request, RequestContext requestContext, RequestConfig bathcingConfig) {
     _request = request;
     _requestContext = requestContext;
     _bathcingConfig = bathcingConfig;
   }
 
-  public Request<Object> getRequest() {
+  public Request<?> getRequest() {
     return _request;
   }
 
@@ -42,7 +48,7 @@ class RestRequestBatchKey {
     return _requestContext;
   }
 
-  public BatchingConfig getBathcingConfig() {
+  public RequestConfig getRequestConfig() {
     return _bathcingConfig;
   }
 
@@ -83,4 +89,23 @@ class RestRequestBatchKey {
   }
 
 
+  public Set<String> ids() {
+    if (_extractedIds == null) {
+      _extractedIds = extractIds();
+    }
+    return _extractedIds;
+  }
+
+  @SuppressWarnings("unchecked")
+  private <RT extends RecordTemplate> Set<String> extractIds() {
+    if (_request instanceof GetRequest) {
+      return Collections.singleton(((GetRequest<?>) _request).getObjectId().toString());
+    } else {
+      return extractIds((BatchRequest<RT>) _request);
+    }
+  }
+
+  private <RT extends RecordTemplate> Set<String> extractIds(BatchRequest<RT> request) {
+    return request.getObjectIds().stream().map(Object::toString).collect(Collectors.toSet());
+  }
 }

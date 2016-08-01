@@ -16,8 +16,7 @@ public class BatchAggregationTimeMetric {
   private static final long HIGHEST_TRACKABLE_VALUE = TimeUnit.HOURS.toNanos(1);
   private static final int NUMBER_OF_FIGNIFICANT_VALUE_DIGITS = 3;
 
-  private final Recorder _recorder =
-      new Recorder(LOWEST_DISCERNIBLE_VALUE, HIGHEST_TRACKABLE_VALUE, NUMBER_OF_FIGNIFICANT_VALUE_DIGITS);
+  private Recorder _recorder = null;
 
   private Histogram _recycle;
 
@@ -32,17 +31,24 @@ public class BatchAggregationTimeMetric {
 
   private long narrow(long batchAggregationTimeNano) {
     if (batchAggregationTimeNano < LOWEST_DISCERNIBLE_VALUE) {
-      LOGGER.warn("batch aggregation time lower than expected: " + batchAggregationTimeNano + ", recording as: " + LOWEST_DISCERNIBLE_VALUE);
+      LOGGER.warn("batch aggregation time lower than expected: {}, recording as: {}", batchAggregationTimeNano, LOWEST_DISCERNIBLE_VALUE);
       return LOWEST_DISCERNIBLE_VALUE;
     }
     if (batchAggregationTimeNano > HIGHEST_TRACKABLE_VALUE) {
-      LOGGER.warn("batch aggregation time greater than expected: " + batchAggregationTimeNano + ", recording as: " + HIGHEST_TRACKABLE_VALUE);
+      LOGGER.warn("batch aggregation time greater than expected: {}, recording as: {}", batchAggregationTimeNano, HIGHEST_TRACKABLE_VALUE);
       return HIGHEST_TRACKABLE_VALUE;
     }
     return batchAggregationTimeNano;
   }
 
-  private void recordSafeValue(long batchAggregationTimeNano) {
+  private void initializeRecorder() {
+    if (_recorder == null) {
+      _recorder = new Recorder(LOWEST_DISCERNIBLE_VALUE, HIGHEST_TRACKABLE_VALUE, NUMBER_OF_FIGNIFICANT_VALUE_DIGITS);
+    }
+  }
+
+  private synchronized void recordSafeValue(long batchAggregationTimeNano) {
+    initializeRecorder();
     _recorder.recordValue(batchAggregationTimeNano);
   }
 
@@ -51,10 +57,12 @@ public class BatchAggregationTimeMetric {
    * Histogram passed to the consumer includes stable, consistent view
    * of all values accumulated since last harvest.
    * This method is thread safe.
-   * @param consumer
+   * @param consumer consumer for a harvested histogram
+   * @param <T> return type of a passed in function
    * @return a result of a passed in function
    */
   public synchronized <T> T harvest(Function<Histogram, T> consumer) {
+    initializeRecorder();
     _recycle = _recorder.getIntervalHistogram(_recycle);
     return consumer.apply(_recycle);
   }

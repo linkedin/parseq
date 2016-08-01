@@ -1,3 +1,13 @@
+v2.4.0
+------
+
+* Added flexible timeout and batching configuration to ParSeqRestClient, default timeout is 10s with disabled batching.
+* Allow adding description to timeout task and TimeoutException.
+* Renamed "timeoutTimer" task to "timeout".
+* Started truncating task names to 1024 characters.
+* Decoupled batch size from number of keys in the batch.
+* Added critical path filtering to Tracevis.
+
 v2.3.4
 ------
 
@@ -22,7 +32,7 @@ v2.3.1
 v2.3.0
 ------
 
-* Added Task based batching strategy to parseq-batching contrib project. It allows defining strategy using Task API. 
+* Added Task based batching strategy to parseq-batching contrib project. It allows defining strategy using Task API.
 * Fixed bug in setting system hidden attribute on fused task.
 
 v2.2.0
@@ -94,8 +104,8 @@ v2.0.2
 * Degrade gracefully instead of showing error pop-up when tracevis-server is not accessible (issue #57).
 * Added spellcheck="false" to textarea where JSON trace is pasted (issue #36).
 * Added TraceUtil class to simplify generating JSON trace for a task.
-* Fixed Javadoc to display better in Intellij IDEA. 
-* Internal implementation changes: simplified continuations implementation. 
+* Fixed Javadoc to display better in Intellij IDEA.
+* Internal implementation changes: simplified continuations implementation.
 
 v2.0.1
 ------
@@ -119,7 +129,7 @@ v2.0.0
   - gracefully handle cycles in generated trace
   - traces of all tasks belonging to the same plan are equal
   - tasks trace is a trace of a plan that executed it
-  - tasks value is not included by default it (see Task.setTraceValueSerializer()) 
+  - tasks value is not included by default it (see Task.setTraceValueSerializer())
 * Changed logging API so that it is possible to pass planClass to Engine.run()
 * Improved reliability of promise propagation to avoid stack overflow in large plans (millions of tasks)
 * Introduced blocking() method which allows integration of blocking APIs using multiple dedicated Executors
@@ -188,7 +198,7 @@ v1.3.0
 
 * Improvements to waterfall trace visualization including the ability to
   collapse composite tasks.
-* BaseTask will now catch Throwable instead of Exception. Any Throwable 
+* BaseTask will now catch Throwable instead of Exception. Any Throwable
   caught will fail the task.
 
 v1.2.0

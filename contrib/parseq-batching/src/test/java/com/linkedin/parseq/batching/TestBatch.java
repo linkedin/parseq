@@ -4,54 +4,97 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 import org.testng.annotations.Test;
 
 import com.linkedin.parseq.batching.BatchImpl.BatchBuilder;
-import com.linkedin.parseq.promise.Promises;
-import com.linkedin.parseq.promise.SettablePromise;
+import com.linkedin.parseq.batching.BatchImpl.BatchPromise;
 import com.linkedin.parseq.trace.ShallowTraceBuilder;
 
 public class TestBatch {
 
   @Test
   public void testEmptyBatch() {
-    BatchBuilder<Integer, String> builder = Batch.builder(10, new BatchAggregationTimeMetric());
+    BatchBuilder<Integer, String> builder = new BatchBuilder<>(10, new BatchAggregationTimeMetric());
     Batch<Integer, String> empty = builder.build();
 
-    assertEquals(empty.size(), 0);
+    assertEquals(empty.keysSize(), 0);
+    assertEquals(empty.batchSize(), 0);
     assertEquals(empty.values().size(), 0);
     assertEquals(empty.entries().size(), 0);
+  }
+
+  @Test
+  public void testOverflow() {
+    BatchBuilder<Integer, String> builder = new BatchBuilder<>(10, new BatchAggregationTimeMetric());
+    assertTrue(builder.add(0, new ShallowTraceBuilder(0L), new BatchPromise<>(), 3));
+    assertTrue(builder.add(1, new ShallowTraceBuilder(1L), new BatchPromise<>(), 3));
+    assertTrue(builder.add(2, new ShallowTraceBuilder(2L), new BatchPromise<>(), 3));
+    assertFalse(builder.add(3, new ShallowTraceBuilder(3L), new BatchPromise<>(), 3));
+  }
+
+  @Test
+  public void testNoOverflowOnEmptyBuilder() {
+    BatchBuilder<Integer, String> builder = new BatchBuilder<>(10, new BatchAggregationTimeMetric());
+    assertTrue(builder.add(0, new ShallowTraceBuilder(0L), new BatchPromise<>(), 100));
+    assertFalse(builder.add(1, new ShallowTraceBuilder(0L), new BatchPromise<>(), 1));
+  }
+
+  @Test
+  public void testSizeOverflow() {
+    BatchBuilder<Integer, String> builder = new BatchBuilder<>(Integer.MAX_VALUE, new BatchAggregationTimeMetric());
+    assertTrue(builder.add(0, new ShallowTraceBuilder(0L), new BatchPromise<>(), Integer.MAX_VALUE - 3));
+    assertTrue(builder.add(1, new ShallowTraceBuilder(0L), new BatchPromise<>(), 1));
+    assertTrue(builder.add(2, new ShallowTraceBuilder(0L), new BatchPromise<>(), 1));
+    assertTrue(builder.add(3, new ShallowTraceBuilder(0L), new BatchPromise<>(), 1));
+    assertFalse(builder.add(4, new ShallowTraceBuilder(0L), new BatchPromise<>(), 1));
+  }
+
+  @Test
+  public void testOverflowAfterFull() {
+    BatchBuilder<Integer, String> builder = new BatchBuilder<>(10, new BatchAggregationTimeMetric());
+    assertTrue(builder.add(0, new ShallowTraceBuilder(0L), new BatchPromise<>(), 3));
+    assertTrue(builder.add(1, new ShallowTraceBuilder(1L), new BatchPromise<>(), 3));
+    assertTrue(builder.add(2, new ShallowTraceBuilder(2L), new BatchPromise<>(), 4));
+    assertFalse(builder.add(3, new ShallowTraceBuilder(3L), new BatchPromise<>(), 3));
   }
 
   @Test
   public void testBatch() {
 
     final AtomicInteger counter = new AtomicInteger(0);
+    final Set<String> keys = new HashSet<>();
 
-    final Function<String, SettablePromise<String>> createPromise = expected -> {
-      SettablePromise<String> promise = Promises.settable();
+    final Function<String, BatchPromise<String>> createPromise = expected -> {
+      BatchPromise<String> promise = new BatchPromise<>();
       promise.addListener(p -> {
         if (p.get().equals(expected)) {
           counter.incrementAndGet();
         }
       });
+      if (!keys.contains(expected)) {
+        promise.trigger();
+        keys.add(expected);
+      }
       return promise;
     };
 
-    BatchBuilder<Integer, String> builder = Batch.builder(10, new BatchAggregationTimeMetric());
-    builder.add(0, new ShallowTraceBuilder(0L), createPromise.apply("0"));
-    builder.add(1, new ShallowTraceBuilder(1L), createPromise.apply("1"));
-    final SettablePromise<String> p2 = createPromise.apply("2");
-    builder.add(2, new ShallowTraceBuilder(2L), p2);
-    final SettablePromise<String> p3 = Promises.settable();
-    builder.add(3, new ShallowTraceBuilder(2L), p3);
-    builder.add(0, new ShallowTraceBuilder(3L), createPromise.apply("0"));  //duplicate
+    BatchBuilder<Integer, String> builder = new BatchBuilder<>(10, new BatchAggregationTimeMetric());
+    assertTrue(builder.add(0, new ShallowTraceBuilder(0L), createPromise.apply("0"), 1));
+    assertTrue(builder.add(1, new ShallowTraceBuilder(1L), createPromise.apply("1"), 1));
+    final BatchPromise<String> p2 = createPromise.apply("2");
+    assertTrue(builder.add(2, new ShallowTraceBuilder(2L), p2, 1));
+    final BatchPromise<String> p3 = new BatchPromise<>();
+    assertTrue(builder.add(3, new ShallowTraceBuilder(2L), p3, 1));
+    assertTrue(builder.add(0, new ShallowTraceBuilder(3L), createPromise.apply("0"), 1));  //duplicate
     Batch<Integer, String> batch = builder.build();
 
-    assertEquals(batch.size(), 4);
+    assertEquals(batch.keysSize(), 4);
+    assertEquals(batch.batchSize(), 5);
     assertEquals(batch.values().size(), 4);
     assertEquals(batch.entries().size(), 4);
     assertEquals(batch.keys().size(), 4);
@@ -70,5 +113,4 @@ public class TestBatch {
     assertTrue(p3.isDone());
     assertTrue(p3.isFailed());
   }
-
 }

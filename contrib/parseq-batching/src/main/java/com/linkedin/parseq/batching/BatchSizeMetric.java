@@ -15,8 +15,7 @@ public class BatchSizeMetric {
   private static final int HIGHEST_TRACKABLE_VALUE = 10_000;
   private static final int NUMBER_OF_FIGNIFICANT_VALUE_DIGITS = 3;
 
-  private final Recorder _recorder =
-      new Recorder(LOWEST_DISCERNIBLE_VALUE, HIGHEST_TRACKABLE_VALUE, NUMBER_OF_FIGNIFICANT_VALUE_DIGITS);
+  private Recorder _recorder = null;
 
   private Histogram _recycle;
 
@@ -31,17 +30,24 @@ public class BatchSizeMetric {
 
   private int narrow(int batchSize) {
     if (batchSize < LOWEST_DISCERNIBLE_VALUE) {
-      LOGGER.warn("batch size lower than expected: " + batchSize + ", recording as: " + LOWEST_DISCERNIBLE_VALUE);
+      LOGGER.warn("batch size lower than expected: {}, recording as: ", batchSize, LOWEST_DISCERNIBLE_VALUE);
       return LOWEST_DISCERNIBLE_VALUE;
     }
     if (batchSize > HIGHEST_TRACKABLE_VALUE) {
-      LOGGER.warn("batch size greater than expected: " + batchSize + ", recording as: " + HIGHEST_TRACKABLE_VALUE);
+      LOGGER.warn("batch size greater than expected: {}, recording as: ", batchSize, HIGHEST_TRACKABLE_VALUE);
       return HIGHEST_TRACKABLE_VALUE;
     }
     return batchSize;
   }
 
-  private void recordSafeValue(int batchSize) {
+  private void initializeRecorder() {
+    if (_recorder == null) {
+      _recorder = new Recorder(LOWEST_DISCERNIBLE_VALUE, HIGHEST_TRACKABLE_VALUE, NUMBER_OF_FIGNIFICANT_VALUE_DIGITS);
+    }
+  }
+
+  private synchronized void recordSafeValue(int batchSize) {
+    initializeRecorder();
     _recorder.recordValue(batchSize);
   }
 
@@ -50,10 +56,12 @@ public class BatchSizeMetric {
    * Histogram passed to the consumer includes stable, consistent view
    * of all values accumulated since last harvest.
    * This method is thread safe.
-   * @param consumer
+   * @param consumer consumer for a harvested histogram
+   * @param <T> return type of a passed in function
    * @return a result of a passed in function
    */
   public synchronized <T> T harvest(Function<Histogram, T> consumer) {
+    initializeRecorder();
     _recycle = _recorder.getIntervalHistogram(_recycle);
     return consumer.apply(_recycle);
   }

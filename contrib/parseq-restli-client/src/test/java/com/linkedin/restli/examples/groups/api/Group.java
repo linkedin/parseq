@@ -15,7 +15,7 @@ import com.linkedin.data.template.StringArray;
 
 /**
  * A Group record
- * 
+ *
  */
 @Generated(value = "com.linkedin.pegasus.generator.JavaCodeUtil", comments = "Rest.li Data Template. Generated from /Users/jodzga/dev/pegasus_trunk/pegasus/restli-int-test-api/src/main/pegasus/com/linkedin/restli/examples/groups/api/Group.pdsc.", date = "Thu Mar 31 14:04:52 PDT 2016")
 public class Group
@@ -88,7 +88,7 @@ public class Group
 
     /**
      * Existence checker for id
-     * 
+     *
      * @see Group.Fields#id
      */
     public boolean hasId() {
@@ -97,7 +97,7 @@ public class Group
 
     /**
      * Remover for id
-     * 
+     *
      * @see Group.Fields#id
      */
     public void removeId() {
@@ -106,7 +106,7 @@ public class Group
 
     /**
      * Getter for id
-     * 
+     *
      * @see Group.Fields#id
      */
     public Integer getId(GetMode mode) {
@@ -115,7 +115,7 @@ public class Group
 
     /**
      * Getter for id
-     * 
+     *
      * @see Group.Fields#id
      */
     public Integer getId() {
@@ -124,7 +124,7 @@ public class Group
 
     /**
      * Setter for id
-     * 
+     *
      * @see Group.Fields#id
      */
     public Group setId(Integer value, SetMode mode) {
@@ -134,7 +134,7 @@ public class Group
 
     /**
      * Setter for id
-     * 
+     *
      * @see Group.Fields#id
      */
     public Group setId(Integer value) {
@@ -144,7 +144,7 @@ public class Group
 
     /**
      * Setter for id
-     * 
+     *
      * @see Group.Fields#id
      */
     public Group setId(int value) {
@@ -154,7 +154,7 @@ public class Group
 
     /**
      * Existence checker for vanityUrl
-     * 
+     *
      * @see Group.Fields#vanityUrl
      */
     public boolean hasVanityUrl() {
@@ -163,7 +163,7 @@ public class Group
 
     /**
      * Remover for vanityUrl
-     * 
+     *
      * @see Group.Fields#vanityUrl
      */
     public void removeVanityUrl() {
@@ -172,7 +172,7 @@ public class Group
 
     /**
      * Getter for vanityUrl
-     * 
+     *
      * @see Group.Fields#vanityUrl
      */
     public String getVanityUrl(GetMode mode) {
@@ -181,7 +181,7 @@ public class Group
 
     /**
      * Getter for vanityUrl
-     * 
+     *
      * @see Group.Fields#vanityUrl
      */
     public String getVanityUrl() {
@@ -190,7 +190,7 @@ public class Group
 
     /**
      * Setter for vanityUrl
-     * 
+     *
      * @see Group.Fields#vanityUrl
      */
     public Group setVanityUrl(String value, SetMode mode) {
@@ -200,7 +200,7 @@ public class Group
 
     /**
      * Setter for vanityUrl
-     * 
+     *
      * @see Group.Fields#vanityUrl
      */
     public Group setVanityUrl(String value) {
@@ -210,7 +210,7 @@ public class Group
 
     /**
      * Existence checker for parentGroupId
-     * 
+     *
      * @see Group.Fields#parentGroupId
      */
     public boolean hasParentGroupId() {
@@ -219,7 +219,7 @@ public class Group
 
     /**
      * Remover for parentGroupId
-     * 
+     *
      * @see Group.Fields#parentGroupId
      */
     public void removeParentGroupId() {
@@ -228,7 +228,7 @@ public class Group
 
     /**
      * Getter for parentGroupId
-     * 
+     *
      * @see Group.Fields#parentGroupId
      */
     public Integer getParentGroupId(GetMode mode) {
@@ -237,7 +237,7 @@ public class Group
 
     /**
      * Getter for parentGroupId
-     * 
+     *
      * @see Group.Fields#parentGroupId
      */
     public Integer getParentGroupId() {
@@ -246,7 +246,7 @@ public class Group
 
     /**
      * Setter for parentGroupId
-     * 
+     *
      * @see Group.Fields#parentGroupId
      */
     public Group setParentGroupId(Integer value, SetMode mode) {
@@ -256,7 +256,7 @@ public class Group
 
     /**
      * Setter for parentGroupId
-     * 
+     *
      * @see Group.Fields#parentGroupId
      */
     public Group setParentGroupId(Integer value) {
@@ -266,7 +266,7 @@ public class Group
 
     /**
      * Setter for parentGroupId
-     * 
+     *
      * @see Group.Fields#parentGroupId
      */
     public Group setParentGroupId(int value) {
@@ -276,7 +276,7 @@ public class Group
 
     /**
      * Existence checker for name
-     * 
+     *
      * @see Group.Fields#name
      */
     public boolean hasName() {
@@ -285,7 +285,7 @@ public class Group
 
     /**
      * Remover for name
-     * 
+     *
      * @see Group.Fields#name
      */
     public void removeName() {
@@ -294,7 +294,7 @@ public class Group
 
     /**
      * Getter for name
-     * 
+     *
      * @see Group.Fields#name
      */
     public String getName(GetMode mode) {
@@ -303,7 +303,7 @@ public class Group
 
     /**
      * Getter for name
-     * 
+     *
      * @see Group.Fields#name
      */
     public String getName() {
@@ -312,7 +312,7 @@ public class Group
 
     /**
      * Setter for name
-     * 
+     *
      * @see Group.Fields#name
      */
     public Group setName(String value, SetMode mode) {
@@ -322,7 +322,7 @@ public class Group
 
     /**
      * Setter for name
-     * 
+     *
      * @see Group.Fields#name
      */
     public Group setName(String value) {
@@ -332,7 +332,7 @@ public class Group
 
     /**
      * Existence checker for shortDescription
-     * 
+     *
      * @see Group.Fields#shortDescription
      */
     public boolean hasShortDescription() {
@@ -341,7 +341,7 @@ public class Group
 
     /**
      * Remover for shortDescription
-     * 
+     *
      * @see Group.Fields#shortDescription
      */
     public void removeShortDescription() {
@@ -350,7 +350,7 @@ public class Group
 
     /**
      * Getter for shortDescription
-     * 
+     *
      * @see Group.Fields#shortDescription
      */
     public String getShortDescription(GetMode mode) {
@@ -359,7 +359,7 @@ public class Group
 
     /**
      * Getter for shortDescription
-     * 
+     *
      * @see Group.Fields#shortDescription
      */
     public String getShortDescription() {
@@ -368,7 +368,7 @@ public class Group
 
     /**
      * Setter for shortDescription
-     * 
+     *
      * @see Group.Fields#shortDescription
      */
     public Group setShortDescription(String value, SetMode mode) {
@@ -378,7 +378,7 @@ public class Group
 
     /**
      * Setter for shortDescription
-     * 
+     *
      * @see Group.Fields#shortDescription
      */
     public Group setShortDescription(String value) {
@@ -388,7 +388,7 @@ public class Group
 
     /**
      * Existence checker for description
-     * 
+     *
      * @see Group.Fields#description
      */
     public boolean hasDescription() {
@@ -397,7 +397,7 @@ public class Group
 
     /**
      * Remover for description
-     * 
+     *
      * @see Group.Fields#description
      */
     public void removeDescription() {
@@ -406,7 +406,7 @@ public class Group
 
     /**
      * Getter for description
-     * 
+     *
      * @see Group.Fields#description
      */
     public String getDescription(GetMode mode) {
@@ -415,7 +415,7 @@ public class Group
 
     /**
      * Getter for description
-     * 
+     *
      * @see Group.Fields#description
      */
     public String getDescription() {
@@ -424,7 +424,7 @@ public class Group
 
     /**
      * Setter for description
-     * 
+     *
      * @see Group.Fields#description
      */
     public Group setDescription(String value, SetMode mode) {
@@ -434,7 +434,7 @@ public class Group
 
     /**
      * Setter for description
-     * 
+     *
      * @see Group.Fields#description
      */
     public Group setDescription(String value) {
@@ -444,7 +444,7 @@ public class Group
 
     /**
      * Existence checker for rules
-     * 
+     *
      * @see Group.Fields#rules
      */
     public boolean hasRules() {
@@ -453,7 +453,7 @@ public class Group
 
     /**
      * Remover for rules
-     * 
+     *
      * @see Group.Fields#rules
      */
     public void removeRules() {
@@ -462,7 +462,7 @@ public class Group
 
     /**
      * Getter for rules
-     * 
+     *
      * @see Group.Fields#rules
      */
     public String getRules(GetMode mode) {
@@ -471,7 +471,7 @@ public class Group
 
     /**
      * Getter for rules
-     * 
+     *
      * @see Group.Fields#rules
      */
     public String getRules() {
@@ -480,7 +480,7 @@ public class Group
 
     /**
      * Setter for rules
-     * 
+     *
      * @see Group.Fields#rules
      */
     public Group setRules(String value, SetMode mode) {
@@ -490,7 +490,7 @@ public class Group
 
     /**
      * Setter for rules
-     * 
+     *
      * @see Group.Fields#rules
      */
     public Group setRules(String value) {
@@ -500,7 +500,7 @@ public class Group
 
     /**
      * Existence checker for contactEmail
-     * 
+     *
      * @see Group.Fields#contactEmail
      */
     public boolean hasContactEmail() {
@@ -509,7 +509,7 @@ public class Group
 
     /**
      * Remover for contactEmail
-     * 
+     *
      * @see Group.Fields#contactEmail
      */
     public void removeContactEmail() {
@@ -518,7 +518,7 @@ public class Group
 
     /**
      * Getter for contactEmail
-     * 
+     *
      * @see Group.Fields#contactEmail
      */
     public String getContactEmail(GetMode mode) {
@@ -527,7 +527,7 @@ public class Group
 
     /**
      * Getter for contactEmail
-     * 
+     *
      * @see Group.Fields#contactEmail
      */
     public String getContactEmail() {
@@ -536,7 +536,7 @@ public class Group
 
     /**
      * Setter for contactEmail
-     * 
+     *
      * @see Group.Fields#contactEmail
      */
     public Group setContactEmail(String value, SetMode mode) {
@@ -546,7 +546,7 @@ public class Group
 
     /**
      * Setter for contactEmail
-     * 
+     *
      * @see Group.Fields#contactEmail
      */
     public Group setContactEmail(String value) {
@@ -556,7 +556,7 @@ public class Group
 
     /**
      * Existence checker for category
-     * 
+     *
      * @see Group.Fields#category
      */
     public boolean hasCategory() {
@@ -565,7 +565,7 @@ public class Group
 
     /**
      * Remover for category
-     * 
+     *
      * @see Group.Fields#category
      */
     public void removeCategory() {
@@ -574,7 +574,7 @@ public class Group
 
     /**
      * Getter for category
-     * 
+     *
      * @see Group.Fields#category
      */
     public Integer getCategory(GetMode mode) {
@@ -583,7 +583,7 @@ public class Group
 
     /**
      * Getter for category
-     * 
+     *
      * @see Group.Fields#category
      */
     public Integer getCategory() {
@@ -592,7 +592,7 @@ public class Group
 
     /**
      * Setter for category
-     * 
+     *
      * @see Group.Fields#category
      */
     public Group setCategory(Integer value, SetMode mode) {
@@ -602,7 +602,7 @@ public class Group
 
     /**
      * Setter for category
-     * 
+     *
      * @see Group.Fields#category
      */
     public Group setCategory(Integer value) {
@@ -612,7 +612,7 @@ public class Group
 
     /**
      * Setter for category
-     * 
+     *
      * @see Group.Fields#category
      */
     public Group setCategory(int value) {
@@ -622,7 +622,7 @@ public class Group
 
     /**
      * Existence checker for otherCategory
-     * 
+     *
      * @see Group.Fields#otherCategory
      */
     public boolean hasOtherCategory() {
@@ -631,7 +631,7 @@ public class Group
 
     /**
      * Remover for otherCategory
-     * 
+     *
      * @see Group.Fields#otherCategory
      */
     public void removeOtherCategory() {
@@ -640,7 +640,7 @@ public class Group
 
     /**
      * Getter for otherCategory
-     * 
+     *
      * @see Group.Fields#otherCategory
      */
     public Integer getOtherCategory(GetMode mode) {
@@ -649,7 +649,7 @@ public class Group
 
     /**
      * Getter for otherCategory
-     * 
+     *
      * @see Group.Fields#otherCategory
      */
     public Integer getOtherCategory() {
@@ -658,7 +658,7 @@ public class Group
 
     /**
      * Setter for otherCategory
-     * 
+     *
      * @see Group.Fields#otherCategory
      */
     public Group setOtherCategory(Integer value, SetMode mode) {
@@ -668,7 +668,7 @@ public class Group
 
     /**
      * Setter for otherCategory
-     * 
+     *
      * @see Group.Fields#otherCategory
      */
     public Group setOtherCategory(Integer value) {
@@ -678,7 +678,7 @@ public class Group
 
     /**
      * Setter for otherCategory
-     * 
+     *
      * @see Group.Fields#otherCategory
      */
     public Group setOtherCategory(int value) {
@@ -688,7 +688,7 @@ public class Group
 
     /**
      * Existence checker for badge
-     * 
+     *
      * @see Group.Fields#badge
      */
     public boolean hasBadge() {
@@ -697,7 +697,7 @@ public class Group
 
     /**
      * Remover for badge
-     * 
+     *
      * @see Group.Fields#badge
      */
     public void removeBadge() {
@@ -706,7 +706,7 @@ public class Group
 
     /**
      * Getter for badge
-     * 
+     *
      * @see Group.Fields#badge
      */
     public Badge getBadge(GetMode mode) {
@@ -715,7 +715,7 @@ public class Group
 
     /**
      * Getter for badge
-     * 
+     *
      * @see Group.Fields#badge
      */
     public Badge getBadge() {
@@ -724,7 +724,7 @@ public class Group
 
     /**
      * Setter for badge
-     * 
+     *
      * @see Group.Fields#badge
      */
     public Group setBadge(Badge value, SetMode mode) {
@@ -734,7 +734,7 @@ public class Group
 
     /**
      * Setter for badge
-     * 
+     *
      * @see Group.Fields#badge
      */
     public Group setBadge(Badge value) {
@@ -744,7 +744,7 @@ public class Group
 
     /**
      * Existence checker for homeSiteUrl
-     * 
+     *
      * @see Group.Fields#homeSiteUrl
      */
     public boolean hasHomeSiteUrl() {
@@ -753,7 +753,7 @@ public class Group
 
     /**
      * Remover for homeSiteUrl
-     * 
+     *
      * @see Group.Fields#homeSiteUrl
      */
     public void removeHomeSiteUrl() {
@@ -762,7 +762,7 @@ public class Group
 
     /**
      * Getter for homeSiteUrl
-     * 
+     *
      * @see Group.Fields#homeSiteUrl
      */
     public String getHomeSiteUrl(GetMode mode) {
@@ -771,7 +771,7 @@ public class Group
 
     /**
      * Getter for homeSiteUrl
-     * 
+     *
      * @see Group.Fields#homeSiteUrl
      */
     public String getHomeSiteUrl() {
@@ -780,7 +780,7 @@ public class Group
 
     /**
      * Setter for homeSiteUrl
-     * 
+     *
      * @see Group.Fields#homeSiteUrl
      */
     public Group setHomeSiteUrl(String value, SetMode mode) {
@@ -790,7 +790,7 @@ public class Group
 
     /**
      * Setter for homeSiteUrl
-     * 
+     *
      * @see Group.Fields#homeSiteUrl
      */
     public Group setHomeSiteUrl(String value) {
@@ -800,7 +800,7 @@ public class Group
 
     /**
      * Existence checker for smallLogoMediaUrl
-     * 
+     *
      * @see Group.Fields#smallLogoMediaUrl
      */
     public boolean hasSmallLogoMediaUrl() {
@@ -809,7 +809,7 @@ public class Group
 
     /**
      * Remover for smallLogoMediaUrl
-     * 
+     *
      * @see Group.Fields#smallLogoMediaUrl
      */
     public void removeSmallLogoMediaUrl() {
@@ -818,7 +818,7 @@ public class Group
 
     /**
      * Getter for smallLogoMediaUrl
-     * 
+     *
      * @see Group.Fields#smallLogoMediaUrl
      */
     public String getSmallLogoMediaUrl(GetMode mode) {
@@ -827,7 +827,7 @@ public class Group
 
     /**
      * Getter for smallLogoMediaUrl
-     * 
+     *
      * @see Group.Fields#smallLogoMediaUrl
      */
     public String getSmallLogoMediaUrl() {
@@ -836,7 +836,7 @@ public class Group
 
     /**
      * Setter for smallLogoMediaUrl
-     * 
+     *
      * @see Group.Fields#smallLogoMediaUrl
      */
     public Group setSmallLogoMediaUrl(String value, SetMode mode) {
@@ -846,7 +846,7 @@ public class Group
 
     /**
      * Setter for smallLogoMediaUrl
-     * 
+     *
      * @see Group.Fields#smallLogoMediaUrl
      */
     public Group setSmallLogoMediaUrl(String value) {
@@ -856,7 +856,7 @@ public class Group
 
     /**
      * Existence checker for largeLogoMediaUrl
-     * 
+     *
      * @see Group.Fields#largeLogoMediaUrl
      */
     public boolean hasLargeLogoMediaUrl() {
@@ -865,7 +865,7 @@ public class Group
 
     /**
      * Remover for largeLogoMediaUrl
-     * 
+     *
      * @see Group.Fields#largeLogoMediaUrl
      */
     public void removeLargeLogoMediaUrl() {
@@ -874,7 +874,7 @@ public class Group
 
     /**
      * Getter for largeLogoMediaUrl
-     * 
+     *
      * @see Group.Fields#largeLogoMediaUrl
      */
     public String getLargeLogoMediaUrl(GetMode mode) {
@@ -883,7 +883,7 @@ public class Group
 
     /**
      * Getter for largeLogoMediaUrl
-     * 
+     *
      * @see Group.Fields#largeLogoMediaUrl
      */
     public String getLargeLogoMediaUrl() {
@@ -892,7 +892,7 @@ public class Group
 
     /**
      * Setter for largeLogoMediaUrl
-     * 
+     *
      * @see Group.Fields#largeLogoMediaUrl
      */
     public Group setLargeLogoMediaUrl(String value, SetMode mode) {
@@ -902,7 +902,7 @@ public class Group
 
     /**
      * Setter for largeLogoMediaUrl
-     * 
+     *
      * @see Group.Fields#largeLogoMediaUrl
      */
     public Group setLargeLogoMediaUrl(String value) {
@@ -912,7 +912,7 @@ public class Group
 
     /**
      * Existence checker for location
-     * 
+     *
      * @see Group.Fields#location
      */
     public boolean hasLocation() {
@@ -921,7 +921,7 @@ public class Group
 
     /**
      * Remover for location
-     * 
+     *
      * @see Group.Fields#location
      */
     public void removeLocation() {
@@ -930,7 +930,7 @@ public class Group
 
     /**
      * Getter for location
-     * 
+     *
      * @see Group.Fields#location
      */
     public Location getLocation(GetMode mode) {
@@ -939,7 +939,7 @@ public class Group
 
     /**
      * Getter for location
-     * 
+     *
      * @see Group.Fields#location
      */
     public Location getLocation() {
@@ -948,7 +948,7 @@ public class Group
 
     /**
      * Setter for location
-     * 
+     *
      * @see Group.Fields#location
      */
     public Group setLocation(Location value, SetMode mode) {
@@ -958,7 +958,7 @@ public class Group
 
     /**
      * Setter for location
-     * 
+     *
      * @see Group.Fields#location
      */
     public Group setLocation(Location value) {
@@ -968,7 +968,7 @@ public class Group
 
     /**
      * Existence checker for locale
-     * 
+     *
      * @see Group.Fields#locale
      */
     public boolean hasLocale() {
@@ -977,7 +977,7 @@ public class Group
 
     /**
      * Remover for locale
-     * 
+     *
      * @see Group.Fields#locale
      */
     public void removeLocale() {
@@ -986,7 +986,7 @@ public class Group
 
     /**
      * Getter for locale
-     * 
+     *
      * @see Group.Fields#locale
      */
     public String getLocale(GetMode mode) {
@@ -995,7 +995,7 @@ public class Group
 
     /**
      * Getter for locale
-     * 
+     *
      * @see Group.Fields#locale
      */
     public String getLocale() {
@@ -1004,7 +1004,7 @@ public class Group
 
     /**
      * Setter for locale
-     * 
+     *
      * @see Group.Fields#locale
      */
     public Group setLocale(String value, SetMode mode) {
@@ -1014,7 +1014,7 @@ public class Group
 
     /**
      * Setter for locale
-     * 
+     *
      * @see Group.Fields#locale
      */
     public Group setLocale(String value) {
@@ -1024,7 +1024,7 @@ public class Group
 
     /**
      * Existence checker for sharingKey
-     * 
+     *
      * @see Group.Fields#sharingKey
      */
     public boolean hasSharingKey() {
@@ -1033,7 +1033,7 @@ public class Group
 
     /**
      * Remover for sharingKey
-     * 
+     *
      * @see Group.Fields#sharingKey
      */
     public void removeSharingKey() {
@@ -1042,7 +1042,7 @@ public class Group
 
     /**
      * Getter for sharingKey
-     * 
+     *
      * @see Group.Fields#sharingKey
      */
     public String getSharingKey(GetMode mode) {
@@ -1051,7 +1051,7 @@ public class Group
 
     /**
      * Getter for sharingKey
-     * 
+     *
      * @see Group.Fields#sharingKey
      */
     public String getSharingKey() {
@@ -1060,7 +1060,7 @@ public class Group
 
     /**
      * Setter for sharingKey
-     * 
+     *
      * @see Group.Fields#sharingKey
      */
     public Group setSharingKey(String value, SetMode mode) {
@@ -1070,7 +1070,7 @@ public class Group
 
     /**
      * Setter for sharingKey
-     * 
+     *
      * @see Group.Fields#sharingKey
      */
     public Group setSharingKey(String value) {
@@ -1080,7 +1080,7 @@ public class Group
 
     /**
      * Existence checker for visibility
-     * 
+     *
      * @see Group.Fields#visibility
      */
     public boolean hasVisibility() {
@@ -1089,7 +1089,7 @@ public class Group
 
     /**
      * Remover for visibility
-     * 
+     *
      * @see Group.Fields#visibility
      */
     public void removeVisibility() {
@@ -1098,7 +1098,7 @@ public class Group
 
     /**
      * Getter for visibility
-     * 
+     *
      * @see Group.Fields#visibility
      */
     public Visibility getVisibility(GetMode mode) {
@@ -1107,7 +1107,7 @@ public class Group
 
     /**
      * Getter for visibility
-     * 
+     *
      * @see Group.Fields#visibility
      */
     public Visibility getVisibility() {
@@ -1116,7 +1116,7 @@ public class Group
 
     /**
      * Setter for visibility
-     * 
+     *
      * @see Group.Fields#visibility
      */
     public Group setVisibility(Visibility value, SetMode mode) {
@@ -1126,7 +1126,7 @@ public class Group
 
     /**
      * Setter for visibility
-     * 
+     *
      * @see Group.Fields#visibility
      */
     public Group setVisibility(Visibility value) {
@@ -1136,7 +1136,7 @@ public class Group
 
     /**
      * Existence checker for state
-     * 
+     *
      * @see Group.Fields#state
      */
     public boolean hasState() {
@@ -1145,7 +1145,7 @@ public class Group
 
     /**
      * Remover for state
-     * 
+     *
      * @see Group.Fields#state
      */
     public void removeState() {
@@ -1154,7 +1154,7 @@ public class Group
 
     /**
      * Getter for state
-     * 
+     *
      * @see Group.Fields#state
      */
     public State getState(GetMode mode) {
@@ -1163,7 +1163,7 @@ public class Group
 
     /**
      * Getter for state
-     * 
+     *
      * @see Group.Fields#state
      */
     public State getState() {
@@ -1172,7 +1172,7 @@ public class Group
 
     /**
      * Setter for state
-     * 
+     *
      * @see Group.Fields#state
      */
     public Group setState(State value, SetMode mode) {
@@ -1182,7 +1182,7 @@ public class Group
 
     /**
      * Setter for state
-     * 
+     *
      * @see Group.Fields#state
      */
     public Group setState(State value) {
@@ -1192,7 +1192,7 @@ public class Group
 
     /**
      * Existence checker for createdTimestamp
-     * 
+     *
      * @see Group.Fields#createdTimestamp
      */
     public boolean hasCreatedTimestamp() {
@@ -1201,7 +1201,7 @@ public class Group
 
     /**
      * Remover for createdTimestamp
-     * 
+     *
      * @see Group.Fields#createdTimestamp
      */
     public void removeCreatedTimestamp() {
@@ -1210,7 +1210,7 @@ public class Group
 
     /**
      * Getter for createdTimestamp
-     * 
+     *
      * @see Group.Fields#createdTimestamp
      */
     public Long getCreatedTimestamp(GetMode mode) {
@@ -1219,7 +1219,7 @@ public class Group
 
     /**
      * Getter for createdTimestamp
-     * 
+     *
      * @see Group.Fields#createdTimestamp
      */
     public Long getCreatedTimestamp() {
@@ -1228,7 +1228,7 @@ public class Group
 
     /**
      * Setter for createdTimestamp
-     * 
+     *
      * @see Group.Fields#createdTimestamp
      */
     public Group setCreatedTimestamp(Long value, SetMode mode) {
@@ -1238,7 +1238,7 @@ public class Group
 
     /**
      * Setter for createdTimestamp
-     * 
+     *
      * @see Group.Fields#createdTimestamp
      */
     public Group setCreatedTimestamp(Long value) {
@@ -1248,7 +1248,7 @@ public class Group
 
     /**
      * Setter for createdTimestamp
-     * 
+     *
      * @see Group.Fields#createdTimestamp
      */
     public Group setCreatedTimestamp(long value) {
@@ -1258,7 +1258,7 @@ public class Group
 
     /**
      * Existence checker for lastModifiedTimestamp
-     * 
+     *
      * @see Group.Fields#lastModifiedTimestamp
      */
     public boolean hasLastModifiedTimestamp() {
@@ -1267,7 +1267,7 @@ public class Group
 
     /**
      * Remover for lastModifiedTimestamp
-     * 
+     *
      * @see Group.Fields#lastModifiedTimestamp
      */
     public void removeLastModifiedTimestamp() {
@@ -1276,7 +1276,7 @@ public class Group
 
     /**
      * Getter for lastModifiedTimestamp
-     * 
+     *
      * @see Group.Fields#lastModifiedTimestamp
      */
     public Long getLastModifiedTimestamp(GetMode mode) {
@@ -1285,7 +1285,7 @@ public class Group
 
     /**
      * Getter for lastModifiedTimestamp
-     * 
+     *
      * @see Group.Fields#lastModifiedTimestamp
      */
     public Long getLastModifiedTimestamp() {
@@ -1294,7 +1294,7 @@ public class Group
 
     /**
      * Setter for lastModifiedTimestamp
-     * 
+     *
      * @see Group.Fields#lastModifiedTimestamp
      */
     public Group setLastModifiedTimestamp(Long value, SetMode mode) {
@@ -1304,7 +1304,7 @@ public class Group
 
     /**
      * Setter for lastModifiedTimestamp
-     * 
+     *
      * @see Group.Fields#lastModifiedTimestamp
      */
     public Group setLastModifiedTimestamp(Long value) {
@@ -1314,7 +1314,7 @@ public class Group
 
     /**
      * Setter for lastModifiedTimestamp
-     * 
+     *
      * @see Group.Fields#lastModifiedTimestamp
      */
     public Group setLastModifiedTimestamp(long value) {
@@ -1324,7 +1324,7 @@ public class Group
 
     /**
      * Existence checker for isOpenToNonMembers
-     * 
+     *
      * @see Group.Fields#isOpenToNonMembers
      */
     public boolean hasIsOpenToNonMembers() {
@@ -1333,7 +1333,7 @@ public class Group
 
     /**
      * Remover for isOpenToNonMembers
-     * 
+     *
      * @see Group.Fields#isOpenToNonMembers
      */
     public void removeIsOpenToNonMembers() {
@@ -1342,7 +1342,7 @@ public class Group
 
     /**
      * Getter for isOpenToNonMembers
-     * 
+     *
      * @see Group.Fields#isOpenToNonMembers
      */
     public Boolean isIsOpenToNonMembers(GetMode mode) {
@@ -1351,7 +1351,7 @@ public class Group
 
     /**
      * Getter for isOpenToNonMembers
-     * 
+     *
      * @see Group.Fields#isOpenToNonMembers
      */
     public Boolean isIsOpenToNonMembers() {
@@ -1360,7 +1360,7 @@ public class Group
 
     /**
      * Setter for isOpenToNonMembers
-     * 
+     *
      * @see Group.Fields#isOpenToNonMembers
      */
     public Group setIsOpenToNonMembers(Boolean value, SetMode mode) {
@@ -1370,7 +1370,7 @@ public class Group
 
     /**
      * Setter for isOpenToNonMembers
-     * 
+     *
      * @see Group.Fields#isOpenToNonMembers
      */
     public Group setIsOpenToNonMembers(Boolean value) {
@@ -1380,7 +1380,7 @@ public class Group
 
     /**
      * Setter for isOpenToNonMembers
-     * 
+     *
      * @see Group.Fields#isOpenToNonMembers
      */
     public Group setIsOpenToNonMembers(boolean value) {
@@ -1390,7 +1390,7 @@ public class Group
 
     /**
      * Existence checker for approvalModes
-     * 
+     *
      * @see Group.Fields#approvalModes
      */
     public boolean hasApprovalModes() {
@@ -1399,7 +1399,7 @@ public class Group
 
     /**
      * Remover for approvalModes
-     * 
+     *
      * @see Group.Fields#approvalModes
      */
     public void removeApprovalModes() {
@@ -1408,7 +1408,7 @@ public class Group
 
     /**
      * Getter for approvalModes
-     * 
+     *
      * @see Group.Fields#approvalModes
      */
     public Integer getApprovalModes(GetMode mode) {
@@ -1417,7 +1417,7 @@ public class Group
 
     /**
      * Getter for approvalModes
-     * 
+     *
      * @see Group.Fields#approvalModes
      */
     public Integer getApprovalModes() {
@@ -1426,7 +1426,7 @@ public class Group
 
     /**
      * Setter for approvalModes
-     * 
+     *
      * @see Group.Fields#approvalModes
      */
     public Group setApprovalModes(Integer value, SetMode mode) {
@@ -1436,7 +1436,7 @@ public class Group
 
     /**
      * Setter for approvalModes
-     * 
+     *
      * @see Group.Fields#approvalModes
      */
     public Group setApprovalModes(Integer value) {
@@ -1446,7 +1446,7 @@ public class Group
 
     /**
      * Setter for approvalModes
-     * 
+     *
      * @see Group.Fields#approvalModes
      */
     public Group setApprovalModes(int value) {
@@ -1456,7 +1456,7 @@ public class Group
 
     /**
      * Existence checker for contactability
-     * 
+     *
      * @see Group.Fields#contactability
      */
     public boolean hasContactability() {
@@ -1465,7 +1465,7 @@ public class Group
 
     /**
      * Remover for contactability
-     * 
+     *
      * @see Group.Fields#contactability
      */
     public void removeContactability() {
@@ -1474,7 +1474,7 @@ public class Group
 
     /**
      * Getter for contactability
-     * 
+     *
      * @see Group.Fields#contactability
      */
     public Contactability getContactability(GetMode mode) {
@@ -1483,7 +1483,7 @@ public class Group
 
     /**
      * Getter for contactability
-     * 
+     *
      * @see Group.Fields#contactability
      */
     public Contactability getContactability() {
@@ -1492,7 +1492,7 @@ public class Group
 
     /**
      * Setter for contactability
-     * 
+     *
      * @see Group.Fields#contactability
      */
     public Group setContactability(Contactability value, SetMode mode) {
@@ -1502,7 +1502,7 @@ public class Group
 
     /**
      * Setter for contactability
-     * 
+     *
      * @see Group.Fields#contactability
      */
     public Group setContactability(Contactability value) {
@@ -1512,7 +1512,7 @@ public class Group
 
     /**
      * Existence checker for directoryPresence
-     * 
+     *
      * @see Group.Fields#directoryPresence
      */
     public boolean hasDirectoryPresence() {
@@ -1521,7 +1521,7 @@ public class Group
 
     /**
      * Remover for directoryPresence
-     * 
+     *
      * @see Group.Fields#directoryPresence
      */
     public void removeDirectoryPresence() {
@@ -1530,7 +1530,7 @@ public class Group
 
     /**
      * Getter for directoryPresence
-     * 
+     *
      * @see Group.Fields#directoryPresence
      */
     public DirectoryPresence getDirectoryPresence(GetMode mode) {
@@ -1539,7 +1539,7 @@ public class Group
 
     /**
      * Getter for directoryPresence
-     * 
+     *
      * @see Group.Fields#directoryPresence
      */
     public DirectoryPresence getDirectoryPresence() {
@@ -1548,7 +1548,7 @@ public class Group
 
     /**
      * Setter for directoryPresence
-     * 
+     *
      * @see Group.Fields#directoryPresence
      */
     public Group setDirectoryPresence(DirectoryPresence value, SetMode mode) {
@@ -1558,7 +1558,7 @@ public class Group
 
     /**
      * Setter for directoryPresence
-     * 
+     *
      * @see Group.Fields#directoryPresence
      */
     public Group setDirectoryPresence(DirectoryPresence value) {
@@ -1568,7 +1568,7 @@ public class Group
 
     /**
      * Existence checker for hasMemberInvites
-     * 
+     *
      * @see Group.Fields#hasMemberInvites
      */
     public boolean hasHasMemberInvites() {
@@ -1577,7 +1577,7 @@ public class Group
 
     /**
      * Remover for hasMemberInvites
-     * 
+     *
      * @see Group.Fields#hasMemberInvites
      */
     public void removeHasMemberInvites() {
@@ -1586,7 +1586,7 @@ public class Group
 
     /**
      * Getter for hasMemberInvites
-     * 
+     *
      * @see Group.Fields#hasMemberInvites
      */
     public Boolean isHasMemberInvites(GetMode mode) {
@@ -1595,7 +1595,7 @@ public class Group
 
     /**
      * Getter for hasMemberInvites
-     * 
+     *
      * @see Group.Fields#hasMemberInvites
      */
     public Boolean isHasMemberInvites() {
@@ -1604,7 +1604,7 @@ public class Group
 
     /**
      * Setter for hasMemberInvites
-     * 
+     *
      * @see Group.Fields#hasMemberInvites
      */
     public Group setHasMemberInvites(Boolean value, SetMode mode) {
@@ -1614,7 +1614,7 @@ public class Group
 
     /**
      * Setter for hasMemberInvites
-     * 
+     *
      * @see Group.Fields#hasMemberInvites
      */
     public Group setHasMemberInvites(Boolean value) {
@@ -1624,7 +1624,7 @@ public class Group
 
     /**
      * Setter for hasMemberInvites
-     * 
+     *
      * @see Group.Fields#hasMemberInvites
      */
     public Group setHasMemberInvites(boolean value) {
@@ -1634,7 +1634,7 @@ public class Group
 
     /**
      * Existence checker for numIdentityChanges
-     * 
+     *
      * @see Group.Fields#numIdentityChanges
      */
     public boolean hasNumIdentityChanges() {
@@ -1643,7 +1643,7 @@ public class Group
 
     /**
      * Remover for numIdentityChanges
-     * 
+     *
      * @see Group.Fields#numIdentityChanges
      */
     public void removeNumIdentityChanges() {
@@ -1652,7 +1652,7 @@ public class Group
 
     /**
      * Getter for numIdentityChanges
-     * 
+     *
      * @see Group.Fields#numIdentityChanges
      */
     public Integer getNumIdentityChanges(GetMode mode) {
@@ -1661,7 +1661,7 @@ public class Group
 
     /**
      * Getter for numIdentityChanges
-     * 
+     *
      * @see Group.Fields#numIdentityChanges
      */
     public Integer getNumIdentityChanges() {
@@ -1670,7 +1670,7 @@ public class Group
 
     /**
      * Setter for numIdentityChanges
-     * 
+     *
      * @see Group.Fields#numIdentityChanges
      */
     public Group setNumIdentityChanges(Integer value, SetMode mode) {
@@ -1680,7 +1680,7 @@ public class Group
 
     /**
      * Setter for numIdentityChanges
-     * 
+     *
      * @see Group.Fields#numIdentityChanges
      */
     public Group setNumIdentityChanges(Integer value) {
@@ -1690,7 +1690,7 @@ public class Group
 
     /**
      * Setter for numIdentityChanges
-     * 
+     *
      * @see Group.Fields#numIdentityChanges
      */
     public Group setNumIdentityChanges(int value) {
@@ -1700,7 +1700,7 @@ public class Group
 
     /**
      * Existence checker for maxIdentityChanges
-     * 
+     *
      * @see Group.Fields#maxIdentityChanges
      */
     public boolean hasMaxIdentityChanges() {
@@ -1709,7 +1709,7 @@ public class Group
 
     /**
      * Remover for maxIdentityChanges
-     * 
+     *
      * @see Group.Fields#maxIdentityChanges
      */
     public void removeMaxIdentityChanges() {
@@ -1718,7 +1718,7 @@ public class Group
 
     /**
      * Getter for maxIdentityChanges
-     * 
+     *
      * @see Group.Fields#maxIdentityChanges
      */
     public Integer getMaxIdentityChanges(GetMode mode) {
@@ -1727,7 +1727,7 @@ public class Group
 
     /**
      * Getter for maxIdentityChanges
-     * 
+     *
      * @see Group.Fields#maxIdentityChanges
      */
     public Integer getMaxIdentityChanges() {
@@ -1736,7 +1736,7 @@ public class Group
 
     /**
      * Setter for maxIdentityChanges
-     * 
+     *
      * @see Group.Fields#maxIdentityChanges
      */
     public Group setMaxIdentityChanges(Integer value, SetMode mode) {
@@ -1746,7 +1746,7 @@ public class Group
 
     /**
      * Setter for maxIdentityChanges
-     * 
+     *
      * @see Group.Fields#maxIdentityChanges
      */
     public Group setMaxIdentityChanges(Integer value) {
@@ -1756,7 +1756,7 @@ public class Group
 
     /**
      * Setter for maxIdentityChanges
-     * 
+     *
      * @see Group.Fields#maxIdentityChanges
      */
     public Group setMaxIdentityChanges(int value) {
@@ -1766,7 +1766,7 @@ public class Group
 
     /**
      * Existence checker for maxMembers
-     * 
+     *
      * @see Group.Fields#maxMembers
      */
     public boolean hasMaxMembers() {
@@ -1775,7 +1775,7 @@ public class Group
 
     /**
      * Remover for maxMembers
-     * 
+     *
      * @see Group.Fields#maxMembers
      */
     public void removeMaxMembers() {
@@ -1784,7 +1784,7 @@ public class Group
 
     /**
      * Getter for maxMembers
-     * 
+     *
      * @see Group.Fields#maxMembers
      */
     public Integer getMaxMembers(GetMode mode) {
@@ -1793,7 +1793,7 @@ public class Group
 
     /**
      * Getter for maxMembers
-     * 
+     *
      * @see Group.Fields#maxMembers
      */
     public Integer getMaxMembers() {
@@ -1802,7 +1802,7 @@ public class Group
 
     /**
      * Setter for maxMembers
-     * 
+     *
      * @see Group.Fields#maxMembers
      */
     public Group setMaxMembers(Integer value, SetMode mode) {
@@ -1812,7 +1812,7 @@ public class Group
 
     /**
      * Setter for maxMembers
-     * 
+     *
      * @see Group.Fields#maxMembers
      */
     public Group setMaxMembers(Integer value) {
@@ -1822,7 +1822,7 @@ public class Group
 
     /**
      * Setter for maxMembers
-     * 
+     *
      * @see Group.Fields#maxMembers
      */
     public Group setMaxMembers(int value) {
@@ -1832,7 +1832,7 @@ public class Group
 
     /**
      * Existence checker for maxModerators
-     * 
+     *
      * @see Group.Fields#maxModerators
      */
     public boolean hasMaxModerators() {
@@ -1841,7 +1841,7 @@ public class Group
 
     /**
      * Remover for maxModerators
-     * 
+     *
      * @see Group.Fields#maxModerators
      */
     public void removeMaxModerators() {
@@ -1850,7 +1850,7 @@ public class Group
 
     /**
      * Getter for maxModerators
-     * 
+     *
      * @see Group.Fields#maxModerators
      */
     public Integer getMaxModerators(GetMode mode) {
@@ -1859,7 +1859,7 @@ public class Group
 
     /**
      * Getter for maxModerators
-     * 
+     *
      * @see Group.Fields#maxModerators
      */
     public Integer getMaxModerators() {
@@ -1868,7 +1868,7 @@ public class Group
 
     /**
      * Setter for maxModerators
-     * 
+     *
      * @see Group.Fields#maxModerators
      */
     public Group setMaxModerators(Integer value, SetMode mode) {
@@ -1878,7 +1878,7 @@ public class Group
 
     /**
      * Setter for maxModerators
-     * 
+     *
      * @see Group.Fields#maxModerators
      */
     public Group setMaxModerators(Integer value) {
@@ -1888,7 +1888,7 @@ public class Group
 
     /**
      * Setter for maxModerators
-     * 
+     *
      * @see Group.Fields#maxModerators
      */
     public Group setMaxModerators(int value) {
@@ -1898,7 +1898,7 @@ public class Group
 
     /**
      * Existence checker for maxSubgroups
-     * 
+     *
      * @see Group.Fields#maxSubgroups
      */
     public boolean hasMaxSubgroups() {
@@ -1907,7 +1907,7 @@ public class Group
 
     /**
      * Remover for maxSubgroups
-     * 
+     *
      * @see Group.Fields#maxSubgroups
      */
     public void removeMaxSubgroups() {
@@ -1916,7 +1916,7 @@ public class Group
 
     /**
      * Getter for maxSubgroups
-     * 
+     *
      * @see Group.Fields#maxSubgroups
      */
     public Integer getMaxSubgroups(GetMode mode) {
@@ -1925,7 +1925,7 @@ public class Group
 
     /**
      * Getter for maxSubgroups
-     * 
+     *
      * @see Group.Fields#maxSubgroups
      */
     public Integer getMaxSubgroups() {
@@ -1934,7 +1934,7 @@ public class Group
 
     /**
      * Setter for maxSubgroups
-     * 
+     *
      * @see Group.Fields#maxSubgroups
      */
     public Group setMaxSubgroups(Integer value, SetMode mode) {
@@ -1944,7 +1944,7 @@ public class Group
 
     /**
      * Setter for maxSubgroups
-     * 
+     *
      * @see Group.Fields#maxSubgroups
      */
     public Group setMaxSubgroups(Integer value) {
@@ -1954,7 +1954,7 @@ public class Group
 
     /**
      * Setter for maxSubgroups
-     * 
+     *
      * @see Group.Fields#maxSubgroups
      */
     public Group setMaxSubgroups(int value) {
@@ -1964,7 +1964,7 @@ public class Group
 
     /**
      * Existence checker for maxFeeds
-     * 
+     *
      * @see Group.Fields#maxFeeds
      */
     public boolean hasMaxFeeds() {
@@ -1973,7 +1973,7 @@ public class Group
 
     /**
      * Remover for maxFeeds
-     * 
+     *
      * @see Group.Fields#maxFeeds
      */
     public void removeMaxFeeds() {
@@ -1982,7 +1982,7 @@ public class Group
 
     /**
      * Getter for maxFeeds
-     * 
+     *
      * @see Group.Fields#maxFeeds
      */
     public Integer getMaxFeeds(GetMode mode) {
@@ -1991,7 +1991,7 @@ public class Group
 
     /**
      * Getter for maxFeeds
-     * 
+     *
      * @see Group.Fields#maxFeeds
      */
     public Integer getMaxFeeds() {
@@ -2000,7 +2000,7 @@ public class Group
 
     /**
      * Setter for maxFeeds
-     * 
+     *
      * @see Group.Fields#maxFeeds
      */
     public Group setMaxFeeds(Integer value, SetMode mode) {
@@ -2010,7 +2010,7 @@ public class Group
 
     /**
      * Setter for maxFeeds
-     * 
+     *
      * @see Group.Fields#maxFeeds
      */
     public Group setMaxFeeds(Integer value) {
@@ -2020,7 +2020,7 @@ public class Group
 
     /**
      * Setter for maxFeeds
-     * 
+     *
      * @see Group.Fields#maxFeeds
      */
     public Group setMaxFeeds(int value) {
@@ -2030,7 +2030,7 @@ public class Group
 
     /**
      * Existence checker for hasEmailExport
-     * 
+     *
      * @see Group.Fields#hasEmailExport
      */
     public boolean hasHasEmailExport() {
@@ -2039,7 +2039,7 @@ public class Group
 
     /**
      * Remover for hasEmailExport
-     * 
+     *
      * @see Group.Fields#hasEmailExport
      */
     public void removeHasEmailExport() {
@@ -2048,7 +2048,7 @@ public class Group
 
     /**
      * Getter for hasEmailExport
-     * 
+     *
      * @see Group.Fields#hasEmailExport
      */
     public Boolean isHasEmailExport(GetMode mode) {
@@ -2057,7 +2057,7 @@ public class Group
 
     /**
      * Getter for hasEmailExport
-     * 
+     *
      * @see Group.Fields#hasEmailExport
      */
     public Boolean isHasEmailExport() {
@@ -2066,7 +2066,7 @@ public class Group
 
     /**
      * Setter for hasEmailExport
-     * 
+     *
      * @see Group.Fields#hasEmailExport
      */
     public Group setHasEmailExport(Boolean value, SetMode mode) {
@@ -2076,7 +2076,7 @@ public class Group
 
     /**
      * Setter for hasEmailExport
-     * 
+     *
      * @see Group.Fields#hasEmailExport
      */
     public Group setHasEmailExport(Boolean value) {
@@ -2086,7 +2086,7 @@ public class Group
 
     /**
      * Setter for hasEmailExport
-     * 
+     *
      * @see Group.Fields#hasEmailExport
      */
     public Group setHasEmailExport(boolean value) {
@@ -2096,7 +2096,7 @@ public class Group
 
     /**
      * Existence checker for categoriesEnabled
-     * 
+     *
      * @see Group.Fields#categoriesEnabled
      */
     public boolean hasCategoriesEnabled() {
@@ -2105,7 +2105,7 @@ public class Group
 
     /**
      * Remover for categoriesEnabled
-     * 
+     *
      * @see Group.Fields#categoriesEnabled
      */
     public void removeCategoriesEnabled() {
@@ -2114,7 +2114,7 @@ public class Group
 
     /**
      * Getter for categoriesEnabled
-     * 
+     *
      * @see Group.Fields#categoriesEnabled
      */
     public PostCategory getCategoriesEnabled(GetMode mode) {
@@ -2123,7 +2123,7 @@ public class Group
 
     /**
      * Getter for categoriesEnabled
-     * 
+     *
      * @see Group.Fields#categoriesEnabled
      */
     public PostCategory getCategoriesEnabled() {
@@ -2132,7 +2132,7 @@ public class Group
 
     /**
      * Setter for categoriesEnabled
-     * 
+     *
      * @see Group.Fields#categoriesEnabled
      */
     public Group setCategoriesEnabled(PostCategory value, SetMode mode) {
@@ -2142,7 +2142,7 @@ public class Group
 
     /**
      * Setter for categoriesEnabled
-     * 
+     *
      * @see Group.Fields#categoriesEnabled
      */
     public Group setCategoriesEnabled(PostCategory value) {
@@ -2152,7 +2152,7 @@ public class Group
 
     /**
      * Existence checker for hasNetworkUpdates
-     * 
+     *
      * @see Group.Fields#hasNetworkUpdates
      */
     public boolean hasHasNetworkUpdates() {
@@ -2161,7 +2161,7 @@ public class Group
 
     /**
      * Remover for hasNetworkUpdates
-     * 
+     *
      * @see Group.Fields#hasNetworkUpdates
      */
     public void removeHasNetworkUpdates() {
@@ -2170,7 +2170,7 @@ public class Group
 
     /**
      * Getter for hasNetworkUpdates
-     * 
+     *
      * @see Group.Fields#hasNetworkUpdates
      */
     public Boolean isHasNetworkUpdates(GetMode mode) {
@@ -2179,7 +2179,7 @@ public class Group
 
     /**
      * Getter for hasNetworkUpdates
-     * 
+     *
      * @see Group.Fields#hasNetworkUpdates
      */
     public Boolean isHasNetworkUpdates() {
@@ -2188,7 +2188,7 @@ public class Group
 
     /**
      * Setter for hasNetworkUpdates
-     * 
+     *
      * @see Group.Fields#hasNetworkUpdates
      */
     public Group setHasNetworkUpdates(Boolean value, SetMode mode) {
@@ -2198,7 +2198,7 @@ public class Group
 
     /**
      * Setter for hasNetworkUpdates
-     * 
+     *
      * @see Group.Fields#hasNetworkUpdates
      */
     public Group setHasNetworkUpdates(Boolean value) {
@@ -2208,7 +2208,7 @@ public class Group
 
     /**
      * Setter for hasNetworkUpdates
-     * 
+     *
      * @see Group.Fields#hasNetworkUpdates
      */
     public Group setHasNetworkUpdates(boolean value) {
@@ -2218,7 +2218,7 @@ public class Group
 
     /**
      * Existence checker for hasMemberRoster
-     * 
+     *
      * @see Group.Fields#hasMemberRoster
      */
     public boolean hasHasMemberRoster() {
@@ -2227,7 +2227,7 @@ public class Group
 
     /**
      * Remover for hasMemberRoster
-     * 
+     *
      * @see Group.Fields#hasMemberRoster
      */
     public void removeHasMemberRoster() {
@@ -2236,7 +2236,7 @@ public class Group
 
     /**
      * Getter for hasMemberRoster
-     * 
+     *
      * @see Group.Fields#hasMemberRoster
      */
     public Boolean isHasMemberRoster(GetMode mode) {
@@ -2245,7 +2245,7 @@ public class Group
 
     /**
      * Getter for hasMemberRoster
-     * 
+     *
      * @see Group.Fields#hasMemberRoster
      */
     public Boolean isHasMemberRoster() {
@@ -2254,7 +2254,7 @@ public class Group
 
     /**
      * Setter for hasMemberRoster
-     * 
+     *
      * @see Group.Fields#hasMemberRoster
      */
     public Group setHasMemberRoster(Boolean value, SetMode mode) {
@@ -2264,7 +2264,7 @@ public class Group
 
     /**
      * Setter for hasMemberRoster
-     * 
+     *
      * @see Group.Fields#hasMemberRoster
      */
     public Group setHasMemberRoster(Boolean value) {
@@ -2274,7 +2274,7 @@ public class Group
 
     /**
      * Setter for hasMemberRoster
-     * 
+     *
      * @see Group.Fields#hasMemberRoster
      */
     public Group setHasMemberRoster(boolean value) {
@@ -2284,7 +2284,7 @@ public class Group
 
     /**
      * Existence checker for hasSettings
-     * 
+     *
      * @see Group.Fields#hasSettings
      */
     public boolean hasHasSettings() {
@@ -2293,7 +2293,7 @@ public class Group
 
     /**
      * Remover for hasSettings
-     * 
+     *
      * @see Group.Fields#hasSettings
      */
     public void removeHasSettings() {
@@ -2302,7 +2302,7 @@ public class Group
 
     /**
      * Getter for hasSettings
-     * 
+     *
      * @see Group.Fields#hasSettings
      */
     public Boolean isHasSettings(GetMode mode) {
@@ -2311,7 +2311,7 @@ public class Group
 
     /**
      * Getter for hasSettings
-     * 
+     *
      * @see Group.Fields#hasSettings
      */
     public Boolean isHasSettings() {
@@ -2320,7 +2320,7 @@ public class Group
 
     /**
      * Setter for hasSettings
-     * 
+     *
      * @see Group.Fields#hasSettings
      */
     public Group setHasSettings(Boolean value, SetMode mode) {
@@ -2330,7 +2330,7 @@ public class Group
 
     /**
      * Setter for hasSettings
-     * 
+     *
      * @see Group.Fields#hasSettings
      */
     public Group setHasSettings(Boolean value) {
@@ -2340,7 +2340,7 @@ public class Group
 
     /**
      * Setter for hasSettings
-     * 
+     *
      * @see Group.Fields#hasSettings
      */
     public Group setHasSettings(boolean value) {
@@ -2350,7 +2350,7 @@ public class Group
 
     /**
      * Existence checker for hideSubgroups
-     * 
+     *
      * @see Group.Fields#hideSubgroups
      */
     public boolean hasHideSubgroups() {
@@ -2359,7 +2359,7 @@ public class Group
 
     /**
      * Remover for hideSubgroups
-     * 
+     *
      * @see Group.Fields#hideSubgroups
      */
     public void removeHideSubgroups() {
@@ -2368,7 +2368,7 @@ public class Group
 
     /**
      * Getter for hideSubgroups
-     * 
+     *
      * @see Group.Fields#hideSubgroups
      */
     public Boolean isHideSubgroups(GetMode mode) {
@@ -2377,7 +2377,7 @@ public class Group
 
     /**
      * Getter for hideSubgroups
-     * 
+     *
      * @see Group.Fields#hideSubgroups
      */
     public Boolean isHideSubgroups() {
@@ -2386,7 +2386,7 @@ public class Group
 
     /**
      * Setter for hideSubgroups
-     * 
+     *
      * @see Group.Fields#hideSubgroups
      */
     public Group setHideSubgroups(Boolean value, SetMode mode) {
@@ -2396,7 +2396,7 @@ public class Group
 
     /**
      * Setter for hideSubgroups
-     * 
+     *
      * @see Group.Fields#hideSubgroups
      */
     public Group setHideSubgroups(Boolean value) {
@@ -2406,7 +2406,7 @@ public class Group
 
     /**
      * Setter for hideSubgroups
-     * 
+     *
      * @see Group.Fields#hideSubgroups
      */
     public Group setHideSubgroups(boolean value) {
@@ -2416,7 +2416,7 @@ public class Group
 
     /**
      * Existence checker for categoriesForModeratorsOnly
-     * 
+     *
      * @see Group.Fields#categoriesForModeratorsOnly
      */
     public boolean hasCategoriesForModeratorsOnly() {
@@ -2425,7 +2425,7 @@ public class Group
 
     /**
      * Remover for categoriesForModeratorsOnly
-     * 
+     *
      * @see Group.Fields#categoriesForModeratorsOnly
      */
     public void removeCategoriesForModeratorsOnly() {
@@ -2434,7 +2434,7 @@ public class Group
 
     /**
      * Getter for categoriesForModeratorsOnly
-     * 
+     *
      * @see Group.Fields#categoriesForModeratorsOnly
      */
     public PostCategory getCategoriesForModeratorsOnly(GetMode mode) {
@@ -2443,7 +2443,7 @@ public class Group
 
     /**
      * Getter for categoriesForModeratorsOnly
-     * 
+     *
      * @see Group.Fields#categoriesForModeratorsOnly
      */
     public PostCategory getCategoriesForModeratorsOnly() {
@@ -2452,7 +2452,7 @@ public class Group
 
     /**
      * Setter for categoriesForModeratorsOnly
-     * 
+     *
      * @see Group.Fields#categoriesForModeratorsOnly
      */
     public Group setCategoriesForModeratorsOnly(PostCategory value, SetMode mode) {
@@ -2462,7 +2462,7 @@ public class Group
 
     /**
      * Setter for categoriesForModeratorsOnly
-     * 
+     *
      * @see Group.Fields#categoriesForModeratorsOnly
      */
     public Group setCategoriesForModeratorsOnly(PostCategory value) {
@@ -2472,7 +2472,7 @@ public class Group
 
     /**
      * Existence checker for numMemberFlagsToDelete
-     * 
+     *
      * @see Group.Fields#numMemberFlagsToDelete
      */
     public boolean hasNumMemberFlagsToDelete() {
@@ -2481,7 +2481,7 @@ public class Group
 
     /**
      * Remover for numMemberFlagsToDelete
-     * 
+     *
      * @see Group.Fields#numMemberFlagsToDelete
      */
     public void removeNumMemberFlagsToDelete() {
@@ -2490,7 +2490,7 @@ public class Group
 
     /**
      * Getter for numMemberFlagsToDelete
-     * 
+     *
      * @see Group.Fields#numMemberFlagsToDelete
      */
     public Integer getNumMemberFlagsToDelete(GetMode mode) {
@@ -2499,7 +2499,7 @@ public class Group
 
     /**
      * Getter for numMemberFlagsToDelete
-     * 
+     *
      * @see Group.Fields#numMemberFlagsToDelete
      */
     public Integer getNumMemberFlagsToDelete() {
@@ -2508,7 +2508,7 @@ public class Group
 
     /**
      * Setter for numMemberFlagsToDelete
-     * 
+     *
      * @see Group.Fields#numMemberFlagsToDelete
      */
     public Group setNumMemberFlagsToDelete(Integer value, SetMode mode) {
@@ -2518,7 +2518,7 @@ public class Group
 
     /**
      * Setter for numMemberFlagsToDelete
-     * 
+     *
      * @see Group.Fields#numMemberFlagsToDelete
      */
     public Group setNumMemberFlagsToDelete(Integer value) {
@@ -2528,7 +2528,7 @@ public class Group
 
     /**
      * Setter for numMemberFlagsToDelete
-     * 
+     *
      * @see Group.Fields#numMemberFlagsToDelete
      */
     public Group setNumMemberFlagsToDelete(int value) {
@@ -2538,7 +2538,7 @@ public class Group
 
     /**
      * Existence checker for newsFormat
-     * 
+     *
      * @see Group.Fields#newsFormat
      */
     public boolean hasNewsFormat() {
@@ -2547,7 +2547,7 @@ public class Group
 
     /**
      * Remover for newsFormat
-     * 
+     *
      * @see Group.Fields#newsFormat
      */
     public void removeNewsFormat() {
@@ -2556,7 +2556,7 @@ public class Group
 
     /**
      * Getter for newsFormat
-     * 
+     *
      * @see Group.Fields#newsFormat
      */
     public NewsFormat getNewsFormat(GetMode mode) {
@@ -2565,7 +2565,7 @@ public class Group
 
     /**
      * Getter for newsFormat
-     * 
+     *
      * @see Group.Fields#newsFormat
      */
     public NewsFormat getNewsFormat() {
@@ -2574,7 +2574,7 @@ public class Group
 
     /**
      * Setter for newsFormat
-     * 
+     *
      * @see Group.Fields#newsFormat
      */
     public Group setNewsFormat(NewsFormat value, SetMode mode) {
@@ -2584,7 +2584,7 @@ public class Group
 
     /**
      * Setter for newsFormat
-     * 
+     *
      * @see Group.Fields#newsFormat
      */
     public Group setNewsFormat(NewsFormat value) {
@@ -2594,7 +2594,7 @@ public class Group
 
     /**
      * Existence checker for preModeration
-     * 
+     *
      * @see Group.Fields#preModeration
      */
     public boolean hasPreModeration() {
@@ -2603,7 +2603,7 @@ public class Group
 
     /**
      * Remover for preModeration
-     * 
+     *
      * @see Group.Fields#preModeration
      */
     public void removePreModeration() {
@@ -2612,7 +2612,7 @@ public class Group
 
     /**
      * Getter for preModeration
-     * 
+     *
      * @see Group.Fields#preModeration
      */
     public PreModerationType getPreModeration(GetMode mode) {
@@ -2621,7 +2621,7 @@ public class Group
 
     /**
      * Getter for preModeration
-     * 
+     *
      * @see Group.Fields#preModeration
      */
     public PreModerationType getPreModeration() {
@@ -2630,7 +2630,7 @@ public class Group
 
     /**
      * Setter for preModeration
-     * 
+     *
      * @see Group.Fields#preModeration
      */
     public Group setPreModeration(PreModerationType value, SetMode mode) {
@@ -2640,7 +2640,7 @@ public class Group
 
     /**
      * Setter for preModeration
-     * 
+     *
      * @see Group.Fields#preModeration
      */
     public Group setPreModeration(PreModerationType value) {
@@ -2650,7 +2650,7 @@ public class Group
 
     /**
      * Existence checker for preModerationCategories
-     * 
+     *
      * @see Group.Fields#preModerationCategories
      */
     public boolean hasPreModerationCategories() {
@@ -2659,7 +2659,7 @@ public class Group
 
     /**
      * Remover for preModerationCategories
-     * 
+     *
      * @see Group.Fields#preModerationCategories
      */
     public void removePreModerationCategories() {
@@ -2668,7 +2668,7 @@ public class Group
 
     /**
      * Getter for preModerationCategories
-     * 
+     *
      * @see Group.Fields#preModerationCategories
      */
     public PostCategory getPreModerationCategories(GetMode mode) {
@@ -2677,7 +2677,7 @@ public class Group
 
     /**
      * Getter for preModerationCategories
-     * 
+     *
      * @see Group.Fields#preModerationCategories
      */
     public PostCategory getPreModerationCategories() {
@@ -2686,7 +2686,7 @@ public class Group
 
     /**
      * Setter for preModerationCategories
-     * 
+     *
      * @see Group.Fields#preModerationCategories
      */
     public Group setPreModerationCategories(PostCategory value, SetMode mode) {
@@ -2696,7 +2696,7 @@ public class Group
 
     /**
      * Setter for preModerationCategories
-     * 
+     *
      * @see Group.Fields#preModerationCategories
      */
     public Group setPreModerationCategories(PostCategory value) {
@@ -2706,7 +2706,7 @@ public class Group
 
     /**
      * Existence checker for nonMemberPermissions
-     * 
+     *
      * @see Group.Fields#nonMemberPermissions
      */
     public boolean hasNonMemberPermissions() {
@@ -2715,7 +2715,7 @@ public class Group
 
     /**
      * Remover for nonMemberPermissions
-     * 
+     *
      * @see Group.Fields#nonMemberPermissions
      */
     public void removeNonMemberPermissions() {
@@ -2724,7 +2724,7 @@ public class Group
 
     /**
      * Getter for nonMemberPermissions
-     * 
+     *
      * @see Group.Fields#nonMemberPermissions
      */
     public NonMemberPermissions getNonMemberPermissions(GetMode mode) {
@@ -2733,7 +2733,7 @@ public class Group
 
     /**
      * Getter for nonMemberPermissions
-     * 
+     *
      * @see Group.Fields#nonMemberPermissions
      */
     public NonMemberPermissions getNonMemberPermissions() {
@@ -2742,7 +2742,7 @@ public class Group
 
     /**
      * Setter for nonMemberPermissions
-     * 
+     *
      * @see Group.Fields#nonMemberPermissions
      */
     public Group setNonMemberPermissions(NonMemberPermissions value, SetMode mode) {
@@ -2752,7 +2752,7 @@ public class Group
 
     /**
      * Setter for nonMemberPermissions
-     * 
+     *
      * @see Group.Fields#nonMemberPermissions
      */
     public Group setNonMemberPermissions(NonMemberPermissions value) {
@@ -2762,7 +2762,7 @@ public class Group
 
     /**
      * Existence checker for openedToNonMembersTimestamp
-     * 
+     *
      * @see Group.Fields#openedToNonMembersTimestamp
      */
     public boolean hasOpenedToNonMembersTimestamp() {
@@ -2771,7 +2771,7 @@ public class Group
 
     /**
      * Remover for openedToNonMembersTimestamp
-     * 
+     *
      * @see Group.Fields#openedToNonMembersTimestamp
      */
     public void removeOpenedToNonMembersTimestamp() {
@@ -2780,7 +2780,7 @@ public class Group
 
     /**
      * Getter for openedToNonMembersTimestamp
-     * 
+     *
      * @see Group.Fields#openedToNonMembersTimestamp
      */
     public Long getOpenedToNonMembersTimestamp(GetMode mode) {
@@ -2789,7 +2789,7 @@ public class Group
 
     /**
      * Getter for openedToNonMembersTimestamp
-     * 
+     *
      * @see Group.Fields#openedToNonMembersTimestamp
      */
     public Long getOpenedToNonMembersTimestamp() {
@@ -2798,7 +2798,7 @@ public class Group
 
     /**
      * Setter for openedToNonMembersTimestamp
-     * 
+     *
      * @see Group.Fields#openedToNonMembersTimestamp
      */
     public Group setOpenedToNonMembersTimestamp(Long value, SetMode mode) {
@@ -2808,7 +2808,7 @@ public class Group
 
     /**
      * Setter for openedToNonMembersTimestamp
-     * 
+     *
      * @see Group.Fields#openedToNonMembersTimestamp
      */
     public Group setOpenedToNonMembersTimestamp(Long value) {
@@ -2818,7 +2818,7 @@ public class Group
 
     /**
      * Setter for openedToNonMembersTimestamp
-     * 
+     *
      * @see Group.Fields#openedToNonMembersTimestamp
      */
     public Group setOpenedToNonMembersTimestamp(long value) {
@@ -2828,7 +2828,7 @@ public class Group
 
     /**
      * Existence checker for preModerateNewMembersPeriodInDays
-     * 
+     *
      * @see Group.Fields#preModerateNewMembersPeriodInDays
      */
     public boolean hasPreModerateNewMembersPeriodInDays() {
@@ -2837,7 +2837,7 @@ public class Group
 
     /**
      * Remover for preModerateNewMembersPeriodInDays
-     * 
+     *
      * @see Group.Fields#preModerateNewMembersPeriodInDays
      */
     public void removePreModerateNewMembersPeriodInDays() {
@@ -2846,7 +2846,7 @@ public class Group
 
     /**
      * Getter for preModerateNewMembersPeriodInDays
-     * 
+     *
      * @see Group.Fields#preModerateNewMembersPeriodInDays
      */
     public Integer getPreModerateNewMembersPeriodInDays(GetMode mode) {
@@ -2855,7 +2855,7 @@ public class Group
 
     /**
      * Getter for preModerateNewMembersPeriodInDays
-     * 
+     *
      * @see Group.Fields#preModerateNewMembersPeriodInDays
      */
     public Integer getPreModerateNewMembersPeriodInDays() {
@@ -2864,7 +2864,7 @@ public class Group
 
     /**
      * Setter for preModerateNewMembersPeriodInDays
-     * 
+     *
      * @see Group.Fields#preModerateNewMembersPeriodInDays
      */
     public Group setPreModerateNewMembersPeriodInDays(Integer value, SetMode mode) {
@@ -2874,7 +2874,7 @@ public class Group
 
     /**
      * Setter for preModerateNewMembersPeriodInDays
-     * 
+     *
      * @see Group.Fields#preModerateNewMembersPeriodInDays
      */
     public Group setPreModerateNewMembersPeriodInDays(Integer value) {
@@ -2884,7 +2884,7 @@ public class Group
 
     /**
      * Setter for preModerateNewMembersPeriodInDays
-     * 
+     *
      * @see Group.Fields#preModerateNewMembersPeriodInDays
      */
     public Group setPreModerateNewMembersPeriodInDays(int value) {
@@ -2894,7 +2894,7 @@ public class Group
 
     /**
      * Existence checker for preModerateMembersWithLowConnections
-     * 
+     *
      * @see Group.Fields#preModerateMembersWithLowConnections
      */
     public boolean hasPreModerateMembersWithLowConnections() {
@@ -2903,7 +2903,7 @@ public class Group
 
     /**
      * Remover for preModerateMembersWithLowConnections
-     * 
+     *
      * @see Group.Fields#preModerateMembersWithLowConnections
      */
     public void removePreModerateMembersWithLowConnections() {
@@ -2912,7 +2912,7 @@ public class Group
 
     /**
      * Getter for preModerateMembersWithLowConnections
-     * 
+     *
      * @see Group.Fields#preModerateMembersWithLowConnections
      */
     public Boolean isPreModerateMembersWithLowConnections(GetMode mode) {
@@ -2921,7 +2921,7 @@ public class Group
 
     /**
      * Getter for preModerateMembersWithLowConnections
-     * 
+     *
      * @see Group.Fields#preModerateMembersWithLowConnections
      */
     public Boolean isPreModerateMembersWithLowConnections() {
@@ -2930,7 +2930,7 @@ public class Group
 
     /**
      * Setter for preModerateMembersWithLowConnections
-     * 
+     *
      * @see Group.Fields#preModerateMembersWithLowConnections
      */
     public Group setPreModerateMembersWithLowConnections(Boolean value, SetMode mode) {
@@ -2940,7 +2940,7 @@ public class Group
 
     /**
      * Setter for preModerateMembersWithLowConnections
-     * 
+     *
      * @see Group.Fields#preModerateMembersWithLowConnections
      */
     public Group setPreModerateMembersWithLowConnections(Boolean value) {
@@ -2950,7 +2950,7 @@ public class Group
 
     /**
      * Setter for preModerateMembersWithLowConnections
-     * 
+     *
      * @see Group.Fields#preModerateMembersWithLowConnections
      */
     public Group setPreModerateMembersWithLowConnections(boolean value) {
@@ -2960,7 +2960,7 @@ public class Group
 
     /**
      * Existence checker for preApprovedEmailDomains
-     * 
+     *
      * @see Group.Fields#preApprovedEmailDomains
      */
     public boolean hasPreApprovedEmailDomains() {
@@ -2969,7 +2969,7 @@ public class Group
 
     /**
      * Remover for preApprovedEmailDomains
-     * 
+     *
      * @see Group.Fields#preApprovedEmailDomains
      */
     public void removePreApprovedEmailDomains() {
@@ -2978,7 +2978,7 @@ public class Group
 
     /**
      * Getter for preApprovedEmailDomains
-     * 
+     *
      * @see Group.Fields#preApprovedEmailDomains
      */
     public StringArray getPreApprovedEmailDomains(GetMode mode) {
@@ -2987,7 +2987,7 @@ public class Group
 
     /**
      * Getter for preApprovedEmailDomains
-     * 
+     *
      * @see Group.Fields#preApprovedEmailDomains
      */
     public StringArray getPreApprovedEmailDomains() {
@@ -2996,7 +2996,7 @@ public class Group
 
     /**
      * Setter for preApprovedEmailDomains
-     * 
+     *
      * @see Group.Fields#preApprovedEmailDomains
      */
     public Group setPreApprovedEmailDomains(StringArray value, SetMode mode) {
@@ -3006,7 +3006,7 @@ public class Group
 
     /**
      * Setter for preApprovedEmailDomains
-     * 
+     *
      * @see Group.Fields#preApprovedEmailDomains
      */
     public Group setPreApprovedEmailDomains(StringArray value) {
@@ -3016,7 +3016,7 @@ public class Group
 
     /**
      * Existence checker for owner
-     * 
+     *
      * @see Group.Fields#owner
      */
     public boolean hasOwner() {
@@ -3025,7 +3025,7 @@ public class Group
 
     /**
      * Remover for owner
-     * 
+     *
      * @see Group.Fields#owner
      */
     public void removeOwner() {
@@ -3034,7 +3034,7 @@ public class Group
 
     /**
      * Getter for owner
-     * 
+     *
      * @see Group.Fields#owner
      */
     public GroupMembership getOwner(GetMode mode) {
@@ -3043,7 +3043,7 @@ public class Group
 
     /**
      * Getter for owner
-     * 
+     *
      * @see Group.Fields#owner
      */
     public GroupMembership getOwner() {
@@ -3052,7 +3052,7 @@ public class Group
 
     /**
      * Setter for owner
-     * 
+     *
      * @see Group.Fields#owner
      */
     public Group setOwner(GroupMembership value, SetMode mode) {
@@ -3062,7 +3062,7 @@ public class Group
 
     /**
      * Setter for owner
-     * 
+     *
      * @see Group.Fields#owner
      */
     public Group setOwner(GroupMembership value) {
@@ -3099,7 +3099,7 @@ public class Group
 
         /**
          * This field is read-only, and will be automatically assigned when the group is POSTed.
-         * 
+         *
          */
         public PathSpec id() {
             return new PathSpec(getPathComponents(), "id");
@@ -3111,7 +3111,7 @@ public class Group
 
         /**
          * Parent group references
-         * 
+         *
          */
         public PathSpec parentGroupId() {
             return new PathSpec(getPathComponents(), "parentGroupId");
@@ -3119,7 +3119,7 @@ public class Group
 
         /**
          * Cannot be changed by owner/managers once set (only CS can change it)
-         * 
+         *
          */
         public PathSpec name() {
             return new PathSpec(getPathComponents(), "name");
@@ -3167,7 +3167,7 @@ public class Group
 
         /**
          * An inlined Location struct
-         * 
+         *
          */
         public com.linkedin.restli.examples.groups.api.Location.Fields location() {
             return new com.linkedin.restli.examples.groups.api.Location.Fields(getPathComponents(), "location");
@@ -3179,7 +3179,7 @@ public class Group
 
         /**
          * System-generated, read-only
-         * 
+         *
          */
         public PathSpec sharingKey() {
             return new PathSpec(getPathComponents(), "sharingKey");
@@ -3194,8 +3194,8 @@ public class Group
         }
 
         /**
-         * This field is read-only. TODO Timestamp representation
-         * 
+         * This field is read-only.
+         *
          */
         public PathSpec createdTimestamp() {
             return new PathSpec(getPathComponents(), "createdTimestamp");
@@ -3203,7 +3203,7 @@ public class Group
 
         /**
          * This field is read-only.
-         * 
+         *
          */
         public PathSpec lastModifiedTimestamp() {
             return new PathSpec(getPathComponents(), "lastModifiedTimestamp");
@@ -3214,8 +3214,8 @@ public class Group
         }
 
         /**
-         * TODO This is really a bitset with each bit mapped to a setting enum. See ANetApprovalMode
-         * 
+         *
+         *
          */
         public PathSpec approvalModes() {
             return new PathSpec(getPathComponents(), "approvalModes");
@@ -3235,7 +3235,7 @@ public class Group
 
         /**
          * System-maintained, read-only
-         * 
+         *
          */
         public PathSpec numIdentityChanges() {
             return new PathSpec(getPathComponents(), "numIdentityChanges");
@@ -3243,7 +3243,7 @@ public class Group
 
         /**
          * CS-editable only
-         * 
+         *
          */
         public PathSpec maxIdentityChanges() {
             return new PathSpec(getPathComponents(), "maxIdentityChanges");
@@ -3251,7 +3251,7 @@ public class Group
 
         /**
          * CS-editable only
-         * 
+         *
          */
         public PathSpec maxMembers() {
             return new PathSpec(getPathComponents(), "maxMembers");
@@ -3259,7 +3259,7 @@ public class Group
 
         /**
          * CS-editable only
-         * 
+         *
          */
         public PathSpec maxModerators() {
             return new PathSpec(getPathComponents(), "maxModerators");
@@ -3267,7 +3267,7 @@ public class Group
 
         /**
          * CS-editable only
-         * 
+         *
          */
         public PathSpec maxSubgroups() {
             return new PathSpec(getPathComponents(), "maxSubgroups");
@@ -3275,7 +3275,7 @@ public class Group
 
         /**
          * CS-editable only
-         * 
+         *
          */
         public PathSpec maxFeeds() {
             return new PathSpec(getPathComponents(), "maxFeeds");
@@ -3347,7 +3347,7 @@ public class Group
 
         /**
          * Required when creating a group, not returned as part of the default representation (must be explicitly requested via 'fields'
-         * 
+         *
          */
         public com.linkedin.restli.examples.groups.api.GroupMembership.Fields owner() {
             return new com.linkedin.restli.examples.groups.api.GroupMembership.Fields(getPathComponents(), "owner");
