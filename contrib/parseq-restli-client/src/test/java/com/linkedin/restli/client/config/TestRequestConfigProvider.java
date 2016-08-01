@@ -2,6 +2,7 @@ package com.linkedin.restli.client.config;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static com.linkedin.restli.client.config.RequestConfigProviderImpl.DEFAULT_TIMEOUT;
 
 import java.util.Optional;
 
@@ -23,7 +24,7 @@ public class TestRequestConfigProvider {
         RequestConfigProvider.build(new ParSeqRestliClientConfigBuilder().build(), () -> Optional.empty());
     RequestConfig rc = provider.apply(new GreetingsBuilders().get().id(0L).build());
     assertNotNull(rc);
-    assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(10000L));
+    assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(DEFAULT_TIMEOUT));
     assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
     assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
   }
@@ -55,7 +56,7 @@ public class TestRequestConfigProvider {
 
     rc = provider.apply(new GreetingsBuilders().delete().id(0L).build());
     assertNotNull(rc);
-    assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(10000L));
+    assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(DEFAULT_TIMEOUT));
     assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
     assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
   }
@@ -73,7 +74,7 @@ public class TestRequestConfigProvider {
 
     rc = provider.apply(new GroupsBuilders().get().id(10).build());
     assertNotNull(rc);
-    assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(10000L));
+    assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(DEFAULT_TIMEOUT));
     assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
     assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
   }
@@ -96,7 +97,7 @@ public class TestRequestConfigProvider {
 
     rc = provider.apply(new GreetingsBuilders().delete().id(0L).build());
     assertNotNull(rc);
-    assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(10000L));
+    assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(DEFAULT_TIMEOUT));
     assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
     assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
   }
