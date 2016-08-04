@@ -43,7 +43,7 @@ import com.linkedin.parseq.promise.PromiseListener;
 class EngineImpl implements Engine {
 
   public static final String MAX_RELATIONSHIPS_PER_TRACE = "_MaxRelationshipsPerTrace_";
-  private static final int DEFUALT_MAX_RELATIONSHIPS_PER_TRACE = 4096;
+  private static final int DEFAULT_MAX_RELATIONSHIPS_PER_TRACE = 4096;
 
   private static final State INIT = new State(StateName.RUN, 0);
   private static final State TERMINATED = new State(StateName.TERMINATED, 0);
@@ -102,7 +102,7 @@ class EngineImpl implements Engine {
     if (_properties.containsKey(MAX_RELATIONSHIPS_PER_TRACE)) {
       _maxRelationshipsPerTrace = (Integer) getProperty(MAX_RELATIONSHIPS_PER_TRACE);
     } else {
-      _maxRelationshipsPerTrace = DEFUALT_MAX_RELATIONSHIPS_PER_TRACE;
+      _maxRelationshipsPerTrace = DEFAULT_MAX_RELATIONSHIPS_PER_TRACE;
     }
   }
 
