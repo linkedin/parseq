@@ -153,12 +153,7 @@ public class PlanContext {
    * if there is no more pending (sub-)plans.
    */
   private void done() {
-    int pending;
-    do {
-      pending = _pending.get();
-    } while (!_pending.compareAndSet(pending, --pending));
-
-    if (pending == 0) {
+    if (_pending.decrementAndGet() == 0) {
       _planCompletionListener.onPlanCompleted(this);
     }
   }
