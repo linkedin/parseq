@@ -522,13 +522,6 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
           return task;
         } );
       }
-
-      @Override
-      public void runSideEffect(final Task<?> task) {
-        _after.runSideEffect(task);
-        getTraceBuilder().addRelationship(Relationship.POTENTIAL_PARENT_OF, getShallowTraceBuilder(),
-            task.getShallowTraceBuilder());
-      }
     }
 
     @Override
