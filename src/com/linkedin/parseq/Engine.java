@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.internal.ContextImpl;
 import com.linkedin.parseq.internal.InternalUtil;
+import com.linkedin.parseq.internal.PlanCompletionListener;
 import com.linkedin.parseq.internal.PlanDeactivationListener;
 import com.linkedin.parseq.internal.PlanContext;
 import com.linkedin.parseq.promise.PromiseListener;
@@ -67,6 +68,7 @@ public class Engine {
   private final int _maxRelationshipsPerTrace;
 
   private final PlanDeactivationListener _planDeactivationListener;
+  private final PlanCompletionListener _planCompletionListener;
 
   private final PromiseListener<Object> _taskDoneListener = resolvedPromise -> {
     assert _stateRef.get()._pendingCount > 0;
@@ -90,12 +92,14 @@ public class Engine {
 
   /* package private */ Engine(final Executor taskExecutor, final DelayedExecutor timerExecutor,
       final ILoggerFactory loggerFactory, final Map<String, Object> properties,
-      final PlanDeactivationListener planActivityListener) {
+      final PlanDeactivationListener planActivityListener,
+      final PlanCompletionListener planCompletionListener) {
     _taskExecutor = taskExecutor;
     _timerExecutor = timerExecutor;
     _loggerFactory = loggerFactory;
     _properties = properties;
     _planDeactivationListener = planActivityListener;
+    _planCompletionListener = planCompletionListener;
 
     _allLogger = loggerFactory.getLogger(LOGGER_BASE + ":all");
     _rootLogger = loggerFactory.getLogger(LOGGER_BASE + ":root");
@@ -142,7 +146,7 @@ public class Engine {
     } while (!_stateRef.compareAndSet(currState, newState));
 
     PlanContext planContext = new PlanContext(this, _taskExecutor, _timerExecutor, _loggerFactory, _allLogger,
-        _rootLogger, planClass, task, _maxRelationshipsPerTrace, _planDeactivationListener);
+        _rootLogger, planClass, task, _maxRelationshipsPerTrace, _planDeactivationListener, _planCompletionListener);
     new ContextImpl(planContext, task).runTask();
 
     InternalUtil.unwildcardTask(task).addListener(_taskDoneListener);
