@@ -48,7 +48,7 @@ public class TestPlanCompletionListener extends BaseEngineTest  {
 
   @Test
   public void testWithTimerTask() {
-    Task<?> task = delayedValue("value", 5, TimeUnit.SECONDS).withTimeout(2, TimeUnit.SECONDS);
+    Task<?> task = delayedValue("value", 1000, TimeUnit.MILLISECONDS).withTimeout(50, TimeUnit.MILLISECONDS);
 
     runAndWaitException(task, TimeoutException.class);
 
@@ -69,11 +69,10 @@ public class TestPlanCompletionListener extends BaseEngineTest  {
   @Test
   public void testWithSideEffect() throws InterruptedException {
     Task<?> task = value("value1Task", "value1").withSideEffect("delayed sideEffect",
-        v -> delayedValue("value2", 5, TimeUnit.SECONDS));
+        v -> delayedValue("value2", 100, TimeUnit.MILLISECONDS));
 
     runAndWait(task);
 
-    Assert.assertFalse(_traceCaptureListener.isDone());
     Assert.assertTrue(_traceCaptureListener.await(30, TimeUnit.SECONDS));
 
     Trace trace = _traceCaptureListener.getTrace();
