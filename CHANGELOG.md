@@ -1,13 +1,13 @@
 v2.4.0
 ------
 
-* Added flexible timeout and batching configuration to ParSeqRestClient, default timeout is 10s with disabled batching.
+* Added flexible timeout and batching configuration to ParSeqRestClient.
 * Allow adding description to timeout task and TimeoutException.
 * Renamed "timeoutTimer" task to "timeout".
 * Truncating task names to 1024 characters.
 * Decoupled batch size from number of keys in the batch.
 * Added critical path filtering to Tracevis.
-* Added PlanCompletionListener
+* Added PlanCompletionListener.
 
 v2.3.4
 ------

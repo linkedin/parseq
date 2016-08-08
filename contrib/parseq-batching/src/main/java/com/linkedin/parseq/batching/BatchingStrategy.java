@@ -119,16 +119,14 @@ public abstract class BatchingStrategy<G, K, T> {
       final Long planId = ctx.getPlanId();
       final GroupBatchBuilder builder = _batches.computeIfAbsent(planId, k -> new GroupBatchBuilder());
       final G group = classify(key);
-      List<Batch<K, T>> fullBatches = builder.add(group, key, ctx.getShallowTraceBuilder(), result);
-      if (fullBatches != null) {
-        for (Batch<K, T> fullBatch: fullBatches) {
-          try {
-            ctx.run(taskForBatch(group, fullBatch, true));
-          } catch (Throwable t) {
-            //we don't care if some of promises have already been completed
-            //all we care is that all remaining promises have been failed
-            fullBatch.failAll(t);
-          }
+      Batch<K, T> fullBatch = builder.add(group, key, ctx.getShallowTraceBuilder(), result);
+      if (fullBatch != null) {
+        try {
+          ctx.run(taskForBatch(group, fullBatch, true));
+        } catch (Throwable t) {
+          //we don't care if some of promises have already been completed
+          //all we care is that all remaining promises have been failed
+          fullBatch.failAll(t);
         }
       }
       return result;
@@ -152,7 +150,7 @@ public abstract class BatchingStrategy<G, K, T> {
     return Task.async(getBatchName(group, batch), ctx -> {
       final SettablePromise<T> result = Promises.settable();
       final PromiseListener<T> countDownListener =
-          new CountDownPromiseListener<T>(batch.keysSize(), result, null);
+          new CountDownPromiseListener<T>(batch.keySize(), result, null);
 
       boolean assignedParent = false;
       final TraceBuilder traceBuilder = ctx.getTraceBuilder();
@@ -274,7 +272,7 @@ public abstract class BatchingStrategy<G, K, T> {
    * @return name for the batch and group
    */
   public String getBatchName(G group, Batch<K, T> batch) {
-    return "batch(keys: " + batch.keysSize() + ", size: " + batch.batchSize() + ")";
+    return "batch(keys: " + batch.keySize() + ", size: " + batch.batchSize() + ")";
   }
 
   private class GroupBatchBuilder {
@@ -286,7 +284,7 @@ public abstract class BatchingStrategy<G, K, T> {
      * list of batches that can be executed or null if batch is still not full.
      * @return list of batches that can be executed or null otherwise
      */
-    List<Batch<K, T>> add(G group, K key, ShallowTraceBuilder traceBuilder, BatchPromise<T> promise) {
+    Batch<K, T> add(G group, K key, ShallowTraceBuilder traceBuilder, BatchPromise<T> promise) {
       final int size = keySize(group, key);
       BatchBuilder<K, T> builder =
         _batchesByGroup.computeIfAbsent(group, x -> new BatchBuilder<>(maxBatchSizeForGroup(group), _batchAggregationTimeMetric));
@@ -295,7 +293,7 @@ public abstract class BatchingStrategy<G, K, T> {
       if (builder.add(key, traceBuilder, promise, size)) {
         if (builder.isFull()) {
           _batchesByGroup.remove(group);
-          return Collections.singletonList(builder.build());
+          return builder.build();
         } else {
           return null;
         }
@@ -304,13 +302,15 @@ public abstract class BatchingStrategy<G, K, T> {
         //this will be successful because builder is empty and first add is always successful as per builder contract
         newBuilder.add(key, traceBuilder, promise, size);
         if (newBuilder.isFull()) {
-          List<Batch<K, T>> list = new ArrayList<>(2);
-          list.add(builder.build());
-          list.add(newBuilder.build());
-          return list;
+          return newBuilder.build();
         } else {
-          _batchesByGroup.put(group, newBuilder);
-          return Collections.singletonList(builder.build());
+          //return larger batch
+          if (builder.batchSize() > newBuilder.batchSize()) {
+            _batchesByGroup.put(group, newBuilder);
+            return builder.build();
+          } else {
+            return newBuilder.build();
+          }
         }
       }
     }

@@ -22,7 +22,7 @@ public class TestBatch {
     BatchBuilder<Integer, String> builder = new BatchBuilder<>(10, new BatchAggregationTimeMetric());
     Batch<Integer, String> empty = builder.build();
 
-    assertEquals(empty.keysSize(), 0);
+    assertEquals(empty.keySize(), 0);
     assertEquals(empty.batchSize(), 0);
     assertEquals(empty.values().size(), 0);
     assertEquals(empty.entries().size(), 0);
@@ -93,7 +93,7 @@ public class TestBatch {
     assertTrue(builder.add(0, new ShallowTraceBuilder(3L), createPromise.apply("0"), 1));  //duplicate
     Batch<Integer, String> batch = builder.build();
 
-    assertEquals(batch.keysSize(), 4);
+    assertEquals(batch.keySize(), 4);
     assertEquals(batch.batchSize(), 5);
     assertEquals(batch.values().size(), 4);
     assertEquals(batch.entries().size(), 4);

@@ -20,6 +20,7 @@ class RequestConfigProviderImpl implements RequestConfigProvider {
   private static final Logger LOGGER = LoggerFactory.getLogger(RequestConfigProviderImpl.class);
 
   static final int DEFAULT_MAX_BATCH_SIZE = 1024;
+  static final int CONFIG_CACHE_SIZE = 4096;
   static final Boolean DEFAULT_BATCHING_ENABLED = Boolean.FALSE;
   static final long DEFAULT_TIMEOUT = 0L;
 
@@ -83,7 +84,13 @@ class RequestConfigProviderImpl implements RequestConfigProvider {
   @Override
   public RequestConfig apply(Request<?> request) {
     RequestConfigCacheKey cacheKey = new RequestConfigCacheKey(_inboundRequestContextFinder.find(), request);
-    return _cache.computeIfAbsent(cacheKey, this::resolve);
+    RequestConfig config = _cache.computeIfAbsent(cacheKey, this::resolve);
+    if (_cache.size() > CONFIG_CACHE_SIZE) {
+      //we might need a better strategy if cache fills up frequently
+      //the expectation is that it will fill up very rarely
+      _cache.clear();
+    }
+    return config;
   }
 
   private RequestConfig resolve(RequestConfigCacheKey cacheKey) {

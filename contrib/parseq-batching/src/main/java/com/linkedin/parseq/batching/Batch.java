@@ -43,7 +43,7 @@ public interface Batch<K, T> {
    * Returns number of keys belonging to this batch.
    * @return number of keys belonging to this batch.
    */
-  int keysSize();
+  int keySize();
 
   /**
    * Returns size of this batch. This number is not necessarily equal to the number of keys belonging to this batch.

@@ -232,6 +232,11 @@ public class BatchImpl<K, T> implements Batch<K, T> {
     public int size() {
       return _map.size();
     }
+
+    public int batchSize() {
+      return _batchSize;
+    }
+
   }
 
   @Override
@@ -245,7 +250,7 @@ public class BatchImpl<K, T> implements Batch<K, T> {
   }
 
   @Override
-  public int keysSize() {
+  public int keySize() {
     return _map.size();
   }
 
