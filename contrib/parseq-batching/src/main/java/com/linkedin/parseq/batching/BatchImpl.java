@@ -67,6 +67,12 @@ public class BatchImpl<K, T> implements Batch<K, T> {
     return "BatchImpl [entries=" + _map + "]";
   }
 
+  /**
+   * Internal Promise delegate that decouples setting value on internal Promise from
+   * publishing result on external promise. Used in batching implementation to make sure
+   * that (external) Promise is resolved after all bacth-internal promises (including
+   * duplicates ) are resolved.
+   */
   public static class BatchPromise<T> implements SettablePromise<T> {
     private final SettablePromise<T> _internal = Promises.settable();
     private final SettablePromise<T> _external = Promises.settable();
@@ -199,7 +205,8 @@ public class BatchImpl<K, T> implements Batch<K, T> {
 
     /**
      * Adds a batch entry, returns true if adding was successful. Returns false if adding
-     * was not successful.
+     * was not successful. Adding will be successful if builder is currently empty or
+     * the batch size after adding the entry not exceed max batch size.
      * Caller must check result of this operation.
      */
     boolean add(K key, ShallowTraceBuilder traceBuilder, BatchPromise<T> promise, int size) {

@@ -283,8 +283,8 @@ public abstract class BatchingStrategy<G, K, T> {
 
     /**
      * Adds new entry to a batch specified by a given group and returns
-     * that batch if it is full.
-     * @return full batch if new entry made batch full or null otherwise
+     * list of batches that can be executed or null if batch is still not full.
+     * @return list of batches that can be executed or null otherwise
      */
     List<Batch<K, T>> add(G group, K key, ShallowTraceBuilder traceBuilder, BatchPromise<T> promise) {
       final int size = keySize(group, key);
