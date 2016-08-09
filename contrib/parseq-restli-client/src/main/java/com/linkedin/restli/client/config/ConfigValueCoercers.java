@@ -61,7 +61,7 @@ class ConfigValueCoercers {
 
   private static final Set<String> TRUE_VALUES = new HashSet<>(4);
   private static final Set<String> FALSE_VALUES = new HashSet<>(4);
-  {
+  static {
     TRUE_VALUES.add("true");
     FALSE_VALUES.add("false");
 
