@@ -18,10 +18,9 @@ import com.linkedin.restli.examples.groups.api.GroupContact;
 
 
 /**
- * TODO Not implemented in MongoDB yet
- * 
+ *
  * generated from: com.linkedin.restli.examples.groups.server.rest.impl.GroupContactsResource2
- * 
+ *
  */
 @Generated(value = "com.linkedin.pegasus.generator.JavaCodeUtil", comments = "Rest.li Request Builder. Generated from /Users/jodzga/dev/pegasus_trunk/pegasus/restli-int-test-api/src/main/idl/com.linkedin.restli.examples.groups.client.groups.restspec.json.", date = "Thu Mar 31 14:16:24 PDT 2016")
 public class ContactsRequestBuilders

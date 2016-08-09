@@ -190,7 +190,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
       runAndWait("AbstractTaskTest.testWithTimeoutFailure", failure);
       fail("should have failed!");
     } catch (Exception ex) {
-      assertSame(ex.getCause(), Exceptions.TIMEOUT_EXCEPTION);
+      assertEquals(ex.getCause().getClass(), Exceptions.TIMEOUT_EXCEPTION.getClass());
     }
     assertEquals(countTasks(failure.getTrace()), 5);
   }
@@ -203,7 +203,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
       runAndWait("AbstractTaskTest.testWithTimeoutTwiceFailure", failure);
       fail("should have failed!");
     } catch (Exception ex) {
-      assertSame(ex.getCause(), Exceptions.TIMEOUT_EXCEPTION);
+      assertEquals(ex.getCause().getClass(), Exceptions.TIMEOUT_EXCEPTION.getClass());
     }
     assertEquals(countTasks(failure.getTrace()), 7);
   }
@@ -388,6 +388,20 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
       assertTrue(flat.isFailed());
     }
     assertEquals(flat.getError().getMessage(), TASK_ERROR_MESSAGE);
+  }
+
+  @Test
+  public void testTaskNameTruncation() {
+    Task<?> t = Task.value(times("x", 4096), "hello");
+    assertEquals(t.getName(), times("x", 1024));
+  }
+
+  private String times(String s, int times) {
+    StringBuilder sb = new StringBuilder();
+    for (int i=0; i < times; i++) {
+      sb.append(s);
+    }
+    return sb.toString();
   }
 
   protected static final String TASK_VALUE = "value";

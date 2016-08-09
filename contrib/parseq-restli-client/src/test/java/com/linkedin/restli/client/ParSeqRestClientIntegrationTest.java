@@ -16,16 +16,15 @@
 
 package com.linkedin.restli.client;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -42,8 +41,9 @@ import com.linkedin.r2.transport.common.Client;
 import com.linkedin.r2.transport.common.bridge.client.TransportClientAdapter;
 import com.linkedin.r2.transport.http.client.HttpClientFactory;
 import com.linkedin.r2.transport.http.server.HttpServer;
-import com.linkedin.restli.client.config.ParSeqRestClientConfig;
+import com.linkedin.restli.client.config.RequestConfigOverrides;
 import com.linkedin.restli.common.BatchResponse;
+import com.linkedin.restli.common.EmptyRecord;
 import com.linkedin.restli.examples.RestLiIntTestServer;
 import com.linkedin.restli.examples.greetings.api.Greeting;
 import com.linkedin.restli.examples.greetings.client.GreetingsBuilders;
@@ -51,28 +51,41 @@ import com.linkedin.restli.examples.greetings.client.GreetingsBuilders;
 
 public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
 
-  protected static final String URI_PREFIX = "http://localhost:1338/";
+  private static final AtomicInteger PORTER = new AtomicInteger(14497);
+  private final int _port = PORTER.getAndIncrement();
 
-  private static ScheduledExecutorService _serverScheduler;
-  private static Engine _serverEngine;
-  private static HttpServer _server;
+  protected final String URI_PREFIX = "http://localhost:" + _port + "/";
 
-  private static HttpClientFactory _clientFactory;
-  private static List<Client> _transportClients;
-  private static RestClient _restClient;
+  private ScheduledExecutorService _serverScheduler;
+  private Engine _serverEngine;
+  private HttpServer _server;
 
-  private static final BatchingSupport _batchingSupport = new BatchingSupport();
+  private HttpClientFactory _clientFactory;
+  private List<Client> _transportClients;
+  private RestClient _restClient;
 
-  private ParSeqRestClient _parseqClient;
+  private final BatchingSupport _batchingSupport = new BatchingSupport();
 
-  public abstract ParSeqRestClientConfig getParSeqRestClientGonfig();
+  private final ThreadLocal<InboundRequestContext> _inboundRequestContext = new ThreadLocal<>();
+
+  protected ParSeqRestliClient _parseqClient;
+
+  protected abstract ParSeqRestliClientConfig getParSeqRestClientConfig();
+
+  protected void setInboundRequestContext(InboundRequestContext irc) {
+    _inboundRequestContext.set(irc);
+  }
+
+  protected void clearInboundRequestContext() {
+    _inboundRequestContext.remove();
+  }
 
   @BeforeClass
-  public static void init() throws Exception {
+  public void init() throws Exception {
     _serverScheduler = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() + 1);
     _serverEngine = new EngineBuilder().setTaskExecutor(_serverScheduler).setTimerScheduler(_serverScheduler)
         .setPlanDeactivationListener(_batchingSupport).build();
-    _server = RestLiIntTestServer.createServer(_serverEngine, RestLiIntTestServer.DEFAULT_PORT,
+    _server = RestLiIntTestServer.createServer(_serverEngine, _port,
         RestLiIntTestServer.supportedCompression, true, 5000);
     _server.start();
     _clientFactory = new HttpClientFactory();
@@ -82,7 +95,7 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
   }
 
   @AfterClass
-  public static void shutdown() throws Exception {
+  public void shutdown() throws Exception {
     if (_server != null) {
       _server.stop();
     }
@@ -104,7 +117,7 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
     }
   }
 
-  private static Client newTransportClient(Map<String, ? extends Object> properties) {
+  private Client newTransportClient(Map<String, ? extends Object> properties) {
     Client client = new TransportClientAdapter(_clientFactory.getClient(properties));
     _transportClients.add(client);
     return client;
@@ -115,10 +128,11 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
     engineBuilder.setPlanDeactivationListener(_batchingSupport);
 
 
-    _parseqClient = new ParSeqRestClientBuilder()
+    _parseqClient = new ParSeqRestliClientBuilder()
         .setRestClient(_restClient)
         .setBatchingSupport(_batchingSupport)
-        .setConfig(getParSeqRestClientGonfig())
+        .setConfig(getParSeqRestClientConfig())
+        .setInboundRequestContextFinder(() -> Optional.ofNullable(_inboundRequestContext.get()))
         .build();
   }
 
@@ -126,89 +140,41 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
     return greeting.map("toMessage", g -> g.getEntity().getMessage());
   }
 
-  protected Task<Response<Greeting>> greeting(Long id) {
+  protected Task<Response<Greeting>> greetingGet(Long id) {
     return _parseqClient.createTask(new GreetingsBuilders().get().id(id).build());
+  }
+
+  protected Task<Response<Greeting>> greetingGet(Long id, RequestConfigOverrides configOverrides) {
+    return _parseqClient.createTask(new GreetingsBuilders().get().id(id).build(), configOverrides);
+  }
+
+  protected Task<Response<EmptyRecord>> greetingDel(Long id) {
+    return _parseqClient.createTask(new GreetingsBuilders().delete().id(id).build());
+  }
+
+  protected Task<Response<EmptyRecord>> greetingDel(Long id, RequestConfigOverrides configOverrides) {
+    return _parseqClient.createTask(new GreetingsBuilders().delete().id(id).build(), configOverrides);
   }
 
   protected Task<Response<BatchResponse<Greeting>>> greetings(Long... ids) {
     return _parseqClient.createTask(new GreetingsBuilders().batchGet().ids(ids).build());
   }
 
+  protected Task<Response<BatchResponse<Greeting>>> greetings(RequestConfigOverrides configOverrides, Long... ids) {
+    return _parseqClient.createTask(new GreetingsBuilders().batchGet().ids(ids).build(), configOverrides);
+  }
+
   protected boolean hasTask(final String name, final Trace trace) {
     return trace.getTraceMap().values().stream().anyMatch(shallowTrace -> shallowTrace.getName().equals(name));
   }
 
-  // ---------- Tests ----------
-
-  protected void testGetRequests(String testName, boolean expectBatching) {
-    Task<?> task = Task.par(greeting(1L), greeting(2L));
-    runAndWait(testName, task);
-    if (expectBatching) {
-      assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
-    } else {
-      assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
-    }
+  protected String getTestClassName() {
+    return this.getClass().getName();
   }
 
-  protected void testGetRequestsWithSameCustomHeaders(String testName, boolean expectBatching) {
-
-    Task<?> t1 = _parseqClient.createTask(new GreetingsBuilders().get().id(1L)
-        .addHeader("H1", "V1").build());
-
-    Task<?> t2 = _parseqClient.createTask(new GreetingsBuilders().get().id(2L)
-        .addHeader("H1", "V1").build());
-
-    Task<?> task = Task.par(t1, t2);
-
-    runAndWait(testName, task);
-    if (expectBatching) {
-      assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
-    } else {
-      assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
-    }
+  protected static <T> void addProperty(Map<String, Map<String, Object>> config, String property, String key, T value) {
+    Map<String, Object> map = config.computeIfAbsent(property, k -> new HashMap<>());
+    map.put(key, value);
   }
 
-  protected void testGetRequestsWithError(String testName, boolean expectBatching) {
-    Task<String> task = Task.par(toMessage(greeting(1L)), toMessage(greeting(-1L)).recover(e -> "failed"))
-        .map("combine", (x, y) -> x + y);
-    runAndWait(testName, task);
-    assertEquals(task.get(), "Good morning!failed");
-    if (expectBatching) {
-      assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
-    } else {
-      assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
-    }
-  }
-
-  protected void testBatchGetRequests(String testName, boolean expectBatching) {
-    Task<?> task = Task.par(greetings(1L, 2L), greetings(3L, 4L));
-    runAndWait(testName, task);
-    if (expectBatching) {
-      assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
-    } else {
-      assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
-    }
-  }
-
-  protected void testGetAndBatchGetRequests(String testName, boolean expectBatching) {
-    Task<?> task = Task.par(greeting(1L), greetings(2L, 3L));
-    runAndWait("testGetAndBatchGetRequestsAreBatched", task);
-    if (expectBatching) {
-      assertTrue(hasTask("greetings batch_get(2)", task.getTrace()));
-    } else {
-      assertFalse(hasTask("greetings batch_get(2)", task.getTrace()));
-    }
-  }
-
-  protected void testSingleGetRequestIsNotBatched(String testName) {
-    Task<?> task = greeting(1L);
-    runAndWait(testName, task);
-    assertFalse(hasTask("greetings batch_get(1)", task.getTrace()));
-  }
-
-  protected void testDuplicateGetRequestIsNotBatched(String testName) {
-    Task<?> task = Task.par(greeting(1L), greeting(1L));
-    runAndWait(testName, task);
-    assertFalse(hasTask("greetings batch_get(1)", task.getTrace()));
-  }
 }

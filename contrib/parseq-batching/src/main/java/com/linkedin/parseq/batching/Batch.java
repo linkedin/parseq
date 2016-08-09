@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
-import com.linkedin.parseq.batching.BatchImpl.BatchBuilder;
 import com.linkedin.parseq.batching.BatchImpl.BatchEntry;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseResolvedException;
@@ -41,10 +40,18 @@ public interface Batch<K, T> {
   Set<K> keys();
 
   /**
-   * Returns size of this batch.
+   * Returns number of keys belonging to this batch.
+   * @return number of keys belonging to this batch.
+   */
+  int keySize();
+
+  /**
+   * Returns size of this batch. This number is not necessarily equal to the number of keys belonging to this batch.
+   * This number might be different than number of keys if {@link BatchingStrategy#keySize(Object, Object)} is
+   * defined.
    * @return size of this batch.
    */
-  int size();
+  int batchSize();
 
   /**
    * Completes a {@link Promise} associated with given key with
@@ -83,7 +90,4 @@ public interface Batch<K, T> {
 
   Set<Map.Entry<K, BatchEntry<T>>> entries();
 
-  static <K, T> BatchBuilder<K, T> builder(int maxSize, BatchAggregationTimeMetric batchAggregationTimeMetric) {
-    return new BatchBuilder<>(maxSize, batchAggregationTimeMetric);
-  }
 }

@@ -19,6 +19,7 @@ package com.linkedin.parseq;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -745,6 +746,14 @@ public interface Task<T> extends Promise<T>, Cancellable {
   }
 
   /**
+   * Equivalent to {@code withTimeout(null, time, unit)}.
+   * @see #withTimeout(String, long, TimeUnit)
+   */
+  default Task<T> withTimeout(final long time, final TimeUnit unit) {
+    return withTimeout(null, time, unit);
+  }
+
+  /**
    * Creates a new task that has a timeout associated with it. If this task finishes
    * before the timeout occurs then returned task will be completed with the value of this task.
    * If this task does not complete in the given time then returned task will
@@ -755,18 +764,25 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * </pre></blockquote>
    * <img src="https://raw.githubusercontent.com/linkedin/parseq/master/src/com/linkedin/parseq/doc-files/withTimeout-1.png" height="150" width="318"/>
    *
+   * @param desc description of a timeout. There is no need to put timeout value here because it will be automatically
+   * included. Full description of a timeout will be: {@code "withTimeout " + time + " " + TimeUnitHelper.toString(unit) +
+   * (desc != null ? " " + desc : "")}. It is a good idea to put information that will help understand why the timeout
+   * was specified e.g. if timeout was specified by a configuration, the configuration parameter name would be a useful
+   * information
    * @param time the time to wait before timing out
    * @param unit the units for the time
    * @return the new task with a timeout
    */
-  default Task<T> withTimeout(final long time, final TimeUnit unit) {
+  default Task<T> withTimeout(final String desc, final long time, final TimeUnit unit) {
     final Task<T> that = this;
-    Task<T> withTimeout = async("withTimeout " + time + " " + TimeUnitHelper.toString(unit), ctx -> {
+    final String taskName = "withTimeout " + time + TimeUnitHelper.toString(unit) +
+        (desc != null ? " " + desc : "");
+    Task<T> withTimeout = async(taskName, ctx -> {
       final AtomicBoolean committed = new AtomicBoolean();
       final SettablePromise<T> result = Promises.settable();
-      final Task<?> timeoutTask = Task.action("timeoutTimer", () -> {
+      final Task<?> timeoutTask = Task.action("timeout", () -> {
         if (committed.compareAndSet(false, true)) {
-          result.fail(Exceptions.TIMEOUT_EXCEPTION);
+          result.fail(Exceptions.timeoutException(taskName));
         }
       } );
       //timeout tasks should run as early as possible
@@ -777,7 +793,6 @@ public interface Task<T> extends Promise<T>, Cancellable {
           Promises.propagateResult(that, result);
         }
       } );
-
       //we want to schedule this task as soon as possible
       //because timeout timer has started ticking
       that.setPriority(Priority.MAX_PRIORITY);
@@ -1086,6 +1101,13 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * executed on specified {@link Executor}. It means that callable
    * does not get any special memory consistency guarantees and should not
    * attempt to use shared state.
+   * <p>
+   * In order to avoid creating tasks that never complete the Executor passed in as a
+   * parameter <b>must</b> signal execution rejection by throwing an exception.
+   * <p>
+   * In order to prevent blocking ParSeq threads the Executor passed in as a
+   * parameter <b>must not</b> use {@link ThreadPoolExecutor.CallerRunsPolicy}
+   * as a rejection policy.
    *
    * @param <T> the type of the return value for this task
    * @param name a name that describes the task, it will show up in a trace
@@ -1133,7 +1155,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * </pre></blockquote>
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
-   * In this case returned task will be resolved with error from the first of failing tasks.
+   * In this case returned task will be resolved with error from the first of failing tasks and other
+   * tasks will be cancelled (if possible).
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1158,7 +1181,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * </pre></blockquote>
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
-   * In this case returned task will be resolved with error from the first of failing tasks.
+   * In this case returned task will be resolved with error from the first of failing tasks and other
+   * tasks will be cancelled (if possible).
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1185,7 +1209,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * </pre></blockquote>
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
-   * In this case returned task will be resolved with error from the first of failing tasks.
+   * In this case returned task will be resolved with error from the first of failing tasks and other
+   * tasks will be cancelled (if possible).
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1213,7 +1238,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * </pre></blockquote>
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
-   * In this case returned task will be resolved with error from the first of failing tasks.
+   * In this case returned task will be resolved with error from the first of failing tasks and other
+   * tasks will be cancelled (if possible).
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1242,7 +1268,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * </pre></blockquote>
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
-   * In this case returned task will be resolved with error from the first of failing tasks.
+   * In this case returned task will be resolved with error from the first of failing tasks and other
+   * tasks will be cancelled (if possible).
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1272,7 +1299,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * </pre></blockquote>
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
-   * In this case returned task will be resolved with error from the first of failing tasks.
+   * In this case returned task will be resolved with error from the first of failing tasks and other
+   * tasks will be cancelled (if possible).
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1304,7 +1332,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * </pre></blockquote>
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
-   * In this case returned task will be resolved with error from the first of failing tasks.
+   * In this case returned task will be resolved with error from the first of failing tasks and other
+   * tasks will be cancelled (if possible).
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1337,7 +1366,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * </pre></blockquote>
    *
    * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
-   * In this case returned task will be resolved with error from the first of failing tasks.
+   * In this case returned task will be resolved with error from the first of failing tasks and other
+   * tasks will be cancelled (if possible).
    * <p>
    * @return task that will run given tasks in parallel
    */

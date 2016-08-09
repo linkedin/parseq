@@ -23,7 +23,7 @@ public class RecordingStrategy<G, K, T> extends BatchingStrategy<G, K, T> {
 
   @Override
   public void executeBatch(G group, Batch<K, T> batch) {
-    if (batch.size() == 1) {
+    if (batch.keySize() == 1) {
       _executedSingletons.add(batch);
     } else {
       _executedBatches.add(batch);
