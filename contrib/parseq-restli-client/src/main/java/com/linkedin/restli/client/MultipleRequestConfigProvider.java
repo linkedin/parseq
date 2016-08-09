@@ -20,6 +20,9 @@ class MultipleRequestConfigProvider implements RequestConfigProvider {
     _configs = configs;
     _chooser = chooser;
     _inboundRequestContextFinder = inboundRequestContextFinder;
+    //initialize RequestConfigProviders at construction time to
+    //avoid failures at runtime
+    _configs.keySet().forEach(type -> _providers.put(type, getProvider(type)));
   }
 
   private RequestConfigProvider getProvider(String type) {
