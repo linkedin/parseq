@@ -83,13 +83,15 @@ class GetRequestGroup implements RequestGroup {
       throw new RestLiResponseException(errorResponse);
     }
 
-    final RT entityResult = batchEntity.getResults().get(id).getEntity();
-    if (entityResult == null) {
-      throw new RestLiDecodingException("No result or error for base URI " + request.getBaseUriTemplate() + ", id " + id
-          + ". Verify that the batchGet endpoint returns response keys that match batchGet request IDs.", null);
+    final EntityResponse<RT> entityResponse = batchEntity.getResults().get(id);
+    if (entityResponse != null) {
+      final RT entityResult = entityResponse.getEntity();
+      if (entityResult != null) {
+        return new ResponseImpl<>(batchResponse, entityResult);
+      }
     }
-
-    return new ResponseImpl<>(batchResponse, entityResult);
+    throw new RestLiDecodingException("No result or error for base URI " + request.getBaseUriTemplate() + ", id " + id
+        + ". Verify that the batchGet endpoint returns response keys that match batchGet request IDs.", null);
   }
 
   private DataMap filterIdsInBatchResult(DataMap data, Set<String> ids, boolean stripEntities) {
