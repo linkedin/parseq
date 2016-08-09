@@ -3,11 +3,16 @@ package com.linkedin.restli.client;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.linkedin.restli.client.Request;
 import com.linkedin.restli.client.config.RequestConfig;
 import com.linkedin.restli.client.config.RequestConfigProvider;
 
 class MultipleRequestConfigProvider implements RequestConfigProvider {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(MultipleRequestConfigProvider.class);
 
   private final Map<String, ParSeqRestliClientConfig> _configs;
   private final ParSeqRestliClientConfigChooser _chooser;
@@ -22,7 +27,10 @@ class MultipleRequestConfigProvider implements RequestConfigProvider {
     _inboundRequestContextFinder = inboundRequestContextFinder;
     //initialize RequestConfigProviders at construction time to
     //avoid failures at runtime
-    _configs.keySet().forEach(type -> _providers.put(type, getProvider(type)));
+    _configs.keySet().forEach(type -> {
+      LOGGER.info("Initializing ParSeqRestClientConfig: {}", type);
+      _providers.put(type, getProvider(type));
+    });
   }
 
   private RequestConfigProvider getProvider(String type) {
