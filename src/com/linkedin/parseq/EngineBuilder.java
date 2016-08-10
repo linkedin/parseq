@@ -66,6 +66,8 @@ public class EngineBuilder {
   public void setPlanDeactivationListener(PlanDeactivationListener planDeactivationListener) {
     ArgumentUtil.requireNotNull(planDeactivationListener, "planDeactivationListener");
     _planDeactivationListener = planDeactivationListener;
+    // TODO: should have returned the builder here to make it chainable.
+    // Need to fix in the next major version release.
   }
 
   public EngineBuilder setPlanCompletionListener(PlanCompletionListener planCompletionListener) {
