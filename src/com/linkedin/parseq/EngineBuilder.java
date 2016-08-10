@@ -62,12 +62,10 @@ public class EngineBuilder {
    *
    * @param planDeactivationListener the listener that will be notified when plan
    * becomes deactivated
-   * @return this builder
    */
-  public EngineBuilder setPlanDeactivationListener(PlanDeactivationListener planDeactivationListener) {
+  public void setPlanDeactivationListener(PlanDeactivationListener planDeactivationListener) {
     ArgumentUtil.requireNotNull(planDeactivationListener, "planDeactivationListener");
     _planDeactivationListener = planDeactivationListener;
-    return this;
   }
 
   public EngineBuilder setPlanCompletionListener(PlanCompletionListener planCompletionListener) {
