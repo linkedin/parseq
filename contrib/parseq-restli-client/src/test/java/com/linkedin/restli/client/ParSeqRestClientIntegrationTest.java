@@ -83,8 +83,10 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
   @BeforeClass
   public void init() throws Exception {
     _serverScheduler = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() + 1);
-    _serverEngine = new EngineBuilder().setTaskExecutor(_serverScheduler).setTimerScheduler(_serverScheduler)
-        .setPlanDeactivationListener(_batchingSupport).build();
+    EngineBuilder serverEngineBuilder = new EngineBuilder();
+    serverEngineBuilder.setTaskExecutor(_serverScheduler).setTimerScheduler(_serverScheduler)
+    .setPlanDeactivationListener(_batchingSupport);
+    _serverEngine = serverEngineBuilder.build();
     _server = RestLiIntTestServer.createServer(_serverEngine, _port,
         RestLiIntTestServer.supportedCompression, true, 5000);
     _server.start();
