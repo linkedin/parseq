@@ -1,3 +1,8 @@
+v2.4.1
+------
+
+* Fixed backwards incompatible change to EngineBuilder introduced in 2.4.0.
+
 v2.4.0
 ------
 
