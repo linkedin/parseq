@@ -13,6 +13,12 @@ public class Trace {
   private final Long _planId;
   private final String _planClass;
 
+  // TODO: this constructor should be removed.
+  // Need to fix in the next major version release.
+  public Trace(Map<Long, ShallowTrace> traceMap, Set<TraceRelationship> relationships) {
+    this(traceMap, relationships, TraceBuilder.UNKNOWN_PLAN_CLASS, TraceBuilder.UNKNOWN_PLAN_ID);
+  }
+
   public Trace(Map<Long, ShallowTrace> traceMap, Set<TraceRelationship> relationships, String planClass, Long planId) {
     _traceMap = Collections.unmodifiableMap(traceMap);
     _relationships = Collections.unmodifiableSet(relationships);
@@ -26,6 +32,12 @@ public class Trace {
 
   public Set<TraceRelationship> getRelationships() {
     return _relationships;
+  }
+
+  // TODO: this method should be removed.
+  // Need to fix in the next major version release.
+  public static Trace single(ShallowTrace shallowTrace) {
+    return single(shallowTrace, TraceBuilder.UNKNOWN_PLAN_CLASS, TraceBuilder.UNKNOWN_PLAN_ID);
   }
 
   public static Trace single(ShallowTrace shallowTrace, String planClass, Long planId) {

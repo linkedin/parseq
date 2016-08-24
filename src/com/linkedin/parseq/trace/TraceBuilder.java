@@ -29,6 +29,9 @@ import java.util.Set;
  */
 public class TraceBuilder {
 
+  static final long UNKNOWN_PLAN_ID = -1L;
+  static final String UNKNOWN_PLAN_CLASS = "unknown";
+
   private final int _maxRelationshipsPerTrace;
 
   private final String _planClass;
@@ -46,6 +49,12 @@ public class TraceBuilder {
 
   private final LinkedHashSet<TraceRelationship> _relationships;
   private final Map<Long, RefCounted<ShallowTraceBuilder>> _traceBuilders;
+
+  // TODO: this constructor should be removed.
+  // Need to fix in the next major version release.
+  public TraceBuilder(int maxRelationshipsCount) {
+    this(maxRelationshipsCount, UNKNOWN_PLAN_CLASS, UNKNOWN_PLAN_ID);
+  }
 
   public TraceBuilder(int maxRelationshipsCount, String planClass, Long planId) {
     _relationships = new LinkedHashSet<>();
