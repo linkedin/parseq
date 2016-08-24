@@ -1,3 +1,8 @@
+v2.4.2
+------
+
+* Fixed backwards incompatible changes to Trace and TraceBuilder introduced in 2.4.0.
+
 v2.4.1
 ------
 
