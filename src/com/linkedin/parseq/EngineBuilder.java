@@ -174,4 +174,9 @@ public class EngineBuilder {
   private static DelayedExecutor adaptTimerScheduler(final ScheduledExecutorService timerScheduler) {
     return new DelayedExecutorAdapter(timerScheduler);
   }
+
+  // package private. used in test only.
+  PlanCompletionListener getPlanCompletionListener() {
+    return _planCompletionListener;
+  }
 }
