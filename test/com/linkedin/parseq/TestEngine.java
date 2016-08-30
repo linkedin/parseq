@@ -18,6 +18,7 @@ package com.linkedin.parseq;
 
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
+import com.linkedin.parseq.promise.SettablePromise;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -145,6 +146,57 @@ public class TestEngine {
 
     assertTrue(sucTask.await(50, TimeUnit.MILLISECONDS));
     assertEquals(sucValue, sucTask.get());
+  }
+
+  @Test
+  public void testShutdownWithSideEffectTask() throws InterruptedException {
+    final CountDownLatch finishLatch = new CountDownLatch(1);
+    final String mainValue = "main task executed";
+    final String sideEffectValue = "side-effect task executed";
+
+    Task<String> sideEffect = Task.async(context -> {
+      finishLatch.await();
+      return Promises.value(sideEffectValue);
+    });
+
+    Task<String> task = Task.value(mainValue).withSideEffect(v -> sideEffect);
+    _engine.run(task);
+    _engine.shutdown();
+
+    assertFalse(_engine.awaitTermination(50, TimeUnit.MILLISECONDS));
+    assertTrue(_engine.isShutdown());
+    assertFalse(_engine.isTerminated());
+    finishLatch.countDown();
+    assertTrue(_engine.awaitTermination(50, TimeUnit.MILLISECONDS));
+    assertTrue(_engine.isShutdown());
+    assertTrue(_engine.isTerminated());
+
+    assertEquals(mainValue, task.get());
+    assertEquals(sideEffectValue, sideEffect.get());
+  }
+
+  @Test
+  public void testShutdownWithSideEffectTask2() throws InterruptedException {
+    final SettablePromise<String> sideEffectPromise = Promises.settable();
+    final String mainValue = "main task executed";
+    final String sideEffectValue = "side-effect task executed";
+
+    Task<String> sideEffect = Task.async(context -> sideEffectPromise);
+
+    Task<String> task = Task.value(mainValue).withSideEffect(v -> sideEffect);
+    _engine.run(task);
+    _engine.shutdown();
+
+    assertFalse(_engine.awaitTermination(50, TimeUnit.MILLISECONDS));
+    assertTrue(_engine.isShutdown());
+    assertFalse(_engine.isTerminated());
+    sideEffectPromise.done(sideEffectValue);
+    assertTrue(_engine.awaitTermination(50, TimeUnit.MILLISECONDS));
+    assertTrue(_engine.isShutdown());
+    assertTrue(_engine.isTerminated());
+
+    assertEquals(mainValue, task.get());
+    assertEquals(sideEffectValue, sideEffect.get());
   }
 
   @Test

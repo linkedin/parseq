@@ -87,6 +87,24 @@ public class TestPlanCompletionListener extends BaseEngineTest  {
     Assert.assertEquals(valueTrace.get().getResultType(), ResultType.SUCCESS);
   }
 
+  @Test
+  public void testWithSideEffect2() throws InterruptedException {
+    Task<?> task = value("value1Task", "value1").withSideEffect("delayed sideEffect",
+        v -> delayedValue("value2", 100, TimeUnit.MILLISECONDS));
+
+    runAndWaitForPlanToComplete("side-effect task", task, 30, TimeUnit.SECONDS);
+    Trace trace = task.getTrace();
+    Assert.assertNotNull(trace);
+
+    Optional<ShallowTrace> sideEffectTrace = findTraceByName(trace, "delayed sideEffect");
+    Assert.assertTrue(sideEffectTrace.isPresent());
+    Assert.assertEquals(sideEffectTrace.get().getResultType(), ResultType.SUCCESS);
+
+    Optional<ShallowTrace> valueTrace = findTraceByName(trace, "value2 delayed");
+    Assert.assertTrue(valueTrace.isPresent());
+    Assert.assertEquals(valueTrace.get().getResultType(), ResultType.SUCCESS);
+  }
+
   private Optional<ShallowTrace> findTraceByName(Trace trace, String name) {
     return trace.getTraceMap().values().stream()
         .filter(shallowTrace -> shallowTrace.getName().contains(name))

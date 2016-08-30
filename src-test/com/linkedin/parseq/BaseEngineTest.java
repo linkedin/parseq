@@ -20,8 +20,16 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import com.linkedin.parseq.internal.PlanCompletionListener;
+import com.linkedin.parseq.internal.PlanContext;
 import java.io.IOException;
+import java.io.InterruptedIOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -53,6 +61,7 @@ public class BaseEngineTest {
   private ExecutorService _asyncExecutor;
   private Engine _engine;
   private ListLoggerFactory _loggerFactory;
+  private TaskDoneListener _taskDoneListener;
 
   @SuppressWarnings("deprecation")
   @BeforeMethod
@@ -65,6 +74,23 @@ public class BaseEngineTest {
         new EngineBuilder().setTaskExecutor(_scheduler).setTimerScheduler(_scheduler).setLoggerFactory(_loggerFactory);
     AsyncCallableTask.register(engineBuilder, _asyncExecutor);
     customizeEngine(engineBuilder);
+
+    // Add taskDoneListener to engine builder.
+    _taskDoneListener = new TaskDoneListener();
+    PlanCompletionListener planCompletionListener = engineBuilder.getPlanCompletionListener();
+    if (planCompletionListener == null) {
+      engineBuilder.setPlanCompletionListener(_taskDoneListener);
+    } else {
+      engineBuilder.setPlanCompletionListener(planContext -> {
+        try {
+          planCompletionListener.onPlanCompleted(planContext);
+        } catch (Throwable t) {
+          LOG.error("Uncaught exception from custom planCompletionListener.", t);
+        } finally {
+          _taskDoneListener.onPlanCompleted(planContext);
+        }
+      });
+    }
     _engine = engineBuilder.build();
   }
 
@@ -131,6 +157,31 @@ public class BaseEngineTest {
     try {
       _engine.run(task);
       assertTrue(task.await(time, timeUnit));
+      return task.get();
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    } finally {
+      logTracingResults(desc, task);
+    }
+  }
+
+  /**
+   * Runs task, verifies that the entire plan(including side-effect tasks)
+   * finishes within specified amount of time, logs trace from the task execution
+   * and return value which task completed with.
+   * If task completes with an exception, it is re-thrown by this method.
+   *
+   * @param desc description of a test
+   * @param task task to run
+   * @param time amount of time to wait for task completion
+   * @param timeUnit unit of time
+   * @param <T> task result type
+   * @return value task was completed with or exception is being thrown if task failed
+   */
+  protected <T> T runAndWaitForPlanToComplete(final String desc, Task<T> task, long time, TimeUnit timeUnit) {
+    try {
+      _engine.run(task);
+      _taskDoneListener.await(task, time, timeUnit);
       return task.get();
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
@@ -243,6 +294,22 @@ public class BaseEngineTest {
 
   protected int countTasks(Trace trace) {
     return trace.getTraceMap().size();
+  }
+
+  private static final class TaskDoneListener implements PlanCompletionListener {
+
+    private final ConcurrentMap<Task<?>, CountDownLatch> _taskDoneLatch = new ConcurrentHashMap<>();
+
+    @Override
+    public void onPlanCompleted(PlanContext planContext) {
+      CountDownLatch latch = _taskDoneLatch.computeIfAbsent(planContext.getRootTask(), key -> new CountDownLatch(1));
+      latch.countDown();
+    }
+
+    public void await(Task<?> root, long timeout, TimeUnit unit) throws InterruptedException {
+      CountDownLatch latch = _taskDoneLatch.computeIfAbsent(root, key -> new CountDownLatch(1));
+      latch.await(timeout, unit);
+    }
   }
 
 }

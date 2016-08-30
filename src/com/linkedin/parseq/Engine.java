@@ -27,11 +27,10 @@ import org.slf4j.Logger;
 
 import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.internal.ContextImpl;
-import com.linkedin.parseq.internal.InternalUtil;
 import com.linkedin.parseq.internal.PlanCompletionListener;
 import com.linkedin.parseq.internal.PlanDeactivationListener;
 import com.linkedin.parseq.internal.PlanContext;
-import com.linkedin.parseq.promise.PromiseListener;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -49,6 +48,7 @@ public class Engine {
 
   private static final State INIT = new State(StateName.RUN, 0);
   private static final State TERMINATED = new State(StateName.TERMINATED, 0);
+  private static final Logger LOG = LoggerFactory.getLogger(LOGGER_BASE);
 
   private static enum StateName {
     RUN,
@@ -70,7 +70,7 @@ public class Engine {
   private final PlanDeactivationListener _planDeactivationListener;
   private final PlanCompletionListener _planCompletionListener;
 
-  private final PromiseListener<Object> _taskDoneListener = resolvedPromise -> {
+  private final PlanCompletionListener _taskDoneListener = resolvedPromise -> {
     assert _stateRef.get()._pendingCount > 0;
     assert _stateRef.get()._stateName != StateName.TERMINATED;
 
@@ -99,10 +99,19 @@ public class Engine {
     _loggerFactory = loggerFactory;
     _properties = properties;
     _planDeactivationListener = planActivityListener;
-    _planCompletionListener = planCompletionListener;
 
     _allLogger = loggerFactory.getLogger(LOGGER_BASE + ":all");
     _rootLogger = loggerFactory.getLogger(LOGGER_BASE + ":root");
+
+    _planCompletionListener = planContext -> {
+      try {
+        planCompletionListener.onPlanCompleted(planContext);
+      } catch (Throwable t) {
+        LOG.error("Uncaught throwable from custom PlanCompletionListener.", t);
+      } finally {
+        _taskDoneListener.onPlanCompleted(planContext);
+      }
+    };
 
     if (_properties.containsKey(MAX_RELATIONSHIPS_PER_TRACE)) {
       _maxRelationshipsPerTrace = (Integer) getProperty(MAX_RELATIONSHIPS_PER_TRACE);
@@ -148,8 +157,6 @@ public class Engine {
     PlanContext planContext = new PlanContext(this, _taskExecutor, _timerExecutor, _loggerFactory, _allLogger,
         _rootLogger, planClass, task, _maxRelationshipsPerTrace, _planDeactivationListener, _planCompletionListener);
     new ContextImpl(planContext, task).runTask();
-
-    InternalUtil.unwildcardTask(task).addListener(_taskDoneListener);
   }
 
   /**
