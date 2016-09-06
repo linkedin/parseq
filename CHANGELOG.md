@@ -1,3 +1,8 @@
+v2.5.0
+------
+
+* Added _MaxConcurrentPlans_ configuration parameter to Engine that enforces limit on how many concurrent Plans can be executed by Engine.
+
 v2.4.2
 ------
 
