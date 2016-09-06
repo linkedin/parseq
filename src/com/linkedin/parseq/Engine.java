@@ -19,6 +19,7 @@ package com.linkedin.parseq;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -46,6 +47,9 @@ public class Engine {
   public static final String MAX_RELATIONSHIPS_PER_TRACE = "_MaxRelationshipsPerTrace_";
   private static final int DEFUALT_MAX_RELATIONSHIPS_PER_TRACE = 4096;
 
+  public static final String MAX_CONCURRENT_PLANS = "_MaxConcurrentPlans_";
+  private static final int DEFUALT_MAX_CONCURRENT_PLANS = Integer.MAX_VALUE;
+
   private static final State INIT = new State(StateName.RUN, 0);
   private static final State TERMINATED = new State(StateName.TERMINATED, 0);
   private static final Logger LOG = LoggerFactory.getLogger(LOGGER_BASE);
@@ -67,24 +71,13 @@ public class Engine {
 
   private final int _maxRelationshipsPerTrace;
 
+  private final int _maxConcurrentPlans;
+  private final Semaphore _concurrentPlans;
+
   private final PlanDeactivationListener _planDeactivationListener;
   private final PlanCompletionListener _planCompletionListener;
 
-  private final PlanCompletionListener _taskDoneListener = resolvedPromise -> {
-    assert _stateRef.get()._pendingCount > 0;
-    assert _stateRef.get()._stateName != StateName.TERMINATED;
-
-    State currState;
-    State newState;
-    do {
-      currState = _stateRef.get();
-      newState = new State(currState._stateName, currState._pendingCount - 1);
-    } while (!_stateRef.compareAndSet(currState, newState));
-
-    if (newState._stateName == StateName.SHUTDOWN && newState._pendingCount == 0) {
-      tryTransitionTerminate();
-    }
-  };
+  private final PlanCompletionListener _taskDoneListener;
 
   // Cache these, since we'll use them frequently and they can be precomputed.
   private final Logger _allLogger;
@@ -103,6 +96,37 @@ public class Engine {
     _allLogger = loggerFactory.getLogger(LOGGER_BASE + ":all");
     _rootLogger = loggerFactory.getLogger(LOGGER_BASE + ":root");
 
+    if (_properties.containsKey(MAX_RELATIONSHIPS_PER_TRACE)) {
+      _maxRelationshipsPerTrace = (Integer) getProperty(MAX_RELATIONSHIPS_PER_TRACE);
+    } else {
+      _maxRelationshipsPerTrace = DEFUALT_MAX_RELATIONSHIPS_PER_TRACE;
+    }
+
+    if (_properties.containsKey(MAX_CONCURRENT_PLANS)) {
+      _maxConcurrentPlans = (Integer) getProperty(MAX_CONCURRENT_PLANS);
+    } else {
+      _maxConcurrentPlans = DEFUALT_MAX_CONCURRENT_PLANS;
+    }
+    _concurrentPlans = new Semaphore(_maxConcurrentPlans);
+
+    _taskDoneListener = resolvedPromise -> {
+      assert _stateRef.get()._pendingCount > 0;
+      assert _stateRef.get()._stateName != StateName.TERMINATED;
+
+      State currState;
+      State newState;
+      do {
+        currState = _stateRef.get();
+        newState = new State(currState._stateName, currState._pendingCount - 1);
+      } while (!_stateRef.compareAndSet(currState, newState));
+
+      _concurrentPlans.release();
+
+      if (newState._stateName == StateName.SHUTDOWN && newState._pendingCount == 0) {
+        tryTransitionTerminate();
+      }
+    };
+
     _planCompletionListener = planContext -> {
       try {
         planCompletionListener.onPlanCompleted(planContext);
@@ -113,11 +137,6 @@ public class Engine {
       }
     };
 
-    if (_properties.containsKey(MAX_RELATIONSHIPS_PER_TRACE)) {
-      _maxRelationshipsPerTrace = (Integer) getProperty(MAX_RELATIONSHIPS_PER_TRACE);
-    } else {
-      _maxRelationshipsPerTrace = DEFUALT_MAX_RELATIONSHIPS_PER_TRACE;
-    }
   }
 
   public Object getProperty(String key) {
@@ -125,13 +144,120 @@ public class Engine {
   }
 
   /**
-   * Runs the given task with its own context. Use {@code Tasks.seq} and
-   * {@code Tasks.par} to create and run composite tasks.
+   * Runs the given task. Task passed in as a parameter becomes a root on a new Plan.
+   * All tasks created and started as a consequence of a root task will belong to that plan and will share a Trace.
+   * <p>
+   * This method blocks until Engine has a capacity to run the task. Engine's capacity is
+   * specified by a {@value #MAX_CONCURRENT_PLANS} configuration property. Use
+   * {@link EngineBuilder#setEngineProperty(String, Object)} to set this property.
+   * For the sake of backwards compatibility default value for a {@value #MAX_CONCURRENT_PLANS} is
+   * {@value #DEFUALT_MAX_CONCURRENT_PLANS} which essentially means "unbounded capacity".
    *
    * @param task the task to run
    */
   public void run(final Task<?> task) {
-    run(task, task.getClass().getName());
+    run(task, defaultPlanClass(task));
+  }
+
+  private final String defaultPlanClass(final Task<?> task) {
+    return task.getClass().getName();
+  }
+
+  /**
+   * Runs the given task. Task passed in as a parameter becomes a root on a new Plan.
+   * All tasks created and started as a consequence of a root task will belong to that plan and will share a Trace.
+   * <p>
+   * This method blocks until Engine has a capacity to run the task. Engine's capacity is
+   * specified by a {@value #MAX_CONCURRENT_PLANS} configuration property. Use
+   * {@link EngineBuilder#setEngineProperty(String, Object)} to set this property.
+   * For the sake of backwards compatibility default value for a {@value #MAX_CONCURRENT_PLANS} is
+   * {@value #DEFUALT_MAX_CONCURRENT_PLANS} which essentially means "unbounded capacity".
+   *
+   * @param task the task to run
+   * @param planClass string that identifies a "class" of the Plan. Plan class ends up in a ParSeq
+   * Trace and can be used to group traces into "classes" when traces are statistically analyzed.
+   */
+  public void run(final Task<?> task, final String planClass) {
+    try {
+      _concurrentPlans.acquire();
+      runWithPermit(task, planClass);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+  }
+
+  /**
+   * Runs the given task if Engine has a capacity to start new plan as specified by
+   * {@value #MAX_CONCURRENT_PLANS} configuration parameter.
+   * Task passed in as a parameter becomes a root on a new Plan.
+   * All tasks created and started as a consequence of a root task will belong to that plan and will share a Trace.
+   * This method returns immediately and does not block. It returns {@code true} if Plan was successfully started.
+   * @param task the task to run
+   * @return true if Plan was started
+   */
+  public boolean tryRun(final Task<?> task) {
+    return tryRun(task,  defaultPlanClass(task));
+  }
+
+  /**
+   * Runs the given task if Engine has a capacity to start new plan as specified by
+   * {@value #MAX_CONCURRENT_PLANS} configuration parameter.
+   * Task passed in as a parameter becomes a root on a new Plan.
+   * All tasks created and started as a consequence of a root task will belong to that plan and will share a Trace.
+   * This method returns immediately and does not block. It returns {@code true} if Plan was successfully started.
+   * @param task the task to run
+   * @param planClass string that identifies a "class" of the Plan
+   * @return true if Plan was started
+   */
+  public boolean tryRun(final Task<?> task, final String planClass) {
+    if (_concurrentPlans.tryAcquire()) {
+      runWithPermit(task, planClass);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * Runs the given task if Engine has a capacity to start new plan as specified by
+   * {@value #MAX_CONCURRENT_PLANS} configuration parameter within specified amount of time.
+   * Task passed in as a parameter becomes a root on a new Plan.
+   * All tasks created and started as a consequence of a root task will belong to that plan and will share a Trace.
+   * If Engine does not have capacity to start the task, this method will block up to specified amount of
+   * time waiting for other concurrently running Plans to complete. If there is no capacity to start the task
+   * within specified amount of time this method will return false. It returns {@code true} if Plan was successfully started.
+   * @param task the task to run
+   * @param timeout amount of time to wait for Engine's capacity to run the task
+   * @param unit
+   * @return true if Plan was started within the given waiting time and the current thread has not
+   * been {@linkplain Thread#interrupt interrupted}.
+   */
+  public boolean tryRun(final Task<?> task, final long timeout, final TimeUnit unit) throws InterruptedException {
+    return tryRun(task,  defaultPlanClass(task), timeout, unit);
+  }
+
+  /**
+   * Runs the given task if Engine has a capacity to start new plan as specified by
+   * {@value #MAX_CONCURRENT_PLANS} configuration parameter within specified amount of time.
+   * Task passed in as a parameter becomes a root on a new Plan.
+   * All tasks created and started as a consequence of a root task will belong to that plan and will share a Trace.
+   * If Engine does not have capacity to start the task, this method will block up to specified amount of
+   * time waiting for other concurrently running Plans to complete. If there is no capacity to start the task
+   * within specified amount of time this method will return false. It returns {@code true} if Plan was successfully started.
+   * @param task the task to run
+   * @param planClass string that identifies a "class" of the Plan
+   * @param timeout amount of time to wait for Engine's capacity to run the task
+   * @param unit
+   * @return true if Plan was started within the given waiting time and the current thread has not
+   * been {@linkplain Thread#interrupt interrupted}.
+  */
+  public boolean tryRun(final Task<?> task, final String planClass, final long timeout, final TimeUnit unit) throws InterruptedException {
+    if (_concurrentPlans.tryAcquire(timeout, unit)) {
+      runWithPermit(task, planClass);
+      return true;
+    } else {
+      return false;
+    }
   }
 
   /**
@@ -140,7 +266,7 @@ public class Engine {
    *
    * @param task the task to run
    */
-  public void run(final Task<?> task, final String planClass) {
+  private void runWithPermit(final Task<?> task, final String planClass) {
     ArgumentUtil.requireNotNull(task, "task");
     ArgumentUtil.requireNotNull(planClass, "planClass");
     State currState, newState;
@@ -150,7 +276,6 @@ public class Engine {
         task.cancel(new EngineShutdownException("Task submitted after engine shutdown"));
         return;
       }
-
       newState = new State(StateName.RUN, currState._pendingCount + 1);
     } while (!_stateRef.compareAndSet(currState, newState));
 
