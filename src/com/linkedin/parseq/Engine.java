@@ -143,6 +143,48 @@ public class Engine {
     return _properties.get(key);
   }
 
+  private final String defaultPlanClass(final Task<?> task) {
+    return task.getClass().getName();
+  }
+
+  /**
+   * Runs the given task. Task passed in as a parameter becomes a root on a new Plan.
+   * All tasks created and started as a consequence of a root task will belong to that plan and will share a Trace.
+   * <p>
+   * This method throws {@code IllegalStateException} if Engine does not have capacity to run the task.
+   * Engine's capacity is specified by a {@value #MAX_CONCURRENT_PLANS} configuration property. Use
+   * {@link EngineBuilder#setEngineProperty(String, Object)} to set this property.
+   * For the sake of backwards compatibility default value for a {@value #MAX_CONCURRENT_PLANS} is
+   * {@value #DEFUALT_MAX_CONCURRENT_PLANS} which essentially means "unbounded capacity".
+   *
+   * @param task the task to run
+   * @throws IllegalStateException
+   */
+  public void run(final Task<?> task) {
+    run(task, defaultPlanClass(task));
+  }
+
+  /**
+   * Runs the given task. Task passed in as a parameter becomes a root on a new Plan.
+   * All tasks created and started as a consequence of a root task will belong to that plan and will share a Trace.
+   * <p>
+   * This method throws {@code IllegalStateException} if Engine does not have capacity to run the task.
+   * Engine's capacity is specified by a {@value #MAX_CONCURRENT_PLANS} configuration property. Use
+   * {@link EngineBuilder#setEngineProperty(String, Object)} to set this property.
+   * For the sake of backwards compatibility default value for a {@value #MAX_CONCURRENT_PLANS} is
+   * {@value #DEFUALT_MAX_CONCURRENT_PLANS} which essentially means "unbounded capacity".
+   *
+   * @param task the task to run
+   * @param planClass string that identifies a "class" of the Plan. Plan class ends up in a ParSeq
+   * Trace and can be used to group traces into "classes" when traces are statistically analyzed.
+   * @throws IllegalStateException
+   */
+  public void run(final Task<?> task, final String planClass) {
+    if (!tryRun(task, planClass)) {
+      throw new IllegalStateException("Starting new plan rejected, exceeded limit of concurrent plans: " + _maxConcurrentPlans);
+    }
+  }
+
   /**
    * Runs the given task. Task passed in as a parameter becomes a root on a new Plan.
    * All tasks created and started as a consequence of a root task will belong to that plan and will share a Trace.
@@ -155,12 +197,8 @@ public class Engine {
    *
    * @param task the task to run
    */
-  public void run(final Task<?> task) {
-    run(task, defaultPlanClass(task));
-  }
-
-  private final String defaultPlanClass(final Task<?> task) {
-    return task.getClass().getName();
+  public void blockingRun(final Task<?> task) {
+    blockingRun(task, defaultPlanClass(task));
   }
 
   /**
@@ -177,7 +215,7 @@ public class Engine {
    * @param planClass string that identifies a "class" of the Plan. Plan class ends up in a ParSeq
    * Trace and can be used to group traces into "classes" when traces are statistically analyzed.
    */
-  public void run(final Task<?> task, final String planClass) {
+  public void blockingRun(final Task<?> task, final String planClass) {
     try {
       _concurrentPlans.acquire();
       runWithPermit(task, planClass);
@@ -189,6 +227,8 @@ public class Engine {
   /**
    * Runs the given task if Engine has a capacity to start new plan as specified by
    * {@value #MAX_CONCURRENT_PLANS} configuration parameter.
+   * For the sake of backwards compatibility default value for a {@value #MAX_CONCURRENT_PLANS} is
+   * {@value #DEFUALT_MAX_CONCURRENT_PLANS} which essentially means "unbounded capacity".
    * Task passed in as a parameter becomes a root on a new Plan.
    * All tasks created and started as a consequence of a root task will belong to that plan and will share a Trace.
    * This method returns immediately and does not block. It returns {@code true} if Plan was successfully started.
@@ -202,6 +242,8 @@ public class Engine {
   /**
    * Runs the given task if Engine has a capacity to start new plan as specified by
    * {@value #MAX_CONCURRENT_PLANS} configuration parameter.
+   * For the sake of backwards compatibility default value for a {@value #MAX_CONCURRENT_PLANS} is
+   * {@value #DEFUALT_MAX_CONCURRENT_PLANS} which essentially means "unbounded capacity".
    * Task passed in as a parameter becomes a root on a new Plan.
    * All tasks created and started as a consequence of a root task will belong to that plan and will share a Trace.
    * This method returns immediately and does not block. It returns {@code true} if Plan was successfully started.
@@ -221,6 +263,8 @@ public class Engine {
   /**
    * Runs the given task if Engine has a capacity to start new plan as specified by
    * {@value #MAX_CONCURRENT_PLANS} configuration parameter within specified amount of time.
+   * For the sake of backwards compatibility default value for a {@value #MAX_CONCURRENT_PLANS} is
+   * {@value #DEFUALT_MAX_CONCURRENT_PLANS} which essentially means "unbounded capacity".
    * Task passed in as a parameter becomes a root on a new Plan.
    * All tasks created and started as a consequence of a root task will belong to that plan and will share a Trace.
    * If Engine does not have capacity to start the task, this method will block up to specified amount of
@@ -239,6 +283,8 @@ public class Engine {
   /**
    * Runs the given task if Engine has a capacity to start new plan as specified by
    * {@value #MAX_CONCURRENT_PLANS} configuration parameter within specified amount of time.
+   * For the sake of backwards compatibility default value for a {@value #MAX_CONCURRENT_PLANS} is
+   * {@value #DEFUALT_MAX_CONCURRENT_PLANS} which essentially means "unbounded capacity".
    * Task passed in as a parameter becomes a root on a new Plan.
    * All tasks created and started as a consequence of a root task will belong to that plan and will share a Trace.
    * If Engine does not have capacity to start the task, this method will block up to specified amount of
