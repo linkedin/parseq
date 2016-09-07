@@ -16,6 +16,7 @@
 
 package com.linkedin.parseq;
 
+import static org.testng.Assert.fail;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
@@ -94,6 +95,25 @@ public class TestEngineConcurrentPlans {
   }
 
   @Test
+  public void testBlockingRunWithinCapacity() throws InterruptedException {
+
+    final AtomicInteger counter = new AtomicInteger(0);
+
+    Task<?>[] tasks = new Task<?>[10];
+
+    for (int i = 0; i < 10; i++) {
+      tasks[i] = Task.action(counter::incrementAndGet);
+    }
+
+    for (int i = 0; i < 10; i++) {
+      _engine.blockingRun(tasks[i]);
+    }
+
+    assertTrue(tasks[9].await(5, TimeUnit.SECONDS));
+    assertEquals(counter.get(), 10);
+  }
+
+  @Test
   public void testTimeBoundedTryRunWithinCapacity() throws InterruptedException {
 
     final AtomicInteger counter = new AtomicInteger(0);
@@ -113,7 +133,7 @@ public class TestEngineConcurrentPlans {
   }
 
   @Test
-  public void testBlocking() throws InterruptedException {
+  public void testRunOverCapacity() throws InterruptedException {
 
     final CountDownLatch latch = new CountDownLatch(1);
 
@@ -128,7 +148,39 @@ public class TestEngineConcurrentPlans {
       _engine.run(tasks[i]);
     }
 
-    //blocking one
+    try {
+      _engine.run(Task.action(() -> {}));
+      fail();
+    } catch (IllegalStateException e) {
+      //expected
+    }
+
+    //release tasks
+    latch.countDown();
+
+    //wait for tasks to finish
+    assertTrue(tasks[9].await(5, TimeUnit.SECONDS));
+
+    //should be unblocked
+    _engine.run(Task.action(() -> {}));
+  }
+
+  @Test
+  public void testTryRunOverCapacity() throws InterruptedException {
+
+    final CountDownLatch latch = new CountDownLatch(1);
+
+    Task<?>[] tasks = new Task<?>[10];
+
+    for (int i = 0; i < 10; i++) {
+      tasks[i] = Task.action(latch::await);
+    }
+
+    //within capacity
+    for (int i = 0; i < 10; i++) {
+      assertTrue(_engine.tryRun(tasks[i]));
+    }
+
     assertFalse(_engine.tryRun(Task.action(() -> {})));
 
     //release tasks
@@ -142,7 +194,7 @@ public class TestEngineConcurrentPlans {
   }
 
   @Test
-  public void testTimeBoundedBlocking() throws InterruptedException {
+  public void testTimeBoundedTryRunOverCapacity() throws InterruptedException {
 
     final CountDownLatch latch = new CountDownLatch(1);
 
@@ -154,10 +206,9 @@ public class TestEngineConcurrentPlans {
 
     //within capacity
     for (int i = 0; i < 10; i++) {
-      _engine.run(tasks[i]);
+      assertTrue(_engine.tryRun(tasks[i], 10, TimeUnit.MILLISECONDS));
     }
 
-    //time bounded blocking
     assertFalse(_engine.tryRun(Task.action(() -> {}), 10, TimeUnit.MILLISECONDS));
 
     //release tasks
@@ -167,7 +218,46 @@ public class TestEngineConcurrentPlans {
     assertTrue(tasks[9].await(5, TimeUnit.SECONDS));
 
     //should be unblocked
-    assertTrue(_engine.tryRun(Task.action(() -> {})));
+    assertTrue(_engine.tryRun(Task.action(() -> {}), 10, TimeUnit.MILLISECONDS));
+  }
+
+  @Test
+  public void testBlockingRunOverCapacity() throws InterruptedException {
+
+    final CountDownLatch latch = new CountDownLatch(1);
+
+    Task<?>[] tasks = new Task<?>[10];
+
+    for (int i = 0; i < 10; i++) {
+      tasks[i] = Task.action(latch::await);
+    }
+
+    //within capacity
+    for (int i = 0; i < 10; i++) {
+      _engine.blockingRun(tasks[i]);
+    }
+
+    final CountDownLatch blockedTaskLatch = new CountDownLatch(1);
+    final CountDownLatch blockedThreadLatch = new CountDownLatch(1);
+    new Thread(() -> {
+      blockedThreadLatch.countDown();
+      _engine.blockingRun(Task.action(() -> { blockedTaskLatch.countDown(); }));
+    }).start();
+
+    //first wait for a background thread to reach _engine.run()
+    assertTrue(blockedThreadLatch.await(5, TimeUnit.SECONDS));
+
+    //sleep for 200ms to make sure background thread executed _engine.run()
+    Thread.sleep(200);
+
+    //verify background tasks didn't run
+    assertEquals(1L, blockedTaskLatch.getCount());
+
+    //release tasks
+    latch.countDown();
+
+    //background thread should be unblocked and background task should eventually run
+    assertTrue(blockedTaskLatch.await(5, TimeUnit.SECONDS));
   }
 
 }
