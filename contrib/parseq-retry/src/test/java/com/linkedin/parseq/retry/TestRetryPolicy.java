@@ -21,8 +21,7 @@ public class TestRetryPolicy extends BaseEngineTest {
   @Test
   public void testSuccessfulTask()
   {
-    Task<String> task = withRetryPolicy("testSuccessfulTask", RetryPolicy.simple(3),
-        attempt -> Task.value("successful attempt " + attempt));
+    Task<String> task = withRetryPolicy(RetryPolicy.simple(3), attempt -> Task.value("successful attempt " + attempt));
     runAndWait(task);
     assertTrue(task.isDone());
     assertEquals(task.get(), "successful attempt 0");

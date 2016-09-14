@@ -53,6 +53,39 @@ public class RetriableTask<T> extends BaseTask<T> {
   }
 
   /**
+   * A parseq task wrapper that supports arbitrary retry policies.
+   *
+   * @param taskFunction A task generator function. It will receive a zero-based attempt number as a parameter.
+   * @param policy Retry policy that will control this task's behavior.
+   */
+  public RetriableTask(Function<Integer, Task<T>> taskFunction, AbstractRetryPolicy<T> policy)
+  {
+    this("operation", taskFunction, policy);
+  }
+
+  /**
+   * A helper for creating task wrapper with associated retry policy.
+   *
+   * @param policy Retry policy that will control this task's behavior.
+   * @param taskSupplier A task generator function.
+   * @param <U> Type of a task result, used for strongly typed processing of outcomes.
+   */
+  public static <U> RetriableTask<U> withRetryPolicy(AbstractRetryPolicy<U> policy, Supplier<Task<U>> taskSupplier) {
+    return new RetriableTask<>(attempt -> taskSupplier.get(), policy);
+  }
+
+  /**
+   * A helper for creating task wrapper with associated retry policy.
+   *
+   * @param policy Retry policy that will control this task's behavior.
+   * @param taskFunction A task generator function. It will receive a zero-based attempt number as a parameter.
+   * @param <U> Type of a task result, used for strongly typed processing of outcomes.
+   */
+  public static <U> RetriableTask<U> withRetryPolicy(AbstractRetryPolicy<U> policy, Function<Integer, Task<U>> taskFunction) {
+    return new RetriableTask<>(taskFunction, policy);
+  }
+
+  /**
    * A helper for creating task wrapper with associated retry policy.
    *
    * @param name A name of the task that needs to be retried.
@@ -83,7 +116,7 @@ public class RetriableTask<T> extends BaseTask<T> {
     return Task.async(_policy.getName(), context -> {
       final SettablePromise<T> result = Promises.settable();
 
-      final Task<T> recovery = Task.async("recovery", recoveryContext -> {
+      final Task<T> recovery = Task.async(_name + " recovery", recoveryContext -> {
         final SettablePromise<T> recoveryResult = Promises.settable();
 
         if (task.isFailed()) {
