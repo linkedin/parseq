@@ -29,7 +29,7 @@ public interface TerminationPolicy {
    *
    * @param maxDuration The maximum duration that a retry operation should not exceed.
    */
-  static TerminationPolicy limitDuration(int maxDuration) {
+  static TerminationPolicy limitDuration(long maxDuration) {
     return new LimitDuration(maxDuration);
   }
 

@@ -11,19 +11,20 @@ The most simple example provides basic retry functionality:
 ```java
 import static com.linkedin.parseq.retry.RetriableTask.withRetryPolicy;
 
-Task<String> task = withRetryPolicy(RetryPolicy.simple(3), () -> Task.value("Hello, World!"));
+Task<String> task1 = withRetryPolicy(RetryPolicy.attempts(3), () -> Task.value("Hello, World!"));
+Task<String> task2 = withRetryPolicy(RetryPolicy.duration(5000), () -> Task.value("Hello, World!"));
 ```
 
 It's possible for the task generator to take the current attempt number (zero-based): 
 
 ```java
-Task<String> task = withRetryPolicy(RetryPolicy.simple(3), attempt -> Task.value("Current attempt: " + attempt));
+Task<String> task = withRetryPolicy(RetryPolicy.attempts(3), attempt -> Task.value("Current attempt: " + attempt));
 ```
 
 It's also recommended to specify the operation name, so that it can be used for logging and naming of ParSeq tasks:
 
 ```java
-Task<String> task = withRetryPolicy("sampleOperation", RetryPolicy.simple(3), () -> Task.value("Hello, World!"));
+Task<String> task = withRetryPolicy("sampleOperation", RetryPolicy.attempts(3), () -> Task.value("Hello, World!"));
 ```
 
 Error and result classification
@@ -34,7 +35,7 @@ Not every task failure is intermittent and not every task result is valid. Retry
 ```java
 Function<Throwable, ErrorClassification> errorClassifier = error -> error instanceof TimeoutException ? ErrorClassification.RECOVERABLE : ErrorClassification.FATAL;
 Function<Integer, ResultClassification> resultClassifier = result -> result == 0 ? ResultClassification.UNACCEPTABLE : ResultClassification.ACCEPTABLE;
-Task<Integer> task = withRetryPolicy(RetryPolicy.<Integer>simple(3).setResultClassifier(resultClassifier).setErrorClassifier(errorClassifier), () -> Task.value(Random.nextInt(10)));
+Task<Integer> task = withRetryPolicy(RetryPolicy.<Integer>attempts(3).setResultClassifier(resultClassifier).setErrorClassifier(errorClassifier), () -> Task.value(Random.nextInt(10)));
 ```
 
 Unacceptable results are recoverable by default, but it can also be changed:
@@ -51,7 +52,7 @@ Simple retry policy from the examples above would retry failed tasks immediately
 
 ```java
 BackoffPolicy<String> backoffPolicy = BackoffPolicy.<>constant(1000);
-Task<String> task = withRetryPolicy(RetryPolicy.<String>simple(3).setBackoffPolicy(backoffPolicy), () -> Task.value("Hello, World!"));
+Task<String> task = withRetryPolicy(RetryPolicy.<String>attempts(3).setBackoffPolicy(backoffPolicy), () -> Task.value("Hello, World!"));
 ```
 
 There are several backoff policies available: ```constant```, ```linear```, ```exponential```, ```fibonacci```, ```randomized```, ```selected```. It's also possible to create your own by implementing ```BackoffPolicy``` interface.
@@ -63,7 +64,7 @@ To configure the number of retry attempts there are a few termination policies a
 
 ```java
 TerminationPolicy terminationPolicy = TerminationPolicy.limitDuration(1000);
-Task<String> task = withRetryPolicy(RetryPolicy.<String>simple(3).setTerminationPolicy(terminationPolicy), () -> Task.value("Hello, World!"));
+Task<String> task = withRetryPolicy(RetryPolicy.<String>attempts(3).setTerminationPolicy(terminationPolicy), () -> Task.value("Hello, World!"));
 ```
 
 The ```limitDuration``` policy would limit the total duration of the task (including all retries) to the provided number of milliseconds. Be careful: if the task fails fast, that could mean a lot of retries!
@@ -77,7 +78,7 @@ By default retry task wrapper does not do any logging of its progress. Failed ta
 
 ```java
 EventMonitor<String> eventMonitor = EventMonitor.<>printWithStream(System.out);
-Task<String> task = withRetryPolicy(RetryPolicy.<String>simple(3).setEventMonitor(eventMonitor), () -> Task.value("Hello, World!"));
+Task<String> task = withRetryPolicy(RetryPolicy.<String>attempts(3).setEventMonitor(eventMonitor), () -> Task.value("Hello, World!"));
 ```
 
 Instead of ```PrintStream``` it's possible to use ```PrintWriter```:

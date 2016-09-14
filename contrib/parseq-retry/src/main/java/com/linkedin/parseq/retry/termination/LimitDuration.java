@@ -14,7 +14,7 @@ public class LimitDuration implements TerminationPolicy {
    *
    * @param maxDuration The maximum duration that a retry operation should not exceed.
    */
-  public LimitDuration(int maxDuration) {
+  public LimitDuration(long maxDuration) {
     _maxDuration = maxDuration;
   }
 

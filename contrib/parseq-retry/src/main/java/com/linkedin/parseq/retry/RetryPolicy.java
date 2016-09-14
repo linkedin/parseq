@@ -2,6 +2,7 @@ package com.linkedin.parseq.retry;
 
 import com.linkedin.parseq.retry.backoff.BackoffPolicy;
 import com.linkedin.parseq.retry.monitor.EventMonitor;
+import com.linkedin.parseq.retry.termination.RequireEither;
 import com.linkedin.parseq.retry.termination.TerminationPolicy;
 
 import java.util.function.Function;
@@ -32,13 +33,39 @@ public class RetryPolicy<T> extends AbstractRetryPolicy<T> {
   }
 
   /**
-   * Simple retry policy with configurable number of retries. It doesn't have any delays between retries and doesn't log any events.
+   * Retry policy with configurable number of attempts. It doesn't have any delays between retries and doesn't log any events.
    *
    * @param attempts Total number of attempts (the number of retries will be that minus 1).
    * @param <U> Type of a task result, used for strongly typed processing of outcomes.
    */
-  public static <U> AbstractRetryPolicy<U> simple(int attempts) {
-    return new RetryPolicy<>("simple retry", TerminationPolicy.limitAttempts(attempts), BackoffPolicy.constant(0),
+  public static <U> AbstractRetryPolicy<U> attempts(int attempts) {
+    return new RetryPolicy<>("RetryPolicy.attempts", TerminationPolicy.limitAttempts(attempts), BackoffPolicy.constant(0),
+        EventMonitor.ignore(), error -> ResultClassification.ACCEPTABLE, ErrorClassification.DEFAULT);
+  }
+
+  /**
+   * Retry policy with limited total duration of the encompassing task (including unlimited retries).
+   * It doesn't have any delays between retries and doesn't log any events.
+   *
+   * @param duration Total duration of the task. This includes both the original request and all potential retries.
+   * @param <U> Type of a task result, used for strongly typed processing of outcomes.
+   */
+  public static <U> AbstractRetryPolicy<U> duration(long duration) {
+    return new RetryPolicy<>("RetryPolicy.duration", TerminationPolicy.limitDuration(duration), BackoffPolicy.constant(0),
+        EventMonitor.ignore(), error -> ResultClassification.ACCEPTABLE, ErrorClassification.DEFAULT);
+  }
+
+  /**
+   * Retry policy with configurable number of retries and limited total duration of the encompassing task.
+   * It doesn't have any delays between retries and doesn't log any events.
+   *
+   * @param attempts Total number of attempts (the number of retries will be that minus 1).
+   * @param duration Total duration of the task. This includes both the original request and all potential retries.
+   * @param <U> Type of a task result, used for strongly typed processing of outcomes.
+   */
+  public static <U> AbstractRetryPolicy<U> attemptsAndDuration(int attempts, long duration) {
+    TerminationPolicy terminationPolicy = new RequireEither(TerminationPolicy.limitAttempts(attempts), TerminationPolicy.limitDuration(duration));
+    return new RetryPolicy<>("RetryPolicy.attemptsAndDuration", terminationPolicy, BackoffPolicy.constant(0),
         EventMonitor.ignore(), error -> ResultClassification.ACCEPTABLE, ErrorClassification.DEFAULT);
   }
 }
