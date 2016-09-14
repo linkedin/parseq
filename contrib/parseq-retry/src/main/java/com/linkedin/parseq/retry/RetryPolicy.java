@@ -38,7 +38,7 @@ public class RetryPolicy<T> extends AbstractRetryPolicy<T> {
    * @param attempts Total number of attempts (the number of retries will be that minus 1).
    * @param <U> Type of a task result, used for strongly typed processing of outcomes.
    */
-  public static <U> AbstractRetryPolicy<U> attempts(int attempts) {
+  public static <U> RetryPolicy<U> attempts(int attempts) {
     return new RetryPolicy<>("RetryPolicy.attempts", TerminationPolicy.limitAttempts(attempts), BackoffPolicy.constant(0),
         EventMonitor.ignore(), error -> ResultClassification.ACCEPTABLE, ErrorClassification.DEFAULT);
   }
@@ -50,7 +50,7 @@ public class RetryPolicy<T> extends AbstractRetryPolicy<T> {
    * @param duration Total duration of the task. This includes both the original request and all potential retries.
    * @param <U> Type of a task result, used for strongly typed processing of outcomes.
    */
-  public static <U> AbstractRetryPolicy<U> duration(long duration) {
+  public static <U> RetryPolicy<U> duration(long duration) {
     return new RetryPolicy<>("RetryPolicy.duration", TerminationPolicy.limitDuration(duration), BackoffPolicy.constant(0),
         EventMonitor.ignore(), error -> ResultClassification.ACCEPTABLE, ErrorClassification.DEFAULT);
   }
@@ -63,9 +63,57 @@ public class RetryPolicy<T> extends AbstractRetryPolicy<T> {
    * @param duration Total duration of the task. This includes both the original request and all potential retries.
    * @param <U> Type of a task result, used for strongly typed processing of outcomes.
    */
-  public static <U> AbstractRetryPolicy<U> attemptsAndDuration(int attempts, long duration) {
+  public static <U> RetryPolicy<U> attemptsAndDuration(int attempts, long duration) {
     TerminationPolicy terminationPolicy = new RequireEither(TerminationPolicy.limitAttempts(attempts), TerminationPolicy.limitDuration(duration));
     return new RetryPolicy<>("RetryPolicy.attemptsAndDuration", terminationPolicy, BackoffPolicy.constant(0),
         EventMonitor.ignore(), error -> ResultClassification.ACCEPTABLE, ErrorClassification.DEFAULT);
+  }
+
+  /**
+   * Set a name of this policy. It is used to configure parseq tasks.
+   */
+  public RetryPolicy<T> setName(String name) {
+    _name = name;
+    return this;
+  }
+
+  /**
+   * Set a strategy for determining when to abort a retry operation.
+   */
+  public RetryPolicy<T> setTerminationPolicy(TerminationPolicy terminationPolicy) {
+    _terminationPolicy = terminationPolicy;
+    return this;
+  }
+
+  /**
+   * Set a strategy used to calculate delays between retries.
+   */
+  public RetryPolicy<T> setBackoffPolicy(BackoffPolicy<T> backoffPolicy) {
+    _backoffPolicy = backoffPolicy;
+    return this;
+  }
+
+  /**
+   * Set a monitor that is notified of retry events.
+   */
+  public RetryPolicy<T> setEventMonitor(EventMonitor<T> eventMonitor) {
+    _eventMonitor = eventMonitor;
+    return this;
+  }
+
+  /**
+   * Set a classifier for results returned during retry operations.
+   */
+  public RetryPolicy<T> setResultClassifier(Function<T, ResultClassification> resultClassifier) {
+    _resultClassifier = resultClassifier;
+    return this;
+  }
+
+  /**
+   * Set a classifier for errors raised during retry operations.
+   */
+  public RetryPolicy<T> setErrorClassifier(Function<Throwable, ErrorClassification> errorClassifier) {
+    _errorClassifier = errorClassifier;
+    return this;
   }
 }

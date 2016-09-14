@@ -39,6 +39,7 @@ Task<Integer> task = withRetryPolicy(RetryPolicy.<Integer>attempts(3).setResultC
 ```
 
 Unacceptable results are recoverable by default, but it can also be changed:
+
 ```java
 ResultClassification.UNACCEPTABLE.setStatus(ErrorClassification.FATAL);
 ```

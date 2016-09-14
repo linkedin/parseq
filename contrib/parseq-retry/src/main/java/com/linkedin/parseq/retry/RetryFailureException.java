@@ -14,4 +14,8 @@ public class RetryFailureException extends Exception {
   public RetryFailureException(final String message) {
     super(message);
   }
+
+  public RetryFailureException(final String message, Throwable throwable) {
+    super(message, throwable);
+  }
 }

@@ -6,15 +6,23 @@ package com.linkedin.parseq.retry;
  *
  * @author Oleg Anashkin (oleg.anashkin@gmail.com)
  */
-public enum ResultClassification {
+public final class ResultClassification {
   /** The classification of results that will not interrupt the retry operation. */
-  ACCEPTABLE,
+  public static final ResultClassification ACCEPTABLE = new ResultClassification();
 
   /** The classification of results that will interrupt the retry operation. */
-  UNACCEPTABLE;
+  public static final ResultClassification UNACCEPTABLE = new ResultClassification();
 
   /** Error classification associated with this result. */
-  protected ErrorClassification _status = ErrorClassification.RECOVERABLE;
+  private final ErrorClassification _status;
+
+  private ResultClassification() {
+    _status = ErrorClassification.RECOVERABLE;
+  }
+
+  private ResultClassification(ErrorClassification status) {
+    _status = status;
+  }
 
   /**
    * @return Error classification associated with this result.
@@ -29,7 +37,6 @@ public enum ResultClassification {
    * @param status Error classification.
    */
   public ResultClassification setStatus(ErrorClassification status) {
-    _status = status;
-    return this;
+    return new ResultClassification(status);
   }
 }

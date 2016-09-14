@@ -3,6 +3,7 @@ package com.linkedin.parseq.retry.termination;
 
 /**
  * A termination policy that never signals for termination.
+ * WARNING: Please think twice before using this policy, it could cause a deadlock in your application.
  *
  * @author Oleg Anashkin (oleg.anashkin@gmail.com)
  */

@@ -62,6 +62,7 @@ public interface TerminationPolicy {
 
   /**
    * A termination policy that never signals for termination.
+   * WARNING: Please think twice before using this policy, it could cause a deadlock in your application.
    */
   static TerminationPolicy neverTerminate() {
     return new NeverTerminate();

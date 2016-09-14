@@ -54,7 +54,6 @@ public enum ErrorClassification {
   }
 
   protected static boolean nonFatal(Throwable throwable) {
-    return throwable instanceof StackOverflowError || !(throwable instanceof VirtualMachineError || throwable instanceof ThreadDeath
-        || throwable instanceof InterruptedException || throwable instanceof LinkageError);
+    return throwable instanceof StackOverflowError || !(throwable instanceof Error || throwable instanceof InterruptedException);
   }
 }

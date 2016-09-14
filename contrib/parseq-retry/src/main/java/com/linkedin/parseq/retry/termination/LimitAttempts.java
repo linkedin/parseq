@@ -1,5 +1,7 @@
 package com.linkedin.parseq.retry.termination;
 
+import com.linkedin.parseq.internal.ArgumentUtil;
+
 
 /**
  * A termination policy that limits the number of attempts made.
@@ -15,6 +17,7 @@ public class LimitAttempts implements TerminationPolicy {
    * @param maxAttempts The maximum number of attempts that can be performed.
    */
   public LimitAttempts(int maxAttempts) {
+    ArgumentUtil.requirePositive(maxAttempts, "maxAttempts");
     _maxAttempts = maxAttempts;
   }
 

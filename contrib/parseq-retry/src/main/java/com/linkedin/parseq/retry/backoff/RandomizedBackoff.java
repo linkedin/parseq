@@ -3,7 +3,7 @@ package com.linkedin.parseq.retry.backoff;
 import com.linkedin.parseq.function.Try;
 import com.linkedin.parseq.internal.ArgumentUtil;
 
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 
 /**
@@ -14,7 +14,6 @@ import java.util.Random;
  * @author Oleg Anashkin (oleg.anashkin@gmail.com)
  */
 public class RandomizedBackoff<T> implements BackoffPolicy<T> {
-  protected final Random _random = new Random();
   protected final BackoffPolicy<T> _policy;
   protected final long _minRange;
   protected final long _maxRange;
@@ -42,6 +41,6 @@ public class RandomizedBackoff<T> implements BackoffPolicy<T> {
    */
   @Override
   public long nextBackoff(int attempts, Try<T> outcome) {
-    return _policy.nextBackoff(attempts, outcome) + _minRange + Math.round((_maxRange - _minRange) * _random.nextDouble());
+    return _policy.nextBackoff(attempts, outcome) + _minRange + Math.round((_maxRange - _minRange) * ThreadLocalRandom.current().nextDouble());
   }
 }

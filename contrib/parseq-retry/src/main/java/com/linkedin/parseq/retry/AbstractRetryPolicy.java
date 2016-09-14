@@ -62,26 +62,10 @@ public abstract class AbstractRetryPolicy<T> {
   }
 
   /**
-   * Set a name of this policy. It is used to configure parseq tasks.
-   */
-  public AbstractRetryPolicy<T> setName(String name) {
-    _name = name;
-    return this;
-  }
-
-  /**
    * @return The strategy for determining when to abort a retry operation.
    */
   public TerminationPolicy getTerminationPolicy() {
     return _terminationPolicy;
-  }
-
-  /**
-   * Set a strategy for determining when to abort a retry operation.
-   */
-  public AbstractRetryPolicy<T> setTerminationPolicy(TerminationPolicy terminationPolicy) {
-    _terminationPolicy = terminationPolicy;
-    return this;
   }
 
   /**
@@ -92,26 +76,10 @@ public abstract class AbstractRetryPolicy<T> {
   }
 
   /**
-   * Set a strategy used to calculate delays between retries.
-   */
-  public AbstractRetryPolicy<T> setBackoffPolicy(BackoffPolicy<T> backoffPolicy) {
-    _backoffPolicy = backoffPolicy;
-    return this;
-  }
-
-  /**
    * @return The monitor that is notified of retry events.
    */
   public EventMonitor<T> getEventMonitor() {
     return _eventMonitor;
-  }
-
-  /**
-   * Set a monitor that is notified of retry events.
-   */
-  public AbstractRetryPolicy<T> setEventMonitor(EventMonitor<T> eventMonitor) {
-    _eventMonitor = eventMonitor;
-    return this;
   }
 
   /**
@@ -122,25 +90,9 @@ public abstract class AbstractRetryPolicy<T> {
   }
 
   /**
-   * Set a classifier for results returned during retry operations.
-   */
-  public AbstractRetryPolicy<T> setResultClassifier(Function<T, ResultClassification> resultClassifier) {
-    _resultClassifier = resultClassifier;
-    return this;
-  }
-
-  /**
    * @return The classifier for errors raised during retry operations.
    */
   public Function<Throwable, ErrorClassification> getErrorClassifier() {
     return _errorClassifier;
-  }
-
-  /**
-   * Set a classifier for errors raised during retry operations.
-   */
-  public AbstractRetryPolicy<T> setErrorClassifier(Function<Throwable, ErrorClassification> errorClassifier) {
-    _errorClassifier = errorClassifier;
-    return this;
   }
 }
