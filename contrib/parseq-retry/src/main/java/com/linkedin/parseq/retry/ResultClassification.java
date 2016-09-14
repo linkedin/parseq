@@ -8,20 +8,32 @@ package com.linkedin.parseq.retry;
  */
 public final class ResultClassification {
   /** The classification of results that will not interrupt the retry operation. */
-  public static final ResultClassification ACCEPTABLE = new ResultClassification();
+  public static final ResultClassification ACCEPTABLE = new ResultClassification(true);
 
   /** The classification of results that will interrupt the retry operation. */
-  public static final ResultClassification UNACCEPTABLE = new ResultClassification();
+  public static final ResultClassification UNACCEPTABLE = new ResultClassification(false);
 
   /** Error classification associated with this result. */
   private final ErrorClassification _status;
 
-  private ResultClassification() {
+  /** Is this result acceptable. */
+  private final boolean _isAcceptable;
+
+  private ResultClassification(boolean isAcceptable) {
+    _isAcceptable = isAcceptable;
     _status = ErrorClassification.RECOVERABLE;
   }
 
-  private ResultClassification(ErrorClassification status) {
+  private ResultClassification(boolean isAcceptable, ErrorClassification status) {
+    _isAcceptable = isAcceptable;
     _status = status;
+  }
+
+  /**
+   * @return Is this result acceptable.
+   */
+  public boolean isAcceptable() {
+    return _isAcceptable;
   }
 
   /**
@@ -37,6 +49,6 @@ public final class ResultClassification {
    * @param status Error classification.
    */
   public ResultClassification setStatus(ErrorClassification status) {
-    return new ResultClassification(status);
+    return new ResultClassification(_isAcceptable, status);
   }
 }

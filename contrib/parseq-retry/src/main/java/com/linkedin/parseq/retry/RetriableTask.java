@@ -127,7 +127,7 @@ public class RetriableTask<T> extends BaseTask<T> {
           // Successful task might still need to be retried if its result is not acceptable according to the policy.
           T taskResult = task.get();
           ResultClassification resultClassification = _policy.getResultClassifier().apply(taskResult);
-          if (resultClassification == ResultClassification.UNACCEPTABLE) {
+          if (!resultClassification.isAcceptable()) {
             // Unacceptable result -> should retry.
             retry(attempt + 1, Success.of(taskResult), resultClassification.getStatus(), recoveryContext, recoveryResult);
           } else {
