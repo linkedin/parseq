@@ -30,7 +30,7 @@ public class RetriableTask<T> extends BaseTask<T> {
   protected final Function<Integer, Task<T>> _taskFunction;
 
   /** Retry policy which will control this task's behavior. */
-  protected final AbstractRetryPolicy<T> _policy;
+  protected final RetryPolicy<T> _policy;
 
   /** Start time for the very first attempt. */
   protected long _startedAt;
@@ -42,7 +42,7 @@ public class RetriableTask<T> extends BaseTask<T> {
    * @param taskFunction A task generator function. It will receive a zero-based attempt number as a parameter.
    * @param policy Retry policy that will control this task's behavior.
    */
-  public RetriableTask(String name, Function<Integer, Task<T>> taskFunction, AbstractRetryPolicy<T> policy)
+  public RetriableTask(String name, Function<Integer, Task<T>> taskFunction, RetryPolicy<T> policy)
   {
     ArgumentUtil.requireNotNull(taskFunction, "taskFunction");
     ArgumentUtil.requireNotNull(policy, "policy");
@@ -58,7 +58,7 @@ public class RetriableTask<T> extends BaseTask<T> {
    * @param taskFunction A task generator function. It will receive a zero-based attempt number as a parameter.
    * @param policy Retry policy that will control this task's behavior.
    */
-  public RetriableTask(Function<Integer, Task<T>> taskFunction, AbstractRetryPolicy<T> policy)
+  public RetriableTask(Function<Integer, Task<T>> taskFunction, RetryPolicy<T> policy)
   {
     this("operation", taskFunction, policy);
   }
@@ -70,7 +70,7 @@ public class RetriableTask<T> extends BaseTask<T> {
    * @param taskSupplier A task generator function.
    * @param <U> Type of a task result, used for strongly typed processing of outcomes.
    */
-  public static <U> RetriableTask<U> withRetryPolicy(AbstractRetryPolicy<U> policy, Supplier<Task<U>> taskSupplier) {
+  public static <U> RetriableTask<U> withRetryPolicy(RetryPolicy<U> policy, Supplier<Task<U>> taskSupplier) {
     return new RetriableTask<>(attempt -> taskSupplier.get(), policy);
   }
 
@@ -81,7 +81,7 @@ public class RetriableTask<T> extends BaseTask<T> {
    * @param taskFunction A task generator function. It will receive a zero-based attempt number as a parameter.
    * @param <U> Type of a task result, used for strongly typed processing of outcomes.
    */
-  public static <U> RetriableTask<U> withRetryPolicy(AbstractRetryPolicy<U> policy, Function<Integer, Task<U>> taskFunction) {
+  public static <U> RetriableTask<U> withRetryPolicy(RetryPolicy<U> policy, Function<Integer, Task<U>> taskFunction) {
     return new RetriableTask<>(taskFunction, policy);
   }
 
@@ -93,7 +93,7 @@ public class RetriableTask<T> extends BaseTask<T> {
    * @param taskSupplier A task generator function.
    * @param <U> Type of a task result, used for strongly typed processing of outcomes.
    */
-  public static <U> RetriableTask<U> withRetryPolicy(String name, AbstractRetryPolicy<U> policy, Supplier<Task<U>> taskSupplier) {
+  public static <U> RetriableTask<U> withRetryPolicy(String name, RetryPolicy<U> policy, Supplier<Task<U>> taskSupplier) {
     return new RetriableTask<>(name, attempt -> taskSupplier.get(), policy);
   }
 
@@ -105,7 +105,7 @@ public class RetriableTask<T> extends BaseTask<T> {
    * @param taskFunction A task generator function. It will receive a zero-based attempt number as a parameter.
    * @param <U> Type of a task result, used for strongly typed processing of outcomes.
    */
-  public static <U> RetriableTask<U> withRetryPolicy(String name, AbstractRetryPolicy<U> policy, Function<Integer, Task<U>> taskFunction) {
+  public static <U> RetriableTask<U> withRetryPolicy(String name, RetryPolicy<U> policy, Function<Integer, Task<U>> taskFunction) {
     return new RetriableTask<>(name, taskFunction, policy);
   }
 
