@@ -1,28 +1,11 @@
 package com.linkedin.parseq.retry;
 
 import com.linkedin.parseq.BaseEngineTest;
-import com.linkedin.parseq.Task;
 import com.linkedin.parseq.function.Failure;
 import com.linkedin.parseq.retry.backoff.BackoffPolicy;
-import com.linkedin.parseq.retry.backoff.ConstantBackoff;
-import com.linkedin.parseq.retry.backoff.ExponentialBackoff;
-import com.linkedin.parseq.retry.backoff.FibonacciBackoff;
-import com.linkedin.parseq.retry.backoff.LinearBackoff;
-import com.linkedin.parseq.retry.backoff.RandomizedBackoff;
-import com.linkedin.parseq.retry.backoff.SelectedBackoff;
-import com.linkedin.parseq.retry.termination.AlwaysTerminate;
-import com.linkedin.parseq.retry.termination.LimitAttempts;
-import com.linkedin.parseq.retry.termination.LimitDuration;
-import com.linkedin.parseq.retry.termination.NeverTerminate;
-import com.linkedin.parseq.retry.termination.RequireBoth;
-import com.linkedin.parseq.retry.termination.RequireEither;
-import com.linkedin.parseq.retry.termination.TerminationPolicy;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.function.Function;
+
 import org.testng.annotations.Test;
 
-import static com.linkedin.parseq.retry.RetriableTask.withRetryPolicy;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 

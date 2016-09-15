@@ -57,7 +57,7 @@ public interface TerminationPolicy {
    * A termination policy that always signals for termination.
    */
   static TerminationPolicy alwaysTerminate() {
-    return new AlwaysTerminate();
+    return (attempts, nextAttemptAt) -> true;
   }
 
   /**
@@ -65,6 +65,6 @@ public interface TerminationPolicy {
    * WARNING: Please think twice before using this policy, it could cause a deadlock in your application.
    */
   static TerminationPolicy neverTerminate() {
-    return new NeverTerminate();
+    return (attempts, nextAttemptAt) -> false;
   }
 }

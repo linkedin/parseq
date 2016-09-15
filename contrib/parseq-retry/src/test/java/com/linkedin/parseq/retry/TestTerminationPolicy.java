@@ -1,12 +1,6 @@
 package com.linkedin.parseq.retry;
 
 import com.linkedin.parseq.BaseEngineTest;
-import com.linkedin.parseq.retry.termination.AlwaysTerminate;
-import com.linkedin.parseq.retry.termination.LimitAttempts;
-import com.linkedin.parseq.retry.termination.LimitDuration;
-import com.linkedin.parseq.retry.termination.NeverTerminate;
-import com.linkedin.parseq.retry.termination.RequireBoth;
-import com.linkedin.parseq.retry.termination.RequireEither;
 import com.linkedin.parseq.retry.termination.TerminationPolicy;
 
 import org.testng.annotations.Test;
@@ -19,7 +13,7 @@ public class TestTerminationPolicy extends BaseEngineTest {
   @Test
   public void testLimitAttempts()
   {
-    TerminationPolicy policy = new LimitAttempts(10);
+    TerminationPolicy policy = TerminationPolicy.limitAttempts(10);
     assertFalse(policy.shouldTerminate(0, 0));
     assertFalse(policy.shouldTerminate(9, 0));
     assertTrue(policy.shouldTerminate(10, 0));
@@ -29,7 +23,7 @@ public class TestTerminationPolicy extends BaseEngineTest {
   @Test
   public void testLimitDuration()
   {
-    TerminationPolicy policy = new LimitDuration(100);
+    TerminationPolicy policy = TerminationPolicy.limitDuration(100);
     assertFalse(policy.shouldTerminate(10, 0));
     assertFalse(policy.shouldTerminate(0, 99));
     assertTrue(policy.shouldTerminate(10, 100));
@@ -39,7 +33,7 @@ public class TestTerminationPolicy extends BaseEngineTest {
   @Test
   public void testRequireBoth()
   {
-    TerminationPolicy policy = new RequireBoth(new LimitAttempts(10), new LimitDuration(100));
+    TerminationPolicy policy = TerminationPolicy.requireBoth(TerminationPolicy.limitAttempts(10), TerminationPolicy.limitDuration(100));
     assertFalse(policy.shouldTerminate(20, 0));
     assertFalse(policy.shouldTerminate(0, 200));
     assertFalse(policy.shouldTerminate(9, 99));
@@ -53,7 +47,7 @@ public class TestTerminationPolicy extends BaseEngineTest {
   @Test
   public void testRequireEither()
   {
-    TerminationPolicy policy = new RequireEither(new LimitAttempts(10), new LimitDuration(100));
+    TerminationPolicy policy = TerminationPolicy.requireEither(TerminationPolicy.limitAttempts(10), TerminationPolicy.limitDuration(100));
     assertFalse(policy.shouldTerminate(0, 0));
     assertFalse(policy.shouldTerminate(0, 99));
     assertFalse(policy.shouldTerminate(9, 0));
@@ -67,7 +61,7 @@ public class TestTerminationPolicy extends BaseEngineTest {
   @Test
   public void testAlwaysTerminate()
   {
-    TerminationPolicy policy = new AlwaysTerminate();
+    TerminationPolicy policy = TerminationPolicy.alwaysTerminate();
     assertTrue(policy.shouldTerminate(0, 0));
     assertTrue(policy.shouldTerminate(10, 0));
     assertTrue(policy.shouldTerminate(0, 100));
@@ -76,7 +70,7 @@ public class TestTerminationPolicy extends BaseEngineTest {
   @Test
   public void testNeverTerminate()
   {
-    TerminationPolicy policy = new NeverTerminate();
+    TerminationPolicy policy = TerminationPolicy.neverTerminate();
     assertFalse(policy.shouldTerminate(0, 0));
     assertFalse(policy.shouldTerminate(10, 0));
     assertFalse(policy.shouldTerminate(0, 100));
