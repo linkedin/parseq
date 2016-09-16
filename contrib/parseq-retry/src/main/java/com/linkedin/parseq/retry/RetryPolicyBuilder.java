@@ -14,144 +14,87 @@ import java.util.function.Function;
  *
  * @author Oleg Anashkin (oleg.anashkin@gmail.com)
  */
-public final class RetryPolicyBuilder<T> implements RetryPolicy<T> {
-  /** A name of this policy. It is used to configure parseq tasks. */
-  private String _name;
+public final class RetryPolicyBuilder<T> {
+  private final RetryPolicyImpl<T> _retryPolicy = new RetryPolicyImpl<>();
 
-  /** The strategy for determining when to abort a retry operation. */
-  private TerminationPolicy _terminationPolicy;
-
-  /** The strategy used to calculate delays between retries. */
-  private BackoffPolicy<T> _backoffPolicy;
-
-  /** The monitor that is notified of retry events. */
-  private EventMonitor<T> _eventMonitor;
-
-  /** The classifier for results returned during retry operations. */
-  private Function<T, ResultClassification> _resultClassifier;
-
-  /** The classifier for errors raised during retry operations. */
-  private Function<Throwable, ErrorClassification> _errorClassifier;
-
-  private RetryPolicyBuilder(String name, TerminationPolicy terminationPolicy, BackoffPolicy<T> backoffPolicy, EventMonitor<T> eventMonitor,
-      Function<T, ResultClassification> resultClassifier, Function<Throwable, ErrorClassification> errorClassifier)
-  {
-    _name = name;
-    _terminationPolicy = terminationPolicy;
-    _backoffPolicy = backoffPolicy;
-    _eventMonitor = eventMonitor;
-    _resultClassifier = resultClassifier;
-    _errorClassifier = errorClassifier;
-  }
-
-  /**
-   * A policy builder that enables customizable retries for arbitrary parseq tasks.
-   *
-   * @param name A name of this policy. It is used to configure parseq tasks.
-   * @param terminationPolicy The strategy for determining when to abort a retry operation.
-   * @param backoffPolicy The strategy used to calculate delays between retries.
-   * @param eventMonitor The monitor that is notified of retry events.
-   * @param resultClassifier The classifier for results returned during retry operations.
-   * @param errorClassifier The classifier for errors raised during retry operations.
-   */
-  static public <U> RetryPolicyBuilder<U> create(String name, TerminationPolicy terminationPolicy, BackoffPolicy<U> backoffPolicy, EventMonitor<U> eventMonitor,
-      Function<U, ResultClassification> resultClassifier, Function<Throwable, ErrorClassification> errorClassifier) {
-    return new RetryPolicyBuilder<>(name, terminationPolicy, backoffPolicy, eventMonitor, resultClassifier, errorClassifier);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getName() {
-    return _name;
+  public RetryPolicy<T> build() {
+    if (_retryPolicy.getTerminationPolicy() == null) {
+      throw new IllegalArgumentException("Unable to build retry policy because termination policy is not specified");
+    }
+    if (_retryPolicy.getBackoffPolicy() == null) {
+      _retryPolicy.setBackoffPolicy(BackoffPolicy.noBackoff());
+    }
+    if (_retryPolicy.getEventMonitor() == null) {
+      _retryPolicy.setEventMonitor(EventMonitor.ignore());
+    }
+    if (_retryPolicy.getResultClassifier() == null) {
+      _retryPolicy.setResultClassifier(error -> ResultClassification.ACCEPTABLE);
+    }
+    if (_retryPolicy.getErrorClassifier() == null) {
+      _retryPolicy.setErrorClassifier(ErrorClassification.DEFAULT);
+    }
+    if (_retryPolicy.getName() == null) {
+      StringBuilder policyName = new StringBuilder("RetryPolicy");
+      String terminationPolicyName = _retryPolicy.getTerminationPolicy().getClass().getSimpleName();
+      if (!terminationPolicyName.contains("$$")) {
+        policyName.append(".");
+        policyName.append(terminationPolicyName);
+      }
+      String backoffPolicyName = _retryPolicy.getBackoffPolicy().getClass().getSimpleName();
+      if (!backoffPolicyName.contains("$$")) {
+        policyName.append(".");
+        policyName.append(backoffPolicyName);
+      }
+      _retryPolicy.setName(policyName.toString());
+    }
+    return _retryPolicy;
   }
 
   /**
    * Set a name of this policy. It is used to configure parseq tasks.
    */
   public RetryPolicyBuilder<T> setName(String name) {
-    _name = name;
+    _retryPolicy.setName(name);
     return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public TerminationPolicy getTerminationPolicy() {
-    return _terminationPolicy;
   }
 
   /**
    * Set a strategy for determining when to abort a retry operation.
    */
   public RetryPolicyBuilder<T> setTerminationPolicy(TerminationPolicy terminationPolicy) {
-    _terminationPolicy = terminationPolicy;
+    _retryPolicy.setTerminationPolicy(terminationPolicy);
     return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public BackoffPolicy<T> getBackoffPolicy() {
-    return _backoffPolicy;
   }
 
   /**
    * Set a strategy used to calculate delays between retries.
    */
   public RetryPolicyBuilder<T> setBackoffPolicy(BackoffPolicy<T> backoffPolicy) {
-    _backoffPolicy = backoffPolicy;
+    _retryPolicy.setBackoffPolicy(backoffPolicy);
     return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public EventMonitor<T> getEventMonitor() {
-    return _eventMonitor;
   }
 
   /**
    * Set a monitor that is notified of retry events.
    */
   public RetryPolicyBuilder<T> setEventMonitor(EventMonitor<T> eventMonitor) {
-    _eventMonitor = eventMonitor;
+    _retryPolicy.setEventMonitor(eventMonitor);
     return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Function<T, ResultClassification> getResultClassifier() {
-    return _resultClassifier;
   }
 
   /**
    * Set a classifier for results returned during retry operations.
    */
   public RetryPolicyBuilder<T> setResultClassifier(Function<T, ResultClassification> resultClassifier) {
-    _resultClassifier = resultClassifier;
+    _retryPolicy.setResultClassifier(resultClassifier);
     return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Function<Throwable, ErrorClassification> getErrorClassifier() {
-    return _errorClassifier;
   }
 
   /**
    * Set a classifier for errors raised during retry operations.
    */
   public RetryPolicyBuilder<T> setErrorClassifier(Function<Throwable, ErrorClassification> errorClassifier) {
-    _errorClassifier = errorClassifier;
+    _retryPolicy.setErrorClassifier(errorClassifier);
     return this;
   }
 }

@@ -5,6 +5,7 @@ import com.linkedin.parseq.Task;
 import com.linkedin.parseq.function.Try;
 import com.linkedin.parseq.retry.backoff.BackoffPolicy;
 import com.linkedin.parseq.retry.monitor.EventMonitor;
+import com.linkedin.parseq.retry.termination.TerminationPolicy;
 
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -43,14 +44,18 @@ public class TestRetryPolicy extends BaseEngineTest {
   {
     Function<Throwable, ErrorClassification> errorClassifier = error -> error instanceof TimeoutException ? ErrorClassification.RECOVERABLE : ErrorClassification.FATAL;
 
-    Task<Void> task1 = withRetryPolicy("testErrorClassification", RetryPolicy.<Void>attempts(3).setErrorClassifier(errorClassifier),
-        attempt -> Task.failure(new TimeoutException("current attempt: " + attempt)));
+    RetryPolicy<Void> retryPolicy = new RetryPolicyBuilder<Void>().
+        setTerminationPolicy(TerminationPolicy.limitAttempts(3)).
+        setErrorClassifier(errorClassifier).
+        build();
+    assertEquals(retryPolicy.getName(), "RetryPolicy.LimitAttempts");
+
+    Task<Void> task1 = withRetryPolicy("testErrorClassification", retryPolicy, attempt -> Task.failure(new TimeoutException("current attempt: " + attempt)));
     runAndWaitException(task1, TimeoutException.class);
     assertTrue(task1.isDone());
     assertEquals(task1.getError().getMessage(), "current attempt: 2");
 
-    Task<Void> task2 = withRetryPolicy("testErrorClassification", RetryPolicy.<Void>attempts(3).setErrorClassifier(errorClassifier),
-        attempt -> Task.failure(new IllegalArgumentException("current attempt: " + attempt)));
+    Task<Void> task2 = withRetryPolicy("testErrorClassification", retryPolicy, attempt -> Task.failure(new IllegalArgumentException("current attempt: " + attempt)));
     runAndWaitException(task2, IllegalArgumentException.class);
     assertTrue(task2.isDone());
     assertEquals(task2.getError().getMessage(), "current attempt: 0");
@@ -61,14 +66,18 @@ public class TestRetryPolicy extends BaseEngineTest {
   {
     Function<String, ResultClassification> resultClassifier = result -> result.startsWith("x") ? ResultClassification.UNACCEPTABLE : ResultClassification.ACCEPTABLE;
 
-    Task<String> task1 = withRetryPolicy("testResultClassification", RetryPolicy.<String>attempts(3).setResultClassifier(resultClassifier),
-        attempt -> Task.value(attempt.toString()));
+    RetryPolicy<String> retryPolicy = new RetryPolicyBuilder<String>().
+        setTerminationPolicy(TerminationPolicy.limitAttempts(3)).
+        setResultClassifier(resultClassifier).
+        build();
+    assertEquals(retryPolicy.getName(), "RetryPolicy.LimitAttempts");
+
+    Task<String> task1 = withRetryPolicy("testResultClassification", retryPolicy, attempt -> Task.value(attempt.toString()));
     runAndWait(task1);
     assertTrue(task1.isDone());
     assertEquals(task1.get(), "0");
 
-    Task<String> task2 = withRetryPolicy("testResultClassification", RetryPolicy.<String>attempts(3).setResultClassifier(resultClassifier),
-        attempt -> Task.value("x" + attempt));
+    Task<String> task2 = withRetryPolicy("testResultClassification", retryPolicy, attempt -> Task.value("x" + attempt));
     runAndWaitException(task2, RetryFailureException.class);
     assertTrue(task2.isDone());
     assertTrue(task2.getError().getMessage().endsWith("x2"));
@@ -103,8 +112,14 @@ public class TestRetryPolicy extends BaseEngineTest {
       }
     };
 
-    Task<Void> task = withRetryPolicy("testEventMonitor", RetryPolicy.<Void>attempts(3).setBackoffPolicy(BackoffPolicy.linear(10)).setEventMonitor(monitor),
-        attempt -> Task.failure(new RuntimeException("current attempt: " + attempt)));
+    RetryPolicy<Void> retryPolicy = new RetryPolicyBuilder<Void>().
+        setTerminationPolicy(TerminationPolicy.limitAttempts(3)).
+        setBackoffPolicy(BackoffPolicy.linear(10)).
+        setEventMonitor(monitor).
+        build();
+    assertEquals(retryPolicy.getName(), "RetryPolicy.LimitAttempts.LinearBackoff");
+
+    Task<Void> task = withRetryPolicy("testEventMonitor", retryPolicy, attempt -> Task.failure(new RuntimeException("current attempt: " + attempt)));
     runAndWaitException(task, RuntimeException.class);
     assertTrue(task.isDone());
     assertEquals(retryCount.get(), 2);

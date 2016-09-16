@@ -47,39 +47,88 @@ public interface RetryPolicy<T> {
   Function<Throwable, ErrorClassification> getErrorClassifier();
 
   /**
-   * Retry policy with configurable number of attempts. It doesn't have any delays between retries and doesn't log any events.
+   * Retry policy with configurable number of attempts. It doesn't have any delays between retries.
    *
    * @param attempts Total number of attempts (the number of retries will be that minus 1).
    * @param <U> Type of a task result, used for strongly typed processing of outcomes.
    */
-  static <U> RetryPolicyBuilder<U> attempts(int attempts) {
-    return RetryPolicyBuilder.create("RetryPolicy.attempts", TerminationPolicy.limitAttempts(attempts), BackoffPolicy.constant(0),
-        EventMonitor.ignore(), error -> ResultClassification.ACCEPTABLE, ErrorClassification.DEFAULT);
+  static <U> RetryPolicy<U> attempts(int attempts) {
+    return new RetryPolicyBuilder<U>().
+        setTerminationPolicy(TerminationPolicy.limitAttempts(attempts)).
+        build();
+  }
+
+  /**
+   * Retry policy with configurable number of attempts.
+   *
+   * @param attempts Total number of attempts (the number of retries will be that minus 1).
+   * @param backoff The constant delay between retry attempts.
+   * @param <U> Type of a task result, used for strongly typed processing of outcomes.
+   */
+  static <U> RetryPolicy<U> attempts(int attempts, long backoff) {
+    return new RetryPolicyBuilder<U>().
+        setTerminationPolicy(TerminationPolicy.limitAttempts(attempts)).
+        setBackoffPolicy(BackoffPolicy.constant(backoff)).
+        build();
   }
 
   /**
    * Retry policy with limited total duration of the encompassing task (including unlimited retries).
-   * It doesn't have any delays between retries and doesn't log any events.
+   * It doesn't have any delays between retries.
    *
    * @param duration Total duration of the task. This includes both the original request and all potential retries.
    * @param <U> Type of a task result, used for strongly typed processing of outcomes.
    */
-  static <U> RetryPolicyBuilder<U> duration(long duration) {
-    return RetryPolicyBuilder.create("RetryPolicy.duration", TerminationPolicy.limitDuration(duration), BackoffPolicy.constant(0),
-        EventMonitor.ignore(), error -> ResultClassification.ACCEPTABLE, ErrorClassification.DEFAULT);
+  static <U> RetryPolicy<U> duration(long duration) {
+    return new RetryPolicyBuilder<U>().
+        setTerminationPolicy(TerminationPolicy.limitDuration(duration)).
+        build();
+  }
+
+  /**
+   * Retry policy with limited total duration of the encompassing task (including unlimited retries).
+   *
+   * @param duration Total duration of the task. This includes both the original request and all potential retries.
+   * @param backoff The constant delay between retry attempts.
+   * @param <U> Type of a task result, used for strongly typed processing of outcomes.
+   */
+  static <U> RetryPolicy<U> duration(long duration, long backoff) {
+    return new RetryPolicyBuilder<U>().
+        setTerminationPolicy(TerminationPolicy.limitDuration(duration)).
+        setBackoffPolicy(BackoffPolicy.constant(backoff)).
+        build();
   }
 
   /**
    * Retry policy with configurable number of retries and limited total duration of the encompassing task.
-   * It doesn't have any delays between retries and doesn't log any events.
+   * It doesn't have any delays between retries.
    *
    * @param attempts Total number of attempts (the number of retries will be that minus 1).
    * @param duration Total duration of the task. This includes both the original request and all potential retries.
    * @param <U> Type of a task result, used for strongly typed processing of outcomes.
    */
-  static <U> RetryPolicyBuilder<U> attemptsAndDuration(int attempts, long duration) {
+  static <U> RetryPolicy<U> attemptsAndDuration(int attempts, long duration) {
     TerminationPolicy terminationPolicy = new RequireEither(TerminationPolicy.limitAttempts(attempts), TerminationPolicy.limitDuration(duration));
-    return RetryPolicyBuilder.create("RetryPolicy.attemptsAndDuration", terminationPolicy, BackoffPolicy.constant(0),
-        EventMonitor.ignore(), error -> ResultClassification.ACCEPTABLE, ErrorClassification.DEFAULT);
+    return new RetryPolicyBuilder<U>().
+        setName("RetryPolicy.LimitAttemptsAndDuration").
+        setTerminationPolicy(terminationPolicy).
+        build();
+  }
+
+  /**
+   * Retry policy with configurable number of retries and limited total duration of the encompassing task.
+   *
+   * @param attempts Total number of attempts (the number of retries will be that minus 1).
+   * @param duration Total duration of the task. This includes both the original request and all potential retries.
+   * @param backoff The constant delay between retry attempts.
+   * @param <U> Type of a task result, used for strongly typed processing of outcomes.
+   */
+  static <U> RetryPolicy<U> attemptsAndDuration(int attempts, long duration, long backoff) {
+    TerminationPolicy terminationPolicy = new RequireEither(TerminationPolicy.limitAttempts(attempts), TerminationPolicy.limitDuration(duration));
+    return new RetryPolicyBuilder<U>().
+        setName("RetryPolicy.LimitAttemptsAndDuration").
+        setTerminationPolicy(terminationPolicy).
+        setBackoffPolicy(BackoffPolicy.constant(backoff)).
+        build();
   }
 }
