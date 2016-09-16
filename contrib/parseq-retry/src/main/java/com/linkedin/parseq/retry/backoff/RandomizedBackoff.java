@@ -1,6 +1,5 @@
 package com.linkedin.parseq.retry.backoff;
 
-import com.linkedin.parseq.function.Try;
 import com.linkedin.parseq.internal.ArgumentUtil;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -9,12 +8,10 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * A policy that randomizes the result of another policy by adding a random duration in the specified range.
  *
- * @param <T> Type of a task result, same as in a base policy.
- *
  * @author Oleg Anashkin (oleg.anashkin@gmail.com)
  */
-public class RandomizedBackoff<T> implements BackoffPolicy<T> {
-  protected final BackoffPolicy<T> _policy;
+public class RandomizedBackoff implements BackoffPolicy {
+  protected final BackoffPolicy _policy;
   protected final long _minRange;
   protected final long _maxRange;
 
@@ -25,7 +22,7 @@ public class RandomizedBackoff<T> implements BackoffPolicy<T> {
    * @param minRange The minimum range of values that may be used to modify the result of the base policy.
    * @param maxRange The maximum range of values that may be used to modify the result of the base policy.
    */
-  public RandomizedBackoff(BackoffPolicy<T> policy, long minRange, long maxRange) {
+  public RandomizedBackoff(BackoffPolicy policy, long minRange, long maxRange) {
     ArgumentUtil.requireNotNull(policy, "policy");
     if (maxRange <= minRange) {
       throw new IllegalArgumentException(String.format("minRange %s must be strictly less than maxRange %s", minRange, maxRange));
@@ -40,7 +37,7 @@ public class RandomizedBackoff<T> implements BackoffPolicy<T> {
    * {@inheritDoc}
    */
   @Override
-  public long nextBackoff(int attempts, Try<T> outcome) {
-    return _policy.nextBackoff(attempts, outcome) + _minRange + Math.round((_maxRange - _minRange) * ThreadLocalRandom.current().nextDouble());
+  public long nextBackoff(int attempts, Throwable error) {
+    return _policy.nextBackoff(attempts, error) + _minRange + Math.round((_maxRange - _minRange) * ThreadLocalRandom.current().nextDouble());
   }
 }

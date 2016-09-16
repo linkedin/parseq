@@ -1,7 +1,5 @@
 package com.linkedin.parseq.retry.monitor;
 
-import com.linkedin.parseq.function.Try;
-
 import java.io.PrintStream;
 import java.util.function.Function;
 
@@ -9,11 +7,9 @@ import java.util.function.Function;
 /**
  * An event monitor that prints information about retry events to a stream.
  *
- * @param <T> Type of a task result, used for strongly typed processing of outcomes.
- *
  * @author Oleg Anashkin (oleg.anashkin@gmail.com)
  */
-public class PrintEventsWithStream<T> extends PrintEvents<T> {
+public class PrintEventsWithStream extends PrintEvents {
   protected final PrintStream _printStream;
 
   /**
@@ -28,7 +24,7 @@ public class PrintEventsWithStream<T> extends PrintEvents<T> {
    * @param abortedActionSelector The strategy used to select an action to perform for an aborted event, defaulting to `abortedAction`.
    */
   public PrintEventsWithStream(PrintStream printStream, PrintAction retryingAction, PrintAction interruptedAction, PrintAction abortedAction,
-      Function<Try<T>, PrintAction> retryingActionSelector, Function<Try<T>, PrintAction> interruptedActionSelector, Function<Try<T>, PrintAction> abortedActionSelector) {
+      Function<Throwable, PrintAction> retryingActionSelector, Function<Throwable, PrintAction> interruptedActionSelector, Function<Throwable, PrintAction> abortedActionSelector) {
     super(retryingAction, interruptedAction, abortedAction, retryingActionSelector, interruptedActionSelector, abortedActionSelector);
     _printStream = printStream;
   }

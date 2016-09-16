@@ -1,7 +1,5 @@
 package com.linkedin.parseq.retry.monitor;
 
-import com.linkedin.parseq.function.Try;
-
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -11,11 +9,9 @@ import java.util.logging.Logger;
 /**
  * An event monitor that formats and logs events using the `java.util.logging` framework.
  *
- * @param <T> Type of a task result, used for strongly typed processing of outcomes.
- *
  * @author Oleg Anashkin (oleg.anashkin@gmail.com)
  */
-public class LogEventsWithJava<T> extends LogEvents<T, Level> {
+public class LogEventsWithJava extends LogEvents<Level> {
   public static final Optional<Level> DEFAULT_RETRYING_ACTION = Optional.of(Level.INFO);
   public static final Optional<Level> DEFAULT_INTERRUPTED_ACTION = Optional.of(Level.WARNING);
   public static final Optional<Level> DEFAULT_ABORTED_ACTION = Optional.of(Level.SEVERE);
@@ -34,7 +30,7 @@ public class LogEventsWithJava<T> extends LogEvents<T, Level> {
    * @param abortedActionSelector The strategy used to select an action to perform for an aborted event, defaulting to `abortedAction`.
    */
   public LogEventsWithJava(Logger logger, Optional<Level> retryingAction, Optional<Level> interruptedAction, Optional<Level> abortedAction,
-      Function<Try<T>, Optional<Level>> retryingActionSelector, Function<Try<T>, Optional<Level>> interruptedActionSelector, Function<Try<T>, Optional<Level>> abortedActionSelector) {
+      Function<Throwable, Optional<Level>> retryingActionSelector, Function<Throwable, Optional<Level>> interruptedActionSelector, Function<Throwable, Optional<Level>> abortedActionSelector) {
     super(retryingAction, interruptedAction, abortedAction, retryingActionSelector, interruptedActionSelector, abortedActionSelector);
     _logger = logger;
   }
@@ -74,11 +70,7 @@ public class LogEventsWithJava<T> extends LogEvents<T, Level> {
    * {@inheritDoc}
    */
   @Override
-  protected void log(Level level, String message, Try<T> outcome) {
-    if (outcome.isFailed()) {
-      _logger.log(level, message, outcome.getError());
-    } else {
-      _logger.log(level, message);
-    }
+  protected void log(Level level, String message, Throwable error) {
+    _logger.log(level, message, error);
   }
 }

@@ -10,11 +10,9 @@ import java.util.function.Function;
 /**
  * A policy builder that enables customizable retries for arbitrary parseq tasks.
  *
- * @param <T> Type of a task result, used for strongly typed processing of outcomes.
- *
  * @author Oleg Anashkin (oleg.anashkin@gmail.com)
  */
-public final class RetryPolicyImpl<T> implements RetryPolicy<T> {
+public final class RetryPolicyImpl implements RetryPolicy {
   /** A name of this policy. It is used to configure parseq tasks. */
   private String _name;
 
@@ -22,13 +20,10 @@ public final class RetryPolicyImpl<T> implements RetryPolicy<T> {
   private TerminationPolicy _terminationPolicy;
 
   /** The strategy used to calculate delays between retries. */
-  private BackoffPolicy<T> _backoffPolicy;
+  private BackoffPolicy _backoffPolicy;
 
   /** The monitor that is notified of retry events. */
-  private EventMonitor<T> _eventMonitor;
-
-  /** The classifier for results returned during retry operations. */
-  private Function<T, ResultClassification> _resultClassifier;
+  private EventMonitor _eventMonitor;
 
   /** The classifier for errors raised during retry operations. */
   private Function<Throwable, ErrorClassification> _errorClassifier;
@@ -44,7 +39,7 @@ public final class RetryPolicyImpl<T> implements RetryPolicy<T> {
   /**
    * Set a name of this policy. It is used to configure parseq tasks.
    */
-  RetryPolicyImpl<T> setName(String name) {
+  RetryPolicyImpl setName(String name) {
     _name = name;
     return this;
   }
@@ -60,7 +55,7 @@ public final class RetryPolicyImpl<T> implements RetryPolicy<T> {
   /**
    * Set a strategy for determining when to abort a retry operation.
    */
-  RetryPolicyImpl<T> setTerminationPolicy(TerminationPolicy terminationPolicy) {
+  RetryPolicyImpl setTerminationPolicy(TerminationPolicy terminationPolicy) {
     _terminationPolicy = terminationPolicy;
     return this;
   }
@@ -69,14 +64,14 @@ public final class RetryPolicyImpl<T> implements RetryPolicy<T> {
    * {@inheritDoc}
    */
   @Override
-  public BackoffPolicy<T> getBackoffPolicy() {
+  public BackoffPolicy getBackoffPolicy() {
     return _backoffPolicy;
   }
 
   /**
    * Set a strategy used to calculate delays between retries.
    */
-  RetryPolicyImpl<T> setBackoffPolicy(BackoffPolicy<T> backoffPolicy) {
+  RetryPolicyImpl setBackoffPolicy(BackoffPolicy backoffPolicy) {
     _backoffPolicy = backoffPolicy;
     return this;
   }
@@ -85,31 +80,15 @@ public final class RetryPolicyImpl<T> implements RetryPolicy<T> {
    * {@inheritDoc}
    */
   @Override
-  public EventMonitor<T> getEventMonitor() {
+  public EventMonitor getEventMonitor() {
     return _eventMonitor;
   }
 
   /**
    * Set a monitor that is notified of retry events.
    */
-  RetryPolicyImpl<T> setEventMonitor(EventMonitor<T> eventMonitor) {
+  RetryPolicyImpl setEventMonitor(EventMonitor eventMonitor) {
     _eventMonitor = eventMonitor;
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Function<T, ResultClassification> getResultClassifier() {
-    return _resultClassifier;
-  }
-
-  /**
-   * Set a classifier for results returned during retry operations.
-   */
-  RetryPolicyImpl<T> setResultClassifier(Function<T, ResultClassification> resultClassifier) {
-    _resultClassifier = resultClassifier;
     return this;
   }
 
@@ -124,7 +103,7 @@ public final class RetryPolicyImpl<T> implements RetryPolicy<T> {
   /**
    * Set a classifier for errors raised during retry operations.
    */
-  RetryPolicyImpl<T> setErrorClassifier(Function<Throwable, ErrorClassification> errorClassifier) {
+  RetryPolicyImpl setErrorClassifier(Function<Throwable, ErrorClassification> errorClassifier) {
     _errorClassifier = errorClassifier;
     return this;
   }

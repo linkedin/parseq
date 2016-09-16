@@ -1,7 +1,5 @@
 package com.linkedin.parseq.retry.monitor;
 
-import com.linkedin.parseq.function.Try;
-
 import java.io.PrintWriter;
 import java.util.function.Function;
 
@@ -9,11 +7,9 @@ import java.util.function.Function;
 /**
  * An event monitor that prints information about retry events to a writer.
  *
- * @param <T> Type of a task result, used for strongly typed processing of outcomes.
- *
  * @author Oleg Anashkin (oleg.anashkin@gmail.com)
  */
-public class PrintEventsWithWriter<T> extends PrintEvents<T> {
+public class PrintEventsWithWriter extends PrintEvents {
   protected final PrintWriter _printWriter;
 
   /**
@@ -28,7 +24,7 @@ public class PrintEventsWithWriter<T> extends PrintEvents<T> {
    * @param abortedActionSelector The strategy used to select an action to perform for an aborted event, defaulting to `abortedAction`.
    */
   public PrintEventsWithWriter(PrintWriter printWriter, PrintAction retryingAction, PrintAction interruptedAction, PrintAction abortedAction,
-      Function<Try<T>, PrintAction> retryingActionSelector, Function<Try<T>, PrintAction> interruptedActionSelector, Function<Try<T>, PrintAction> abortedActionSelector) {
+      Function<Throwable, PrintAction> retryingActionSelector, Function<Throwable, PrintAction> interruptedActionSelector, Function<Throwable, PrintAction> abortedActionSelector) {
     super(retryingAction, interruptedAction, abortedAction, retryingActionSelector, interruptedActionSelector, abortedActionSelector);
     _printWriter = printWriter;
   }

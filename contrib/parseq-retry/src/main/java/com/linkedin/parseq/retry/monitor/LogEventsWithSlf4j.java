@@ -1,7 +1,5 @@
 package com.linkedin.parseq.retry.monitor;
 
-import com.linkedin.parseq.function.Try;
-
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -11,11 +9,9 @@ import org.slf4j.Logger;
 /**
  * An event monitor that formats and logs events using Slf4j.
  *
- * @param <T> Type of a task result, used for strongly typed processing of outcomes.
- *
  * @author Oleg Anashkin (oleg.anashkin@gmail.com)
  */
-public class LogEventsWithSlf4j<T> extends LogEvents<T, Slf4jLevel> {
+public class LogEventsWithSlf4j extends LogEvents<Slf4jLevel> {
   public static final Optional<Slf4jLevel> DEFAULT_RETRYING_ACTION = Optional.of(Slf4jLevel.INFO);
   public static final Optional<Slf4jLevel> DEFAULT_INTERRUPTED_ACTION = Optional.of(Slf4jLevel.WARNING);
   public static final Optional<Slf4jLevel> DEFAULT_ABORTED_ACTION = Optional.of(Slf4jLevel.ERROR);
@@ -34,7 +30,7 @@ public class LogEventsWithSlf4j<T> extends LogEvents<T, Slf4jLevel> {
    * @param abortedActionSelector The strategy used to select an action to perform for an aborted event, defaulting to `abortedAction`.
    */
   public LogEventsWithSlf4j(Logger logger, Optional<Slf4jLevel> retryingAction, Optional<Slf4jLevel> interruptedAction, Optional<Slf4jLevel> abortedAction,
-      Function<Try<T>, Optional<Slf4jLevel>> retryingActionSelector, Function<Try<T>, Optional<Slf4jLevel>> interruptedActionSelector, Function<Try<T>, Optional<Slf4jLevel>> abortedActionSelector) {
+      Function<Throwable, Optional<Slf4jLevel>> retryingActionSelector, Function<Throwable, Optional<Slf4jLevel>> interruptedActionSelector, Function<Throwable, Optional<Slf4jLevel>> abortedActionSelector) {
     super(retryingAction, interruptedAction, abortedAction, retryingActionSelector, interruptedActionSelector, abortedActionSelector);
     _logger = logger;
   }
@@ -81,23 +77,13 @@ public class LogEventsWithSlf4j<T> extends LogEvents<T, Slf4jLevel> {
    * {@inheritDoc}
    */
   @Override
-  protected void log(Slf4jLevel level, String message, Try<T> outcome) {
-    if (outcome.isFailed()) {
-      switch (level) {
-        case ERROR: _logger.error(message, outcome.get());
-        case WARNING: _logger.warn(message, outcome.get());
-        case INFO: _logger.info(message, outcome.get());
-        case DEBUG: _logger.debug(message, outcome.get());
-        case TRACE: _logger.trace(message, outcome.get());
-      }
-    } else {
-      switch (level) {
-        case ERROR: _logger.error(message);
-        case WARNING: _logger.warn(message);
-        case INFO: _logger.info(message);
-        case DEBUG: _logger.debug(message);
-        case TRACE: _logger.trace(message);
-      }
+  protected void log(Slf4jLevel level, String message, Throwable error) {
+    switch (level) {
+      case ERROR: _logger.error(message, error);
+      case WARNING: _logger.warn(message, error);
+      case INFO: _logger.info(message, error);
+      case DEBUG: _logger.debug(message, error);
+      case TRACE: _logger.trace(message, error);
     }
   }
 }

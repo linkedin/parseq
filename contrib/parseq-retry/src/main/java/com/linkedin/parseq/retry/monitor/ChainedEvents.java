@@ -1,18 +1,14 @@
 package com.linkedin.parseq.retry.monitor;
 
-import com.linkedin.parseq.function.Try;
-
 
 /**
  * A monitor that will always pass invocations on to the two specified monitors.
  *
- * @param <T> Type of a task result, used for strongly typed processing of outcomes.
- *
  * @author Oleg Anashkin (oleg.anashkin@gmail.com)
  */
-public class ChainedEvents<T> implements EventMonitor<T> {
-  protected final EventMonitor<T> _first;
-  protected final EventMonitor<T> _second;
+public class ChainedEvents implements EventMonitor {
+  protected final EventMonitor _first;
+  protected final EventMonitor _second;
 
   /**
    * A monitor that will always pass invocations on to the two specified monitors.
@@ -20,7 +16,7 @@ public class ChainedEvents<T> implements EventMonitor<T> {
    * @param first The first event monitor to pass all invocations to.
    * @param second The second event monitor to pass all invocations to.
    */
-  public ChainedEvents(EventMonitor<T> first, EventMonitor<T> second) {
+  public ChainedEvents(EventMonitor first, EventMonitor second) {
     _first = first;
     _second = second;
   }
@@ -29,53 +25,53 @@ public class ChainedEvents<T> implements EventMonitor<T> {
    * {@inheritDoc}
    */
   @Override
-  public void retrying(String name, Try<T> outcome, int attempts, long backoffTime, boolean isSilent) {
+  public void retrying(String name, Throwable error, int attempts, long backoffTime, boolean isSilent) {
     try {
-      _first.retrying(name, outcome, attempts, backoffTime, isSilent);
-    } catch (Throwable error) {
+      _first.retrying(name, error, attempts, backoffTime, isSilent);
+    } catch (Throwable firstError) {
       try {
-        _second.retrying(name, outcome, attempts, backoffTime, isSilent);
-      } catch (Throwable nestedError) {
+        _second.retrying(name, firstError, attempts, backoffTime, isSilent);
+      } catch (Throwable secondError) {
         // ignore exception from the second monitor and rethrow first monitor's exception instead
       }
-      throw error;
+      throw firstError;
     }
-    _second.retrying(name, outcome, attempts, backoffTime, isSilent);
+    _second.retrying(name, error, attempts, backoffTime, isSilent);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void interrupted(String name, Try<T> outcome, int attempts) {
+  public void interrupted(String name, Throwable error, int attempts) {
     try {
-      _first.interrupted(name, outcome, attempts);
-    } catch (Throwable error) {
+      _first.interrupted(name, error, attempts);
+    } catch (Throwable firstError) {
       try {
-        _second.interrupted(name, outcome, attempts);
-      } catch (Throwable nestedError) {
+        _second.interrupted(name, firstError, attempts);
+      } catch (Throwable secondError) {
         // ignore exception from the second monitor and rethrow first monitor's exception instead
       }
-      throw error;
+      throw firstError;
     }
-    _second.interrupted(name, outcome, attempts);
+    _second.interrupted(name, error, attempts);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void aborted(String name, Try<T> outcome, int attempts) {
+  public void aborted(String name, Throwable error, int attempts) {
     try {
-      _first.aborted(name, outcome, attempts);
-    } catch (Throwable error) {
+      _first.aborted(name, error, attempts);
+    } catch (Throwable firstError) {
       try {
-        _second.aborted(name, outcome, attempts);
-      } catch (Throwable nestedError) {
+        _second.aborted(name, firstError, attempts);
+      } catch (Throwable secondError) {
         // ignore exception from the second monitor and rethrow first monitor's exception instead
       }
-      throw error;
+      throw firstError;
     }
-    _second.aborted(name, outcome, attempts);
+    _second.aborted(name, error, attempts);
   }
 }

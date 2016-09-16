@@ -10,14 +10,12 @@ import java.util.function.Function;
 /**
  * A policy builder that enables customizable retries for arbitrary parseq tasks.
  *
- * @param <T> Type of a task result, used for strongly typed processing of outcomes.
- *
  * @author Oleg Anashkin (oleg.anashkin@gmail.com)
  */
-public final class RetryPolicyBuilder<T> {
-  private final RetryPolicyImpl<T> _retryPolicy = new RetryPolicyImpl<>();
+public final class RetryPolicyBuilder {
+  private final RetryPolicyImpl _retryPolicy = new RetryPolicyImpl();
 
-  public RetryPolicy<T> build() {
+  public RetryPolicy build() {
     if (_retryPolicy.getTerminationPolicy() == null) {
       throw new IllegalArgumentException("Unable to build retry policy because termination policy is not specified");
     }
@@ -26,9 +24,6 @@ public final class RetryPolicyBuilder<T> {
     }
     if (_retryPolicy.getEventMonitor() == null) {
       _retryPolicy.setEventMonitor(EventMonitor.ignore());
-    }
-    if (_retryPolicy.getResultClassifier() == null) {
-      _retryPolicy.setResultClassifier(error -> ResultClassification.ACCEPTABLE);
     }
     if (_retryPolicy.getErrorClassifier() == null) {
       _retryPolicy.setErrorClassifier(ErrorClassification.DEFAULT);
@@ -53,7 +48,7 @@ public final class RetryPolicyBuilder<T> {
   /**
    * Set a name of this policy. It is used to configure parseq tasks.
    */
-  public RetryPolicyBuilder<T> setName(String name) {
+  public RetryPolicyBuilder setName(String name) {
     _retryPolicy.setName(name);
     return this;
   }
@@ -61,7 +56,7 @@ public final class RetryPolicyBuilder<T> {
   /**
    * Set a strategy for determining when to abort a retry operation.
    */
-  public RetryPolicyBuilder<T> setTerminationPolicy(TerminationPolicy terminationPolicy) {
+  public RetryPolicyBuilder setTerminationPolicy(TerminationPolicy terminationPolicy) {
     _retryPolicy.setTerminationPolicy(terminationPolicy);
     return this;
   }
@@ -69,7 +64,7 @@ public final class RetryPolicyBuilder<T> {
   /**
    * Set a strategy used to calculate delays between retries.
    */
-  public RetryPolicyBuilder<T> setBackoffPolicy(BackoffPolicy<T> backoffPolicy) {
+  public RetryPolicyBuilder setBackoffPolicy(BackoffPolicy backoffPolicy) {
     _retryPolicy.setBackoffPolicy(backoffPolicy);
     return this;
   }
@@ -77,23 +72,15 @@ public final class RetryPolicyBuilder<T> {
   /**
    * Set a monitor that is notified of retry events.
    */
-  public RetryPolicyBuilder<T> setEventMonitor(EventMonitor<T> eventMonitor) {
+  public RetryPolicyBuilder setEventMonitor(EventMonitor eventMonitor) {
     _retryPolicy.setEventMonitor(eventMonitor);
-    return this;
-  }
-
-  /**
-   * Set a classifier for results returned during retry operations.
-   */
-  public RetryPolicyBuilder<T> setResultClassifier(Function<T, ResultClassification> resultClassifier) {
-    _retryPolicy.setResultClassifier(resultClassifier);
     return this;
   }
 
   /**
    * Set a classifier for errors raised during retry operations.
    */
-  public RetryPolicyBuilder<T> setErrorClassifier(Function<Throwable, ErrorClassification> errorClassifier) {
+  public RetryPolicyBuilder setErrorClassifier(Function<Throwable, ErrorClassification> errorClassifier) {
     _retryPolicy.setErrorClassifier(errorClassifier);
     return this;
   }

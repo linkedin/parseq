@@ -1,26 +1,22 @@
 package com.linkedin.parseq.retry.backoff;
 
-import com.linkedin.parseq.function.Try;
-
 import java.util.function.Function;
 
 
 /**
- * A policy that delegates to another policy that is selected based on the most recently evaluated outcome.
- *
- * @param <T> Type of a task result, used for strongly typed processing of outcomes.
+ * A policy that delegates to another policy that is selected based on the most recent error.
  *
  * @author Oleg Anashkin (oleg.anashkin@gmail.com)
  */
-public class SelectedBackoff<T> implements BackoffPolicy<T> {
-  protected final Function<Try<T>, BackoffPolicy<T>> _policyFunction;
+public class SelectedBackoff implements BackoffPolicy {
+  protected final Function<Throwable, BackoffPolicy> _policyFunction;
 
   /**
-   * A policy that delegates to another policy that is selected based on the most recently evaluated outcome.
+   * A policy that delegates to another policy that is selected based on the most recent error.
    *
-   * @param policyFunction The function that maps from outcomes to backoff policies.
+   * @param policyFunction The function that maps from errors to backoff policies.
    */
-  public SelectedBackoff(Function<Try<T>, BackoffPolicy<T>> policyFunction) {
+  public SelectedBackoff(Function<Throwable, BackoffPolicy> policyFunction) {
     _policyFunction = policyFunction;
   }
 
@@ -28,7 +24,7 @@ public class SelectedBackoff<T> implements BackoffPolicy<T> {
    * {@inheritDoc}
    */
   @Override
-  public long nextBackoff(int attempts, Try<T> outcome) {
-    return _policyFunction.apply(outcome).nextBackoff(attempts, outcome);
+  public long nextBackoff(int attempts, Throwable error) {
+    return _policyFunction.apply(error).nextBackoff(attempts, error);
   }
 }

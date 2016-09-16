@@ -1,12 +1,8 @@
 package com.linkedin.parseq.retry;
 
-import com.linkedin.parseq.BaseTask;
 import com.linkedin.parseq.Context;
 import com.linkedin.parseq.Priority;
 import com.linkedin.parseq.Task;
-import com.linkedin.parseq.function.Failure;
-import com.linkedin.parseq.function.Success;
-import com.linkedin.parseq.function.Try;
 import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
@@ -22,45 +18,35 @@ import java.util.function.Supplier;
  *
  * @author Oleg Anashkin (oleg.anashkin@gmail.com)
  */
-public class RetriableTask<T> extends BaseTask<T> {
+public final class RetriableTask<T> {
   /** A name of the task that needs to be retried. */
-  protected final String _name;
+  private final String _name;
 
   /** A task generator function. It will receive a zero-based attempt number as a parameter. */
-  protected final Function<Integer, Task<T>> _taskFunction;
+  private final Function<Integer, Task<T>> _taskFunction;
 
   /** Retry policy which will control this task's behavior. */
-  protected final RetryPolicy<T> _policy;
+  private final RetryPolicy _policy;
 
   /** Start time for the very first attempt. */
-  protected long _startedAt;
+  private long _startedAt;
 
   /**
    * A parseq task wrapper that supports arbitrary retry policies.
    *
    * @param name A name of the task that needs to be retried.
-   * @param taskFunction A task generator function. It will receive a zero-based attempt number as a parameter.
    * @param policy Retry policy that will control this task's behavior.
+   * @param taskFunction A task generator function. It will receive a zero-based attempt number as a parameter.
    */
-  public RetriableTask(String name, Function<Integer, Task<T>> taskFunction, RetryPolicy<T> policy)
+  private RetriableTask(String name, RetryPolicy policy, Function<Integer, Task<T>> taskFunction)
   {
-    ArgumentUtil.requireNotNull(taskFunction, "taskFunction");
+    ArgumentUtil.requireNotNull(name, "name");
     ArgumentUtil.requireNotNull(policy, "policy");
+    ArgumentUtil.requireNotNull(taskFunction, "taskFunction");
 
     _name = name;
-    _taskFunction = taskFunction;
     _policy = policy;
-  }
-
-  /**
-   * A parseq task wrapper that supports arbitrary retry policies.
-   *
-   * @param taskFunction A task generator function. It will receive a zero-based attempt number as a parameter.
-   * @param policy Retry policy that will control this task's behavior.
-   */
-  public RetriableTask(Function<Integer, Task<T>> taskFunction, RetryPolicy<T> policy)
-  {
-    this("operation", taskFunction, policy);
+    _taskFunction = taskFunction;
   }
 
   /**
@@ -68,10 +54,10 @@ public class RetriableTask<T> extends BaseTask<T> {
    *
    * @param policy Retry policy that will control this task's behavior.
    * @param taskSupplier A task generator function.
-   * @param <U> Type of a task result, used for strongly typed processing of outcomes.
+   * @param <U> Type of a task result, used for strongly typed processing of errors.
    */
-  public static <U> RetriableTask<U> withRetryPolicy(RetryPolicy<U> policy, Supplier<Task<U>> taskSupplier) {
-    return new RetriableTask<>(attempt -> taskSupplier.get(), policy);
+  public static <U> Task<U> withRetryPolicy(RetryPolicy policy, Supplier<Task<U>> taskSupplier) {
+    return withRetryPolicy("operation", policy, attempt -> taskSupplier.get());
   }
 
   /**
@@ -79,10 +65,10 @@ public class RetriableTask<T> extends BaseTask<T> {
    *
    * @param policy Retry policy that will control this task's behavior.
    * @param taskFunction A task generator function. It will receive a zero-based attempt number as a parameter.
-   * @param <U> Type of a task result, used for strongly typed processing of outcomes.
+   * @param <U> Type of a task result, used for strongly typed processing of errors.
    */
-  public static <U> RetriableTask<U> withRetryPolicy(RetryPolicy<U> policy, Function<Integer, Task<U>> taskFunction) {
-    return new RetriableTask<>(taskFunction, policy);
+  public static <U> Task<U> withRetryPolicy(RetryPolicy policy, Function<Integer, Task<U>> taskFunction) {
+    return withRetryPolicy("operation", policy, taskFunction);
   }
 
   /**
@@ -91,10 +77,10 @@ public class RetriableTask<T> extends BaseTask<T> {
    * @param name A name of the task that needs to be retried.
    * @param policy Retry policy that will control this task's behavior.
    * @param taskSupplier A task generator function.
-   * @param <U> Type of a task result, used for strongly typed processing of outcomes.
+   * @param <U> Type of a task result, used for strongly typed processing of errors.
    */
-  public static <U> RetriableTask<U> withRetryPolicy(String name, RetryPolicy<U> policy, Supplier<Task<U>> taskSupplier) {
-    return new RetriableTask<>(name, attempt -> taskSupplier.get(), policy);
+  public static <U> Task<U> withRetryPolicy(String name, RetryPolicy policy, Supplier<Task<U>> taskSupplier) {
+    return withRetryPolicy(name, policy, attempt -> taskSupplier.get());
   }
 
   /**
@@ -103,10 +89,11 @@ public class RetriableTask<T> extends BaseTask<T> {
    * @param name A name of the task that needs to be retried.
    * @param policy Retry policy that will control this task's behavior.
    * @param taskFunction A task generator function. It will receive a zero-based attempt number as a parameter.
-   * @param <U> Type of a task result, used for strongly typed processing of outcomes.
+   * @param <U> Type of a task result, used for strongly typed processing of errors.
    */
-  public static <U> RetriableTask<U> withRetryPolicy(String name, RetryPolicy<U> policy, Function<Integer, Task<U>> taskFunction) {
-    return new RetriableTask<>(name, taskFunction, policy);
+  public static <U> Task<U> withRetryPolicy(String name, RetryPolicy policy, Function<Integer, Task<U>> taskFunction) {
+    RetriableTask<U> retriableTask = new RetriableTask<>(name, policy, taskFunction);
+    return Task.async(retriableTask::run);
   }
 
   /** Create a wrapped task with associated recovery task that will retry if necessary. */
@@ -122,24 +109,15 @@ public class RetriableTask<T> extends BaseTask<T> {
         if (task.isFailed()) {
           // Failed task will cause retry to be scheduled.
           ErrorClassification errorClassification = _policy.getErrorClassifier().apply(task.getError());
-          retry(attempt + 1, Failure.of(task.getError()), errorClassification, recoveryContext, recoveryResult);
+          retry(attempt + 1, task.getError(), errorClassification, recoveryContext, recoveryResult);
         } else {
-          // Successful task might still need to be retried if its result is not acceptable according to the policy.
-          T taskResult = task.get();
-          ResultClassification resultClassification = _policy.getResultClassifier().apply(taskResult);
-          if (!resultClassification.isAcceptable()) {
-            // Unacceptable result -> should retry.
-            retry(attempt + 1, Success.of(taskResult), resultClassification.getStatus(), recoveryContext, recoveryResult);
-          } else {
-            // Acceptable result -> we are done.
-            recoveryResult.done(taskResult);
-          }
+          recoveryResult.done(task.get());
         }
 
         return recoveryResult;
       });
 
-      // Recovery task should run immediately after the original task to process its outcome.
+      // Recovery task should run immediately after the original task to process its error.
       recovery.setPriority(Priority.MAX_PRIORITY);
       recovery.getShallowTraceBuilder().setSystemHidden(true);
       Promises.propagateResult(recovery, result);
@@ -151,31 +129,28 @@ public class RetriableTask<T> extends BaseTask<T> {
   }
 
   /** Invoke event monitors and schedule a retry if policy allows. */
-  private void retry(int attempt, Try<T> outcome, ErrorClassification errorClassification, Context recoveryContext, SettablePromise<T> recoveryResult) {
-    long backoffTime = _policy.getBackoffPolicy().nextBackoff(attempt, outcome);
+  private void retry(int attempt, Throwable error, ErrorClassification errorClassification, Context recoveryContext, SettablePromise<T> recoveryResult) {
+    long backoffTime = _policy.getBackoffPolicy().nextBackoff(attempt, error);
 
     if (errorClassification.isFatal()) {
       // For fatal errors there are no retries.
-      _policy.getEventMonitor().interrupted(_name, outcome, attempt);
-      recoveryResult.fail(outcome.isFailed() ? outcome.getError() : new RetryFailureException("Retry aborted because of unacceptable task result: " + outcome.get()));
+      _policy.getEventMonitor().interrupted(_name, error, attempt);
+      recoveryResult.fail(error);
     } else if (_policy.getTerminationPolicy().shouldTerminate(attempt, System.currentTimeMillis() - _startedAt + backoffTime)) {
       // Retry policy commands that no more retries should be done.
-      _policy.getEventMonitor().aborted(_name, outcome, attempt);
-      recoveryResult.fail(outcome.isFailed() ? outcome.getError() : new RetryFailureException("Retry aborted because of unacceptable task result: " + outcome.get()));
+      _policy.getEventMonitor().aborted(_name, error, attempt);
+      recoveryResult.fail(error);
     } else {
       // Schedule a new retry task after a computed backoff timeout.
-      _policy.getEventMonitor().retrying(_name, outcome, attempt, backoffTime, errorClassification.isSilent());
+      _policy.getEventMonitor().retrying(_name, error, attempt, backoffTime, errorClassification.isSilent());
       Task<T> retryTask = wrap(attempt);
       Promises.propagateResult(retryTask, recoveryResult);
       recoveryContext.createTimer(backoffTime, TimeUnit.MILLISECONDS, retryTask);
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  protected Promise<? extends T> run(Context context) {
+  /** Starts a retriable task */
+  private Promise<? extends T> run(Context context) {
     _startedAt = System.currentTimeMillis();
     Task<T> task = wrap(0);
     context.run(task);

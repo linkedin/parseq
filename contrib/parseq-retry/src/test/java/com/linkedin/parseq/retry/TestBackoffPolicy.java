@@ -14,7 +14,7 @@ public class TestBackoffPolicy extends BaseEngineTest {
   @Test
   public void testConstantBackoff()
   {
-    BackoffPolicy<Void> policy = BackoffPolicy.constant(100);
+    BackoffPolicy policy = BackoffPolicy.constant(100);
     assertEquals(policy.nextBackoff(1, null), 100);
     assertEquals(policy.nextBackoff(2, null), 100);
     assertEquals(policy.nextBackoff(3, null), 100);
@@ -25,7 +25,7 @@ public class TestBackoffPolicy extends BaseEngineTest {
   @Test
   public void testLinearBackoff()
   {
-    BackoffPolicy<Void> policy = BackoffPolicy.linear(100);
+    BackoffPolicy policy = BackoffPolicy.linear(100);
     assertEquals(policy.nextBackoff(1, null), 100);
     assertEquals(policy.nextBackoff(2, null), 200);
     assertEquals(policy.nextBackoff(3, null), 300);
@@ -36,7 +36,7 @@ public class TestBackoffPolicy extends BaseEngineTest {
   @Test
   public void testExponentialBackoff()
   {
-    BackoffPolicy<Void> policy = BackoffPolicy.exponential(100);
+    BackoffPolicy policy = BackoffPolicy.exponential(100);
     assertEquals(policy.nextBackoff(1, null), 100);
     assertEquals(policy.nextBackoff(2, null), 200);
     assertEquals(policy.nextBackoff(3, null), 400);
@@ -47,7 +47,7 @@ public class TestBackoffPolicy extends BaseEngineTest {
   @Test
   public void testFibonacciBackoff()
   {
-    BackoffPolicy<Void> policy = BackoffPolicy.fibonacci(100);
+    BackoffPolicy policy = BackoffPolicy.fibonacci(100);
     assertEquals(policy.nextBackoff(1, null), 100);
     assertEquals(policy.nextBackoff(2, null), 160);
     assertEquals(policy.nextBackoff(3, null), 256);
@@ -58,7 +58,7 @@ public class TestBackoffPolicy extends BaseEngineTest {
   @Test
   public void testRandomizedBackoff()
   {
-    BackoffPolicy<Void> policy = BackoffPolicy.randomized(BackoffPolicy.exponential(100), -100, 100);
+    BackoffPolicy policy = BackoffPolicy.randomized(BackoffPolicy.exponential(100), -100, 100);
     assertTrue(policy.nextBackoff(1, null) >= 0);
     assertTrue(policy.nextBackoff(1, null) <= 200);
     assertTrue(policy.nextBackoff(2, null) >= 100);
@@ -74,10 +74,10 @@ public class TestBackoffPolicy extends BaseEngineTest {
   @Test
   public void testSelectedBackoff()
   {
-    BackoffPolicy<Void> policy = BackoffPolicy.selected(error -> error.getError().getMessage().isEmpty() ? BackoffPolicy.constant(100) : BackoffPolicy.constant(200));
-    assertEquals(policy.nextBackoff(1, Failure.of(new RuntimeException(""))), 100);
-    assertEquals(policy.nextBackoff(2, Failure.of(new RuntimeException("x"))), 200);
-    assertEquals(policy.nextBackoff(3, Failure.of(new RuntimeException(""))), 100);
-    assertEquals(policy.nextBackoff(4, Failure.of(new RuntimeException("x"))), 200);
+    BackoffPolicy policy = BackoffPolicy.selected(error -> error.getMessage().isEmpty() ? BackoffPolicy.constant(100) : BackoffPolicy.constant(200));
+    assertEquals(policy.nextBackoff(1, new RuntimeException("")), 100);
+    assertEquals(policy.nextBackoff(2, new RuntimeException("x")), 200);
+    assertEquals(policy.nextBackoff(3, new RuntimeException("")), 100);
+    assertEquals(policy.nextBackoff(4, new RuntimeException("x")), 200);
   }
 }

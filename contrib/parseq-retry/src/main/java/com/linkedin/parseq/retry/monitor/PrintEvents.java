@@ -1,18 +1,14 @@
 package com.linkedin.parseq.retry.monitor;
 
-import com.linkedin.parseq.function.Try;
-
 import java.util.function.Function;
 
 
 /**
  * Base type for event monitors that print information about retry events as text.
  *
- * @param <T> Type of a task result, used for strongly typed processing of outcomes.
- *
  * @author Oleg Anashkin (oleg.anashkin@gmail.com)
  */
-public abstract class PrintEvents<T> implements EventMonitor<T> {
+public abstract class PrintEvents implements EventMonitor {
   protected static final PrintAction DEFAULT_RETRYING_ACTION = PrintAction.MESSAGE;
   protected static final PrintAction DEFAULT_INTERRUPTED_ACTION = PrintAction.MESSAGE_AND_STACK_TRACE;
   protected static final PrintAction DEFAULT_ABORTED_ACTION = PrintAction.MESSAGE_AND_STACK_TRACE;
@@ -27,13 +23,13 @@ public abstract class PrintEvents<T> implements EventMonitor<T> {
   protected final PrintAction _abortedAction;
 
   /** The strategy used to select an action to perform for a retrying event, defaulting to `retryingAction`. */
-  protected final Function<Try<T>, PrintAction> _retryingActionSelector;
+  protected final Function<Throwable, PrintAction> _retryingActionSelector;
 
   /** The strategy used to select an action to perform for an interrupted event, defaulting to `interruptedAction`. */
-  protected final Function<Try<T>, PrintAction> _interruptedActionSelector;
+  protected final Function<Throwable, PrintAction> _interruptedActionSelector;
 
   /** The strategy used to select an action to perform for an aborted event, defaulting to `abortedAction`. */
-  protected final Function<Try<T>, PrintAction> _abortedActionSelector;
+  protected final Function<Throwable, PrintAction> _abortedActionSelector;
 
   /**
    * Base type for event monitors that print information about retry events as text.
@@ -46,7 +42,7 @@ public abstract class PrintEvents<T> implements EventMonitor<T> {
    * @param abortedActionSelector The strategy used to select an action to perform for an aborted event, defaulting to `abortedAction`.
    */
   public PrintEvents(PrintAction retryingAction, PrintAction interruptedAction, PrintAction abortedAction,
-      Function<Try<T>, PrintAction> retryingActionSelector, Function<Try<T>, PrintAction> interruptedActionSelector, Function<Try<T>, PrintAction> abortedActionSelector) {
+      Function<Throwable, PrintAction> retryingActionSelector, Function<Throwable, PrintAction> interruptedActionSelector, Function<Throwable, PrintAction> abortedActionSelector) {
     _retryingAction = retryingAction;
     _interruptedAction = interruptedAction;
     _abortedAction = abortedAction;
@@ -64,7 +60,7 @@ public abstract class PrintEvents<T> implements EventMonitor<T> {
    */
   public PrintEvents(PrintAction retryingAction, PrintAction interruptedAction, PrintAction abortedAction) {
     this(retryingAction, interruptedAction, abortedAction,
-        outcome -> retryingAction, outcome -> interruptedAction, outcome -> abortedAction);
+        error -> retryingAction, error -> interruptedAction, error -> abortedAction);
   }
 
   /**
@@ -78,11 +74,11 @@ public abstract class PrintEvents<T> implements EventMonitor<T> {
    * {@inheritDoc}
    */
   @Override
-  public void retrying(String name, Try<T> outcome, int attempts, long backoffTime, boolean isSilent) {
+  public void retrying(String name, Throwable error, int attempts, long backoffTime, boolean isSilent) {
     if (!isSilent) {
-      PrintAction action = _retryingActionSelector.apply(outcome);
+      PrintAction action = _retryingActionSelector.apply(error);
       if (action != PrintAction.NOTHING) {
-        printEvent(formatRetrying(name, outcome, attempts, backoffTime), outcome, action == PrintAction.MESSAGE_AND_STACK_TRACE);
+        printEvent(formatRetrying(name, error, attempts, backoffTime), error, action == PrintAction.MESSAGE_AND_STACK_TRACE);
       }
     }
   }
@@ -91,10 +87,10 @@ public abstract class PrintEvents<T> implements EventMonitor<T> {
    * {@inheritDoc}
    */
   @Override
-  public void interrupted(String name, Try<T> outcome, int attempts) {
-    PrintAction action = _interruptedActionSelector.apply(outcome);
+  public void interrupted(String name, Throwable error, int attempts) {
+    PrintAction action = _interruptedActionSelector.apply(error);
     if (action != PrintAction.NOTHING) {
-      printEvent(formatInterrupted(name, outcome, attempts), outcome, action == PrintAction.MESSAGE_AND_STACK_TRACE);
+      printEvent(formatInterrupted(name, error, attempts), error, action == PrintAction.MESSAGE_AND_STACK_TRACE);
     }
   }
 
@@ -102,10 +98,10 @@ public abstract class PrintEvents<T> implements EventMonitor<T> {
    * {@inheritDoc}
    */
   @Override
-  public void aborted(String name, Try<T> outcome, int attempts) {
-    PrintAction action = _abortedActionSelector.apply(outcome);
+  public void aborted(String name, Throwable error, int attempts) {
+    PrintAction action = _abortedActionSelector.apply(error);
     if (action != PrintAction.NOTHING) {
-      printEvent(formatAborted(name, outcome, attempts), outcome, action == PrintAction.MESSAGE_AND_STACK_TRACE);
+      printEvent(formatAborted(name, error, attempts), error, action == PrintAction.MESSAGE_AND_STACK_TRACE);
     }
   }
 
@@ -113,12 +109,12 @@ public abstract class PrintEvents<T> implements EventMonitor<T> {
    * Utility method that handles locking on the target object when printing both a message and a stack trace.
    *
    * @param message A message to print.
-   * @param outcome
+   * @param error
    * @param printStackTrace
    */
-  protected void printEvent(String message, Try<T> outcome, boolean printStackTrace) {
-    if (outcome.isFailed() && printStackTrace) {
-      printMessageAndStackTrace(message, outcome.getError());
+  protected void printEvent(String message, Throwable error, boolean printStackTrace) {
+    if (printStackTrace) {
+      printMessageAndStackTrace(message, error);
     } else {
       printMessage(message);
     }

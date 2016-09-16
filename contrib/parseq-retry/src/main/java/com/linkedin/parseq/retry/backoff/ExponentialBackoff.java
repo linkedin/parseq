@@ -1,16 +1,12 @@
 package com.linkedin.parseq.retry.backoff;
 
-import com.linkedin.parseq.function.Try;
-
 
 /**
  * A policy that doubles the backoff duration after every attempt.
  *
- * @param <T> Type of a task result, not used in this policy.
- *
  * @author Oleg Anashkin (oleg.anashkin@gmail.com)
  */
-public class ExponentialBackoff<T> implements BackoffPolicy<T> {
+public class ExponentialBackoff implements BackoffPolicy {
   protected final long _backoff;
 
   /**
@@ -26,7 +22,7 @@ public class ExponentialBackoff<T> implements BackoffPolicy<T> {
    * {@inheritDoc}
    */
   @Override
-  public long nextBackoff(int attempts, Try<T> outcome) {
+  public long nextBackoff(int attempts, Throwable error) {
     return (1L << attempts - 1) * _backoff;
   }
 }

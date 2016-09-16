@@ -2,7 +2,6 @@ package com.linkedin.parseq.retry;
 
 import com.linkedin.parseq.BaseEngineTest;
 import com.linkedin.parseq.Task;
-import com.linkedin.parseq.function.Try;
 import com.linkedin.parseq.retry.backoff.BackoffPolicy;
 import com.linkedin.parseq.retry.monitor.EventMonitor;
 import com.linkedin.parseq.retry.termination.TerminationPolicy;
@@ -23,7 +22,7 @@ public class TestRetryPolicy extends BaseEngineTest {
   @Test
   public void testSuccessfulTask()
   {
-    Task<String> task = withRetryPolicy(RetryPolicy.attempts(3), attempt -> Task.value("successful attempt " + attempt));
+    Task<String> task = withRetryPolicy(RetryPolicy.attempts(3, 0), attempt -> Task.value("successful attempt " + attempt));
     runAndWait(task);
     assertTrue(task.isDone());
     assertEquals(task.get(), "successful attempt 0");
@@ -32,7 +31,7 @@ public class TestRetryPolicy extends BaseEngineTest {
   @Test
   public void testSimpleRetryPolicy()
   {
-    Task<Void> task = withRetryPolicy("testSimpleRetryPolicy", RetryPolicy.attempts(3),
+    Task<Void> task = withRetryPolicy("testSimpleRetryPolicy", RetryPolicy.attempts(3, 0),
         attempt -> Task.failure(new RuntimeException("current attempt: " + attempt)));
     runAndWaitException(task, RuntimeException.class);
     assertTrue(task.isDone());
@@ -44,7 +43,7 @@ public class TestRetryPolicy extends BaseEngineTest {
   {
     Function<Throwable, ErrorClassification> errorClassifier = error -> error instanceof TimeoutException ? ErrorClassification.RECOVERABLE : ErrorClassification.FATAL;
 
-    RetryPolicy<Void> retryPolicy = new RetryPolicyBuilder<Void>().
+    RetryPolicy retryPolicy = new RetryPolicyBuilder().
         setTerminationPolicy(TerminationPolicy.limitAttempts(3)).
         setErrorClassifier(errorClassifier).
         build();
@@ -62,57 +61,35 @@ public class TestRetryPolicy extends BaseEngineTest {
   }
 
   @Test
-  public void testResultClassification()
-  {
-    Function<String, ResultClassification> resultClassifier = result -> result.startsWith("x") ? ResultClassification.UNACCEPTABLE : ResultClassification.ACCEPTABLE;
-
-    RetryPolicy<String> retryPolicy = new RetryPolicyBuilder<String>().
-        setTerminationPolicy(TerminationPolicy.limitAttempts(3)).
-        setResultClassifier(resultClassifier).
-        build();
-    assertEquals(retryPolicy.getName(), "RetryPolicy.LimitAttempts");
-
-    Task<String> task1 = withRetryPolicy("testResultClassification", retryPolicy, attempt -> Task.value(attempt.toString()));
-    runAndWait(task1);
-    assertTrue(task1.isDone());
-    assertEquals(task1.get(), "0");
-
-    Task<String> task2 = withRetryPolicy("testResultClassification", retryPolicy, attempt -> Task.value("x" + attempt));
-    runAndWaitException(task2, RetryFailureException.class);
-    assertTrue(task2.isDone());
-    assertTrue(task2.getError().getMessage().endsWith("x2"));
-  }
-
-  @Test
   public void testEventMonitor()
   {
     AtomicInteger retryCount = new AtomicInteger(0);
     AtomicInteger interruptedCount = new AtomicInteger(0);
     AtomicInteger abortedCount = new AtomicInteger(0);
 
-    EventMonitor<Void> monitor = new EventMonitor<Void>() {
+    EventMonitor monitor = new EventMonitor() {
       @Override
-      public void retrying(String name, Try<Void> outcome, int attempts, long backoffTime, boolean isSilent) {
+      public void retrying(String name, Throwable error, int attempts, long backoffTime, boolean isSilent) {
         assertEquals(name, "testEventMonitor");
-        assertEquals(outcome.getError().getMessage(), "current attempt: " + (attempts-1));
+        assertEquals(error.getMessage(), "current attempt: " + (attempts-1));
         assertEquals(backoffTime, 10 * attempts);
         retryCount.incrementAndGet();
       }
 
       @Override
-      public void interrupted(String name, Try<Void> outcome, int attempts) {
+      public void interrupted(String name, Throwable error, int attempts) {
         assertEquals(name, "testEventMonitor");
         interruptedCount.incrementAndGet();
       }
 
       @Override
-      public void aborted(String name, Try<Void> outcome, int attempts) {
+      public void aborted(String name, Throwable error, int attempts) {
         assertEquals(name, "testEventMonitor");
         abortedCount.incrementAndGet();
       }
     };
 
-    RetryPolicy<Void> retryPolicy = new RetryPolicyBuilder<Void>().
+    RetryPolicy retryPolicy = new RetryPolicyBuilder().
         setTerminationPolicy(TerminationPolicy.limitAttempts(3)).
         setBackoffPolicy(BackoffPolicy.linear(10)).
         setEventMonitor(monitor).
