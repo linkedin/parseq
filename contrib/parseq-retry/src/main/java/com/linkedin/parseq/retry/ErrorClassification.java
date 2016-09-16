@@ -1,5 +1,6 @@
 package com.linkedin.parseq.retry;
 
+import java.util.concurrent.CancellationException;
 import java.util.function.Function;
 
 
@@ -54,6 +55,7 @@ public enum ErrorClassification {
   }
 
   protected static boolean nonFatal(Throwable throwable) {
-    return throwable instanceof StackOverflowError || !(throwable instanceof Error || throwable instanceof InterruptedException);
+    return throwable instanceof StackOverflowError || !(throwable instanceof VirtualMachineError || throwable instanceof ThreadDeath
+        || throwable instanceof InterruptedException || throwable instanceof LinkageError || throwable instanceof CancellationException);
   }
 }

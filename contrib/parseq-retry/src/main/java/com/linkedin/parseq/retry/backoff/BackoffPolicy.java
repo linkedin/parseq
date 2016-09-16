@@ -25,6 +25,15 @@ public interface BackoffPolicy<T> {
   long nextBackoff(int attempts, Try<T> outcome);
 
   /**
+   * A policy that doesn't do any backoff, so the retry happens immediately.
+   *
+   * @param <U> Type of a task result, not used in this policy.
+   */
+  static <U> BackoffPolicy<U> noBackoff() {
+    return (attempts, outcome) -> 0;
+  }
+
+  /**
    * A policy that uses the same backoff after every retry.
    *
    * @param backoff The backoff used for every retry (in milliseconds).
