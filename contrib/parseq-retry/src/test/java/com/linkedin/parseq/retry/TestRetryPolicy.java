@@ -38,7 +38,7 @@ public class TestRetryPolicy extends BaseEngineTest {
   @Test
   public void testErrorClassification()
   {
-    Function<Throwable, ErrorClassification> errorClassifier = error -> error instanceof TimeoutException ? ErrorClassification.RECOVERABLE : ErrorClassification.FATAL;
+    Function<Throwable, ErrorClassification> errorClassifier = error -> error instanceof TimeoutException ? ErrorClassification.RECOVERABLE : ErrorClassification.UNRECOVERABLE;
 
     RetryPolicy retryPolicy = new RetryPolicyBuilder().
         setTerminationPolicy(TerminationPolicy.limitAttempts(3)).

@@ -137,7 +137,7 @@ public final class RetriableTask<T> {
   private void retry(int attempt, Throwable error, ErrorClassification errorClassification, Context recoveryContext, SettablePromise<T> recoveryResult) {
     long backoffTime = _policy.getBackoffPolicy().nextBackoff(attempt, error);
 
-    if (errorClassification.isFatal()) {
+    if (errorClassification == ErrorClassification.UNRECOVERABLE) {
       // For fatal errors there are no retries.
       LOGGER.debug(String.format("Attempt %s of %s interrupted: %s", attempt, _name, error.getMessage()));
       recoveryResult.fail(error);
