@@ -1,7 +1,6 @@
 package com.linkedin.parseq.retry;
 
 import com.linkedin.parseq.BaseEngineTest;
-import com.linkedin.parseq.function.Failure;
 import com.linkedin.parseq.retry.backoff.BackoffPolicy;
 
 import org.testng.annotations.Test;

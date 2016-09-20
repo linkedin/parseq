@@ -72,13 +72,15 @@ NOTE: When building a retry policy, there should be always some termination poli
 Backoff policies
 ================
 
-Simple retry policy from the examples above would retry failed tasks immediately. To implement some delay between retries, the number of milliseconds should be passed to the policy:
+Simple retry policy from the examples above would retry failed tasks immediately. Sometimes it's a good idea to have some delay between retry attempts. To implement some delay between retries, the number of milliseconds should be passed to the policy:
 
 ```java
 Task<String> task = withRetryPolicy(RetryPolicy.attempts(3, 1000), () -> Task.value("Hello, World!"));
 ```
 
-Sometimes constant backoff is not the best approach and variable delays would produce higher success ratios. It's possible to configure backoff policies:
+NOTE: Having non-zero backoff value specifies delay between completing previous attempt and scheduling new attempt. The counter starts after the task completes, not when it starts. For example, if your task takes exactly 500ms to complete and you have backoff time of 1000s then requests would come approximately every 1500ms.
+
+Simple constant backoff is not always the best approach and variable delays would produce higher success ratios. It's possible to configure backoff policies:
 
 ```java
 RetryPolicy retryPolicy = new RetryPolicyBuilder()
