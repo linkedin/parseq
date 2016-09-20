@@ -109,7 +109,7 @@
     	<connection>scm:git:git://github.com/linkedin/parseq.git</connection>
     </scm>
     <description>
-      Provides convenient API for creatinig automatically batched tasks
+      Provides convenient API for creating automatically batched tasks
     </description>
     <licenses>
         <license>
