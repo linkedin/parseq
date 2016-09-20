@@ -2,12 +2,9 @@ package com.linkedin.parseq.retry;
 
 import com.linkedin.parseq.BaseEngineTest;
 import com.linkedin.parseq.Task;
-import com.linkedin.parseq.retry.backoff.BackoffPolicy;
-import com.linkedin.parseq.retry.monitor.EventMonitor;
 import com.linkedin.parseq.retry.termination.TerminationPolicy;
 
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 import org.testng.annotations.Test;
@@ -58,49 +55,5 @@ public class TestRetryPolicy extends BaseEngineTest {
     runAndWaitException(task2, IllegalArgumentException.class);
     assertTrue(task2.isDone());
     assertEquals(task2.getError().getMessage(), "current attempt: 0");
-  }
-
-  @Test
-  public void testEventMonitor()
-  {
-    AtomicInteger retryCount = new AtomicInteger(0);
-    AtomicInteger interruptedCount = new AtomicInteger(0);
-    AtomicInteger abortedCount = new AtomicInteger(0);
-
-    EventMonitor monitor = new EventMonitor() {
-      @Override
-      public void retrying(String name, Throwable error, int attempts, long backoffTime, boolean isSilent) {
-        assertEquals(name, "testEventMonitor");
-        assertEquals(error.getMessage(), "current attempt: " + (attempts-1));
-        assertEquals(backoffTime, 10 * attempts);
-        retryCount.incrementAndGet();
-      }
-
-      @Override
-      public void interrupted(String name, Throwable error, int attempts) {
-        assertEquals(name, "testEventMonitor");
-        interruptedCount.incrementAndGet();
-      }
-
-      @Override
-      public void aborted(String name, Throwable error, int attempts) {
-        assertEquals(name, "testEventMonitor");
-        abortedCount.incrementAndGet();
-      }
-    };
-
-    RetryPolicy retryPolicy = new RetryPolicyBuilder().
-        setTerminationPolicy(TerminationPolicy.limitAttempts(3)).
-        setBackoffPolicy(BackoffPolicy.linear(10)).
-        setEventMonitor(monitor).
-        build();
-    assertEquals(retryPolicy.getName(), "RetryPolicy.LimitAttempts.LinearBackoff");
-
-    Task<Void> task = withRetryPolicy("testEventMonitor", retryPolicy, attempt -> Task.failure(new RuntimeException("current attempt: " + attempt)));
-    runAndWaitException(task, RuntimeException.class);
-    assertTrue(task.isDone());
-    assertEquals(retryCount.get(), 2);
-    assertEquals(interruptedCount.get(), 0);
-    assertEquals(abortedCount.get(), 1);
   }
 }

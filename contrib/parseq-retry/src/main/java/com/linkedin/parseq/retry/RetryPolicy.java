@@ -1,7 +1,6 @@
 package com.linkedin.parseq.retry;
 
 import com.linkedin.parseq.retry.backoff.BackoffPolicy;
-import com.linkedin.parseq.retry.monitor.EventMonitor;
 import com.linkedin.parseq.retry.termination.RequireEither;
 import com.linkedin.parseq.retry.termination.TerminationPolicy;
 
@@ -28,11 +27,6 @@ public interface RetryPolicy {
    * @return The strategy used to calculate delays between retries.
    */
   BackoffPolicy getBackoffPolicy();
-
-  /**
-   * @return The monitor that is notified of retry events.
-   */
-  EventMonitor getEventMonitor();
 
   /**
    * @return The classifier for errors raised during retry operations.

@@ -1,7 +1,6 @@
 package com.linkedin.parseq.retry;
 
 import com.linkedin.parseq.retry.backoff.BackoffPolicy;
-import com.linkedin.parseq.retry.monitor.EventMonitor;
 import com.linkedin.parseq.retry.termination.TerminationPolicy;
 
 import java.util.function.Function;
@@ -12,7 +11,7 @@ import java.util.function.Function;
  *
  * @author Oleg Anashkin (oleg.anashkin@gmail.com)
  */
-public final class RetryPolicyImpl implements RetryPolicy {
+final class RetryPolicyImpl implements RetryPolicy {
   /** A name of this policy. It is used to configure parseq tasks. */
   private String _name;
 
@@ -21,9 +20,6 @@ public final class RetryPolicyImpl implements RetryPolicy {
 
   /** The strategy used to calculate delays between retries. */
   private BackoffPolicy _backoffPolicy;
-
-  /** The monitor that is notified of retry events. */
-  private EventMonitor _eventMonitor;
 
   /** The classifier for errors raised during retry operations. */
   private Function<Throwable, ErrorClassification> _errorClassifier;
@@ -73,22 +69,6 @@ public final class RetryPolicyImpl implements RetryPolicy {
    */
   RetryPolicyImpl setBackoffPolicy(BackoffPolicy backoffPolicy) {
     _backoffPolicy = backoffPolicy;
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public EventMonitor getEventMonitor() {
-    return _eventMonitor;
-  }
-
-  /**
-   * Set a monitor that is notified of retry events.
-   */
-  RetryPolicyImpl setEventMonitor(EventMonitor eventMonitor) {
-    _eventMonitor = eventMonitor;
     return this;
   }
 

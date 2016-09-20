@@ -89,23 +89,3 @@ Task<String> task = withRetryPolicy(retryPolicy, () -> Task.value("Hello, World!
 ```
 
 There are several backoff policies available: ```constant```, ```linear```, ```exponential```, ```fibonacci```, ```randomized```, ```selected```. It's also possible to create your own by implementing ```BackoffPolicy``` interface.
-
-Event monitoring
-================
-
-By default retry task wrapper does not do any logging of its progress. Failed task would hold a ```Throwable``` object and it's up to the caller to process that. But sometimes it's useful to log retry task process. There are several logging mechanisms provided, the simplest one is the console logging:
-
-```java
-RetryPolicy retryPolicy = new RetryPolicyBuilder()
-    .setTerminationPolicy(TerminationPolicy.limitAttempts(3))
-    .setEventMonitor(EventMonitor.printWithStream(System.out))
-    .build();
-Task<String> task = withRetryPolicy(retryPolicy, () -> Task.value("Hello, World!"));
-```
-
-Instead of ```PrintStream``` it's possible to use ```PrintWriter```:
-```java
-EventMonitor<String> eventMonitor = EventMonitor.printWithWriter(somePrintWriter);
-```
-
-In addition to that there is also support for two common logging mechanisms - java logging ```EventMonitor.logWithJava(javaLogger)``` and slf4j ```EventMonitor.logWithSlf4j(slf4jLogger)```. It is also possible to chain multiple event monitors together using ```EventMonitor.chained(firstMonitor, secondMonitor)```. For custom loggers it is possible to implement ```EventMonitor``` interface.

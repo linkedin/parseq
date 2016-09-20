@@ -1,7 +1,6 @@
 package com.linkedin.parseq.retry;
 
 import com.linkedin.parseq.retry.backoff.BackoffPolicy;
-import com.linkedin.parseq.retry.monitor.EventMonitor;
 import com.linkedin.parseq.retry.termination.TerminationPolicy;
 
 import java.util.function.Function;
@@ -21,9 +20,6 @@ public final class RetryPolicyBuilder {
     }
     if (_retryPolicy.getBackoffPolicy() == null) {
       _retryPolicy.setBackoffPolicy(BackoffPolicy.noBackoff());
-    }
-    if (_retryPolicy.getEventMonitor() == null) {
-      _retryPolicy.setEventMonitor(EventMonitor.ignore());
     }
     if (_retryPolicy.getErrorClassifier() == null) {
       _retryPolicy.setErrorClassifier(ErrorClassification.DEFAULT);
@@ -66,14 +62,6 @@ public final class RetryPolicyBuilder {
    */
   public RetryPolicyBuilder setBackoffPolicy(BackoffPolicy backoffPolicy) {
     _retryPolicy.setBackoffPolicy(backoffPolicy);
-    return this;
-  }
-
-  /**
-   * Set a monitor that is notified of retry events.
-   */
-  public RetryPolicyBuilder setEventMonitor(EventMonitor eventMonitor) {
-    _retryPolicy.setEventMonitor(eventMonitor);
     return this;
   }
 
