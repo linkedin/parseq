@@ -1,6 +1,5 @@
 package com.linkedin.parseq.retry;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -53,40 +52,6 @@ public final class RetriableTask<T> {
     _name = name;
     _policy = policy;
     _taskFunction = taskFunction;
-  }
-
-  /**
-   * A helper for creating task wrapper with associated retry policy.
-   *
-   * @param policy Retry policy that will control this task's behavior.
-   * @param taskSupplier A task generator function.
-   * @param <U> Type of a task result.
-   */
-  public static <U> Task<U> withRetryPolicy(RetryPolicy policy, Callable<Task<U>> taskSupplier) {
-    return withRetryPolicy("operation", policy, attempt -> taskSupplier.call());
-  }
-
-  /**
-   * A helper for creating task wrapper with associated retry policy.
-   *
-   * @param policy Retry policy that will control this task's behavior.
-   * @param taskFunction A task generator function. It will receive a zero-based attempt number as a parameter.
-   * @param <U> Type of a task result.
-   */
-  public static <U> Task<U> withRetryPolicy(RetryPolicy policy, Function1<Integer, Task<U>> taskFunction) {
-    return withRetryPolicy("operation", policy, taskFunction);
-  }
-
-  /**
-   * A helper for creating task wrapper with associated retry policy.
-   *
-   * @param name A name of the task that needs to be retried.
-   * @param policy Retry policy that will control this task's behavior.
-   * @param taskSupplier A task generator function.
-   * @param <U> Type of a task result.
-   */
-  public static <U> Task<U> withRetryPolicy(String name, RetryPolicy policy, Callable<Task<U>> taskSupplier) {
-    return withRetryPolicy(name, policy, attempt -> taskSupplier.call());
   }
 
   /**

@@ -41,6 +41,9 @@ import com.linkedin.parseq.promise.PromisePropagator;
 import com.linkedin.parseq.promise.PromiseTransformer;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
+import com.linkedin.parseq.retry.RetriableTask;
+import com.linkedin.parseq.retry.RetryPolicy;
+import com.linkedin.parseq.retry.RetryPolicyBuilder;
 import com.linkedin.parseq.trace.ShallowTrace;
 import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.Trace;
@@ -1385,6 +1388,63 @@ public interface Task<T> extends Promise<T>, Cancellable {
     ArgumentUtil.requireNotNull(task9, "task9");
     return new Par9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9>("par9", task1, task2, task3, task4, task5, task6, task7,
         task8, task9);
+  }
+
+  /**
+   * Equivalent to {@code withRetryPolicy("operation", policy, taskSupplier)}.
+   * @see #withRetryPolicy(String, RetryPolicy, Callable)
+   */
+  public static <T> Task<T> withRetryPolicy(RetryPolicy policy, Callable<Task<T>> taskSupplier) {
+    return withRetryPolicy("operation", policy, taskSupplier);
+  }
+
+  /**
+   * Equivalent to {@code withRetryPolicy("operation", policy, taskSupplier)}.
+   * @see #withRetryPolicy(String, RetryPolicy, Callable)
+   */
+  public static <T> Task<T> withRetryPolicy(RetryPolicy policy, Function1<Integer, Task<T>> taskSupplier) {
+    return withRetryPolicy("operation", policy, taskSupplier);
+  }
+
+  /**
+   * Creates a new task that will run and potentially retry task returned
+   * by a {@code taskSupplier}. Use {@link RetryPolicyBuilder} to create desired
+   * retry policy.
+   * <p>
+   * NOTE: using tasks with retry can have significant performance implications. For example, HTTP request may
+   * failed due to server overload and retrying request may prevent server from recovering. In this example
+   * a better approach is the opposite: decrease number of requests to the server unit it is fully recovered.
+   * Please make sure you have considered why the first task failed and why is it reasonable to expect retry task
+   * to complete successfully. It is also highly recommended to specify reasonable backoff and termination conditions.
+   *
+   * @param name A name of the task that needs to be retried.
+   * @param policy Retry policy that will control this task's retry behavior.
+   * @param taskSupplier A task generator function.
+   * @param <T> the type of the return value for this task
+   */
+  public static <T> Task<T> withRetryPolicy(String name, RetryPolicy policy, Callable<Task<T>> taskSupplier) {
+    return withRetryPolicy(name, policy, attempt -> taskSupplier.call());
+  }
+
+  /**
+   * Creates a new task that will run and potentially retry task returned
+   * by a {@code taskSupplier}. Use {@link RetryPolicyBuilder} to create desired
+   * retry policy.
+   * <p>
+   * NOTE: using tasks with retry can have significant performance implications. For example, HTTP request may
+   * failed due to server overload and retrying request may prevent server from recovering. In this example
+   * a better approach is the opposite: decrease number of requests to the server unit it is fully recovered.
+   * Please make sure you have considered why the first task failed and why is it reasonable to expect retry task
+   * to complete successfully. It is also highly recommended to specify reasonable backoff and termination conditions.
+   *
+   * @param name A name of the task that needs to be retried.
+   * @param policy Retry policy that will control this task's retry behavior.
+   * @param taskSupplier A task generator function. It will receive a zero-based attempt number as a parameter.
+   * @param <T> the type of the return value for this task
+   * @see RetryPolicyBuilder
+   */
+  public static <T> Task<T> withRetryPolicy(String name, RetryPolicy policy, Function1<Integer, Task<T>> taskSupplier) {
+    return RetriableTask.withRetryPolicy(name, policy, taskSupplier);
   }
 
 }
