@@ -71,8 +71,17 @@ public class TestEngineConcurrentPlans {
       _engine.run(tasks[i]);
     }
 
-    assertTrue(tasks[9].await(5, TimeUnit.SECONDS));
-    assertEquals(counter.get(), 10);
+    assertTrue(awaitAll(tasks));
+    assertEquals(10, counter.get());
+  }
+
+  private boolean awaitAll(Task<?>[] tasks) throws InterruptedException {
+    for (int i = 0; i < tasks.length; i++) {
+      if (!tasks[i].await(5, TimeUnit.SECONDS)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Test
@@ -90,8 +99,8 @@ public class TestEngineConcurrentPlans {
       assertTrue(_engine.tryRun(tasks[i]));
     }
 
-    assertTrue(tasks[9].await(5, TimeUnit.SECONDS));
-    assertEquals(counter.get(), 10);
+    assertTrue(awaitAll(tasks));
+    assertEquals(10, counter.get());
   }
 
   @Test
@@ -109,8 +118,8 @@ public class TestEngineConcurrentPlans {
       _engine.blockingRun(tasks[i]);
     }
 
-    assertTrue(tasks[9].await(5, TimeUnit.SECONDS));
-    assertEquals(counter.get(), 10);
+    assertTrue(awaitAll(tasks));
+    assertEquals(10, counter.get());
   }
 
   @Test
@@ -128,8 +137,8 @@ public class TestEngineConcurrentPlans {
       assertTrue(_engine.tryRun(tasks[i], 10, TimeUnit.MILLISECONDS));
     }
 
-    assertTrue(tasks[9].await(5, TimeUnit.SECONDS));
-    assertEquals(counter.get(), 10);
+    assertTrue(awaitAll(tasks));
+    assertEquals(10, counter.get());
   }
 
   @Test
@@ -159,7 +168,7 @@ public class TestEngineConcurrentPlans {
     latch.countDown();
 
     //wait for tasks to finish
-    assertTrue(tasks[9].await(5, TimeUnit.SECONDS));
+    assertTrue(awaitAll(tasks));
 
     //should be unblocked
     _engine.run(Task.action(() -> {}));
@@ -187,7 +196,7 @@ public class TestEngineConcurrentPlans {
     latch.countDown();
 
     //wait for tasks to finish
-    assertTrue(tasks[9].await(5, TimeUnit.SECONDS));
+    assertTrue(awaitAll(tasks));
 
     //should be unblocked
     assertTrue(_engine.tryRun(Task.action(() -> {})));
@@ -215,7 +224,7 @@ public class TestEngineConcurrentPlans {
     latch.countDown();
 
     //wait for tasks to finish
-    assertTrue(tasks[9].await(5, TimeUnit.SECONDS));
+    assertTrue(awaitAll(tasks));
 
     //should be unblocked
     assertTrue(_engine.tryRun(Task.action(() -> {}), 10, TimeUnit.MILLISECONDS));
