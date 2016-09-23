@@ -1,3 +1,8 @@
+v2.6.0
+------
+
+* Added tasks with retry policy: Task.withRetryPolicy(...)
+
 v2.5.0
 ------
 
