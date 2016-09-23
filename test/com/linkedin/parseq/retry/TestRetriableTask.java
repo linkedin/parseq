@@ -1,21 +1,21 @@
 package com.linkedin.parseq.retry;
 
-import com.linkedin.parseq.BaseEngineTest;
-import com.linkedin.parseq.Task;
-import com.linkedin.parseq.retry.termination.TerminationPolicy;
+import static com.linkedin.parseq.Task.withRetryPolicy;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
+import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
 import org.testng.annotations.Test;
 
-import static com.linkedin.parseq.retry.RetriableTask.withRetryPolicy;
+import com.linkedin.parseq.BaseEngineTest;
+import com.linkedin.parseq.Task;
+import com.linkedin.parseq.retry.termination.TerminationPolicy;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
 
-
-public class TestRetryPolicy extends BaseEngineTest {
+public class TestRetriableTask extends BaseEngineTest {
   @Test
   public void testSuccessfulTask()
   {
@@ -56,4 +56,14 @@ public class TestRetryPolicy extends BaseEngineTest {
     assertTrue(task2.isDone());
     assertEquals(task2.getError().getMessage(), "current attempt: 0");
   }
+
+  @Test
+  public void testFailingTaskSupplier()
+  {
+    Task<Void> task = withRetryPolicy("testFailingTaskSupplier", RetryPolicy.attempts(3, 0),
+        attempt -> { throw new IOException("ups"); });
+    runAndWaitException(task, IOException.class);
+    assertTrue(task.isDone());
+  }
+
 }
