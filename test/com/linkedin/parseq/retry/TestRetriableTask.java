@@ -1,6 +1,6 @@
 package com.linkedin.parseq.retry;
 
-import static com.linkedin.parseq.retry.RetriableTask.withRetryPolicy;
+import static com.linkedin.parseq.Task.withRetryPolicy;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
