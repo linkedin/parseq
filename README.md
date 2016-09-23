@@ -10,7 +10,7 @@ Some of the key benefits of ParSeq include:
 * [Simple error propagation and recovery](https://github.com/linkedin/parseq/wiki/User%27s-Guide#handling-errors)
 * [Execution tracing and visualization](https://github.com/linkedin/parseq/wiki/Tracing)
 * [Batching of asynchronous operations](https://github.com/linkedin/parseq/tree/master/contrib/parseq-batching)
-* [Tasks with retry policy](https://github.com/linkedin/parseq/wiki/User%27s-Guide#retries)
+* [Tasks with retry policy](https://github.com/linkedin/parseq/wiki/User%27s-Guide#retrying)
 
 [Our Wiki](https://github.com/linkedin/parseq/wiki) includes an introductory example, a User's Guide, javadoc, and more.
 
