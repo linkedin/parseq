@@ -37,7 +37,7 @@ public interface RetryPolicy {
    * Retry policy with configurable number of attempts.
    *
    * @param attempts Total number of attempts (the number of retries will be that minus 1).
-   * @param backoff The constant delay between retry attempts.
+   * @param backoff The constant delay (in milliseconds) between retry attempts.
    */
   static RetryPolicy attempts(int attempts, long backoff) {
     return new RetryPolicyBuilder().
@@ -50,7 +50,7 @@ public interface RetryPolicy {
    * Retry policy with limited total duration of the encompassing task (including unlimited retries).
    *
    * @param duration Total duration of the task. This includes both the original request and all potential retries.
-   * @param backoff The constant delay between retry attempts.
+   * @param backoff The constant delay (in milliseconds) between retry attempts.
    */
   static RetryPolicy duration(long duration, long backoff) {
     return new RetryPolicyBuilder().
@@ -64,7 +64,7 @@ public interface RetryPolicy {
    *
    * @param attempts Total number of attempts (the number of retries will be that minus 1).
    * @param duration Total duration of the task. This includes both the original request and all potential retries.
-   * @param backoff The constant delay between retry attempts.
+   * @param backoff The constant delay (in milliseconds) between retry attempts.
    */
   static RetryPolicy attemptsAndDuration(int attempts, long duration, long backoff) {
     TerminationPolicy terminationPolicy = new RequireEither(TerminationPolicy.limitAttempts(attempts), TerminationPolicy.limitDuration(duration));
