@@ -27,11 +27,12 @@ public class TestSerialExecutor {
 
   @BeforeMethod
   public void setUp() {
-    _executorService = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(1),
+    _executorService = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS, new ArrayBlockingQueue<>(1),
         new ThreadPoolExecutor.AbortPolicy());
     _rejectionHandler = new CapturingRejectionHandler();
     _capturingDeactivationListener = new CapturingActivityListener();
-    _serialExecutor = new SerialExecutor(_executorService, _rejectionHandler, _capturingDeactivationListener);
+    _serialExecutor = new SerialExecutor(_executorService, _rejectionHandler, _capturingDeactivationListener,
+        new FIFOPriorityQueue<>());
   }
 
   @AfterMethod

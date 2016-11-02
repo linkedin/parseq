@@ -16,8 +16,6 @@
 
 package com.linkedin.parseq.internal;
 
-import com.linkedin.parseq.Priority;
-
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
@@ -26,23 +24,14 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
-public class FIFOPriorityQueue<T> {
-  private final BlockingQueue<Entry<T>> _queue = new PriorityBlockingQueue<Entry<T>>();
+public class FIFOPriorityQueue<T extends Prioritizable> implements SerialExecutor.TaskQueue<T> {
+  private final BlockingQueue<Entry> _queue = new PriorityBlockingQueue<>();
   private final AtomicLong _sequenceNumber = new AtomicLong();
 
-  private final int _defaultPriority;
-
-  public FIFOPriorityQueue() {
-    this(Priority.DEFAULT_PRIORITY);
-  }
-
-  public FIFOPriorityQueue(int defaultPriority) {
-    _defaultPriority = defaultPriority;
-  }
+  public FIFOPriorityQueue() {}
 
   public void add(T value) {
-    final int priority = value instanceof Prioritizable ? ((Prioritizable) value).getPriority() : _defaultPriority;
-    _queue.add(new Entry<T>(_sequenceNumber.getAndIncrement(), priority, value));
+    _queue.add(new Entry<T>(_sequenceNumber.getAndIncrement(), value));
   }
 
   public T poll() {
@@ -50,20 +39,18 @@ public class FIFOPriorityQueue<T> {
     return entry == null ? null : entry._value;
   }
 
-  private static class Entry<T> implements Comparable<Entry<T>> {
+  private static class Entry<T extends Prioritizable> implements Comparable<Entry<T>> {
     private final long _sequenceNumber;
-    private final int _priority;
     private final T _value;
 
-    private Entry(final long sequenceNumber, final int priority, final T value) {
+    private Entry(final long sequenceNumber, final T value) {
       _sequenceNumber = sequenceNumber;
-      _priority = priority;
       _value = value;
     }
 
     @Override
-    public int compareTo(final Entry<T> o) {
-      final int comp = compare(o._priority, _priority);
+    public int compareTo(final Entry o) {
+      final int comp = compare(o._value.getPriority(), _value.getPriority());
       return comp == 0 ? compare(_sequenceNumber, o._sequenceNumber) : comp;
     }
 
