@@ -102,7 +102,7 @@ public class PlanContext {
     return _id;
   }
 
-  public void execute(Runnable runnable) {
+  public void execute(PrioritizableRunnable runnable) {
     _taskExecutor.execute(runnable);
   }
 

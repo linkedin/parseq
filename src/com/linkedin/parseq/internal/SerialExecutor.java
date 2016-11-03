@@ -16,7 +16,6 @@
 
 package com.linkedin.parseq.internal;
 
-import com.linkedin.parseq.Priority;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -40,7 +39,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class SerialExecutor implements Executor {
+public class SerialExecutor {
 
   /*
    * Below is a proof and description of a mechanism that ensures that
@@ -88,22 +87,8 @@ public class SerialExecutor implements Executor {
     _deactivationListener = deactivationListener;
   }
 
-  public void execute(final Runnable runnable) {
-    if (runnable instanceof Prioritizable) {
-      _queue.add((PrioritizableRunnable)runnable);
-    } else {
-      _queue.add(new PrioritizableRunnable() {
-        @Override
-        public int getPriority() {
-          return Priority.DEFAULT_PRIORITY;
-        }
-
-        @Override
-        public void run() {
-          runnable.run();
-        }
-      });
-    }
+  public void execute(final PrioritizableRunnable runnable) {
+    _queue.add(runnable);
     // Guarantees that execution loop is scheduled only once to the underlying executor.
     // Also makes sure that all memory effects of last Runnable are visible to the next Runnable
     // in case value returned by decrementAndGet == 0.

@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
 public class FIFOPriorityQueue<T extends Prioritizable> implements SerialExecutor.TaskQueue<T> {
-  private final BlockingQueue<Entry> _queue = new PriorityBlockingQueue<>();
+  private final BlockingQueue<Entry<T>> _queue = new PriorityBlockingQueue<>();
   private final AtomicLong _sequenceNumber = new AtomicLong();
 
   public FIFOPriorityQueue() {}
@@ -49,7 +49,7 @@ public class FIFOPriorityQueue<T extends Prioritizable> implements SerialExecuto
     }
 
     @Override
-    public int compareTo(final Entry o) {
+    public int compareTo(final Entry<T> o) {
       final int comp = compare(o._value.getPriority(), _value.getPriority());
       return comp == 0 ? compare(_sequenceNumber, o._sequenceNumber) : comp;
     }

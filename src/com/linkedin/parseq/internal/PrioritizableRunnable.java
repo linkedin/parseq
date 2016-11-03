@@ -16,8 +16,17 @@
 
 package com.linkedin.parseq.internal;
 
+import com.linkedin.parseq.Priority;
+
+
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
  */
 public interface PrioritizableRunnable extends Runnable, Prioritizable {
+
+  @Override
+  default int getPriority() {
+    return Priority.DEFAULT_PRIORITY;
+  }
+
 }

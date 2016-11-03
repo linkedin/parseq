@@ -129,7 +129,7 @@ public class TestSerialExecutor {
         _rejectionHandler.getLastError() instanceof RejectedExecutionException);
   }
 
-  private static class NeverEndingRunnable implements Runnable {
+  private static class NeverEndingRunnable implements PrioritizableRunnable {
     @Override
     public void run() {
       try {
@@ -183,7 +183,7 @@ public class TestSerialExecutor {
     }
   }
 
-  private static class LatchedRunnable implements Runnable {
+  private static class LatchedRunnable implements PrioritizableRunnable {
     private final CountDownLatch _latch = new CountDownLatch(1);
 
     @Override
