@@ -59,4 +59,15 @@ public class TestSimpleBatchingStrategy extends BaseEngineTest {
     assertEquals(result, "01");
   }
 
+  @Test
+  public void testShareable() {
+
+    Task<String> task = Task.par(_strategy.batchable(0).shareable(), _strategy.batchable(1).shareable())
+        .map("concat", (s0, s1) -> s0 + s1);
+
+    String result = runAndWait("TestSimpleBatchingStrategy.testShareable", task);
+
+    assertEquals(result, "01");
+  }
+
 }
