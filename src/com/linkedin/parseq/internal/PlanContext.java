@@ -141,7 +141,7 @@ public class PlanContext {
     int pending;
     while ((pending = _pending.get()) > 0) {
       if (_pending.compareAndSet(pending, pending + 1)) {
-        return new PlanContext(root, IdGenerator.getNextId(), _engine, _taskExecutor,
+        return new PlanContext(root, _id, _engine, _taskExecutor,
             _timerScheduler, _planClass, _taskLogger, _relationshipsBuilder, p -> done());
       }
     }
