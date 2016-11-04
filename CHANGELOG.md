@@ -1,3 +1,8 @@
+v2.6.1
+------
+
+* Fixed bug which caused shareable, batchable tasks to hang
+
 v2.6.0
 ------
 
