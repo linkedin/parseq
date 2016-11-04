@@ -33,7 +33,7 @@
         <dependency>
             <groupId>com.linkedin.pegasus</groupId>
             <artifactId>d2</artifactId>
-            <version>2.6.1</version>
+            <version>2.6.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -110,7 +110,7 @@
     </scm>
   <description>
     Integrates ParSeq with Apache ZooKeeper Library
-  </description>    
+  </description>
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>
@@ -124,5 +124,5 @@
       <name>Ang Xu</name>
       <email>axu@linkedin.com</email>
     </developer>
-  </developers>    
+  </developers>
 </project>
