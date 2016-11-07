@@ -25,13 +25,13 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.internal.ContextImpl;
 import com.linkedin.parseq.internal.PlanCompletionListener;
 import com.linkedin.parseq.internal.PlanDeactivationListener;
 import com.linkedin.parseq.internal.PlanContext;
-import org.slf4j.LoggerFactory;
 
 
 /**
@@ -63,6 +63,7 @@ public class Engine {
   private final Executor _taskExecutor;
   private final DelayedExecutor _timerExecutor;
   private final ILoggerFactory _loggerFactory;
+  private final TaskQueueFactory _taskQueueFactory;
 
   private final AtomicReference<State> _stateRef = new AtomicReference<State>(INIT);
   private final CountDownLatch _terminated = new CountDownLatch(1);
@@ -86,12 +87,14 @@ public class Engine {
   /* package private */ Engine(final Executor taskExecutor, final DelayedExecutor timerExecutor,
       final ILoggerFactory loggerFactory, final Map<String, Object> properties,
       final PlanDeactivationListener planActivityListener,
-      final PlanCompletionListener planCompletionListener) {
+      final PlanCompletionListener planCompletionListener,
+      final TaskQueueFactory taskQueueFactory) {
     _taskExecutor = taskExecutor;
     _timerExecutor = timerExecutor;
     _loggerFactory = loggerFactory;
     _properties = properties;
     _planDeactivationListener = planActivityListener;
+    _taskQueueFactory = taskQueueFactory;
 
     _allLogger = loggerFactory.getLogger(LOGGER_BASE + ":all");
     _rootLogger = loggerFactory.getLogger(LOGGER_BASE + ":root");
@@ -326,7 +329,8 @@ public class Engine {
     } while (!_stateRef.compareAndSet(currState, newState));
 
     PlanContext planContext = new PlanContext(this, _taskExecutor, _timerExecutor, _loggerFactory, _allLogger,
-        _rootLogger, planClass, task, _maxRelationshipsPerTrace, _planDeactivationListener, _planCompletionListener);
+        _rootLogger, planClass, task, _maxRelationshipsPerTrace, _planDeactivationListener, _planCompletionListener,
+        _taskQueueFactory.newTaskQueue());
     new ContextImpl(planContext, task).runTask();
   }
 

@@ -16,7 +16,6 @@
 
 package com.linkedin.parseq;
 
-import com.linkedin.parseq.internal.PlanCompletionListener;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -27,6 +26,8 @@ import org.slf4j.LoggerFactory;
 
 import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.internal.CachedLoggerFactory;
+import com.linkedin.parseq.internal.FIFOPriorityQueue;
+import com.linkedin.parseq.internal.PlanCompletionListener;
 import com.linkedin.parseq.internal.PlanDeactivationListener;
 
 /**
@@ -47,6 +48,7 @@ public class EngineBuilder {
   private ILoggerFactory _loggerFactory;
   private PlanDeactivationListener _planDeactivationListener;
   private PlanCompletionListener _planCompletionListener;
+  private TaskQueueFactory _taskQueueFactory;
 
   private Map<String, Object> _properties = new HashMap<String, Object>();
 
@@ -73,6 +75,12 @@ public class EngineBuilder {
   public EngineBuilder setPlanCompletionListener(PlanCompletionListener planCompletionListener) {
     ArgumentUtil.requireNotNull(planCompletionListener, "planCompletionListener");
     _planCompletionListener = planCompletionListener;
+    return this;
+  }
+
+  public EngineBuilder setTaskQueueFactory(TaskQueueFactory taskQueueFactory) {
+    ArgumentUtil.requireNotNull(taskQueueFactory, "taskQueueFactory");
+    _taskQueueFactory = taskQueueFactory;
     return this;
   }
 
@@ -161,7 +169,8 @@ public class EngineBuilder {
     return new Engine(_taskExecutor, new IndirectDelayedExecutor(_timerScheduler),
         _loggerFactory != null ? _loggerFactory : new CachedLoggerFactory(LoggerFactory.getILoggerFactory()),
         _properties, _planDeactivationListener != null ? _planDeactivationListener : planContext -> {},
-        _planCompletionListener != null ? _planCompletionListener : planContext -> {});
+        _planCompletionListener != null ? _planCompletionListener : planContext -> {},
+        _taskQueueFactory != null ? _taskQueueFactory : FIFOPriorityQueue::new);
   }
 
   /**

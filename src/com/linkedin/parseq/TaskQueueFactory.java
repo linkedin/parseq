@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 LinkedIn, Inc
+ * Copyright 2016 LinkedIn, Inc
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,19 +14,17 @@
  * the License.
  */
 
-package com.linkedin.parseq.internal;
+package com.linkedin.parseq;
 
-import com.linkedin.parseq.Priority;
+import com.linkedin.parseq.internal.PrioritizableRunnable;
+import com.linkedin.parseq.internal.SerialExecutor;
 
 
 /**
- * @author Chris Pettitt (cpettitt@linkedin.com)
+ * A factory to create {@link com.linkedin.parseq.internal.SerialExecutor.TaskQueue}s.
+ *
+ * @author Ang Xu
  */
-public interface PrioritizableRunnable extends Runnable, Prioritizable {
-
-  @Override
-  default int getPriority() {
-    return Priority.DEFAULT_PRIORITY;
-  }
-
+public interface TaskQueueFactory {
+  SerialExecutor.TaskQueue<PrioritizableRunnable> newTaskQueue();
 }

@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class SerialExecutor implements Executor {
+public class SerialExecutor {
 
   /*
    * Below is a proof and description of a mechanism that ensures that
@@ -69,23 +69,25 @@ public class SerialExecutor implements Executor {
   private final Executor _executor;
   private final RejectedSerialExecutionHandler _rejectionHandler;
   private final ExecutorLoop _executorLoop = new ExecutorLoop();
-  private final FIFOPriorityQueue<Runnable> _queue = new FIFOPriorityQueue<Runnable>();
+  private final TaskQueue<PrioritizableRunnable> _queue;
   private final AtomicInteger _pendingCount = new AtomicInteger();
   private final DeactivationListener _deactivationListener;
 
   public SerialExecutor(final Executor executor,
       final RejectedSerialExecutionHandler rejectionHandler,
-      final DeactivationListener deactivationListener) {
+      final DeactivationListener deactivationListener,
+      final TaskQueue<PrioritizableRunnable> taskQueue) {
     ArgumentUtil.requireNotNull(executor, "executor");
     ArgumentUtil.requireNotNull(rejectionHandler, "rejectionHandler" );
     ArgumentUtil.requireNotNull(deactivationListener, "deactivationListener" );
 
     _executor = executor;
     _rejectionHandler = rejectionHandler;
+    _queue = taskQueue;
     _deactivationListener = deactivationListener;
   }
 
-  public void execute(final Runnable runnable) {
+  public void execute(final PrioritizableRunnable runnable) {
     _queue.add(runnable);
     // Guarantees that execution loop is scheduled only once to the underlying executor.
     // Also makes sure that all memory effects of last Runnable are visible to the next Runnable
@@ -140,12 +142,22 @@ public class SerialExecutor implements Executor {
     }
   }
 
+  /**
+   * A priority queue which stores runnables to be executed within a {@link SerialExecutor}.
+   * The implementation has to make sure runnables are sorted in the descending order based
+   * on their priority.
+   */
+  public interface TaskQueue<T extends Prioritizable> {
+    void add(T value);
+    T poll();
+  }
+
   /*
    * Deactivation listener is notified when this executor finished executing a Runnable
    * and there are no other Runnables waiting in queue.
    * It is executed sequentially with respect to other Runnables executed by this Executor.
    */
-  static interface DeactivationListener {
+  interface DeactivationListener {
     void deactivated();
   }
 }
