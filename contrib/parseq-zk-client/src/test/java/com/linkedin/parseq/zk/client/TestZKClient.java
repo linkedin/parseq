@@ -66,7 +66,11 @@ public class TestZKClient extends BaseEngineTest {
     try {
       _zkServer = new ZKServer();
       _zkServer.startup();
-      _zkClient = new ZKClient("localhost:" + _zkServer.getPort(), 10000, getEngine());
+      _zkClient = new ZKClientBuilder()
+          .setConnectionString("localhost:" + _zkServer.getPort())
+          .setSessionTimeout(10000)
+          .setEngine(getEngine())
+          .build();
       _zkClient.start().await(10, TimeUnit.SECONDS);
       _zooKeeper = new ZKConnection("localhost:" + _zkServer.getPort(), 10000);
       CountDownLatch startLatch = new CountDownLatch(1);

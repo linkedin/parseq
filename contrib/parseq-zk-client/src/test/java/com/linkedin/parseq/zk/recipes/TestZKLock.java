@@ -20,6 +20,7 @@ import com.linkedin.parseq.BaseEngineTest;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
+import com.linkedin.parseq.zk.client.ZKClientBuilder;
 import com.linkedin.parseq.zk.server.ZKServer;
 import com.linkedin.parseq.zk.client.ZKClient;
 import java.io.IOException;
@@ -55,7 +56,11 @@ public class TestZKLock extends BaseEngineTest {
     try {
       _zkServer = new ZKServer();
       _zkServer.startup();
-      _zkClient = new ZKClient("localhost:" + _zkServer.getPort(), 10000, getEngine());
+      _zkClient = new ZKClientBuilder()
+          .setConnectionString("localhost:" + _zkServer.getPort())
+          .setSessionTimeout(10000)
+          .setEngine(getEngine())
+          .build();
       _zkClient.start().await(10, TimeUnit.SECONDS);
     } catch (IOException e) {
       fail("Failed to setup zkServer or zkClient", e);
