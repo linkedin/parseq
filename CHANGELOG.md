@@ -1,3 +1,9 @@
+v2.6.2
+------
+
+* Allow user to wire custom TaskQueue implementation into SerialExecutor
+* Refactoring ZKClient in parseq-zk-client contrib project to use interface + builder pattern
+
 v2.6.1
 ------
 
