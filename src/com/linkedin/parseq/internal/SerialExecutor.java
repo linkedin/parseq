@@ -67,22 +67,22 @@ public class SerialExecutor {
    */
 
   private final Executor _executor;
-  private final RejectedSerialExecutionHandler _rejectionHandler;
+  private final UncaughtExceptionHandler _uncaughtExecutionHandler;
   private final ExecutorLoop _executorLoop = new ExecutorLoop();
   private final TaskQueue<PrioritizableRunnable> _queue;
   private final AtomicInteger _pendingCount = new AtomicInteger();
   private final DeactivationListener _deactivationListener;
 
   public SerialExecutor(final Executor executor,
-      final RejectedSerialExecutionHandler rejectionHandler,
+      final UncaughtExceptionHandler uncaughtExecutionHandler,
       final DeactivationListener deactivationListener,
       final TaskQueue<PrioritizableRunnable> taskQueue) {
     ArgumentUtil.requireNotNull(executor, "executor");
-    ArgumentUtil.requireNotNull(rejectionHandler, "rejectionHandler" );
+    ArgumentUtil.requireNotNull(uncaughtExecutionHandler, "uncaughtExecutionHandler" );
     ArgumentUtil.requireNotNull(deactivationListener, "deactivationListener" );
 
     _executor = executor;
-    _rejectionHandler = rejectionHandler;
+    _uncaughtExecutionHandler = uncaughtExecutionHandler;
     _queue = taskQueue;
     _deactivationListener = deactivationListener;
   }
@@ -105,7 +105,7 @@ public class SerialExecutor {
     try {
       _executor.execute(_executorLoop);
     } catch (Throwable t) {
-      _rejectionHandler.rejectedExecution(t);
+      _uncaughtExecutionHandler.uncaughtException(t);
     }
   }
 
@@ -129,6 +129,8 @@ public class SerialExecutor {
         if (_pendingCount.get() == 1) {
           _deactivationListener.deactivated();
         }
+      } catch (Throwable t) {
+        _uncaughtExecutionHandler.uncaughtException(t);
       } finally {
         // Guarantees that execution loop is scheduled only once to the underlying executor.
         // Also makes sure that all memory effects of last Runnable are visible to the next Runnable
