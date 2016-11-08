@@ -1,3 +1,8 @@
+v2.6.3
+------
+
+* Handle uncaught exception in SerialExecutor more gracefully
+
 v2.6.2
 ------
 
