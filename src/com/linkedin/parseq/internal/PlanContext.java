@@ -60,7 +60,7 @@ public class PlanContext {
     _root = root;
     _relationshipsBuilder = new TraceBuilder(maxRelationshipsPerTrace, planClass, _id);
     _engine = engine;
-    _taskExecutor = new SerialExecutor(taskExecutor, new CancelPlanRejectionHandler(root), () -> {
+    _taskExecutor = new SerialExecutor(taskExecutor, new CancellingPlanExceptionHandler(root), () -> {
       try {
         planDeactivationListener.onPlanDeactivated(PlanContext.this);
       } catch (Throwable t) {
@@ -158,19 +158,20 @@ public class PlanContext {
     }
   }
 
-  private static class CancelPlanRejectionHandler implements RejectedSerialExecutionHandler {
+  private static class CancellingPlanExceptionHandler implements UncaughtExceptionHandler {
     private final Task<?> _task;
 
-    private CancelPlanRejectionHandler(Task<?> task) {
+    private CancellingPlanExceptionHandler(Task<?> task) {
       _task = task;
     }
 
     @Override
-    public void rejectedExecution(Throwable error) {
+    public void uncaughtException(Throwable error) {
       final String msg = "Serial executor loop failed for plan: " + _task.getName();
       final SerialExecutionException ex = new SerialExecutionException(msg, error);
       final boolean wasCancelled = _task.cancel(ex);
       LOG.error(msg + ". The plan was " + (wasCancelled ? "" : "not ") + "cancelled.", ex);
     }
+
   }
 }
