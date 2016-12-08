@@ -208,7 +208,7 @@ class GetRequestGroup implements RequestGroup {
             RestRequestBatchKey rrbk = entry.getKey();
             Request request = rrbk.getRequest();
             if (request instanceof GetRequest) {
-              String idString = ((GetRequest) request).getObjectId().toString();
+              String idString = BatchResponse.keyToString(((GetRequest) request).getObjectId(), version);
               Object id = ResponseUtils.convertKey(idString, request.getResourceSpec().getKeyType(),
                   request.getResourceSpec().getKeyParts(), request.getResourceSpec().getComplexKeyType(), version);
               Response rsp = unbatchResponse(batchGet, responseToBatch, id);
