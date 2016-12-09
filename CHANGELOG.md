@@ -1,3 +1,8 @@
+v2.6.4
+------
+
+* Fixed unbatching GET from BATCH_GET for complex keys.
+
 v2.6.3
 ------
 
