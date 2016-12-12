@@ -2,7 +2,9 @@
     <info organisation="com.linkedin.parseq" module="parseq"/>
     <configurations>
         <conf name="dist" description="includes JARs, javadoc, and sources" extends="jar, javadoc, sources"/>
-        <conf name="default" description="includes JARs and runtime dependencies" extends="jar, runtime"/>
+        <conf name="master" visibility="public" description="contains only the artifact published by this module itself, with no transitive dependencies"/>
+        <conf name="compile" visibility="public" description="compile time dependencies" extends="build"/>
+        <conf name="default" description="includes JARs and runtime dependencies" extends="jar, runtime, master"/>
         <conf name="build" visibility="private" description="build time dependencies"/>
         <conf name="runtime" description="dependencies required to run parseq" extends="build"/>
         <conf name="jar" description="main artifact with no dependencies"/>
