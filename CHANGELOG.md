@@ -1,3 +1,8 @@
+v2.6.5
+------
+
+* Added compile and master configurations to parseq's master ivy file to make it interact correctly with ivy files automatically generated from maven's pom files.
+
 v2.6.4
 ------
 
