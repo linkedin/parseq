@@ -60,6 +60,7 @@ public class JsonTraceCodec implements TraceCodec {
   static final String TRACE_ATTRIBUTES = "attributes";
   static final String TRACE_ATTRIBUTE_KEY = "key";
   static final String TRACE_ATTRIBUTE_VALUE = "value";
+  static final String TRACE_TASK_TYPE = "taskType";
 
   // Relationship Fields
   static final String RELATIONSHIP_RELATIONSHIP = "relationship";

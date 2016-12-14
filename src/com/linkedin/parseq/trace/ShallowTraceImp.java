@@ -42,10 +42,11 @@ public class ShallowTraceImp implements ShallowTrace {
   private final Long _pendingNanos;
   private final Long _endNanos;
   private final Map<String, String> _attributes;
+  private final String _taskType;
 
   /* package private */ ShallowTraceImp(final Long id, final String name, final boolean hidden,
       final boolean systemHidden, final ResultType resultType, final String value, final Long startNanos,
-      final Long pendingNanos, final Long endNanos, final Map<String, String> attributes) {
+      final Long pendingNanos, final Long endNanos, final Map<String, String> attributes, String taskType) {
     ArgumentUtil.requireNotNull(id, "id");
     ArgumentUtil.requireNotNull(name, "name");
     ArgumentUtil.requireNotNull(resultType, "resultType");
@@ -60,6 +61,7 @@ public class ShallowTraceImp implements ShallowTrace {
     _endNanos = endNanos;
     _systemHidden = systemHidden;
     _attributes = attributes;
+    _taskType = taskType;
 
     switch (resultType) {
       case EARLY_FINISH:
@@ -171,6 +173,14 @@ public class ShallowTraceImp implements ShallowTrace {
     return _id;
   }
 
+  /* (non-Javadoc)
+   * @see com.linkedin.parseq.trace.ShallowTraceI#getTaskType()
+   */
+  @Override
+  public String getTaskType() {
+    return _taskType;
+  }
+
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -185,6 +195,7 @@ public class ShallowTraceImp implements ShallowTrace {
     result = prime * result + ((_startNanos == null) ? 0 : _startNanos.hashCode());
     result = prime * result + (_systemHidden ? 1231 : 1237);
     result = prime * result + ((_value == null) ? 0 : _value.hashCode());
+    result = prime * result + ((_taskType == null) ? 0 : _taskType.hashCode());
     return result;
   }
 
@@ -238,6 +249,11 @@ public class ShallowTraceImp implements ShallowTrace {
         return false;
     } else if (!_value.equals(other._value))
       return false;
+    if (_taskType == null) {
+      if (other._taskType != null)
+        return false;
+    } else if (!_taskType.equals(other._taskType))
+      return false;
     return true;
   }
 
@@ -245,7 +261,7 @@ public class ShallowTraceImp implements ShallowTrace {
   public String toString() {
     return "ShallowTrace [id=" + _id + ", name=" + _name + ", hidden=" + _hidden + ", systemHidden=" + _systemHidden
         + ", resultType=" + _resultType + ", value=" + _value + ", startNanos=" + _startNanos + ", pendingNanos="
-        + _pendingNanos + ", endNanos=" + _endNanos + ", attributes=" + _attributes + "]";
+        + _pendingNanos + ", endNanos=" + _endNanos + ", attributes=" + _attributes + ", taskType=" + _taskType + "]";
   }
 
 }

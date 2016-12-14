@@ -90,6 +90,9 @@ class JsonTraceDeserializer {
       final ResultType resultType = ResultType.valueOf(getTextField(traceNode, JsonTraceCodec.TRACE_RESULT_TYPE));
       shallowBuilder.setResultType(resultType);
 
+      if (traceNode.get(JsonTraceCodec.TRACE_TASK_TYPE) != null)
+        shallowBuilder.setTaskType(getTextField(traceNode, JsonTraceCodec.TRACE_TASK_TYPE));
+
       traceMap.put(traceId, shallowBuilder.build());
     }
     return traceMap;

@@ -86,4 +86,9 @@ public interface ShallowTrace {
    */
   Long getId();
 
+  /**
+   * Returns type (sideEffect, seq, par, timer etc) of the task
+   * @return type of the task
+   */
+  String getTaskType();
 }

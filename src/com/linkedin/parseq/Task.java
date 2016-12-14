@@ -229,6 +229,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
     ArgumentUtil.requireNotNull(func, "function");
     final Task<Task<R>> nested = map("map: " + desc, func);
     nested.getShallowTraceBuilder().setSystemHidden(true);
+    nested.getShallowTraceBuilder().setTaskType("nestedTask");
     return flatten(desc, nested);
   }
 
@@ -273,7 +274,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
   default Task<T> withSideEffect(final String desc, final Function1<? super T, Task<?>> func) {
     ArgumentUtil.requireNotNull(func, "function");
     final Task<T> that = this;
-    return async("withSideEffect", context -> {
+    Task<T> withSideEffectTask = async("withSideEffect", context -> {
       final Task<T> sideEffectWrapper = async(desc, ctx -> {
         SettablePromise<T> promise = Promises.settable();
         if (!that.isFailed()) {
@@ -288,6 +289,9 @@ public interface Task<T> extends Promise<T>, Cancellable {
       context.run(that);
       return sideEffectWrapper;
     });
+
+    withSideEffectTask.getShallowTraceBuilder().setTaskType("withSideEffectTask");
+    return withSideEffectTask;
   }
 
   /**
@@ -791,6 +795,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
       } );
       //timeout tasks should run as early as possible
       timeoutTask.setPriority(Priority.MAX_PRIORITY);
+      timeoutTask.getShallowTraceBuilder().setTaskType("timeoutTask");
       ctx.createTimer(time, unit, timeoutTask);
       that.addListener(p -> {
         if (committed.compareAndSet(false, true)) {
@@ -804,6 +809,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
       return result;
     });
     withTimeout.setPriority(getPriority());
+    withTimeout.getShallowTraceBuilder().setTaskType("withTimeoutTask");
     return withTimeout;
   }
 
