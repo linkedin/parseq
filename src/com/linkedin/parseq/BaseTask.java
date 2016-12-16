@@ -103,12 +103,25 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
    * @param name the name for this task.
    */
   public BaseTask(final String name) {
+    this(name, null);
+  }
+
+  /**
+   * Constructs a base task with a name and type of task
+   *
+   * @param name the name for this task.
+   * @param taskType the type of the task
+   */
+  public BaseTask(final String name, final String taskType) {
     super(Promises.<T> settable());
     _name = truncate(name);
     final State state = State.INIT;
     _shallowTraceBuilder = new ShallowTraceBuilder(_id);
     _shallowTraceBuilder.setName(getName());
     _shallowTraceBuilder.setResultType(ResultType.UNFINISHED);
+    if (taskType != null) {
+      _shallowTraceBuilder.setTaskType(taskType);
+    }
     _stateRef = new AtomicReference<State>(state);
   }
 

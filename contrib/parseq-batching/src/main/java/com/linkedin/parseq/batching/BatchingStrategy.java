@@ -114,7 +114,7 @@ public abstract class BatchingStrategy<G, K, T> {
    * @return Task that returns value for a single key allowing this strategy to batch operations
    */
   public Task<T> batchable(final String desc, final K key) {
-    return Task.async(desc, ctx -> {
+    Task<T> batchableTask = Task.async(desc, ctx -> {
       final BatchPromise<T> result = new BatchPromise<>();
       final Long planId = ctx.getPlanId();
       final GroupBatchBuilder builder = _batches.computeIfAbsent(planId, k -> new GroupBatchBuilder());
@@ -131,6 +131,8 @@ public abstract class BatchingStrategy<G, K, T> {
       }
       return result;
     });
+    batchableTask.getShallowTraceBuilder().setTaskType("batched");
+    return batchableTask;
   }
 
   /**

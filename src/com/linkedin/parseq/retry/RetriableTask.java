@@ -1,5 +1,6 @@
 package com.linkedin.parseq.retry;
 
+import com.linkedin.parseq.TaskType;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -64,12 +65,14 @@ public final class RetriableTask<T> {
    */
   public static <U> Task<U> withRetryPolicy(String name, RetryPolicy policy, Function1<Integer, Task<U>> taskFunction) {
     RetriableTask<U> retriableTask = new RetriableTask<>(name, policy, taskFunction);
-    return Task.async(name + " retriableTask", retriableTask::run);
+    Task<U> retryTaskWrapper = Task.async(name + " retriableTask", retriableTask::run);
+    retryTaskWrapper.getShallowTraceBuilder().setTaskType(TaskType.WITH_RETRY.getName());
+    return retryTaskWrapper;
   }
 
   /** Create a wrapped task with associated recovery task that will retry if necessary. */
   private Task<T> wrap(int attempt) {
-    return Task.async(_policy.getName() + ", attempt " + attempt, context -> {
+    Task<T> retryTask = Task.async(_policy.getName() + ", attempt " + attempt, context -> {
       final SettablePromise<T> result = Promises.settable();
 
       Task<T> task = _taskFunction.apply(attempt);
@@ -97,6 +100,8 @@ public final class RetriableTask<T> {
 
       return result;
     });
+    retryTask.getShallowTraceBuilder().setTaskType(TaskType.RETRY.getName());
+    return retryTask;
   }
 
   /** Invoke event monitors and schedule a retry if policy allows. */
