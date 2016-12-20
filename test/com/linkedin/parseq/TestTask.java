@@ -1,14 +1,8 @@
 package com.linkedin.parseq;
 
 import com.linkedin.parseq.promise.Promises;
-import com.linkedin.parseq.retry.RetryPolicy;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.testng.Assert;
 import org.testng.annotations.Test;
-
-import static org.testng.Assert.assertEquals;
 
 
 /**

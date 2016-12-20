@@ -16,15 +16,7 @@
 
 package com.linkedin.parseq.trace.codec.json;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-
-import org.testng.annotations.Test;
-
+import com.linkedin.parseq.TaskType;
 import com.linkedin.parseq.internal.IdGenerator;
 import com.linkedin.parseq.trace.Relationship;
 import com.linkedin.parseq.trace.ResultType;
@@ -33,6 +25,13 @@ import com.linkedin.parseq.trace.Trace;
 import com.linkedin.parseq.trace.TraceBuilder;
 import com.linkedin.parseq.trace.TraceRelationship;
 import com.linkedin.parseq.trace.codec.TraceCodec;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import org.testng.annotations.Test;
+
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.fail;
 
 
 /**
@@ -46,7 +45,8 @@ public class TestJsonTraceCodec {
   @Test
   public void testReversibleUnstartedTrace() throws IOException {
     final ShallowTraceBuilder test =
-        new ShallowTraceBuilder(IdGenerator.getNextId()).setName("test").setResultType(ResultType.UNFINISHED);
+        new ShallowTraceBuilder(IdGenerator.getNextId()).setName("test").setResultType(ResultType.UNFINISHED)
+        .setTaskType(TaskType.FUSION.getName());
 
     final Trace trace = Trace.single(test.build(), "test", 0L);
     assertReversible(trace);
@@ -266,6 +266,15 @@ public class TestJsonTraceCodec {
   }
 
   @Test
+  public void testDocWithTraceHavingTaskType() throws IOException {
+    final String json =
+        buildJson(new String[] {traceStr(1, "name", ResultType.UNFINISHED, false, TaskType.FUSION.getName())}, new String[0], "test", 0L);
+
+    Trace decodedTrace = decodeString(json);
+    assertEquals(decodedTrace.getTraceMap().get(1L).getTaskType(), TaskType.FUSION.getName());
+  }
+
+  @Test
   public void testDocWitInvalidPredecessorReference() throws IOException {
     final String json =
         buildJson(new String[] { traceStr(1, "name", ResultType.UNFINISHED, false) }, new String[] { orderStr(2, 1) }, "test", 0L);
@@ -325,11 +334,22 @@ public class TestJsonTraceCodec {
   }
 
   private String traceStr(final int id, final String name, final ResultType resultType, final boolean hidden) {
+    return traceStr(id, name, resultType, hidden, null);
+  }
+
+  private String traceStr(final int id, final String name, final ResultType resultType, final boolean hidden,
+                          final String taskType) {
     final StringBuilder sb = new StringBuilder();
     sb.append("{").append(quote(JsonTraceCodec.TRACE_ID)).append(": ").append(id).append(",")
         .append(quote(JsonTraceCodec.TRACE_NAME)).append(": ").append(quote(name)).append(",")
         .append(quote(JsonTraceCodec.TRACE_HIDDEN)).append(": ").append(hidden).append(",")
-        .append(quote(JsonTraceCodec.TRACE_RESULT_TYPE)).append(": ").append(quote(resultType.toString())).append("}");
+        .append(quote(JsonTraceCodec.TRACE_RESULT_TYPE)).append(": ").append(quote(resultType.toString()));
+
+    if (taskType != null) {
+      sb.append(",").append(quote(JsonTraceCodec.TRACE_TASK_TYPE)).append(": ").append(quote(taskType));
+    }
+
+    sb.append("}");
     return sb.toString();
   }
 
