@@ -87,6 +87,6 @@ public class TestTaskType extends TestTask {
   }
 
   private boolean doesTaskTypeExistInTrace(Trace trace, String taskType) {
-    return trace.getTraceMap().values().stream().anyMatch(shallowTrace -> shallowTrace.getTaskType().equals(taskType));
+    return trace.getTraceMap().values().stream().anyMatch(shallowTrace -> taskType.equals(shallowTrace.getTaskType()));
   }
 }
