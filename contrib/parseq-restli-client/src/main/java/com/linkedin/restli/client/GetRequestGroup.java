@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,7 @@ import com.linkedin.parseq.batching.Batch;
 import com.linkedin.parseq.function.Tuple3;
 import com.linkedin.parseq.function.Tuples;
 import com.linkedin.r2.RemoteInvocationException;
+import com.linkedin.r2.message.RequestContext;
 import com.linkedin.restli.client.response.BatchKVResponse;
 import com.linkedin.restli.common.BatchResponse;
 import com.linkedin.restli.common.EntityResponse;
@@ -184,7 +186,8 @@ class GetRequestGroup implements RequestGroup {
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
   private <K, RT extends RecordTemplate> void doExecuteBatchGet(final RestClient restClient,
-      final Batch<RestRequestBatchKey, Response<Object>> batch, final Set<Object> ids, final Set<PathSpec> fields) {
+    final Batch<RestRequestBatchKey, Response<Object>> batch, final Set<Object> ids, final Set<PathSpec> fields,
+    Function<Request<?>, RequestContext> requestContextProvider) {
     final BatchGetEntityRequestBuilder<K, RT> builder = new BatchGetEntityRequestBuilder<>(_baseUriTemplate, _resourceSpec, _requestOptions);
     builder.setHeaders(_headers);
     _queryParams.forEach((key, value) -> builder.setParam(key, value));
@@ -196,7 +199,7 @@ class GetRequestGroup implements RequestGroup {
 
     final BatchGetEntityRequest<K, RT> batchGet = builder.build();
 
-    restClient.sendRequest(batchGet, new Callback<Response<BatchKVResponse<K, EntityResponse<RT>>>>() {
+    restClient.sendRequest(batchGet, requestContextProvider.apply(batchGet), new Callback<Response<BatchKVResponse<K, EntityResponse<RT>>>>() {
 
       @SuppressWarnings({ "deprecation" })
       @Override
@@ -259,7 +262,8 @@ class GetRequestGroup implements RequestGroup {
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
   private <K, RT extends RecordTemplate> void doExecuteGet(final RestClient restClient,
-      final Batch<RestRequestBatchKey, Response<Object>> batch, final Set<Object> ids, final Set<PathSpec> fields) {
+      final Batch<RestRequestBatchKey, Response<Object>> batch, final Set<Object> ids, final Set<PathSpec> fields,
+      Function<Request<?>, RequestContext> requestContextProvider) {
 
     final GetRequestBuilder<K, RT> builder = (GetRequestBuilder<K, RT>) new GetRequestBuilder<>(_baseUriTemplate,
         _resourceSpec.getValueClass(), _resourceSpec, _requestOptions);
@@ -273,7 +277,7 @@ class GetRequestGroup implements RequestGroup {
 
     final GetRequest<RT> get = builder.build();
 
-    restClient.sendRequest(get, new Callback<Response<RT>>() {
+    restClient.sendRequest(get, requestContextProvider.apply(get), new Callback<Response<RT>>() {
 
       @Override
       public void onError(Throwable e) {
@@ -316,7 +320,8 @@ class GetRequestGroup implements RequestGroup {
   }
 
   @Override
-  public <RT extends RecordTemplate> void executeBatch(final RestClient restClient, final Batch<RestRequestBatchKey, Response<Object>> batch) {
+  public <RT extends RecordTemplate> void executeBatch(final RestClient restClient, final Batch<RestRequestBatchKey, Response<Object>> batch,
+      Function<Request<?>, RequestContext> requestContextProvider) {
     final Tuple3<Set<Object>, Set<PathSpec>, Boolean> reductionResults = reduceRequests(batch);
     final Set<Object> ids = reductionResults._1();
     final Set<PathSpec> fields = reductionResults._2();
@@ -325,9 +330,9 @@ class GetRequestGroup implements RequestGroup {
     LOGGER.debug("executeBatch, ids: '{}', fields: {}", ids, fields);
 
     if (ids.size() == 1 && !containsBatchGet) {
-      doExecuteGet(restClient, batch, ids, fields);
+      doExecuteGet(restClient, batch, ids, fields, requestContextProvider);
     } else {
-      doExecuteBatchGet(restClient, batch, ids, fields);
+      doExecuteBatchGet(restClient, batch, ids, fields, requestContextProvider);
     }
   }
 

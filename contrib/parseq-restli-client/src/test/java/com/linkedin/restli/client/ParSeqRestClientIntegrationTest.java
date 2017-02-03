@@ -92,8 +92,12 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
     _server.start();
     _clientFactory = new HttpClientFactory();
     _transportClients = new ArrayList<Client>();
+    _restClient = createRestClient();
+  }
+
+  protected RestClient createRestClient() {
     Client client = newTransportClient(Collections.<String, String> emptyMap());
-    _restClient = new RestClient(client, URI_PREFIX);
+    return new RestClient(client, URI_PREFIX);
   }
 
   @AfterClass
@@ -125,17 +129,22 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
     return client;
   }
 
+  protected void customizeParSeqRestliClient(ParSeqRestliClientBuilder parSeqRestliClientBuilder) {
+  }
+
   @Override
   protected void customizeEngine(EngineBuilder engineBuilder) {
     engineBuilder.setPlanDeactivationListener(_batchingSupport);
 
-
-    _parseqClient = new ParSeqRestliClientBuilder()
+    ParSeqRestliClientBuilder parSeqRestliClientBuilder = new ParSeqRestliClientBuilder()
         .setRestClient(_restClient)
         .setBatchingSupport(_batchingSupport)
         .setConfig(getParSeqRestClientConfig())
-        .setInboundRequestContextFinder(() -> Optional.ofNullable(_inboundRequestContext.get()))
-        .build();
+        .setInboundRequestContextFinder(() -> Optional.ofNullable(_inboundRequestContext.get()));
+
+    customizeParSeqRestliClient(parSeqRestliClientBuilder);
+
+    _parseqClient = parSeqRestliClientBuilder.build();
   }
 
   protected Task<String> toMessage(Task<Response<Greeting>> greeting) {
