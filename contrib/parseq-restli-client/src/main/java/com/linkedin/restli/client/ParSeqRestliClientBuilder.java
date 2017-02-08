@@ -54,7 +54,7 @@ public class ParSeqRestliClientBuilder {
 
     RequestConfigProvider configProvider = new MultipleRequestConfigProvider(_configs, _configChooser, inboundRequestContextFinder);
     Function<Request<?>, RequestContext> requestContextProvider = (_requestContextProvider == null) ?
-        requet -> new RequestContext() :
+        request -> new RequestContext() :
         _requestContextProvider;
 
     ParSeqRestClient parseqClient = new ParSeqRestClient(_restClient, configProvider, requestContextProvider);
