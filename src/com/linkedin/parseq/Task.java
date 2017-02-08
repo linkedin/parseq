@@ -273,7 +273,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
   default Task<T> withSideEffect(final String desc, final Function1<? super T, Task<?>> func) {
     ArgumentUtil.requireNotNull(func, "function");
     final Task<T> that = this;
-    return async("withSideEffect", context -> {
+    Task<T> withSideEffectTask = async("withSideEffect", context -> {
       final Task<T> sideEffectWrapper = async(desc, ctx -> {
         SettablePromise<T> promise = Promises.settable();
         if (!that.isFailed()) {
@@ -288,6 +288,9 @@ public interface Task<T> extends Promise<T>, Cancellable {
       context.run(that);
       return sideEffectWrapper;
     });
+
+    withSideEffectTask.getShallowTraceBuilder().setTaskType(TaskType.WITH_SIDE_EFFECT.getName());
+    return withSideEffectTask;
   }
 
   /**
@@ -342,12 +345,14 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   default Task<T> shareable() {
     final Task<T> that = this;
-    return async("shareable", context -> {
+    Task<T> shareableTask = async("shareable", context -> {
       final SettablePromise<T> result = Promises.settable();
       context.runSideEffect(that);
       Promises.propagateResult(that, result);
       return result;
     });
+    shareableTask.getShallowTraceBuilder().setTaskType(TaskType.SHAREABLE.getName());
+    return shareableTask;
   }
 
   /**
@@ -712,7 +717,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
   default Task<T> recoverWith(final String desc, final Function1<Throwable, Task<T>> func) {
     ArgumentUtil.requireNotNull(func, "function");
     final Task<T> that = this;
-    return async(desc, context -> {
+    Task<T> recoverWithTask = async(desc, context -> {
       final SettablePromise<T> result = Promises.settable();
       final Task<T> recovery = async("recovery", ctx -> {
         final SettablePromise<T> recoveryResult = Promises.settable();
@@ -734,11 +739,14 @@ public interface Task<T> extends Promise<T>, Cancellable {
         return recoveryResult;
       });
       recovery.getShallowTraceBuilder().setSystemHidden(true);
+      recovery.getShallowTraceBuilder().setTaskType(TaskType.RECOVER.getName());
       Promises.propagateResult(recovery, result);
       context.after(that).run(recovery);
       context.run(that);
       return result;
     });
+    recoverWithTask.getShallowTraceBuilder().setTaskType(TaskType.WITH_RECOVER.getName());
+    return recoverWithTask;
   }
 
   /**
@@ -791,6 +799,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
       } );
       //timeout tasks should run as early as possible
       timeoutTask.setPriority(Priority.MAX_PRIORITY);
+      timeoutTask.getShallowTraceBuilder().setTaskType(TaskType.TIMEOUT.getName());
       ctx.createTimer(time, unit, timeoutTask);
       that.addListener(p -> {
         if (committed.compareAndSet(false, true)) {
@@ -804,6 +813,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
       return result;
     });
     withTimeout.setPriority(getPriority());
+    withTimeout.getShallowTraceBuilder().setTaskType(TaskType.WITH_TIMEOUT.getName());
     return withTimeout;
   }
 
@@ -816,7 +826,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   public static <R> Task<R> flatten(final String desc, final Task<Task<R>> task) {
     ArgumentUtil.requireNotNull(task, "task");
-    return async(desc, context -> {
+    Task<R> flattenTask = async(desc, context -> {
       final SettablePromise<R> result = Promises.settable();
       context.after(task).run(() -> {
         try {
@@ -835,6 +845,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
       context.run(task);
       return result;
     });
+    flattenTask.getShallowTraceBuilder().setTaskType(TaskType.FLATTEN.getName());
+    return flattenTask;
   }
 
   /**
@@ -1123,7 +1135,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
   public static <T> Task<T> blocking(final String name, final Callable<? extends T> callable, final Executor executor) {
     ArgumentUtil.requireNotNull(callable, "callable");
     ArgumentUtil.requireNotNull(callable, "executor");
-    return async(name, () -> {
+    Task<T> blockingTask = async(name, () -> {
       final SettablePromise<T> promise = Promises.settable();
       executor.execute(() -> {
         try {
@@ -1134,6 +1146,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
       } );
       return promise;
     });
+    blockingTask.getShallowTraceBuilder().setTaskType(TaskType.BLOCKING.getName());
+    return blockingTask;
   }
 
   /**

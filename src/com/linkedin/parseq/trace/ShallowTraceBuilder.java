@@ -44,6 +44,7 @@ public class ShallowTraceBuilder {
   private volatile Long _endNanos;
   private volatile boolean _systemHidden;
   private Map<String, String> _attributes;
+  private volatile String _taskType;
 
   public ShallowTraceBuilder(Long id) {
     _id = id;
@@ -64,6 +65,7 @@ public class ShallowTraceBuilder {
       _attributes = new HashMap<String, String>();
       _attributes.putAll(attributes);
     }
+    setTaskType(shallowTrace.getTaskType());
   }
 
   public boolean getHidden() {
@@ -128,6 +130,11 @@ public class ShallowTraceBuilder {
     return this;
   }
 
+  public ShallowTraceBuilder setTaskType(String taskType) {
+    _taskType = taskType;
+    return this;
+  }
+
   public Long getId() {
     return _id;
   }
@@ -154,6 +161,10 @@ public class ShallowTraceBuilder {
 
   public Long getEndNanos() {
     return _endNanos;
+  }
+
+  public String getTaskType() {
+    return _taskType;
   }
 
   public synchronized Map<String, String> getAttributes() {
@@ -201,6 +212,6 @@ public class ShallowTraceBuilder {
       endNanos = System.nanoTime();
     }
     return new ShallowTraceImp(_id, _name, _hidden, _systemHidden, resultType, value, startNanos, pendingNanos,
-        endNanos, getAttributes());
+        endNanos, getAttributes(), _taskType);
   }
 }

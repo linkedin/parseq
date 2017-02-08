@@ -50,7 +50,7 @@ class FusionTask<S, T> extends BaseTask<T> {
   private final ShallowTraceBuilder _predecessorShallowTraceBuilder;
 
   private FusionTask(final String desc, final Task<S> task, final PromisePropagator<S, T> propagator) {
-    super(desc);
+    super(desc, TaskType.FUSION.getName());
     _propagator = completing(adaptToAcceptTraceContext(propagator));
     _asyncTask = task;
     _predecessorShallowTraceBuilder = null;
@@ -58,7 +58,7 @@ class FusionTask<S, T> extends BaseTask<T> {
 
   private <R> FusionTask(final String desc, final FusionTask<S, R> predecessor,
       final PromisePropagator<R, T> propagator) {
-    super(desc);
+    super(desc, TaskType.FUSION.getName());
     _asyncTask = predecessor._asyncTask;
     _predecessorShallowTraceBuilder = predecessor.getShallowTraceBuilder();
     _propagator = completing(compose(predecessor._propagator, adaptToAcceptTraceContext(propagator)));
@@ -73,7 +73,7 @@ class FusionTask<S, T> extends BaseTask<T> {
     return (traceContext, src, dest) -> propagator.accept(src, dest);
   }
 
-  private void trnasitionToDone(final FusionTraceContext traceContext) {
+  private void transitionDone(final FusionTraceContext traceContext) {
     addRelationships(traceContext);
     transitionPending();
     transitionDone();
@@ -222,7 +222,7 @@ class FusionTask<S, T> extends BaseTask<T> {
               @Override
               public void done(final T value) throws PromiseResolvedException {
                 try {
-                  trnasitionToDone(traceContext);
+                  transitionDone(traceContext);
                   final Function<T, String> traceValueProvider = _traceValueProvider;
                   _shallowTraceBuilder.setResultType(ResultType.SUCCESS);
                   if (traceValueProvider != null) {
@@ -243,7 +243,7 @@ class FusionTask<S, T> extends BaseTask<T> {
               @Override
               public void fail(final Throwable error) throws PromiseResolvedException {
                 try {
-                  trnasitionToDone(traceContext);
+                  transitionDone(traceContext);
                   traceFailure(error);
                   settable.fail(error);
                   traceContext.getParent().getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);

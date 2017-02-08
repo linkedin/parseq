@@ -88,6 +88,10 @@ class JsonTraceSerializer {
       generator.writeEndArray();
     }
 
+    if (trace.getTaskType() != null) {
+      generator.writeStringField(JsonTraceCodec.TRACE_TASK_TYPE, trace.getTaskType());
+    }
+
     generator.writeEndObject();
   }
 

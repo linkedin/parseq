@@ -1,10 +1,8 @@
 package com.linkedin.parseq;
 
-import java.util.concurrent.TimeoutException;
-
-import org.testng.annotations.Test;
-
 import com.linkedin.parseq.promise.Promises;
+import java.util.concurrent.TimeoutException;
+import org.testng.annotations.Test;
 
 
 /**
