@@ -3,12 +3,14 @@ package com.linkedin.restli.client;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.linkedin.parseq.batching.BatchingSupport;
 import com.linkedin.parseq.internal.ArgumentUtil;
+import com.linkedin.r2.message.RequestContext;
 import com.linkedin.restli.client.config.RequestConfigProvider;
 
 public class ParSeqRestliClientBuilder {
@@ -24,6 +26,7 @@ public class ParSeqRestliClientBuilder {
 
   private BatchingSupport _batchingSupport;
   private InboundRequestContextFinder _inboundRequestContextFinder;
+  private Function<Request<?>, RequestContext> _requestContextProvider;
 
   /**
    * This method may throw RuntimeException e.g. when there is a problem with configuration.
@@ -50,8 +53,11 @@ public class ParSeqRestliClientBuilder {
     }
 
     RequestConfigProvider configProvider = new MultipleRequestConfigProvider(_configs, _configChooser, inboundRequestContextFinder);
+    Function<Request<?>, RequestContext> requestContextProvider = (_requestContextProvider == null) ?
+        request -> new RequestContext() :
+        _requestContextProvider;
 
-    ParSeqRestClient parseqClient = new ParSeqRestClient(_restClient, configProvider);
+    ParSeqRestClient parseqClient = new ParSeqRestClient(_restClient, configProvider, requestContextProvider);
     if (_batchingSupport != null) {
       LOGGER.debug("Found batching support");
       _batchingSupport.registerStrategy(parseqClient);
@@ -73,6 +79,12 @@ public class ParSeqRestliClientBuilder {
   public ParSeqRestliClientBuilder setRestClient(RestClient restClient) {
     ArgumentUtil.requireNotNull(restClient, "restClient");
     _restClient = restClient;
+    return this;
+  }
+
+  public ParSeqRestliClientBuilder setRequestContextProvider(Function<Request<?>, RequestContext> requestContextProvider) {
+    ArgumentUtil.requireNotNull(requestContextProvider, "requestContextProvider");
+    _requestContextProvider = requestContextProvider;
     return this;
   }
 

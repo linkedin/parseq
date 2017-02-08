@@ -18,6 +18,7 @@ package com.linkedin.restli.client;
 
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,12 +55,16 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
   private final RestClient _restClient;
   private final BatchingMetrics _batchingMetrics = new BatchingMetrics();
   private final RequestConfigProvider _clientConfig;
+  private final Function<Request<?>, RequestContext> _requestContextProvider;
 
-  ParSeqRestClient(final RestClient restClient, final RequestConfigProvider config) {
+  ParSeqRestClient(final RestClient restClient, final RequestConfigProvider config,
+      Function<Request<?>, RequestContext> requestContextProvider) {
     ArgumentUtil.requireNotNull(restClient, "restClient");
     ArgumentUtil.requireNotNull(config, "config");
+    ArgumentUtil.requireNotNull(config, "requestContextProvider");
     _restClient = restClient;
     _clientConfig = config;
+    _requestContextProvider = requestContextProvider;
   }
 
   /**
@@ -72,11 +77,12 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
     ArgumentUtil.requireNotNull(restClient, "restClient");
     _restClient = restClient;
     _clientConfig = RequestConfigProvider.build(new ParSeqRestliClientConfigBuilder().build(), () -> Optional.empty());
+    _requestContextProvider = request -> new RequestContext();
   }
 
   @Override
   public <T> Promise<Response<T>> sendRequest(final Request<T> request) {
-    return sendRequest(request, new RequestContext());
+    return sendRequest(request, _requestContextProvider.apply(request));
   }
 
   @Override
@@ -110,7 +116,7 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
 
   @Override
   public <T> Task<Response<T>> createTask(final Request<T> request) {
-    return createTask(request, new RequestContext());
+    return createTask(request, _requestContextProvider.apply(request));
   }
 
   @Override
@@ -129,7 +135,7 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
 
   @Override
   public <T> Task<Response<T>> createTask(Request<T> request, RequestConfigOverrides configOverrides) {
-    return createTask(request, new RequestContext(), configOverrides);
+    return createTask(request,  _requestContextProvider.apply(request), configOverrides);
   }
 
   @Override
@@ -195,7 +201,7 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
     if (group instanceof GetRequestGroup) {
       _batchingMetrics.recordBatchSize(group.getBaseUriTemplate(), batch.batchSize());
     }
-    group.executeBatch(_restClient, batch);
+    group.executeBatch(_restClient, batch, _requestContextProvider);
   }
 
   @Override
