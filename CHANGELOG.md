@@ -1,3 +1,9 @@
+v2.6.6
+------
+
+* Adding a notion of taskType in ShallowTrace. The idea is to set a type (string) to tasks such as timerTask, withSideEffectTask, remoteTask etc. This tag would be displayed in trace visualization.
+* Added RequestContext provider to ParSeqRestClient
+
 v2.6.5
 ------
 
