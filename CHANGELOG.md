@@ -1,3 +1,8 @@
+v2.6.7
+------
+
+* Fixing test in TestRequestContextProvider
+
 v2.6.6
 ------
 
