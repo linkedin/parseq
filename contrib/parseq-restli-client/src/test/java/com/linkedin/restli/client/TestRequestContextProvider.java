@@ -88,7 +88,7 @@ public class TestRequestContextProvider extends ParSeqRestClientIntegrationTest 
           .build());
       GetRequest<Greeting> request = new GreetingsBuilders().get().id(1L).build();
       Task<?> task = _parseqClient.createTask(request);
-      runAndWait(getTestClassName() + ".testNonBatchableRequest", task);
+      runAndWait(getTestClassName() + ".testBatchableRequestNotBatched", task);
       verifyRequestContext(request);
     } finally {
       _capturingRestClient.clearCapturedRequestContexts();
@@ -105,7 +105,7 @@ public class TestRequestContextProvider extends ParSeqRestClientIntegrationTest 
       GetRequest<Greeting> request2 = new GreetingsBuilders().get().id(2L).build();
       Task<?> task = Task.par(_parseqClient.createTask(request1), _parseqClient.createTask(request2));
 
-      runAndWait(getTestClassName() + ".testNonBatchableRequest", task);
+      runAndWait(getTestClassName() + ".testBatchableRequestBatched", task);
 
       Collection<RequestContext> contexts = _capturingRestClient.getCapturedRequestContexts().values();
       assertEquals(contexts.size(), 1);
@@ -122,142 +122,6 @@ public class TestRequestContextProvider extends ParSeqRestClientIntegrationTest 
     assertTrue(_capturingRestClient.getCapturedRequestContexts().containsKey(request));
     assertNotNull(_capturingRestClient.getCapturedRequestContexts().get(request).getLocalAttr("method"));
     assertEquals(_capturingRestClient.getCapturedRequestContexts().get(request).getLocalAttr("method"), request.getMethod());
-  }
-
-  @Test
-  public void testConfiguredTimeoutOutboundOverride() {
-      Task<?> task = greetingGet(1L, new RequestConfigOverridesBuilder()
-          .setTimeoutMs(5555L, "overriden")
-          .build());
-      runAndWait(getTestClassName() + ".testConfiguredTimeoutOutbound", task);
-      assertTrue(hasTask("withTimeout 5555ms src: overriden", task.getTrace()));
-  }
-
-  @Test
-  public void testConfiguredTimeoutOutboundOverrideNoSrc() {
-      Task<?> task = greetingGet(1L, new RequestConfigOverridesBuilder()
-          .setTimeoutMs(5555L)
-          .build());
-      runAndWait(getTestClassName() + ".testConfiguredTimeoutOutbound", task);
-      assertTrue(hasTask("withTimeout 5555ms", task.getTrace()));
-  }
-
-  @Test
-  public void testConfiguredTimeoutInboundAndOutbound() {
-    try {
-      setInboundRequestContext(new InboundRequestContextBuilder()
-          .setName("foo")
-          .setMethod("GET")
-          .build());
-      Task<?> task = greetingGet(1L);
-      runAndWait(getTestClassName() + ".testConfiguredTimeoutInboundAndOutbound", task);
-      assertTrue(hasTask("withTimeout 10004ms src: foo.GET/greetings.GET", task.getTrace()));
-    } finally {
-      clearInboundRequestContext();
-    }
-  }
-
-  @Test
-  public void testConfiguredTimeoutMismatchedInboundOutbound() {
-    try {
-      setInboundRequestContext(new InboundRequestContextBuilder()
-          .setName("blah")
-          .setMethod("GET")
-          .build());
-      Task<?> task = greetingGet(1L);
-      runAndWait(getTestClassName() + ".testConfiguredTimeoutMismatchedInboundOutbound", task);
-      assertTrue(hasTask("withTimeout 9999ms src: *.*/greetings.GET", task.getTrace()));
-    } finally {
-      clearInboundRequestContext();
-    }
-  }
-
-  @Test
-  public void testConfiguredTimeoutFullActionAndOutbound() {
-    try {
-      setInboundRequestContext(new InboundRequestContextBuilder()
-          .setName("foo")
-          .setMethod("ACTION")
-          .setActionName("bar")
-          .build());
-      Task<?> task = greetingGet(1L);
-      runAndWait(getTestClassName() + ".testConfiguredTimeoutFullActionAndOutbound", task);
-      assertTrue(hasTask("withTimeout 10006ms src: foo.ACTION-bar/greetings.GET", task.getTrace()));
-    } finally {
-      clearInboundRequestContext();
-    }
-  }
-
-  @Test
-  public void testConfiguredTimeoutPartialActionAndOutbound() {
-    try {
-      setInboundRequestContext(new InboundRequestContextBuilder()
-          .setName("foo")
-          .setMethod("ACTION")
-          .build());
-      Task<?> task = greetingGet(1L);
-      runAndWait(getTestClassName() + ".testConfiguredTimeoutPartialActionAndOutbound", task);
-      assertTrue(hasTask("withTimeout 10005ms src: foo.ACTION-*/greetings.GET", task.getTrace()));
-    } finally {
-      clearInboundRequestContext();
-    }
-  }
-
-  @Test
-  public void testConfiguredTimeoutOutboundOp() {
-    try {
-      setInboundRequestContext(new InboundRequestContextBuilder()
-          .setName("blah")
-          .setMethod("GET")
-          .build());
-      Task<?> task = greetingDel(9999L).toTry();
-      runAndWait(getTestClassName() + ".testConfiguredTimeoutOutboundOp", task);
-      assertTrue(hasTask("withTimeout 10001ms src: *.*/greetings.*", task.getTrace()));
-    } finally {
-      clearInboundRequestContext();
-    }
-  }
-
-  @Test
-  public void testBatchingGetRequests() {
-    try {
-      setInboundRequestContext(new InboundRequestContextBuilder()
-          .setName("withBatching")
-          .build());
-      Task<?> task = Task.par(greetingGet(1L), greetingGet(2L), greetingGet(3L));
-      runAndWait(getTestClassName() + ".testBatchingGetRequests", task);
-      assertTrue(hasTask("greetings batch_get(reqs: 3, ids: 3)", task.getTrace()));
-    } finally {
-      clearInboundRequestContext();
-    }
-  }
-
-  @Test
-  public void testBatchingGetRequestsMaxExceeded() {
-    try {
-      setInboundRequestContext(new InboundRequestContextBuilder()
-          .setName("withBatching")
-          .build());
-      Task<?> task = Task.par(greetingGet(1L), greetingGet(2L), greetingGet(3L), greetingGet(4L));
-      runAndWait(getTestClassName() + ".testBatchingGetRequestsMaxExceeded", task);
-      assertTrue(hasTask("greetings batch_get(reqs: 3, ids: 3)", task.getTrace()));
-    } finally {
-      clearInboundRequestContext();
-    }
-  }
-
-  @Test
-  public void testBatchGetLargerThanMaxBatchSize() {
-    try {
-      setInboundRequestContext(new InboundRequestContextBuilder()
-          .setName("withBatching")
-          .build());
-      Task<?> task = greetings(1L, 2L, 3L, 4L);
-      runAndWait(getTestClassName() + ".testBatchGetLargerThanMaxBatchSize", task);
-      assertFalse(hasTask("greetings batch_get(reqs: 3, ids: 3)", task.getTrace()));
-    } finally {
-      clearInboundRequestContext();
-    }
   }
 
 }
