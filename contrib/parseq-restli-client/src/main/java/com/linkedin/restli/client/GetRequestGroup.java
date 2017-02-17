@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,7 @@ import com.linkedin.data.DataMap;
 import com.linkedin.data.schema.PathSpec;
 import com.linkedin.data.template.RecordTemplate;
 import com.linkedin.parseq.batching.Batch;
+import com.linkedin.parseq.batching.BatchImpl.BatchEntry;
 import com.linkedin.parseq.function.Tuple3;
 import com.linkedin.parseq.function.Tuples;
 import com.linkedin.r2.RemoteInvocationException;
@@ -201,7 +203,6 @@ class GetRequestGroup implements RequestGroup {
 
     restClient.sendRequest(batchGet, requestContextProvider.apply(batchGet), new Callback<Response<BatchKVResponse<K, EntityResponse<RT>>>>() {
 
-      @SuppressWarnings({ "deprecation" })
       @Override
       public void onSuccess(Response<BatchKVResponse<K, EntityResponse<RT>>> responseToBatch) {
         final ProtocolVersion version = ProtocolVersionUtil.extractProtocolVersion(responseToBatch.getHeaders());
@@ -211,34 +212,13 @@ class GetRequestGroup implements RequestGroup {
             RestRequestBatchKey rrbk = entry.getKey();
             Request request = rrbk.getRequest();
             if (request instanceof GetRequest) {
-              String idString = BatchResponse.keyToString(((GetRequest) request).getObjectId(), version);
-              Object id = ResponseUtils.convertKey(idString, request.getResourceSpec().getKeyType(),
-                  request.getResourceSpec().getKeyParts(), request.getResourceSpec().getComplexKeyType(), version);
-              Response rsp = unbatchResponse(batchGet, responseToBatch, id);
-              entry.getValue().getPromise().done(rsp);
+              successGet((GetRequest) request, responseToBatch, batchGet, entry, version);
             } else if (request instanceof BatchGetKVRequest) {
-              Set<String> ids = rrbk.ids();
-              DataMap dm = filterIdsInBatchResult(responseToBatch.getEntity().data(), ids, true);
-              BatchKVResponse br = new BatchKVResponse(dm, request.getResourceSpec().getKeyType(),
-                  request.getResourceSpec().getValueType(), request.getResourceSpec().getKeyParts(),
-                  request.getResourceSpec().getComplexKeyType(), version);
-              Response rsp = new ResponseImpl(responseToBatch, br);
-              entry.getValue().getPromise().done(rsp);
+              successBatchGetKV((BatchGetKVRequest) request, responseToBatch, entry, version);
             } else if (request instanceof BatchGetRequest) {
-              BatchGetRequest batchGetRequest = (BatchGetRequest) request;
-              Set<String> ids = rrbk.ids();
-              DataMap dm = filterIdsInBatchResult(responseToBatch.getEntity().data(), ids, true);
-              BatchResponse br = new BatchResponse<>(dm, batchGetRequest.getResponseDecoder().getEntityClass());
-              Response rsp = new ResponseImpl(responseToBatch, br);
-              entry.getValue().getPromise().done(rsp);
+              successBatchGet((BatchGetRequest) request, responseToBatch, entry, version);
             } else if (request instanceof BatchGetEntityRequest) {
-              Set<String> ids = rrbk.ids();
-              DataMap dm = filterIdsInBatchResult(responseToBatch.getEntity().data(), ids, false);
-              BatchKVResponse br = new BatchEntityResponse<>(dm, request.getResourceSpec().getKeyType(),
-                  request.getResourceSpec().getValueType(), request.getResourceSpec().getKeyParts(),
-                  request.getResourceSpec().getComplexKeyType(), version);
-              Response rsp = new ResponseImpl(responseToBatch, br);
-              entry.getValue().getPromise().done(rsp);
+              successBatchGetEntity((BatchGetEntityRequest) request, responseToBatch, entry, version);
             } else {
               entry.getValue().getPromise().fail(unsupportedGetRequestType(request));
             }
@@ -246,6 +226,59 @@ class GetRequestGroup implements RequestGroup {
             entry.getValue().getPromise().fail(e);
           }
         });
+      }
+
+      @SuppressWarnings({ "deprecation" })
+      private void successBatchGetEntity(BatchGetEntityRequest request,
+          Response<BatchKVResponse<K, EntityResponse<RT>>> responseToBatch,
+          Entry<RestRequestBatchKey, BatchEntry<Response<Object>>> entry, final ProtocolVersion version) {
+        Set<String> ids = (Set<String>) request.getObjectIds().stream()
+            .map(o -> BatchResponse.keyToString(o, version))
+            .collect(Collectors.toSet());
+        DataMap dm = filterIdsInBatchResult(responseToBatch.getEntity().data(), ids, false);
+        BatchKVResponse br = new BatchEntityResponse<>(dm, request.getResourceSpec().getKeyType(),
+            request.getResourceSpec().getValueType(), request.getResourceSpec().getKeyParts(),
+            request.getResourceSpec().getComplexKeyType(), version);
+        Response rsp = new ResponseImpl(responseToBatch, br);
+        entry.getValue().getPromise().done(rsp);
+      }
+
+      private void successBatchGet(BatchGetRequest request, Response<BatchKVResponse<K, EntityResponse<RT>>> responseToBatch,
+          Entry<RestRequestBatchKey, BatchEntry<Response<Object>>> entry, final ProtocolVersion version) {
+        Set<String> ids = (Set<String>) request.getObjectIds().stream()
+            .map(o -> BatchResponse.keyToString(o, version))
+            .collect(Collectors.toSet());
+        DataMap dm = filterIdsInBatchResult(responseToBatch.getEntity().data(), ids, true);
+        BatchResponse br = new BatchResponse<>(dm, request.getResponseDecoder().getEntityClass());
+        Response rsp = new ResponseImpl(responseToBatch, br);
+        entry.getValue().getPromise().done(rsp);
+      }
+
+      @SuppressWarnings({ "deprecation" })
+      private void successBatchGetKV(BatchGetKVRequest request, Response<BatchKVResponse<K, EntityResponse<RT>>> responseToBatch,
+          Entry<RestRequestBatchKey, BatchEntry<Response<Object>>> entry,
+          final ProtocolVersion version) {
+        Set<String> ids = (Set<String>) request.getObjectIds().stream()
+            .map(o -> BatchResponse.keyToString(o, version))
+            .collect(Collectors.toSet());
+        DataMap dm = filterIdsInBatchResult(responseToBatch.getEntity().data(), ids, true);
+        BatchKVResponse br = new BatchKVResponse(dm, request.getResourceSpec().getKeyType(),
+            request.getResourceSpec().getValueType(), request.getResourceSpec().getKeyParts(),
+            request.getResourceSpec().getComplexKeyType(), version);
+        Response rsp = new ResponseImpl(responseToBatch, br);
+        entry.getValue().getPromise().done(rsp);
+      }
+
+      @SuppressWarnings({ "deprecation" })
+      private void successGet(GetRequest request,
+          Response<BatchKVResponse<K, EntityResponse<RT>>> responseToBatch, final BatchGetEntityRequest<K, RT> batchGet,
+          Entry<RestRequestBatchKey, BatchEntry<Response<Object>>> entry, final ProtocolVersion version)
+              throws RemoteInvocationException {
+        String idString = BatchResponse.keyToString(request.getObjectId(), version);
+        Object id = ResponseUtils.convertKey(idString, request.getResourceSpec().getKeyType(),
+            request.getResourceSpec().getKeyParts(), request.getResourceSpec().getComplexKeyType(), version);
+        Response rsp = unbatchResponse(batchGet, responseToBatch, id);
+        entry.getValue().getPromise().done(rsp);
       }
 
       @Override
