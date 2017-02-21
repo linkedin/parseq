@@ -1,8 +1,11 @@
 package com.linkedin.parseq;
 
 import com.linkedin.parseq.promise.Promises;
+import java.util.Arrays;
 import java.util.concurrent.TimeoutException;
 import org.testng.annotations.Test;
+
+import static org.testng.Assert.*;
 
 
 /**
@@ -91,6 +94,18 @@ public class TestTask extends AbstractTaskTest {
     testOnFailureWhenCancelled(3);
   }
 
+  @Test
+  public void testStackFrames() {
+    Task<String> failureTask = getFailureTask();
+    try {
+      runAndWait("TestTask.testStackFrames", failureTask);
+      fail("should have failed");
+    } catch (Exception ex) {
+      ex.getCause().printStackTrace(System.out);
+      assertFalse(Arrays.toString(ex.getStackTrace()).contains("BaseTask"));
+    }
+  }
+
   @Override
   Task<String> getSuccessTask() {
     return Task.async("success", () -> Promises.value(TASK_VALUE));
@@ -107,5 +122,6 @@ public class TestTask extends AbstractTaskTest {
   Task<String> getCancelledTask() {
     return Task.async("cancelled", () -> {
       throw new CancellationException(new TimeoutException());
-    });  }
+    });
+  }
 }
