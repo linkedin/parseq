@@ -24,8 +24,6 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.linkedin.parseq.internal.Continuations;
-
 
 /**
  * @author Chris Pettitt (cpettitt@linkedin.com)
@@ -34,8 +32,6 @@ import com.linkedin.parseq.internal.Continuations;
  */
 /* package private */ class SettablePromiseImpl<T> implements SettablePromise<T> {
   private static final Logger LOGGER = LoggerFactory.getLogger(SettablePromiseImpl.class);
-
-  private static final Continuations CONTINUATIONS = new Continuations();
 
   private final Object _lock = new Object();
   private final List<PromiseListener<T>> _listeners = new ArrayList<PromiseListener<T>>();
@@ -114,8 +110,8 @@ import com.linkedin.parseq.internal.Continuations;
 
   private void doFinish(final T value, final Throwable error) throws PromiseResolvedException {
     final List<PromiseListener<T>> listeners = finalizeResult(value, error);
-    CONTINUATIONS.submit(() -> notifyListeners(listeners));
-    CONTINUATIONS.submit(_awaitLatch::countDown);
+    notifyListeners(listeners);
+    _awaitLatch.countDown();
   }
 
   private List<PromiseListener<T>> finalizeResult(T value, Throwable error) {

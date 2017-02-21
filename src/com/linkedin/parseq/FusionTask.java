@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import com.linkedin.parseq.function.Consumer3;
 import com.linkedin.parseq.function.Function1;
 import com.linkedin.parseq.internal.ArgumentUtil;
-import com.linkedin.parseq.internal.Continuations;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromisePropagator;
 import com.linkedin.parseq.promise.PromiseResolvedException;
@@ -37,8 +36,6 @@ import com.linkedin.parseq.trace.TraceBuilder;
 class FusionTask<S, T> extends BaseTask<T> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FusionTask.class);
-
-  private static final Continuations CONTINUATIONS = new Continuations();
 
   /* Encapsulates transformation from source to target, includes all predecessors' transformations, can't be null */
   private final Consumer3<FusionTraceContext, Promise<S>, Settable<T>> _propagator;
@@ -216,7 +213,6 @@ class FusionTask<S, T> extends BaseTask<T> {
         markTaskStarted();
         //non-parent task executed for the first time
         traceContext.getParent().getTaskLogger().logTaskStart(this);
-        CONTINUATIONS.submit(() -> {
           try {
             propagator.accept(traceContext, src, new Settable<T>() {
               @Override
@@ -233,10 +229,10 @@ class FusionTask<S, T> extends BaseTask<T> {
                     }
                   }
                   settable.done(value);
-                  traceContext.getParent().getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);
-                  CONTINUATIONS.submit(() -> dest.done(value));
+                  //traceContext.getParent().getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);
+                  dest.done(value);
                 } catch (Exception e) {
-                  CONTINUATIONS.submit(() -> dest.fail(e));
+                  dest.fail(e);
                 }
               }
 
@@ -246,10 +242,10 @@ class FusionTask<S, T> extends BaseTask<T> {
                   transitionDone(traceContext);
                   traceFailure(error);
                   settable.fail(error);
-                  traceContext.getParent().getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);
-                  CONTINUATIONS.submit(() -> dest.fail(error));
+                  //traceContext.getParent().getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);
+                  dest.fail(error);
                 } catch (Exception e) {
-                  CONTINUATIONS.submit(() -> dest.fail(e));
+                  dest.fail(e);
                 }
               }
             });
@@ -257,7 +253,6 @@ class FusionTask<S, T> extends BaseTask<T> {
             /* This can only happen if there is an internal problem. Propagators should not throw any exceptions. */
             LOGGER.error("ParSeq ingternal error. An exception was thrown by propagator.", e);
           }
-        });
       } else {
         //non-parent tasks subsequent executions
         addPotentialRelationships(traceContext, traceContext.getParent().getTraceBuilder());
@@ -342,8 +337,9 @@ class FusionTask<S, T> extends BaseTask<T> {
         propagate(traceContext, fusionResult);
         return fusionResult;
       });
-      propagationTask.getShallowTraceBuilder().setHidden(_shallowTraceBuilder.getHidden());
-      propagationTask.getShallowTraceBuilder().setSystemHidden(_shallowTraceBuilder.getSystemHidden());
+      propagationTask.getShallowTraceBuilder()
+        .setHidden(_shallowTraceBuilder.getHidden())
+        .setSystemHidden(_shallowTraceBuilder.getSystemHidden());
       _shallowTraceBuilder.setName("async fused");
       _shallowTraceBuilder.setSystemHidden(true);
       context.after(_asyncTask).run(propagationTask);

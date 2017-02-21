@@ -16,16 +16,16 @@
 
 package com.linkedin.parseq;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import com.linkedin.parseq.internal.InternalUtil;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 import com.linkedin.parseq.trace.ResultType;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 
 /**
@@ -39,7 +39,9 @@ import java.util.List;
  * @see Task#par(Task, Task) Task.par
  */
 /* package private */ class ParTaskImpl<T> extends BaseTask<List<T>>implements ParTask<T> {
-  private final List<Task<T>> _tasks;
+  private final Task<? extends Task<? extends T>>[] _tasks;
+
+
 
   public ParTaskImpl(final String name) {
     super(name);
@@ -48,20 +50,37 @@ import java.util.List;
 
   public ParTaskImpl(final String name, final Iterable<? extends Task<? extends T>> tasks) {
     super(name);
+
+    if (tasks instanceof Collection) {
+      _tasks = tasksFromCollection((Collection<? extends Task<? extends T>>) tasks);
+    } else {
+      _tasks = tasksFromIterable(tasks);
+    }
+
+    if (_tasks.length == 0) {
+      throw new IllegalArgumentException("No tasks to parallelize!");
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private Task<? extends Task<? extends T>>[] tasksFromIterable(Iterable<? extends Task<? extends T>> tasks) {
     List<Task<T>> taskList = new ArrayList<Task<T>>();
     for (Task<? extends T> task : tasks) {
       // Safe to coerce Task<? extends T> to Task<T>
-      @SuppressWarnings("unchecked")
       final Task<T> coercedTask = (Task<T>) task;
       taskList.add(coercedTask);
     }
+    return (Task<? extends Task<? extends T>>[]) taskList.toArray();
+  }
 
-    if (taskList.isEmpty()) {
-      throw new IllegalArgumentException("No tasks to parallelize!");
+  @SuppressWarnings("unchecked")
+  private Task<? extends Task<? extends T>>[] tasksFromCollection(Collection<? extends Task<? extends T>> tasks) {
+    Task<? extends Task<? extends T>>[] tasksArr = new Task[tasks.size()];
+    int i = 0;
+    for (@SuppressWarnings("rawtypes") Task task: tasks) {
+      tasksArr[i++] = task;
     }
-
-    _tasks = Collections.unmodifiableList(taskList);
-
+    return tasksArr;
   }
 
   @Override
@@ -73,23 +92,27 @@ import java.util.List;
     final SettablePromise<List<T>> result = Promises.settable();
 
     final PromiseListener<?> listener = new PromiseListener<Object>() {
+      @SuppressWarnings("unchecked")
       @Override
       public void onResolved(Promise<Object> resolvedPromise) {
         boolean allEarlyFinish = true;
-        final List<T> taskResult = new ArrayList<T>();
-        final List<Throwable> errors = new ArrayList<Throwable>();
+        final List<T> taskResult = new ArrayList<T>(_tasks.length);
+        List<Throwable> errors = null;
 
-        for (Task<? extends T> task : _tasks) {
+        for (Task<?> task : _tasks) {
           if (task.isFailed()) {
             if (allEarlyFinish && ResultType.fromTask(task) != ResultType.EARLY_FINISH) {
               allEarlyFinish = false;
             }
+            if (errors == null) {
+              errors = new ArrayList<Throwable>();
+            }
             errors.add(task.getError());
           } else {
-            taskResult.add(task.get());
+            taskResult.add((T) task.get());
           }
         }
-        if (!errors.isEmpty()) {
+        if (errors != null) {
           result
               .fail(allEarlyFinish ? errors.get(0) : new MultiException("Multiple errors in 'ParTask' task.", errors));
         } else {
@@ -98,7 +121,7 @@ import java.util.List;
       }
     };
 
-    InternalUtil.after(listener, _tasks.toArray(new Task<?>[_tasks.size()]));
+    InternalUtil.after(listener, _tasks);
 
     for (Task<?> task : _tasks) {
       context.run(task);
@@ -107,21 +130,27 @@ import java.util.List;
     return result;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public List<Task<T>> getTasks() {
-    return _tasks;
+    List<Task<T>> tasks = new ArrayList<>(_tasks.length);
+    for (Task<?> task : _tasks) {
+      tasks.add((Task<T>) task);
+    }
+    return tasks;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public List<T> getSuccessful() {
     if (!this.isFailed()) {
       return this.get();
     }
 
-    final List<T> taskResult = new ArrayList<T>();
-    for (Task<? extends T> task : _tasks) {
+    final List<T> taskResult = new ArrayList<>();
+    for (Task<?> task : _tasks) {
       if (!task.isFailed()) {
-        taskResult.add(task.get());
+        taskResult.add((T) task.get());
       }
     }
     return taskResult;

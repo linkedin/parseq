@@ -122,6 +122,8 @@ public class TestSerialExecutor {
     // saturated with the previously submitted runnable.
     innerLatch.countDown();
 
+    //TODO concurrency issue in this test: rejectionHandler might not have been executed at all
+
     assertTrue(_rejectionHandler.await(5, TimeUnit.SECONDS));
     assertTrue(
         "Expected " + _rejectionHandler.getLastError() + " to be instance of "
