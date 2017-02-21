@@ -45,7 +45,7 @@ public class TestTraceBuilder {
     assertEquals(trace2.build(), trace.getTraceMap().get(trace2.getId()));
     assertEquals(1, trace.getRelationships().size());
     assertTrue(trace.getRelationships()
-        .contains(new TraceRelationship(trace1.getId(), trace2.getId(), Relationship.SUCCESSOR_OF)));
+        .contains(new TraceRelationship(trace1, trace2, Relationship.SUCCESSOR_OF)));
   }
 
   @Test
@@ -62,7 +62,7 @@ public class TestTraceBuilder {
     assertEquals(trace2.build(), trace.getTraceMap().get(trace2.getId()));
     assertEquals(1, trace.getRelationships().size());
     assertTrue(trace.getRelationships()
-        .contains(new TraceRelationship(trace1.getId(), trace2.getId(), Relationship.SUCCESSOR_OF)));
+        .contains(new TraceRelationship(trace1, trace2, Relationship.SUCCESSOR_OF)));
   }
 
   @Test
@@ -83,7 +83,7 @@ public class TestTraceBuilder {
       final ShallowTraceBuilder trace2 =
           new ShallowTraceBuilder(IdGenerator.getNextId()).setName("task2").setResultType(ResultType.UNFINISHED);
       builder.addRelationship(Relationship.SUCCESSOR_OF, trace1, trace2);
-      rels.add(new TraceRelationship(trace1.getId(), trace2.getId(), Relationship.SUCCESSOR_OF));
+      rels.add(new TraceRelationship(trace1, trace2, Relationship.SUCCESSOR_OF));
     }
 
     Trace trace = builder.build();

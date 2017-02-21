@@ -113,7 +113,8 @@ class JsonTraceDeserializer {
       if (!traceMap.containsKey(to)) {
         throw new IOException("Missing trace with id: " + to + " referenced by relationship: " + relationship);
       }
-      relationships.add(new TraceRelationship(from, to, relationship));
+      relationships.add(new TraceRelationship(new ShallowTraceBuilder(traceMap.get(from)),
+          new ShallowTraceBuilder(traceMap.get(to)), relationship));
     }
     return relationships;
   }

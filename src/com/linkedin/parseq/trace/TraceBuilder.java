@@ -16,6 +16,7 @@
 
 package com.linkedin.parseq.trace;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -31,6 +32,8 @@ public class TraceBuilder {
 
   static final long UNKNOWN_PLAN_ID = -1L;
   static final String UNKNOWN_PLAN_CLASS = "unknown";
+  private static final int INITIAL_RELATIONSHIP_ARRAY_SIZE = 128;
+  private static final int INITIAL_BUILDER_ARRAY_SIZE = 128;
 
   private final int _maxRelationshipsPerTrace;
 
@@ -38,17 +41,8 @@ public class TraceBuilder {
 
   private final Long _planId;
 
-  private static class RefCounted<T> {
-    public RefCounted(int refCount, T value) {
-      _refCount = refCount;
-      _value = value;
-    }
-    int _refCount;
-    T _value;
-  }
-
-  private final LinkedHashSet<TraceRelationship> _relationships;
-  private final Map<Long, RefCounted<ShallowTraceBuilder>> _traceBuilders;
+  private final ArrayList<TraceRelationship> _relationships;
+  private final ArrayList<ShallowTraceBuilder> _traceBuilders;
 
   // TODO: this constructor should be removed.
   // Need to fix in the next major version release.
@@ -57,47 +51,25 @@ public class TraceBuilder {
   }
 
   public TraceBuilder(int maxRelationshipsCount, String planClass, Long planId) {
-    _relationships = new LinkedHashSet<>();
-    _traceBuilders = new HashMap<>();
+    _relationships = new ArrayList<>(INITIAL_RELATIONSHIP_ARRAY_SIZE);
+    _traceBuilders = new ArrayList<>(INITIAL_BUILDER_ARRAY_SIZE);
     _maxRelationshipsPerTrace = maxRelationshipsCount;
     _planClass = planClass;
     _planId = planId;
   }
 
   public synchronized void addShallowTrace(final ShallowTraceBuilder shallowTrace) {
-    _traceBuilders.putIfAbsent(shallowTrace.getId(), new RefCounted<>(0, shallowTrace));
+    if (_traceBuilders.size() < _maxRelationshipsPerTrace) {
+      _traceBuilders.add(shallowTrace);
+    }
   }
 
   public synchronized void addRelationship(final Relationship relationship, final ShallowTraceBuilder from,
       final ShallowTraceBuilder to) {
-    if (_relationships.size() == _maxRelationshipsPerTrace) {
-      TraceRelationship r = _relationships.iterator().next();
-      _relationships.remove(r);
-      decreaseRefCount(r.getFrom());
-      decreaseRefCount(r.getTo());
+    if (_relationships.size() < _maxRelationshipsPerTrace) {
+      TraceRelationship rel = new TraceRelationship(from, to, relationship);
+      _relationships.add(rel);
     }
-    addShallowTrace(from);
-    addShallowTrace(to);
-    final TraceRelationship rel = new TraceRelationship(from.getId(), to.getId(), relationship);
-    _relationships.add(rel);
-    increaseRefCount(from.getId());
-    increaseRefCount(to.getId());
-  }
-
-  private void decreaseRefCount(Long id) {
-    RefCounted<ShallowTraceBuilder> traceBuilderRefCount = _traceBuilders.get(id);
-    traceBuilderRefCount._refCount--;
-    if (traceBuilderRefCount._refCount == 0) {
-      _traceBuilders.remove(id);
-    }
-  }
-
-  private void increaseRefCount(Long id) {
-    _traceBuilders.get(id)._refCount++;
-  }
-
-  public synchronized boolean containsRelationship(final TraceRelationship relationship) {
-    return _relationships.contains(relationship);
   }
 
   public synchronized Trace build() {
@@ -105,38 +77,41 @@ public class TraceBuilder {
     final Map<Long, ShallowTrace> traceMap = new HashMap<>();
     final Set<TraceRelationship> relationships = new HashSet<>();
 
-    for (Entry<Long, RefCounted<ShallowTraceBuilder>> entry : _traceBuilders.entrySet()) {
-      traceMap.put(entry.getKey(), entry.getValue()._value.build());
+    for (ShallowTraceBuilder builder : _traceBuilders) {
+      traceMap.put(builder.getId(), builder.build());
     }
 
     for (TraceRelationship rel : _relationships) {
 
+      traceMap.computeIfAbsent(rel._from.getId(), key -> rel._from.build());
+      traceMap.computeIfAbsent(rel._to.getId(), key -> rel._to.build());
+
       switch (rel.getRelationhsip()) {
         case SUCCESSOR_OF:
-          relationships.remove(new TraceRelationship(rel.getFrom(), rel.getTo(), Relationship.POSSIBLE_SUCCESSOR_OF));
+          relationships.remove(new TraceRelationship(rel._from, rel._to, Relationship.POSSIBLE_SUCCESSOR_OF));
           relationships.add(rel);
           break;
         case POSSIBLE_SUCCESSOR_OF:
-          if (!relationships.contains(new TraceRelationship(rel.getFrom(), rel.getTo(), Relationship.SUCCESSOR_OF))) {
+          if (!relationships.contains(new TraceRelationship(rel._from, rel._to, Relationship.SUCCESSOR_OF))) {
             relationships.add(rel);
           }
           break;
         case CHILD_OF:
-          relationships.remove(new TraceRelationship(rel.getTo(), rel.getFrom(), Relationship.POTENTIAL_PARENT_OF));
-          relationships.add(new TraceRelationship(rel.getTo(), rel.getFrom(), Relationship.PARENT_OF));
+          relationships.remove(new TraceRelationship(rel._to, rel._from, Relationship.POTENTIAL_PARENT_OF));
+          relationships.add(new TraceRelationship(rel._to, rel._from, Relationship.PARENT_OF));
           break;
         case POTENTIAL_CHILD_OF:
-          if (!relationships.contains(new TraceRelationship(rel.getTo(), rel.getFrom(), Relationship.PARENT_OF))) {
-            relationships.add(new TraceRelationship(rel.getTo(), rel.getFrom(), Relationship.POTENTIAL_PARENT_OF));
+          if (!relationships.contains(new TraceRelationship(rel._to, rel._from, Relationship.PARENT_OF))) {
+            relationships.add(new TraceRelationship(rel._to, rel._from, Relationship.POTENTIAL_PARENT_OF));
           }
           break;
         case POTENTIAL_PARENT_OF:
-          if (!relationships.contains(new TraceRelationship(rel.getFrom(), rel.getTo(), Relationship.PARENT_OF))) {
+          if (!relationships.contains(new TraceRelationship(rel._from, rel._to, Relationship.PARENT_OF))) {
             relationships.add(rel);
           }
           break;
         case PARENT_OF:
-          relationships.remove(new TraceRelationship(rel.getFrom(), rel.getTo(), Relationship.POTENTIAL_PARENT_OF));
+          relationships.remove(new TraceRelationship(rel._from, rel._to, Relationship.POTENTIAL_PARENT_OF));
           relationships.add(rel);
           break;
         default:

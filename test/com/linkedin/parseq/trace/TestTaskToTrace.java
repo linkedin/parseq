@@ -204,7 +204,8 @@ public class TestTaskToTrace extends BaseEngineTest {
     //expected relationship: PARENT_OF and SUCCESSOR_OF
     assertEquals(2, getRelationships(successor.getTrace(), successor.getId()).size());
     assertTrue(successor.getTrace().getRelationships()
-        .contains(new TraceRelationship(successor.getId(), predecessor.getId(), Relationship.SUCCESSOR_OF)));
+        .contains(new TraceRelationship(successor.getShallowTraceBuilder(),
+            predecessor.getShallowTraceBuilder(), Relationship.SUCCESSOR_OF)));
   }
 
   @Test
@@ -222,7 +223,8 @@ public class TestTaskToTrace extends BaseEngineTest {
     verifyShallowTrace(baseTask);
 
     assertTrue(withSideEffect.getTrace().getRelationships().toString(), withSideEffect.getTrace().getRelationships()
-        .contains(new TraceRelationship(withSideEffect.getId(), baseTask.getId(), Relationship.PARENT_OF)));
+        .contains(new TraceRelationship(withSideEffect.getShallowTraceBuilder(),
+            baseTask.getShallowTraceBuilder(), Relationship.PARENT_OF)));
   }
 
   @SuppressWarnings("deprecation")
@@ -238,7 +240,8 @@ public class TestTaskToTrace extends BaseEngineTest {
 
     assertEquals(1, getRelationships(seq.getTrace(), seq.getId()).size());
     assertTrue(seq.getTrace().getRelationships()
-        .contains(new TraceRelationship(seq.getId(), task.getId(), Relationship.PARENT_OF)));
+        .contains(new TraceRelationship(seq.getShallowTraceBuilder(),
+            task.getShallowTraceBuilder(), Relationship.PARENT_OF)));
   }
 
   @Test
@@ -259,7 +262,8 @@ public class TestTaskToTrace extends BaseEngineTest {
 
     assertEquals(1, getRelationships(task.getTrace(), task.getId()).size());
     assertTrue(task.getTrace().getRelationships()
-        .contains(new TraceRelationship(task.getId(), innerTask.getId(), Relationship.POTENTIAL_PARENT_OF)));
+        .contains(new TraceRelationship(task.getShallowTraceBuilder(),
+            innerTask.getShallowTraceBuilder(), Relationship.POTENTIAL_PARENT_OF)));
     assertEquals(ResultType.EARLY_FINISH, task.getTrace().getTraceMap().get(innerTask.getId()).getResultType());
   }
 
@@ -402,23 +406,23 @@ public class TestTaskToTrace extends BaseEngineTest {
     verifyShallowTrace(c);
     verifyShallowTrace(d);
 
-    assertTrue(parent.getTrace().getRelationships()
-        .contains(new TraceRelationship(parent.getId(), a.getId(), Relationship.PARENT_OF)));
-    assertTrue(parent.getTrace().getRelationships()
-        .contains(new TraceRelationship(parent.getId(), b.getId(), Relationship.PARENT_OF)));
-    assertTrue(parent.getTrace().getRelationships()
-        .contains(new TraceRelationship(parent.getId(), c.getId(), Relationship.PARENT_OF)));
-    assertTrue(parent.getTrace().getRelationships()
-        .contains(new TraceRelationship(parent.getId(), d.getId(), Relationship.PARENT_OF)));
+    assertTrue(parent.getTrace().getRelationships().contains(
+        new TraceRelationship(parent.getShallowTraceBuilder(), a.getShallowTraceBuilder(), Relationship.PARENT_OF)));
+    assertTrue(parent.getTrace().getRelationships().contains(
+        new TraceRelationship(parent.getShallowTraceBuilder(), b.getShallowTraceBuilder(), Relationship.PARENT_OF)));
+    assertTrue(parent.getTrace().getRelationships().contains(
+        new TraceRelationship(parent.getShallowTraceBuilder(), c.getShallowTraceBuilder(), Relationship.PARENT_OF)));
+    assertTrue(parent.getTrace().getRelationships().contains(
+        new TraceRelationship(parent.getShallowTraceBuilder(), d.getShallowTraceBuilder(), Relationship.PARENT_OF)));
 
-    assertTrue(parent.getTrace().getRelationships()
-        .contains(new TraceRelationship(d.getId(), b.getId(), Relationship.SUCCESSOR_OF)));
-    assertTrue(parent.getTrace().getRelationships()
-        .contains(new TraceRelationship(d.getId(), c.getId(), Relationship.SUCCESSOR_OF)));
-    assertTrue(parent.getTrace().getRelationships()
-        .contains(new TraceRelationship(b.getId(), a.getId(), Relationship.SUCCESSOR_OF)));
-    assertTrue(parent.getTrace().getRelationships()
-        .contains(new TraceRelationship(c.getId(), a.getId(), Relationship.SUCCESSOR_OF)));
+    assertTrue(parent.getTrace().getRelationships().contains(
+        new TraceRelationship(d.getShallowTraceBuilder(), b.getShallowTraceBuilder(), Relationship.SUCCESSOR_OF)));
+    assertTrue(parent.getTrace().getRelationships().contains(
+        new TraceRelationship(d.getShallowTraceBuilder(), c.getShallowTraceBuilder(), Relationship.SUCCESSOR_OF)));
+    assertTrue(parent.getTrace().getRelationships().contains(
+        new TraceRelationship(b.getShallowTraceBuilder(), a.getShallowTraceBuilder(), Relationship.SUCCESSOR_OF)));
+    assertTrue(parent.getTrace().getRelationships().contains(
+        new TraceRelationship(c.getShallowTraceBuilder(), a.getShallowTraceBuilder(), Relationship.SUCCESSOR_OF)));
   }
 
   /**
