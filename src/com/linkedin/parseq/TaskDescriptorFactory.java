@@ -17,10 +17,7 @@ class TaskDescriptorFactory {
   static {
     try {
       _loader = ServiceLoader.load(TaskDescriptor.class);
-    } catch (SecurityException e) {
-      LOGGER.error("Unable to get ContextClassLoader for loading providers of TaskDescriptor", e.getMessage());
-    } catch (RuntimeException e) {
-      //intentionally capturing RuntimeException
+    } catch (Throwable e) {
       LOGGER.error("Unable to load providers of TaskDescriptor", e.getMessage());
     }
   }
@@ -37,9 +34,11 @@ class TaskDescriptorFactory {
       Iterator<TaskDescriptor> identifiers = _loader.iterator();
       if (identifiers.hasNext()) {
         _identifier = identifiers.next();
+        LOGGER.info("Using TaskDescriptor: " + _identifier.getClass());
 
-        if (identifiers.hasNext()) {
-          LOGGER.info("Found more than one provider for TaskDescriptor, picked first one");
+        while (identifiers.hasNext()) {
+          TaskDescriptor descriptor = identifiers.next();
+          LOGGER.debug("Discarding TaskDescriptor: {} as its not first one to be loaded: ", descriptor.getClass());
         }
       } else {
         LOGGER.error("No provider found for TaskDescriptor, falling back to DefaultTaskDescriptor");

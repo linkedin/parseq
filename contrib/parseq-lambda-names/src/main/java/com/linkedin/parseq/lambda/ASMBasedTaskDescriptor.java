@@ -14,16 +14,18 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 
 
+/**
+ * An ASM based implementation of {@link TaskDescriptor} to provide description for generated Lambda class.
+ * Description of Lambda expression includes source code location of lambda, function call or method reference
+ * within lambda.
+ */
 public class ASMBasedTaskDescriptor implements TaskDescriptor {
 
   static {
     AgentLoader.loadAgentClass(Agent.class.getName(), null);
   }
 
-  private static ConcurrentMap<String, String> _names = new ConcurrentHashMap<>();
-
-  public ASMBasedTaskDescriptor() {
-  }
+  private static final ConcurrentMap<String, String> _names = new ConcurrentHashMap<>();
 
   @Override
   public String getDescription(Class<?> clazz) {
@@ -38,7 +40,7 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
     return description.orElse(className);
   }
 
-  static void add(String lambdaClassName, String name) {
+  private static void add(String lambdaClassName, String name) {
     _names.put(lambdaClassName, name);
   }
 

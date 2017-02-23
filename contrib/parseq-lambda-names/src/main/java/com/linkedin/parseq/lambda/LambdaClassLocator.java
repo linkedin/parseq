@@ -4,8 +4,9 @@ import org.objectweb.asm.ClassVisitor;
 
 
 /**
- * This class visits all the classes and locates classes generated for Lambda expressions.
- * For these generated Lambda classes, it identifies source code location and tries to infer details about its operation
+ * An implementation of ASM ClassVisitor which analyses classes as they are loaded and identifies classes
+ * generated for Lamda expressions. In addition, it infers details such as source code location, function call within
+ * Lambda expression..
  */
 public class LambdaClassLocator extends ClassVisitor {
 
