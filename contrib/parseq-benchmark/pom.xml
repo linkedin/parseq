@@ -13,118 +13,41 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.openjdk.jmh</groupId>
-            <artifactId>jmh-core</artifactId>
-            <version>${jmh.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.openjdk.jmh</groupId>
-            <artifactId>jmh-generator-annprocess</artifactId>
-            <version>${jmh.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>com.linkedin.parseq</groupId>
             <artifactId>parseq</artifactId>
             <version>2.6.9</version>
         </dependency>
+        <dependency>
+            <groupId>com.linkedin.parseq</groupId>
+            <artifactId>parseq-batching</artifactId>
+            <version>2.6.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hdrhistogram</groupId>
+            <artifactId>HdrHistogram</artifactId>
+            <version>2.1.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.7.12</version>
+        </dependency>
     </dependencies>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <jmh.version>1.10.3</jmh.version>
-        <javac.target>1.8</javac.target>
-        <uberjar.name>benchmarks</uberjar.name>
-    </properties>
 
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
+                <version>3.0</version>
                 <configuration>
-                    <compilerVersion>${javac.target}</compilerVersion>
-                    <source>${javac.target}</source>
-                    <target>${javac.target}</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <testSource>1.8</testSource>
+                    <testTarget>1.8</testTarget>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>2.2</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <finalName>${uberjar.name}</finalName>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>org.openjdk.jmh.Main</mainClass>
-                                </transformer>
-                            </transformers>
-                            <filters>
-                                <filter>
-                                    <!--
-                                        Shading signed JARs will fail without this.
-                                        http://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
-                                    -->
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <artifactId>maven-clean-plugin</artifactId>
-                    <version>2.5</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-deploy-plugin</artifactId>
-                    <version>2.8.1</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-install-plugin</artifactId>
-                    <version>2.5.1</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-jar-plugin</artifactId>
-                    <version>2.4</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>2.9.1</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-resources-plugin</artifactId>
-                    <version>2.6</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-site-plugin</artifactId>
-                    <version>3.3</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-source-plugin</artifactId>
-                    <version>2.2.1</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.17</version>
-                </plugin>
-            </plugins>
-        </pluginManagement>
     </build>
 
     <name>parseq-benchmark</name>
@@ -135,7 +58,7 @@
     </scm>
     <description>
       Set of benchmarks for ParSeq
-    </description>    
+    </description>
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
@@ -149,6 +72,6 @@
             <name>Jaroslaw Odzga</name>
             <email>jodzga@linkedin.com</email>
         </developer>
-    </developers>    
+    </developers>
 
 </project>
