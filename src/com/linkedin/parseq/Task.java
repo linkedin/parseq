@@ -1406,6 +1406,30 @@ public interface Task<T> extends Promise<T>, Cancellable {
   }
 
   /**
+   * Creates a new task that will run each of the supplied tasks in parallel (e.g.
+   * tasks[0] can be run at the same time as tasks[1]).
+   * <p>
+   * When all tasks complete successfully, you can use
+   * {@link com.linkedin.parseq.ParTask#get()} to get a list of the results. If
+   * at least one task failed, then this task will also be marked as failed. Use
+   * {@link com.linkedin.parseq.ParTask#getTasks()} or
+   * {@link com.linkedin.parseq.ParTask#getSuccessful()} to get results in this
+   * case.
+   * <p>
+   * Note that resulting task does not fast-fail e.g. if one of the tasks fail others
+   * are not cancelled. This is different behavior than {@link Task#par(Task, Task)} where
+   * resulting task fast-fails.
+   *
+   * @param tasks the tasks to run in parallel
+   * @return The results of the tasks
+   */
+  public static <T> ParTask<T> par(final Iterable<? extends Task<? extends T>> tasks) {
+    return tasks.iterator().hasNext()
+        ? new ParTaskImpl<T>("par", tasks)
+        : new ParTaskImpl<T>("par");
+  }
+
+  /**
    * Equivalent to {@code withRetryPolicy("operation", policy, taskSupplier)}.
    * @see #withRetryPolicy(String, RetryPolicy, Callable)
    */
