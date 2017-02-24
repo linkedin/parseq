@@ -352,6 +352,8 @@ public class Tasks {
 
   /**
    * @deprecated  As of 2.0.0, replaced by {@link Task#par(Iterable) Task.par}
+   * as a safer alternative that does not throw an IllegalArgumentException for
+   * an empty Iterable of tasks.
    * @see Task#par(Iterable) Task.par
    */
   @Deprecated

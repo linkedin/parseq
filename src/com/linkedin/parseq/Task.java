@@ -1416,6 +1416,9 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * {@link com.linkedin.parseq.ParTask#getSuccessful()} to get results in this
    * case.
    * <p>
+   * If the Iterable of tasks is empty, {@link com.linkedin.parseq.ParTask#get()}
+   * will return an empty list.
+   * <p>
    * Note that resulting task does not fast-fail e.g. if one of the tasks fail others
    * are not cancelled. This is different behavior than {@link Task#par(Task, Task)} where
    * resulting task fast-fails.
