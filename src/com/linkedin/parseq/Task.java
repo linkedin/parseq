@@ -65,8 +65,6 @@ import com.linkedin.parseq.trace.TraceBuilder;
 public interface Task<T> extends Promise<T>, Cancellable {
   static final Logger LOGGER = LoggerFactory.getLogger(Task.class);
 
-  static final TaskDescriptor _taskDescriptor = TaskDescriptorFactory.getTaskDescriptor();
-
   //------------------- interface definition -------------------
 
   /**
@@ -194,10 +192,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #map(String, Function1)
    */
   default <R> Task<R> map(final Function1<? super T, ? extends R> func) {
-    //an example on how task descriptor would be used
-    String description =  _taskDescriptor.getDescription(func.getClass());
-    System.out.println(description);
-    return map("map: " + description, func);
+    return map("map: " + func.getClass().getName(), func);    
   }
 
   /**
