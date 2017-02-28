@@ -62,27 +62,27 @@ class BaseTest {
 
   private ASMBasedTaskDescriptor _asmBasedTaskDescriptor = new ASMBasedTaskDescriptor();
 
-  protected Optional<LambdaClassDescription> getDescriptionForFunction(Function<String, String> f) {
+  Optional<LambdaClassDescription> getDescriptionForFunction(Function<String, String> f) {
     return _asmBasedTaskDescriptor.getLambdaClassDescription(f.getClass());
   }
 
-  protected Optional<LambdaClassDescription> getDescriptionForBiFunction(BiFunction<String, String, String> f) {
+  Optional<LambdaClassDescription> getDescriptionForBiFunction(BiFunction<String, String, String> f) {
     return _asmBasedTaskDescriptor.getLambdaClassDescription(f.getClass());
   }
 
-  protected Optional<LambdaClassDescription> getDescriptionForCallable(Callable<String> c) {
+  Optional<LambdaClassDescription> getDescriptionForCallable(Callable<String> c) {
     return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass());
   }
 
-  protected Optional<LambdaClassDescription> getDescriptionForConsumer(Consumer<String> c) {
+  Optional<LambdaClassDescription> getDescriptionForConsumer(Consumer<String> c) {
     return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass());
   }
 
-  protected Optional<LambdaClassDescription> getDescriptionForBiConsumer(BiConsumer<String, String> c) {
+  Optional<LambdaClassDescription> getDescriptionForBiConsumer(BiConsumer<String, String> c) {
     return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass());
   }
 
-  protected void assertNameMatch(String inferredFunction, String callerMethodName, String callerClassName,
+  void assertNameMatch(String inferredFunction, String callerMethodName, String callerClassName,
                                   String lambdaClassDescription) {
     if (inferredFunction.isEmpty()) {
       Pattern p = Pattern.compile(callerMethodName + "\\(" + callerClassName + ":\\d+\\)");
@@ -96,4 +96,3 @@ class BaseTest {
     }
   }
 }
-
