@@ -122,8 +122,7 @@ class FindMethodCallAnalyzer extends ClassVisitor {
           _inferredOperation = getInferredOperation(localVariables, field);
         }
       } catch (AnalyzerException e) {
-        //TODO: throw an exception that couldn't infer operation
-        LOGGER.error("Unable to analyze class, could not infer operation", e.getMessage());
+        LOGGER.debug("Unable to analyze class, could not infer operation", e.getMessage());
       }
     }
 

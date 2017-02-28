@@ -63,7 +63,7 @@ public class LambdaMethodVisitor extends MethodVisitor {
         cr.accept(syntheticLambdaAnalyzer, 0);
         _inferredOperationConsumer.accept(new InferredOperation(_methodInsnOpcode, syntheticLambdaAnalyzer.getInferredOperation()));
       } catch (IOException e) {
-        LOGGER.error("Unable to read class: " + classToVisit, e.getMessage());
+        LOGGER.debug("Unable to read class: " + classToVisit, e.getMessage());
       }
     } else {
       //if it is static invocation, details about function could be found directly from the methodInsnName itself
@@ -78,7 +78,7 @@ public class LambdaMethodVisitor extends MethodVisitor {
           cr.accept(methodCallAnalyzer, 0);
           _inferredOperationConsumer.accept(new InferredOperation(_methodInsnOpcode, methodCallAnalyzer.getInferredOperation()));
         } catch (IOException e) {
-          LOGGER.error("Unable to read class: " + classToVisit, e.getMessage());
+          LOGGER.debug("Unable to read class: " + classToVisit, e.getMessage());
         }
       }
     }

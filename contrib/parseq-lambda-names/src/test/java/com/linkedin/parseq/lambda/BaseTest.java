@@ -60,7 +60,7 @@ class BaseTest {
   void consumerTwo(String s1, String s2) {
   }
 
-  private ASMBasedTaskDescriptor _asmBasedTaskDescriptor = new ASMBasedTaskDescriptor();
+  ASMBasedTaskDescriptor _asmBasedTaskDescriptor = new ASMBasedTaskDescriptor();
 
   Optional<LambdaClassDescription> getDescriptionForFunction(Function<String, String> f) {
     return _asmBasedTaskDescriptor.getLambdaClassDescription(f.getClass());
