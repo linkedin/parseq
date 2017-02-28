@@ -11,7 +11,6 @@
         <groupId>com.linkedin.parseq</groupId>
             <artifactId>parseq</artifactId>
             <version>2.6.8</version>
-            <!-- TODO: this needs to be improved -->
             <scope>system</scope>
             <systemPath>${basedir}/../../dist/parseq-${version}.jar</systemPath>
         </dependency>

@@ -75,7 +75,6 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
           _methodInsnOpcode = opcode;
           break;
         default:
-          //TODO: throw an exception that couldn't infer operation
           LOGGER.debug("Unexpected opcode, falling back");
           break;
       }
@@ -91,7 +90,7 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
 
         int index = findMethodCall(this.instructions);
         if (index == -1) {
-          LOGGER.error("Unable to find method call in instruction list, debug as this case is not expected");
+          LOGGER.debug("Unable to find method call in instruction list, debug as this case is not expected");
           return;
         }
 
@@ -134,8 +133,7 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
 
         _inferredOperation = getInferredOperation(localVariables, fieldDesc);
       } catch (AnalyzerException e) {
-        //TODO: throw an exception that couldn't infer operation
-        LOGGER.error("Unable to analyze class, could not infer operation", e.getMessage());
+        LOGGER.debug("Unable to analyze class, could not infer operation", e.getMessage());
       }
     }
 

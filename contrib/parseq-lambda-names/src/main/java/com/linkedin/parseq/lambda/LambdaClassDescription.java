@@ -20,8 +20,6 @@ class LambdaClassDescription {
     StringBuilder builder = new StringBuilder();
     if (_inferredOperationOptional.isPresent()) {
       builder.append(_inferredOperationOptional.get()).append(" ");
-    } else {
-      //TODO: the best way to log this so that these could be looked into, may be log source pointer atleast to debug
     }
 
     builder.append(_sourcePointer);

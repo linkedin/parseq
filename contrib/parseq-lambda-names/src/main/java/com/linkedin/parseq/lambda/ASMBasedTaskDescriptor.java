@@ -78,8 +78,6 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
         ClassReader reader = new ClassReader(byteCode);
         LambdaClassLocator cv = new LambdaClassLocator(Opcodes.ASM5);
 
-        //TODO: Provide a way to execute TraceClassVisitor, that would ease in debugging
-        //reader.accept(new TraceClassVisitor(cv, new PrintWriter(System.out)), 0);
         reader.accept(cv, 0);
 
         if (cv.isLambdaClass()) {
