@@ -1,7 +1,6 @@
 package com.linkedin.parseq.lambda;
 
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertTrue;
@@ -74,6 +73,20 @@ public class TestMethodRef extends BaseTest {
     Optional<LambdaClassDescription> description = getDescriptionForConsumer(field::consumer);
     assertTrue(description.isPresent());
     assertNameMatch("field::consumer", "testConsumerOnField", CLASSNAME, description.get().toString());
+  }
+
+  @Test
+  public void testFunctionWithTwoParams() {
+    Optional<LambdaClassDescription> description = getDescriptionForBiFunction(this::functionTwo);
+    assertTrue(description.isPresent());
+    assertNameMatch("this::functionTwo", "testFunctionWithTwoParams", CLASSNAME, description.get().toString());
+  }
+
+  @Test
+  public void testConsumerWithTwoParams() {
+    Optional<LambdaClassDescription> description = getDescriptionForBiConsumer(this::consumerTwo);
+    assertTrue(description.isPresent());
+    assertNameMatch("this::consumerTwo", "testConsumerWithTwoParams", CLASSNAME, description.get().toString());
   }
 
   @Test
