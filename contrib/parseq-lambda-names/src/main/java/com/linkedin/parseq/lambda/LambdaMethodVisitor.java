@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class LambdaMethodVisitor extends MethodVisitor {
+class LambdaMethodVisitor extends MethodVisitor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LambdaMethodVisitor.class);
 

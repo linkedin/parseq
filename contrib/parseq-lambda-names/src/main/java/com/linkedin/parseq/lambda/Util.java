@@ -1,6 +1,5 @@
 package com.linkedin.parseq.lambda;
 
-import java.util.ArrayList;
 import java.util.StringJoiner;
 import java.util.regex.Pattern;
 import org.objectweb.asm.Type;
