@@ -9,7 +9,7 @@ import org.objectweb.asm.MethodVisitor;
  * generated for Lamda expressions. In addition, it infers details such as source code location, function call within
  * Lambda expression..
  */
-public class LambdaClassLocator extends ClassVisitor {
+class LambdaClassLocator extends ClassVisitor {
 
   private String _className;
   private boolean _isLambdaClass;
