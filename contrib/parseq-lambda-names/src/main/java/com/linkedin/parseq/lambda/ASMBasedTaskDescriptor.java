@@ -25,23 +25,31 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
     AgentLoader.loadAgentClass(Agent.class.getName(), null);
   }
 
-  private static final ConcurrentMap<String, String> _names = new ConcurrentHashMap<>();
+  private static final ConcurrentMap<String, LambdaClassDescription> _names = new ConcurrentHashMap<>();
 
   @Override
   public String getDescription(Class<?> clazz) {
+    Optional<LambdaClassDescription> lambdaClassDescription = getLambdaClassDescription(clazz);
+    if (lambdaClassDescription.isPresent()) {
+      return lambdaClassDescription.get().getDescription();
+    } else {
+      return clazz.getName();
+    }
+  }
+
+  /*package private */ Optional<LambdaClassDescription> getLambdaClassDescription(Class<?> clazz) {
     String className = clazz.getName();
-    Optional<String> description = Optional.empty();
     int slashIndex = className.lastIndexOf('/');
     if (slashIndex > 0) {
       String name = className.substring(0, slashIndex);
-      description = Optional.of(_names.get(name));
+      return Optional.of(_names.get(name));
     }
 
-    return description.orElse(className);
+    return Optional.empty();
   }
 
-  private static void add(String lambdaClassName, String name) {
-    _names.put(lambdaClassName, name);
+  private static void add(String lambdaClassName, LambdaClassDescription description) {
+    _names.put(lambdaClassName, description);
   }
 
   static class Agent {
@@ -76,7 +84,7 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
 
         if (cv.isLambdaClass()) {
           LambdaClassDescription description = cv.getLambdaClassDescription();
-          add(description.getClassName(), description.getDescription());
+          add(description.getClassName(), description);
         }
       }
     }

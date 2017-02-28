@@ -6,12 +6,12 @@ import java.util.Optional;
 class SourcePointer {
 
   final String _className;
-  final String _methodName;
+  final String _callingMethod;
   final int _lineNumber;
 
   private SourcePointer(String className, String methodName, Integer lineNumber) {
     _className = className;
-    _methodName = methodName;
+    _callingMethod = methodName;
     _lineNumber = lineNumber;
   }
 
@@ -40,7 +40,7 @@ class SourcePointer {
 
   @Override
   public String toString() {
-    return _methodName + "(" + Util.extractSimpleName(_className, ".") + (_lineNumber > 0 ? ":" + _lineNumber : "")
+    return _callingMethod + "(" + Util.extractSimpleName(_className, ".") + (_lineNumber > 0 ? ":" + _lineNumber : "")
         + ")";
   }
 }
