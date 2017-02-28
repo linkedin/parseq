@@ -24,34 +24,34 @@ import static org.testng.AssertJUnit.assertNull;
 
 
 /**
- * @author Chris Pettitt (cpettitt@linkedin.com)
+ * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class TestFIFOPriorityQueue {
+public class TestLIFOBiPriorityQueue {
   @Test
   public void testPollOnEmpty() {
-    final FIFOPriorityQueue<?> queue = new FIFOPriorityQueue<>();
+    final LIFOBiPriorityQueue<?> queue = new LIFOBiPriorityQueue<>();
     assertNull(queue.poll());
   }
 
   @Test
   public void testPollOnUnprioritizedSequence() {
-    final FIFOPriorityQueue<PrioritizableInt> queue = new FIFOPriorityQueue<>();
+    final LIFOBiPriorityQueue<PrioritizableInt> queue = new LIFOBiPriorityQueue<>();
     queue.add(new PrioritizableInt(1));
     queue.add(new PrioritizableInt(2));
     queue.add(new PrioritizableInt(3));
 
-    assertEquals(1, queue.poll().getValue());
-    assertEquals(2, queue.poll().getValue());
     assertEquals(3, queue.poll().getValue());
+    assertEquals(2, queue.poll().getValue());
+    assertEquals(1, queue.poll().getValue());
     assertNull(queue.poll());
   }
 
   @Test
   public void testPollWithPriority() {
-    final FIFOPriorityQueue<PrioritizableInt> queue = new FIFOPriorityQueue<>();
-    queue.add(new PrioritizableInt(-5, 1));
-    queue.add(new PrioritizableInt(10, 2));
-    queue.add(new PrioritizableInt(0, 3));
+    final LIFOBiPriorityQueue<PrioritizableInt> queue = new LIFOBiPriorityQueue<>();
+    queue.add(new PrioritizableInt(Priority.DEFAULT_PRIORITY, 1));
+    queue.add(new PrioritizableInt(Priority.MAX_PRIORITY, 2));
+    queue.add(new PrioritizableInt(-5, 3));
 
     assertEquals(2, queue.poll().getValue());
     assertEquals(3, queue.poll().getValue());
@@ -60,7 +60,7 @@ public class TestFIFOPriorityQueue {
 
   @Test
   public void testPollWithOverlappingPriorities() {
-    final FIFOPriorityQueue<PrioritizableInt> queue = new FIFOPriorityQueue<>();
+    final LIFOBiPriorityQueue<PrioritizableInt> queue = new LIFOBiPriorityQueue<>();
     queue.add(new PrioritizableInt(-5, 1));
     queue.add(new PrioritizableInt(10, 2));
     queue.add(new PrioritizableInt(0, 3));
@@ -70,22 +70,22 @@ public class TestFIFOPriorityQueue {
 
     assertEquals(2, queue.poll().getValue());
     assertEquals(4, queue.poll().getValue());
-    assertEquals(3, queue.poll().getValue());
-    assertEquals(5, queue.poll().getValue());
-    assertEquals(1, queue.poll().getValue());
     assertEquals(6, queue.poll().getValue());
+    assertEquals(5, queue.poll().getValue());
+    assertEquals(3, queue.poll().getValue());
+    assertEquals(1, queue.poll().getValue());
   }
 
   @Test
   public void testPollWithDefaultPriority() {
-    final FIFOPriorityQueue<PrioritizableInt> queue = new FIFOPriorityQueue<>();
+    final LIFOBiPriorityQueue<PrioritizableInt> queue = new LIFOBiPriorityQueue<>();
     queue.add(new PrioritizableInt(Priority.DEFAULT_PRIORITY, 1));
     queue.add(new PrioritizableInt(Priority.DEFAULT_PRIORITY, 2));
     queue.add(new PrioritizableInt(Priority.DEFAULT_PRIORITY, 3));
 
-    assertEquals(1, queue.poll().getValue());
-    assertEquals(2, queue.poll().getValue());
     assertEquals(3, queue.poll().getValue());
+    assertEquals(2, queue.poll().getValue());
+    assertEquals(1, queue.poll().getValue());
   }
 
   private static class Int {

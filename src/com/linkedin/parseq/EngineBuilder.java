@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.internal.CachedLoggerFactory;
-import com.linkedin.parseq.internal.FIFOPriorityQueue;
+import com.linkedin.parseq.internal.LIFOBiPriorityQueue;
 import com.linkedin.parseq.internal.PlanCompletionListener;
 import com.linkedin.parseq.internal.PlanDeactivationListener;
 
@@ -170,7 +170,7 @@ public class EngineBuilder {
         _loggerFactory != null ? _loggerFactory : new CachedLoggerFactory(LoggerFactory.getILoggerFactory()),
         _properties, _planDeactivationListener != null ? _planDeactivationListener : planContext -> {},
         _planCompletionListener != null ? _planCompletionListener : planContext -> {},
-        _taskQueueFactory != null ? _taskQueueFactory : FIFOPriorityQueue::new);
+        _taskQueueFactory != null ? _taskQueueFactory : LIFOBiPriorityQueue::new);
   }
 
   /**
