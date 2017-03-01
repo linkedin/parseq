@@ -126,7 +126,12 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
       _shallowTraceBuilder.setTaskType(taskType);
     }
     _stateRef = new AtomicReference<>(state);
-    _taskStackTrace = Thread.currentThread().getStackTrace();
+
+    if (ParSeqGlobalConfiguration.getInstance().isCrossThreadStackTracesEnabled()) {
+      _taskStackTrace = Thread.currentThread().getStackTrace();
+    } else {
+      _taskStackTrace = null;
+    }
   }
 
   private String truncate(String name) {
@@ -324,7 +329,8 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
 
   // Concatenate stack traces if kept the original stack trace from the task creation
   private void appendTaskStackTrace(final Throwable error) {
-    if (_taskStackTrace == null || _taskStackTrace.length <= 2) {
+    if (!ParSeqGlobalConfiguration.getInstance().isCrossThreadStackTracesEnabled() || error == null ||
+        _taskStackTrace == null || _taskStackTrace.length <= 2) {
       return;
     }
 
@@ -369,11 +375,13 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
       return;
     }
 
-    StackTraceElement[] concatenatedStackTrace = new StackTraceElement[combinedLength];
+    StackTraceElement[] concatenatedStackTrace = new StackTraceElement[combinedLength + 1];
     System.arraycopy(errorStackTrace, 0, concatenatedStackTrace,
         0, errorStackTrace.length - skipErrorFrames);
+    concatenatedStackTrace[errorStackTrace.length - skipErrorFrames] =
+        new StackTraceElement("********** Task \"" + getName() + "\" (above) was instantiated as following (below): **********", "",null, 0);
     System.arraycopy(_taskStackTrace, skipTaskFrames, concatenatedStackTrace,
-        errorStackTrace.length - skipErrorFrames, _taskStackTrace.length - skipTaskFrames);
+        errorStackTrace.length - skipErrorFrames + 1, _taskStackTrace.length - skipTaskFrames);
     error.setStackTrace(concatenatedStackTrace);
   }
 

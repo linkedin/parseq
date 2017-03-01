@@ -3,6 +3,8 @@ package com.linkedin.parseq;
 import com.linkedin.parseq.promise.Promises;
 import java.util.Arrays;
 import java.util.concurrent.TimeoutException;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
@@ -13,6 +15,19 @@ import static org.testng.Assert.*;
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
 public class TestTask extends AbstractTaskTest {
+
+  private boolean _crossThreadStackTracesEnabled;
+
+  @BeforeClass
+  public void start() {
+    _crossThreadStackTracesEnabled = ParSeqGlobalConfiguration.getInstance().isCrossThreadStackTracesEnabled();
+    ParSeqGlobalConfiguration.getInstance().setCrossThreadStackTracesEnabled(true);
+  }
+
+  @AfterClass
+  public void stop() {
+    ParSeqGlobalConfiguration.getInstance().setCrossThreadStackTracesEnabled(_crossThreadStackTracesEnabled);
+  }
 
   @Test
   public void testMap() {
@@ -96,13 +111,15 @@ public class TestTask extends AbstractTaskTest {
 
   @Test
   public void testStackFrames() {
-    Task<String> failureTask = getFailureTask();
+    Task<String> successTask = getSuccessTask();
     try {
-      runAndWait("TestTask.testStackFrames", failureTask);
+      runAndWait("TestTask.testStackFrames", successTask.flatMap("nested", x -> getFailureTask()));
       fail("should have failed");
     } catch (Exception ex) {
-      ex.getCause().printStackTrace(System.out);
-      assertFalse(Arrays.toString(ex.getStackTrace()).contains("BaseTask"));
+      String stackTrace = Arrays.toString(ex.getCause().getStackTrace());
+      assertFalse(stackTrace.contains("BaseTask"));
+      assertTrue(stackTrace.contains("\"failure\""));
+      assertTrue(stackTrace.contains("\"nested\""));
     }
   }
 
