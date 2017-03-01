@@ -20,13 +20,13 @@ public class TestTask extends AbstractTaskTest {
 
   @BeforeClass
   public void start() {
-    _crossThreadStackTracesEnabled = ParSeqGlobalConfiguration.getInstance().isCrossThreadStackTracesEnabled();
-    ParSeqGlobalConfiguration.getInstance().setCrossThreadStackTracesEnabled(true);
+    _crossThreadStackTracesEnabled = ParSeqGlobalConfiguration.isCrossThreadStackTracesEnabled();
+    ParSeqGlobalConfiguration.setCrossThreadStackTracesEnabled(true);
   }
 
   @AfterClass
   public void stop() {
-    ParSeqGlobalConfiguration.getInstance().setCrossThreadStackTracesEnabled(_crossThreadStackTracesEnabled);
+    ParSeqGlobalConfiguration.setCrossThreadStackTracesEnabled(_crossThreadStackTracesEnabled);
   }
 
   @Test

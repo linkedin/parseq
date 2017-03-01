@@ -127,7 +127,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
     }
     _stateRef = new AtomicReference<>(state);
 
-    if (ParSeqGlobalConfiguration.getInstance().isCrossThreadStackTracesEnabled()) {
+    if (ParSeqGlobalConfiguration.isCrossThreadStackTracesEnabled()) {
       _taskStackTrace = Thread.currentThread().getStackTrace();
     } else {
       _taskStackTrace = null;
@@ -329,7 +329,9 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
 
   // Concatenate stack traces if kept the original stack trace from the task creation
   private void appendTaskStackTrace(final Throwable error) {
-    if (!ParSeqGlobalConfiguration.getInstance().isCrossThreadStackTracesEnabled() || error == null ||
+    // At a minimum, any stack trace should have at least 3 stack frames (caller + BaseTask + getStackTrace).
+    // So if there are less than 3 stack frames available then there's something fishy and it's better to ignore them.
+    if (!ParSeqGlobalConfiguration.isCrossThreadStackTracesEnabled() || error == null ||
         _taskStackTrace == null || _taskStackTrace.length <= 2) {
       return;
     }
