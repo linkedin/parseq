@@ -229,7 +229,7 @@ class FusionTask<S, T> extends BaseTask<T> {
                     }
                   }
                   settable.done(value);
-                  //traceContext.getParent().getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);
+                  traceContext.getParent().getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);
                   dest.done(value);
                 } catch (Exception e) {
                   dest.fail(e);
@@ -242,7 +242,7 @@ class FusionTask<S, T> extends BaseTask<T> {
                   transitionDone(traceContext);
                   traceFailure(error);
                   settable.fail(error);
-                  //traceContext.getParent().getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);
+                  traceContext.getParent().getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);
                   dest.fail(error);
                 } catch (Exception e) {
                   dest.fail(e);

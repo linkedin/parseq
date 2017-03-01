@@ -111,7 +111,7 @@ public class TestTaskReuse extends BaseEngineTest {
     Task<String> task = delayedValue("hello", 50, TimeUnit.MILLISECONDS);
 
     Task<String> test1 =
-        Task.par(task.map(x -> x + "1"), Task.failure(new RuntimeException("ups"))).map((a, b) -> a + b);
+        Task.par(task, Task.failure(new RuntimeException("ups"))).map((a, b) -> a + b);
 
     try {
       runAndWait("TestTaskReuse.testCancellationPar-test1", test1);
@@ -139,7 +139,7 @@ public class TestTaskReuse extends BaseEngineTest {
         Task.par(task.shareable().map(x -> x + "1"), Task.failure(new RuntimeException("ups"))).map((a, b) -> a + b);
 
     try {
-      runAndWait("TestTaskReuse.testCancellationPar-test1", test1);
+      runAndWait("TestTaskReuse.testShareableCancellationPar-test1", test1);
       fail("should have failed!");
     } catch (Exception ex) {
       assertTrue(test1.isFailed());
@@ -148,7 +148,7 @@ public class TestTaskReuse extends BaseEngineTest {
     Task<String> test2 =
         Task.par(task.shareable().map("1", x -> x + "1"), task.shareable().map("2", x -> x + "2")).map((a, b) -> a + b);
 
-    runAndWait("TestTaskReuse.testCancellationPar-test2", test2);
+    runAndWait("TestTaskReuse.testShareableCancellationPar-test2", test2);
     assertEquals(test2.get(), "hello1hello2");
   }
 
