@@ -66,12 +66,11 @@ import java.util.List;
 
   @Override
   protected Promise<List<T>> run(final Context context) throws Exception {
-    final SettablePromise<List<T>> result = Promises.settable();
-
     if (_tasks.isEmpty()) {
-      result.done(Collections.<T>emptyList());
-      return result;
+      return Promises.value(Collections.<T>emptyList());
     }
+
+    final SettablePromise<List<T>> result = Promises.settable();
 
     final PromiseListener<?> listener = new PromiseListener<Object>() {
       @Override
