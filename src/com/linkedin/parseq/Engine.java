@@ -50,6 +50,9 @@ public class Engine {
   public static final String MAX_CONCURRENT_PLANS = "_MaxConcurrentPlans_";
   private static final int DEFUALT_MAX_CONCURRENT_PLANS = Integer.MAX_VALUE;
 
+  public static final String DRAIN_SERIAL_EXECUTOR_QUEUE = "_DrainSerialExecutorQueue_";
+  private static final boolean DEFUALT_DRAIN_SERIAL_EXECUTOR_QUEUE = true;
+
   private static final State INIT = new State(StateName.RUN, 0);
   private static final State TERMINATED = new State(StateName.TERMINATED, 0);
   private static final Logger LOG = LoggerFactory.getLogger(LOGGER_BASE);
@@ -74,6 +77,8 @@ public class Engine {
 
   private final int _maxConcurrentPlans;
   private final Semaphore _concurrentPlans;
+
+  private final boolean _drainSerialExecutorQueue;
 
   private final PlanDeactivationListener _planDeactivationListener;
   private final PlanCompletionListener _planCompletionListener;
@@ -111,6 +116,12 @@ public class Engine {
       _maxConcurrentPlans = DEFUALT_MAX_CONCURRENT_PLANS;
     }
     _concurrentPlans = new Semaphore(_maxConcurrentPlans);
+
+    if (_properties.containsKey(DRAIN_SERIAL_EXECUTOR_QUEUE)) {
+      _drainSerialExecutorQueue = (Boolean) getProperty(DRAIN_SERIAL_EXECUTOR_QUEUE);
+    } else {
+      _drainSerialExecutorQueue = DEFUALT_DRAIN_SERIAL_EXECUTOR_QUEUE;
+    }
 
     _taskDoneListener = resolvedPromise -> {
       assert _stateRef.get()._pendingCount > 0;
@@ -330,7 +341,7 @@ public class Engine {
 
     PlanContext planContext = new PlanContext(this, _taskExecutor, _timerExecutor, _loggerFactory, _allLogger,
         _rootLogger, planClass, task, _maxRelationshipsPerTrace, _planDeactivationListener, _planCompletionListener,
-        _taskQueueFactory.newTaskQueue());
+        _taskQueueFactory.newTaskQueue(), _drainSerialExecutorQueue);
     new ContextImpl(planContext, task).runTask();
   }
 

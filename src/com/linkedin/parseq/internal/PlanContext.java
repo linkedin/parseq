@@ -55,7 +55,8 @@ public class PlanContext {
   public PlanContext(final Engine engine, final Executor taskExecutor, final DelayedExecutor timerExecutor,
       final ILoggerFactory loggerFactory, final Logger allLogger, final Logger rootLogger, final String planClass,
       Task<?> root, final int maxRelationshipsPerTrace, final PlanDeactivationListener planDeactivationListener,
-      PlanCompletionListener planCompletionListener, final SerialExecutor.TaskQueue<PrioritizableRunnable> taskQueue) {
+      PlanCompletionListener planCompletionListener, final SerialExecutor.TaskQueue<PrioritizableRunnable> taskQueue,
+      final boolean drainSerialExecutorQueue) {
     _id = IdGenerator.getNextId();
     _root = root;
     _relationshipsBuilder = new TraceBuilder(maxRelationshipsPerTrace, planClass, _id);
@@ -66,7 +67,7 @@ public class PlanContext {
       } catch (Throwable t) {
         LOG.error("Failed to notify deactivation listener " + planDeactivationListener, t);
       }
-    }, taskQueue);
+    }, taskQueue, drainSerialExecutorQueue);
     _timerScheduler = timerExecutor;
     final Logger planLogger = loggerFactory.getLogger(Engine.LOGGER_BASE + ":planClass=" + planClass);
     _taskLogger = new TaskLogger(_id, root.getId(), allLogger, rootLogger, planLogger);
