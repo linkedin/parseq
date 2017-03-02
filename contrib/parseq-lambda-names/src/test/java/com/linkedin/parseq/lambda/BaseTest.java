@@ -86,7 +86,7 @@ class BaseTest {
                                   String lambdaClassDescription) {
     if (inferredFunction.isEmpty()) {
       Pattern p = Pattern.compile(callerMethodName + "\\(" + callerClassName + ":\\d+\\)");
-      Matcher m = p.matcher(Pattern.quote(lambdaClassDescription));
+      Matcher m = p.matcher(lambdaClassDescription);
       assertTrue(m.matches());
     } else {
       Pattern p = Pattern.compile(Pattern.quote(inferredFunction) + " "

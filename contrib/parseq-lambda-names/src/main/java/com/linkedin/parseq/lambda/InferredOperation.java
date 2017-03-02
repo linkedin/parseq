@@ -13,6 +13,6 @@ class InferredOperation {
   @Override
   public String toString() {
     //opcode is primarily for debugging purposes, not making that a part of description
-    return _functionName;
+    return _functionName == null ? "" : _functionName;
   }
 }

@@ -19,7 +19,10 @@ class LambdaClassDescription {
   String getDescription() {
     StringBuilder builder = new StringBuilder();
     if (_inferredOperationOptional.isPresent()) {
-      builder.append(_inferredOperationOptional.get()).append(" ");
+      String inferredOperationDesc = _inferredOperationOptional.get().toString();
+      if (!inferredOperationDesc.isEmpty()) {
+        builder.append(_inferredOperationOptional.get()).append(" ");
+      }
     }
 
     builder.append(_sourcePointer);
