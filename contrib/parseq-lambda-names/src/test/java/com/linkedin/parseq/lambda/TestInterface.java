@@ -70,7 +70,11 @@ public class TestInterface extends BaseTest {
     SampleImplementation impl = new SampleImplementation();
     Optional<LambdaClassDescription> description = getDescriptionForFunction(s -> impl.interfaceFunction(s));
     assertTrue(description.isPresent());
-    assertNameMatch("s -> interfaceFunction(_)", "testFunctionInvocationOnInterface", CLASSNAME, description.get().toString());
+    if (JDK_VERSION.equals(JDK_1_8_0_72)) {
+      assertNameMatch("(impl,s) -> interfaceFunction(_)", "testFunctionInvocationOnInterface", CLASSNAME, description.get().toString());
+    } else {
+      assertNameMatch("s -> interfaceFunction(_)", "testFunctionInvocationOnInterface", CLASSNAME, description.get().toString());
+    }
   }
 
   @Test
@@ -85,6 +89,12 @@ public class TestInterface extends BaseTest {
     SampleImplementation impl = new SampleImplementation();
     Optional<LambdaClassDescription> description = getDescriptionForFunction(s -> impl.abstractFunction(s));
     assertTrue(description.isPresent());
-    assertNameMatch("s -> abstractFunction(_)", "testAbstractFunctionInvocationOnInterface", CLASSNAME, description.get().toString());
+    if (JDK_VERSION.equals(JDK_1_8_0_72)) {
+      assertNameMatch("(impl,s) -> abstractFunction(_)", "testAbstractFunctionInvocationOnInterface", CLASSNAME,
+          description.get().toString());
+    } else {
+      assertNameMatch("s -> abstractFunction(_)", "testAbstractFunctionInvocationOnInterface", CLASSNAME,
+          description.get().toString());
+    }
   }
 }

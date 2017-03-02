@@ -41,7 +41,7 @@ class TaskDescriptorFactory {
           LOGGER.debug("Discarding TaskDescriptor: {} as its not first one to be loaded: ", descriptor.getClass());
         }
       } else {
-        LOGGER.error("No provider found for TaskDescriptor, falling back to DefaultTaskDescriptor");
+        LOGGER.info("No provider found for TaskDescriptor, falling back to DefaultTaskDescriptor");
         _identifier = getDefaultTaskDescriptor();
       }
     } catch (ServiceConfigurationError e) {
