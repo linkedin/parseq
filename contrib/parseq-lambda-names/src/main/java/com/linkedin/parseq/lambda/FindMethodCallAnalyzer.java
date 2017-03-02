@@ -1,5 +1,6 @@
 package com.linkedin.parseq.lambda;
 
+import com.linkedin.parseq.TaskDescriptor;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -27,6 +28,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
+/**
+ * Given the function name and the line number of its invocation in source code, it analyzes class to infer information
+ * such as number of parameters for function, field on which function is executed.
+ */
 class FindMethodCallAnalyzer extends ClassVisitor {
 
   private final String _classToAnalyze;

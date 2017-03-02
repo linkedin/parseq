@@ -13,6 +13,9 @@ import static org.testng.Assert.assertTrue;
 
 class BaseTest {
 
+  String JDK_VERSION = System.getProperty("java.version");
+  String JDK_1_8_0_72 = "1.8.0_72";
+
   static String staticFunction(String s) {
     return s;
   }

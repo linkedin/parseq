@@ -92,7 +92,11 @@ public class TestMethodInv extends BaseTest {
     BaseTest localVar = noParamMethod();
     Optional<LambdaClassDescription> description = getDescriptionForFunction(s -> localVar.function(s));
     assertTrue(description.isPresent());
-    assertNameMatch("s -> function(_)", "testFunctionOnVar", CLASSNAME, description.get().toString());
+    if (JDK_VERSION.equals(JDK_1_8_0_72)) {
+      assertNameMatch("(localVar,s) -> function(_)", "testFunctionOnVar", CLASSNAME, description.get().toString());
+    } else {
+      assertNameMatch("s -> function(_)", "testFunctionOnVar", CLASSNAME, description.get().toString());
+    }
   }
 
   @Test
@@ -100,7 +104,11 @@ public class TestMethodInv extends BaseTest {
     BaseTest localVar = noParamMethod();
     Optional<LambdaClassDescription> description = getDescriptionForCallable(() -> localVar.callable());
     assertTrue(description.isPresent());
-    assertNameMatch("() -> callable()", "testCallableOnVar", CLASSNAME, description.get().toString());
+    if (JDK_VERSION.equals(JDK_1_8_0_72)) {
+      assertNameMatch("localVar -> callable()", "testCallableOnVar", CLASSNAME, description.get().toString());
+    } else {
+      assertNameMatch("() -> callable()", "testCallableOnVar", CLASSNAME, description.get().toString());
+    }
   }
 
   @Test
@@ -108,7 +116,11 @@ public class TestMethodInv extends BaseTest {
     BaseTest localVar = noParamMethod();
     Optional<LambdaClassDescription> description = getDescriptionForConsumer(s -> localVar.consumer(s));
     assertTrue(description.isPresent());
-    assertNameMatch("s -> consumer(_)", "testConsumerOnVar", CLASSNAME, description.get().toString());
+    if (JDK_VERSION.equals(JDK_1_8_0_72)) {
+      assertNameMatch("(localVar,s) -> consumer(_)", "testConsumerOnVar", CLASSNAME, description.get().toString());
+    } else {
+      assertNameMatch("s -> consumer(_)", "testConsumerOnVar", CLASSNAME, description.get().toString());
+    }
   }
 
   @Test

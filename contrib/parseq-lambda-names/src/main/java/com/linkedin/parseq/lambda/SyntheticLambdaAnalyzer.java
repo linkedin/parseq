@@ -23,7 +23,10 @@ import org.objectweb.asm.tree.analysis.SourceValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
+/**
+ * Given the uniquely generated synthetic lambda function, it analyzes class to infer information such as number of
+ * parameters for the lambda function
+ */
 class SyntheticLambdaAnalyzer extends ClassVisitor {
 
   private final String _classToAnalyze;
