@@ -87,13 +87,29 @@
             </plugin>
 	        <plugin>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>2.2</version>
+                <version>3.0.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
                         <goals>
                             <goal>shade</goal>
                         </goals>
+                        <configuration>
+                            <relocations>
+                                <relocation>
+                                    <pattern>org.objectweb</pattern>
+                                    <shadedPattern>parseq.org.objectweb</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.ea</pattern>
+                                    <shadedPattern>parseq.com.ea</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.slf4j</pattern>
+                                    <shadedPattern>parseq.org.slf4j</shadedPattern>
+                                </relocation>
+                            </relocations>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
