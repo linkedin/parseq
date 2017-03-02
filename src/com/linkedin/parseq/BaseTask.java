@@ -51,6 +51,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
   private static final int TASK_NAME_MAX_LENGTH = 1024;
 
   static final Logger LOGGER = LoggerFactory.getLogger(BaseTask.class);
+  private static final String CANONICAL_NAME = BaseTask.class.getCanonicalName();
 
   private static enum StateType {
     // The initial state of the task.
@@ -88,6 +89,8 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
 
   private volatile TraceBuilder _traceBuilder;
 
+  private final StackTraceElement[] _taskStackTrace;
+
   /**
    * Constructs a base task without a specified name. The name for this task
    * will be the {@link #toString} representation for this instance. It is
@@ -113,7 +116,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
    * @param taskType the type of the task
    */
   public BaseTask(final String name, final String taskType) {
-    super(Promises.<T> settable());
+    super(Promises.settable());
     _name = truncate(name);
     final State state = State.INIT;
     _shallowTraceBuilder = new ShallowTraceBuilder(_id);
@@ -122,7 +125,13 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
     if (taskType != null) {
       _shallowTraceBuilder.setTaskType(taskType);
     }
-    _stateRef = new AtomicReference<State>(state);
+    _stateRef = new AtomicReference<>(state);
+
+    if (ParSeqGlobalConfiguration.isCrossThreadStackTracesEnabled()) {
+      _taskStackTrace = Thread.currentThread().getStackTrace();
+    } else {
+      _taskStackTrace = null;
+    }
   }
 
   private String truncate(String name) {
@@ -311,10 +320,71 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
 
   private void fail(final Throwable error, final TaskLogger taskLogger) {
     if (transitionDone()) {
+      appendTaskStackTrace(error);
       traceFailure(error);
       getSettableDelegate().fail(error);
       taskLogger.logTaskEnd(BaseTask.this, _traceValueProvider);
     }
+  }
+
+  // Concatenate stack traces if kept the original stack trace from the task creation
+  private void appendTaskStackTrace(final Throwable error) {
+    // At a minimum, any stack trace should have at least 3 stack frames (caller + BaseTask + getStackTrace).
+    // So if there are less than 3 stack frames available then there's something fishy and it's better to ignore them.
+    if (!ParSeqGlobalConfiguration.isCrossThreadStackTracesEnabled() || error == null ||
+        _taskStackTrace == null || _taskStackTrace.length <= 2) {
+      return;
+    }
+
+    StackTraceElement[] errorStackTrace = error.getStackTrace();
+    if (errorStackTrace.length <= 2) {
+      return;
+    }
+
+    // Skip stack frames up to the BaseTask (useless java.util.concurrent stuff)
+    int skipErrorFrames = 1;
+    while (skipErrorFrames < errorStackTrace.length) {
+      int index = errorStackTrace.length - 1 - skipErrorFrames;
+      if (!errorStackTrace[index].getClassName().equals(CANONICAL_NAME) &&
+          errorStackTrace[index + 1].getClassName().equals(CANONICAL_NAME)) {
+        break;
+      }
+      skipErrorFrames++;
+    }
+
+    // Safeguard against accidentally removing entire stack trace
+    if (skipErrorFrames == errorStackTrace.length) {
+      skipErrorFrames = 0;
+    }
+
+    // Skip stack frames up to the BaseTask (useless Thread.getStackTrace stuff)
+    int skipTaskFrames = 1;
+    while (skipTaskFrames < _taskStackTrace.length) {
+      if (!_taskStackTrace[skipTaskFrames].getClassName().equals(CANONICAL_NAME) &&
+          _taskStackTrace[skipTaskFrames - 1].getClassName().equals(CANONICAL_NAME)) {
+        break;
+      }
+      skipTaskFrames++;
+    }
+
+    // Safeguard against accidentally removing entire stack trace
+    if (skipTaskFrames == _taskStackTrace.length) {
+      skipTaskFrames = 0;
+    }
+
+    int combinedLength = errorStackTrace.length - skipErrorFrames + _taskStackTrace.length - skipTaskFrames;
+    if (combinedLength <= 0) {
+      return;
+    }
+
+    StackTraceElement[] concatenatedStackTrace = new StackTraceElement[combinedLength + 1];
+    System.arraycopy(errorStackTrace, 0, concatenatedStackTrace,
+        0, errorStackTrace.length - skipErrorFrames);
+    concatenatedStackTrace[errorStackTrace.length - skipErrorFrames] =
+        new StackTraceElement("********** Task \"" + getName() + "\" (above) was instantiated as following (below): **********", "",null, 0);
+    System.arraycopy(_taskStackTrace, skipTaskFrames, concatenatedStackTrace,
+        errorStackTrace.length - skipErrorFrames + 1, _taskStackTrace.length - skipTaskFrames);
+    error.setStackTrace(concatenatedStackTrace);
   }
 
   protected boolean transitionRun(final TraceBuilder traceBuilder) {
