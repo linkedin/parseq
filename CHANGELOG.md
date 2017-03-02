@@ -2,6 +2,7 @@ v2.6.9
 ------
 
 * Deprecate Tasks.par(...) for safer alternative Task.par(...) that does not throw IllegalArgumentException on empty collection.
+* Enable automatic cross-thread stack tracing
 
 v2.6.8
 ------
