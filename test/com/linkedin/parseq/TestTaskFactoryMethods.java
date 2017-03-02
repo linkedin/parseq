@@ -4,6 +4,9 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.fail;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -635,5 +638,30 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9);
 
     assertEquals(countTasks(task.getTrace()), 2 + 3 + 9);
+  }
+
+  @Test
+  public void testPar() {
+    List<Task<Integer>> tasks = new ArrayList<Task<Integer>>();
+    tasks.add(Task.value(1));
+    tasks.add(Task.value(2));
+    tasks.add(Task.value(3));
+
+    ParTask<Integer> task = Task.par(tasks);
+    runAndWait("TestTaskFactoryMethods.testPar", task);
+    assertEquals(task.get().stream().mapToInt(Integer::intValue).sum(), 1 + 2 + 3);
+
+    assertEquals(countTasks(task.getTrace()), 3 + 1);
+  }
+
+  @Test
+  public void testParEmpty() {
+    List<Task<Integer>> tasks = Collections.emptyList();
+
+    ParTask<Integer> task = Task.par(tasks);
+    runAndWait("TestTaskFactoryMethods.testParEmpty", task);
+    assertEquals(task.get().stream().mapToInt(Integer::intValue).sum(), 0);
+
+    assertEquals(countTasks(task.getTrace()), 1);
   }
 }

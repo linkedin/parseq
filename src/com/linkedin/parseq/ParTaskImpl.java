@@ -41,6 +41,11 @@ import java.util.List;
 /* package private */ class ParTaskImpl<T> extends BaseTask<List<T>>implements ParTask<T> {
   private final List<Task<T>> _tasks;
 
+  public ParTaskImpl(final String name) {
+    super(name);
+    _tasks = Collections.emptyList();
+  }
+
   public ParTaskImpl(final String name, final Iterable<? extends Task<? extends T>> tasks) {
     super(name);
     List<Task<T>> taskList = new ArrayList<Task<T>>();
@@ -61,6 +66,10 @@ import java.util.List;
 
   @Override
   protected Promise<List<T>> run(final Context context) throws Exception {
+    if (_tasks.isEmpty()) {
+      return Promises.value(Collections.<T>emptyList());
+    }
+
     final SettablePromise<List<T>> result = Promises.settable();
 
     final PromiseListener<?> listener = new PromiseListener<Object>() {
