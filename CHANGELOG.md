@@ -2,7 +2,7 @@ v2.6.9
 ------
 
 * Deprecate Tasks.par(...) for safer alternative Task.par(...) that does not throw IllegalArgumentException on empty collection.
-* Enable automatic cross-thread stack tracing
+* Enable automatic cross-thread stack tracing. It is an optional feature, turned off by default. See `ParSeqGlobalConfiguration.setCrossThreadStackTracesEnabled()`.
 
 v2.6.8
 ------
