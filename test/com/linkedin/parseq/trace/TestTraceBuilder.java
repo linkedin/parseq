@@ -68,13 +68,6 @@ public class TestTraceBuilder {
   @Test
   public void testRelationshipRetention() {
     final TraceBuilder builder = new TraceBuilder(4096, "test", 0L);
-    for (int i = 0; i < 4096 * 10; i++) {
-      final ShallowTraceBuilder trace1 =
-          new ShallowTraceBuilder(IdGenerator.getNextId()).setName("task1").setResultType(ResultType.UNFINISHED);
-      final ShallowTraceBuilder trace2 =
-          new ShallowTraceBuilder(IdGenerator.getNextId()).setName("task2").setResultType(ResultType.UNFINISHED);
-      builder.addRelationship(Relationship.SUCCESSOR_OF, trace1, trace2);
-    }
 
     List<TraceRelationship> rels = new ArrayList<TraceRelationship>();
     for (int i = 0; i < 4096; i++) {
@@ -84,6 +77,14 @@ public class TestTraceBuilder {
           new ShallowTraceBuilder(IdGenerator.getNextId()).setName("task2").setResultType(ResultType.UNFINISHED);
       builder.addRelationship(Relationship.SUCCESSOR_OF, trace1, trace2);
       rels.add(new TraceRelationship(trace1, trace2, Relationship.SUCCESSOR_OF));
+    }
+
+    for (int i = 0; i < 4096 * 10; i++) {
+      final ShallowTraceBuilder trace1 =
+          new ShallowTraceBuilder(IdGenerator.getNextId()).setName("task1").setResultType(ResultType.UNFINISHED);
+      final ShallowTraceBuilder trace2 =
+          new ShallowTraceBuilder(IdGenerator.getNextId()).setName("task2").setResultType(ResultType.UNFINISHED);
+      builder.addRelationship(Relationship.SUCCESSOR_OF, trace1, trace2);
     }
 
     Trace trace = builder.build();

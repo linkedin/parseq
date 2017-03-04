@@ -16,11 +16,17 @@
 
 package com.linkedin.parseq;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Exchanger;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import org.HdrHistogram.Histogram;
@@ -36,9 +42,23 @@ public abstract class AbstractBenchmark {
 
   private final BatchingSupport _batchingSupport = new BatchingSupport();
 
+  private final ThreadMXBean threadBean = ManagementFactory.getThreadMXBean();
+  private final ConcurrentLinkedQueue<Thread> _parseqThreads = new ConcurrentLinkedQueue<>();
+  private final Map<Long, Long> threadCPU = new HashMap<>();
+  private final Map<Long, Long> threadUserCPU = new HashMap<>();
+
   public void runExample(BenchmarkConfig config) throws Exception {
     final int numCores = Runtime.getRuntime().availableProcessors();
-    final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(numCores + 1);
+    final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(numCores + 1,
+        new ThreadFactory() {
+
+          @Override
+          public Thread newThread(Runnable r) {
+            Thread t = new Thread(r);
+            _parseqThreads.add(t);
+            return t;
+          }
+        });
     final EngineBuilder builder = new EngineBuilder().setTaskExecutor(scheduler).setTimerScheduler(scheduler);
     builder.setPlanDeactivationListener(_batchingSupport);
     builder.setEngineProperty(Engine.MAX_CONCURRENT_PLANS, config.CONCURRENCY_LEVEL);
@@ -112,6 +132,8 @@ public abstract class AbstractBenchmark {
       engine.blockingRun(t);
     }
 
+    grabCPUTimesBeforeTest();
+
     System.out.println("Starting test of " + N + " plan executions");
     Stepper percentage = new Stepper(0.01, N);
     Stepper sampler = new Stepper(1 / (N * config.sampleRate), N);
@@ -137,6 +159,8 @@ public abstract class AbstractBenchmark {
     }
     long end = System.nanoTime();
 
+    grabCPUTimesAfterTest();
+
     exchanger.exchange(Optional.empty());
     histogramCollector.join();
 
@@ -154,6 +178,68 @@ public abstract class AbstractBenchmark {
     System.out.println("Throughput: " + String.format("%.3f", (N / ((double)(end - start) / 1000000000))) + " plans/s, " +
         String.format("%.3f", ((N * numberOfTasks) / ((double)(end - start) / 1000000000))) + " tasks/s");
 
+  }
+
+  private void grabCPUTimesBeforeTest() {
+    final boolean threadCPUTimeSupported = threadBean.isThreadCpuTimeSupported();
+    System.out.println("Thread CPU time measurment supported: " + threadCPUTimeSupported);
+    if (threadCPUTimeSupported) {
+      threadBean.setThreadCpuTimeEnabled(true);
+    }
+
+    //grab CPU times before test
+    for (Thread thread: _parseqThreads) {
+      long threadId = thread.getId();
+      long cpuTime = threadBean.getThreadCpuTime(threadId);
+      if (cpuTime > -1) {
+        threadCPU.put(threadId, cpuTime);
+      }
+      long cpuUserTime = threadBean.getThreadUserTime(threadId);
+      if (cpuUserTime > -1) {
+        threadUserCPU.put(threadId, cpuUserTime);
+      }
+    }
+  }
+
+  private long addTime(Map<Long, Long> before, long time, long total, long threadId, String name) {
+    long beforeTime = before.get(threadId);
+    if (beforeTime == -1) {
+      if (time > -1) {
+        System.out.println(name + " time could not be captured before test but was captured after the test - bailing out...");
+      } //else CPU time measuring not supported
+    } else {
+      if (time > -1) {
+        if (time < beforeTime) {
+          System.out.println(name + " Time captured before test is greater than the one captured after the test - bailing out...");
+        } else {
+          //happy path
+          total += time - beforeTime;
+        }
+      } else {
+        System.out.println(name + " Time could be captured before test but was not captured after the test - bailing out...");
+      }
+    }
+    return total;
+  }
+
+  private void grabCPUTimesAfterTest() {
+    long totalCPUTime = 0;
+    long totalUserTime = 0;
+    for (Thread thread: _parseqThreads) {
+      long threadId = thread.getId();
+      long cpuTime = threadBean.getThreadCpuTime(threadId);
+      long cpuUserTime = threadBean.getThreadUserTime(threadId);
+      if (!threadCPU.containsKey(threadId)) {
+        System.out.println("New ParSeq thread was added during test");
+      } else {
+        totalCPUTime = addTime(threadCPU, cpuTime, totalCPUTime, threadId, "CPU");
+        totalUserTime = addTime(threadUserCPU, cpuUserTime, totalUserTime, threadId, "User");
+      }
+    }
+    if (totalCPUTime > 0) {
+      System.out.println("Total CPU time in ms: " + totalCPUTime / 1000000);
+      System.out.println("Total CPU User time in ms: " + totalUserTime / 1000000);
+    }
   }
 
   private static Histogram createHistogram() {

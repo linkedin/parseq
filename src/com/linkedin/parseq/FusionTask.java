@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import com.linkedin.parseq.function.Consumer3;
 import com.linkedin.parseq.function.Function1;
 import com.linkedin.parseq.internal.ArgumentUtil;
+import com.linkedin.parseq.internal.Continuations;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromisePropagator;
 import com.linkedin.parseq.promise.PromiseResolvedException;
@@ -36,6 +37,8 @@ import com.linkedin.parseq.trace.TraceBuilder;
 class FusionTask<S, T> extends BaseTask<T> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FusionTask.class);
+
+  private static final Continuations CONTINUATIONS = new Continuations();
 
   /* Encapsulates transformation from source to target, includes all predecessors' transformations, can't be null */
   private final Consumer3<FusionTraceContext, Promise<S>, Settable<T>> _propagator;
@@ -213,46 +216,76 @@ class FusionTask<S, T> extends BaseTask<T> {
         markTaskStarted();
         //non-parent task executed for the first time
         traceContext.getParent().getTaskLogger().logTaskStart(this);
-          try {
-            propagator.accept(traceContext, src, new Settable<T>() {
-              @Override
-              public void done(final T value) throws PromiseResolvedException {
-                try {
-                  transitionDone(traceContext);
-                  final Function<T, String> traceValueProvider = _traceValueProvider;
-                  _shallowTraceBuilder.setResultType(ResultType.SUCCESS);
-                  if (traceValueProvider != null) {
-                    try {
-                      _shallowTraceBuilder.setValue(traceValueProvider.apply(value));
-                    } catch (Exception e) {
-                      _shallowTraceBuilder.setValue(Exceptions.failureToString(e));
-                    }
-                  }
-                  settable.done(value);
-                  traceContext.getParent().getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);
-                  dest.done(value);
-                } catch (Exception e) {
-                  dest.fail(e);
-                }
-              }
 
-              @Override
-              public void fail(final Throwable error) throws PromiseResolvedException {
+        Settable<T> next = new Settable<T>() {
+          @Override
+          public void done(final T value) throws PromiseResolvedException {
+            try {
+              transitionDone(traceContext);
+              final Function<T, String> traceValueProvider = _traceValueProvider;
+              _shallowTraceBuilder.setResultType(ResultType.SUCCESS);
+              if (traceValueProvider != null) {
                 try {
-                  transitionDone(traceContext);
-                  traceFailure(error);
-                  settable.fail(error);
-                  traceContext.getParent().getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);
-                  dest.fail(error);
+                  _shallowTraceBuilder.setValue(traceValueProvider.apply(value));
                 } catch (Exception e) {
-                  dest.fail(e);
+                  _shallowTraceBuilder.setValue(Exceptions.failureToString(e));
                 }
               }
-            });
+              settable.done(value);
+              traceContext.getParent().getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);
+              if (ParSeqGlobalConfiguration.isTrampolineEnabled()) {
+                CONTINUATIONS.submit(() -> dest.done(value));
+              } else {
+                dest.done(value);
+              }
+            } catch (Exception e) {
+              if (ParSeqGlobalConfiguration.isTrampolineEnabled()) {
+                CONTINUATIONS.submit(() -> dest.fail(e));
+              } else {
+                dest.fail(e);
+              }
+            }
+          }
+
+          @Override
+          public void fail(final Throwable error) throws PromiseResolvedException {
+            try {
+              transitionDone(traceContext);
+              traceFailure(error);
+              settable.fail(error);
+              traceContext.getParent().getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);
+              if (ParSeqGlobalConfiguration.isTrampolineEnabled()) {
+                CONTINUATIONS.submit(() -> dest.fail(error));
+              } else {
+                dest.fail(error);
+              }
+            } catch (Exception e) {
+              if (ParSeqGlobalConfiguration.isTrampolineEnabled()) {
+                CONTINUATIONS.submit(() -> dest.fail(e));
+              } else {
+                dest.fail(e);
+              }
+            }
+          }
+        };
+
+        if (ParSeqGlobalConfiguration.isTrampolineEnabled()) {
+          CONTINUATIONS.submit(() -> {
+            try {
+              propagator.accept(traceContext, src, next);
+            } catch (Exception e) {
+              /* This can only happen if there is an internal problem. Propagators should not throw any exceptions. */
+              LOGGER.error("ParSeq ingternal error. An exception was thrown by propagator.", e);
+            }
+          });
+        } else {
+          try {
+            propagator.accept(traceContext, src, next);
           } catch (Exception e) {
             /* This can only happen if there is an internal problem. Propagators should not throw any exceptions. */
             LOGGER.error("ParSeq ingternal error. An exception was thrown by propagator.", e);
           }
+        }
       } else {
         //non-parent tasks subsequent executions
         addPotentialRelationships(traceContext, traceContext.getParent().getTraceBuilder());

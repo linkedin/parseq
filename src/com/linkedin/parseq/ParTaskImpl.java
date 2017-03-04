@@ -18,6 +18,7 @@ package com.linkedin.parseq;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import com.linkedin.parseq.internal.InternalUtil;
@@ -41,11 +42,13 @@ import com.linkedin.parseq.trace.ResultType;
 /* package private */ class ParTaskImpl<T> extends BaseTask<List<T>>implements ParTask<T> {
   private final Task<? extends Task<? extends T>>[] _tasks;
 
+  @SuppressWarnings("unchecked")
+  private static final Task<? extends Task<?>>[] EMPTY = new Task[0];
 
-
+  @SuppressWarnings("unchecked")
   public ParTaskImpl(final String name) {
     super(name);
-    _tasks = Collections.emptyList();
+    _tasks = (Task<? extends Task<? extends T>>[]) EMPTY;
   }
 
   public ParTaskImpl(final String name, final Iterable<? extends Task<? extends T>> tasks) {
@@ -85,8 +88,8 @@ import com.linkedin.parseq.trace.ResultType;
 
   @Override
   protected Promise<List<T>> run(final Context context) throws Exception {
-    if (_tasks.isEmpty()) {
-      return Promises.value(Collections.<T>emptyList());
+    if (_tasks.length == 0) {
+      return Promises.value(Collections.emptyList());
     }
 
     final SettablePromise<List<T>> result = Promises.settable();
