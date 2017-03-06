@@ -29,8 +29,11 @@ import org.slf4j.LoggerFactory;
 
 import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.internal.ContextImpl;
+import com.linkedin.parseq.internal.LIFOBiPriorityQueue;
 import com.linkedin.parseq.internal.PlanCompletionListener;
 import com.linkedin.parseq.internal.PlanDeactivationListener;
+import com.linkedin.parseq.internal.SerialExecutor;
+import com.linkedin.parseq.internal.SerialExecutor.TaskQueue;
 import com.linkedin.parseq.internal.PlanContext;
 
 
@@ -52,6 +55,8 @@ public class Engine {
 
   public static final String DRAIN_SERIAL_EXECUTOR_QUEUE = "_DrainSerialExecutorQueue_";
   private static final boolean DEFUALT_DRAIN_SERIAL_EXECUTOR_QUEUE = true;
+
+  public static final String DEFAULT_TASK_QUEUE = "_DefaultTaskQueue_";
 
   private static final State INIT = new State(StateName.RUN, 0);
   private static final State TERMINATED = new State(StateName.TERMINATED, 0);
@@ -85,7 +90,7 @@ public class Engine {
 
   private final PlanCompletionListener _taskDoneListener;
 
-  // Cache these, since we'll use them frequently and they can be precomputed.
+  // Cache these, since we'll use them frequently and they can be pre-computed.
   private final Logger _allLogger;
   private final Logger _rootLogger;
 
@@ -99,7 +104,8 @@ public class Engine {
     _loggerFactory = loggerFactory;
     _properties = properties;
     _planDeactivationListener = planActivityListener;
-    _taskQueueFactory = taskQueueFactory;
+
+    _taskQueueFactory = createTaskQueueFactory(properties, taskQueueFactory);
 
     _allLogger = loggerFactory.getLogger(LOGGER_BASE + ":all");
     _rootLogger = loggerFactory.getLogger(LOGGER_BASE + ":root");
@@ -151,6 +157,31 @@ public class Engine {
       }
     };
 
+  }
+
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  private TaskQueueFactory createTaskQueueFactory(final Map<String, Object> properties, final TaskQueueFactory taskQueueFactory) {
+    if (taskQueueFactory == null) {
+      if (_properties.containsKey(DEFAULT_TASK_QUEUE)) {
+        String className = (String) properties.get(DEFAULT_TASK_QUEUE);
+        try {
+          final Class<? extends SerialExecutor.TaskQueue> clazz =
+              (Class<? extends TaskQueue>) Thread.currentThread().getContextClassLoader().loadClass(className);
+          return () -> {
+            try {
+              return clazz.newInstance();
+            } catch (InstantiationException | IllegalAccessException e) {
+              return new LIFOBiPriorityQueue();
+            }
+          };
+        } catch (ClassNotFoundException e) {
+          LOG.error("Failed to load TasQueue implementation: " + className + ", will use default implementation", e);
+        }
+      }
+      return LIFOBiPriorityQueue::new;
+    } else {
+      return taskQueueFactory;
+    }
   }
 
   public Object getProperty(String key) {
