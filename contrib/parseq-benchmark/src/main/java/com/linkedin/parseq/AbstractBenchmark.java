@@ -29,7 +29,10 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
+import org.HdrHistogram.Base64CompressedHistogramSerializer;
 import org.HdrHistogram.Histogram;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.linkedin.parseq.batching.BatchingSupport;
 import com.linkedin.parseq.trace.ShallowTrace;
@@ -40,7 +43,12 @@ import com.linkedin.parseq.trace.ShallowTrace;
  */
 public abstract class AbstractBenchmark {
 
+  public static final String BENCHMARK_TEST_RESULTS_LOG_PREFIX = "Benchmark test results -> ";
+
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractBenchmark.class);
+
   private final BatchingSupport _batchingSupport = new BatchingSupport();
+  private static final HistogramSerializer _histogramSerializer = new Base64CompressedHistogramSerializer();
 
   private final ThreadMXBean threadBean = ManagementFactory.getThreadMXBean();
   private final ConcurrentLinkedQueue<Thread> _parseqThreads = new ConcurrentLinkedQueue<>();
@@ -85,15 +93,28 @@ public abstract class AbstractBenchmark {
     }
   }
 
+  private int warmUpN(BenchmarkConfig config) {
+    if (config instanceof FullLoadBenchmarkConfig) {
+      FullLoadBenchmarkConfig cfg = (FullLoadBenchmarkConfig)config;
+      return cfg.WARMUP_ROUNDS;
+    } else if (config instanceof ConstantThroughputBenchmarkConfig) {
+      ConstantThroughputBenchmarkConfig cfg = (ConstantThroughputBenchmarkConfig)config;
+      return (int) (cfg.warmupRime * cfg.events);
+    } else {
+      throw new IllegalArgumentException();
+    }
+  }
+
   protected void doRunBenchmark(final Engine engine, BenchmarkConfig config) throws Exception {
 
     final int N = N(config);
+    final int warmUpN = warmUpN(config);
 
     final Histogram planHistogram = createHistogram();
     final Histogram taskHistogram = createHistogram();
 
-    System.out.println("Number of cores: " + Runtime.getRuntime().availableProcessors());
-    System.out.println("Configuration: " + config);
+    LOG.info("Number of cores: " + Runtime.getRuntime().availableProcessors());
+    LOG.info("Configuration: " + config);
 
     Task<?> probe = createPlan();
     engine.run(probe);
@@ -101,7 +122,7 @@ public abstract class AbstractBenchmark {
 
     final int numberOfTasks = probe.getTrace().getTraceMap().size();
 
-    System.out.println("Number of tasks per plan: " + numberOfTasks);
+    LOG.info("Number of tasks per plan: " + numberOfTasks);
 
     final Exchanger<Optional<Task<?>>> exchanger = new Exchanger<>();
     Thread histogramCollector = new Thread(() -> {
@@ -121,21 +142,23 @@ public abstract class AbstractBenchmark {
     histogramCollector.start();
 
     Task<?> t = null;
-    final Semaphore concurrentPlans = new Semaphore(Runtime.getRuntime().availableProcessors());
-    System.out.println("Warming up using " + config.WARMUP_ROUNDS + " plan executions");
-    for (int i = 0; i < config.WARMUP_ROUNDS; i++) {
+    LOG.info("Warming up using " + warmUpN + " plan execution");
+    System.out.print("Progress[");
+    Stepper warmUpPercentage = new Stepper(0.1, warmUpN);
+    for (int i = 0; i < warmUpN; i++) {
       t = createPlan();
-      t.addListener(p -> {
-        concurrentPlans.release();
+      config.runTask(engine, t);
+      warmUpPercentage.isNewStep(i).ifPresent(pct -> {
+        System.out.print(".");
       });
-      concurrentPlans.acquire();
-      engine.blockingRun(t);
     }
+    System.out.println(".]");
 
     grabCPUTimesBeforeTest();
 
-    System.out.println("Starting test of " + N + " plan executions");
-    Stepper percentage = new Stepper(0.01, N);
+    LOG.info("Starting test of " + N + " plan executions");
+    System.out.print("Progress[");
+    Stepper percentage = new Stepper(0.1, N);
     Stepper sampler = new Stepper(1 / (N * config.sampleRate), N);
 
     long start = System.nanoTime();
@@ -154,10 +177,11 @@ public abstract class AbstractBenchmark {
       });
 
       percentage.isNewStep(i).ifPresent(pct -> {
-        System.out.println("progress: " + pct + "%");
+        System.out.print(".");
       });
     }
     long end = System.nanoTime();
+    System.out.println(".]");
 
     grabCPUTimesAfterTest();
 
@@ -166,23 +190,28 @@ public abstract class AbstractBenchmark {
 
     config.wrapUp();
 
-    System.out.println("----------------------------------------------------------------");
-    System.out.println("Histogram of task execution times on parseq threads in \u00B5s:");
+    LOG.info("----------------------------------------------------------------");
+    LOG.info("Histogram of task execution times on parseq threads in \u00B5s:");
     taskHistogram.outputPercentileDistribution(System.out, 1000.0);
+    LOG.info(BENCHMARK_TEST_RESULTS_LOG_PREFIX + "Histogram of task execution times on parseq threads in \u00B5s: " +
+        _histogramSerializer.serlialize(taskHistogram));
 
-    System.out.println("----------------------------------------------------------------");
-    System.out.println("Histogram of plan completion times in \u00B5s:");
+
+    LOG.info("----------------------------------------------------------------");
+    LOG.info("Histogram of plan completion times in \u00B5s:");
     planHistogram.outputPercentileDistribution(System.out, 1000.0);
+    LOG.info(BENCHMARK_TEST_RESULTS_LOG_PREFIX + "Histogram of plan completion times in \u00B5s: " +
+        _histogramSerializer.serlialize(planHistogram));
 
-    System.out.println("----------------------------------------------------------------");
-    System.out.println("Throughput: " + String.format("%.3f", (N / ((double)(end - start) / 1000000000))) + " plans/s, " +
+    LOG.info("----------------------------------------------------------------");
+    LOG.info("Throughput: " + String.format("%.3f", (N / ((double)(end - start) / 1000000000))) + " plans/s, " +
         String.format("%.3f", ((N * numberOfTasks) / ((double)(end - start) / 1000000000))) + " tasks/s");
 
   }
 
   private void grabCPUTimesBeforeTest() {
     final boolean threadCPUTimeSupported = threadBean.isThreadCpuTimeSupported();
-    System.out.println("Thread CPU time measurment supported: " + threadCPUTimeSupported);
+    LOG.info("Thread CPU time measurment supported: " + threadCPUTimeSupported);
     if (threadCPUTimeSupported) {
       threadBean.setThreadCpuTimeEnabled(true);
     }
@@ -205,18 +234,18 @@ public abstract class AbstractBenchmark {
     long beforeTime = before.get(threadId);
     if (beforeTime == -1) {
       if (time > -1) {
-        System.out.println(name + " time could not be captured before test but was captured after the test - bailing out...");
+        LOG.warn(name + " time could not be captured before test but was captured after the test - bailing out...");
       } //else CPU time measuring not supported
     } else {
       if (time > -1) {
         if (time < beforeTime) {
-          System.out.println(name + " Time captured before test is greater than the one captured after the test - bailing out...");
+          LOG.warn(name + " Time captured before test is greater than the one captured after the test - bailing out...");
         } else {
           //happy path
           total += time - beforeTime;
         }
       } else {
-        System.out.println(name + " Time could be captured before test but was not captured after the test - bailing out...");
+        LOG.warn(name + " Time could be captured before test but was not captured after the test - bailing out...");
       }
     }
     return total;
@@ -230,15 +259,15 @@ public abstract class AbstractBenchmark {
       long cpuTime = threadBean.getThreadCpuTime(threadId);
       long cpuUserTime = threadBean.getThreadUserTime(threadId);
       if (!threadCPU.containsKey(threadId)) {
-        System.out.println("New ParSeq thread was added during test");
+        LOG.warn("New ParSeq thread was added during test");
       } else {
         totalCPUTime = addTime(threadCPU, cpuTime, totalCPUTime, threadId, "CPU");
         totalUserTime = addTime(threadUserCPU, cpuUserTime, totalUserTime, threadId, "User");
       }
     }
     if (totalCPUTime > 0) {
-      System.out.println("Total CPU time in ms: " + totalCPUTime / 1000000);
-      System.out.println("Total CPU User time in ms: " + totalUserTime / 1000000);
+      LOG.info(BENCHMARK_TEST_RESULTS_LOG_PREFIX + "Total CPU time in ms: " + totalCPUTime / 1000000);
+      LOG.info(BENCHMARK_TEST_RESULTS_LOG_PREFIX + "Total CPU User time in ms: " + totalUserTime / 1000000);
     }
   }
 
@@ -255,6 +284,8 @@ public abstract class AbstractBenchmark {
   }
 
   static class FullLoadBenchmarkConfig extends BenchmarkConfig {
+    int WARMUP_ROUNDS = 100000;
+
     int N = 1000000;
 
     @Override
@@ -264,7 +295,7 @@ public abstract class AbstractBenchmark {
 
     @Override
     public String toString() {
-      return "FullLoadBenchmarkConfig []";
+      return "FullLoadBenchmarkConfig [WARMUP_ROUNDS=" + WARMUP_ROUNDS + ", ROUNDS=" + N +"]";
     }
 
     @Override
@@ -273,9 +304,11 @@ public abstract class AbstractBenchmark {
   }
 
   static class ConstantThroughputBenchmarkConfig extends BenchmarkConfig {
+    long warmupRime = 2*60;
+
     double events = 1000;
     TimeUnit perUnit = TimeUnit.SECONDS;
-    long runtime = 3*60;
+    long runtime = 6*60;
     final Histogram planExecutionAccuracy = createHistogram();
 
     EventsArrival arrivalProcess;
@@ -303,20 +336,22 @@ public abstract class AbstractBenchmark {
     @Override
     public String toString() {
       initArrivalProcess();
-      return "ConstantThroughputBenchmarkConfig [throughput=" + events + "/" + perUnit + ", runtime=" + runtime
-          + " " + perUnit + ", arrivalProcess=" + arrivalProcess + "], " + super.toString();
+      return "ConstantThroughputBenchmarkConfig [throughput=" + events + "/" + perUnit + ", warmup=" + warmupRime + " "
+          + perUnit + ", runtime=" + runtime + " " + perUnit + ", arrivalProcess=" + arrivalProcess + "], "
+          + super.toString();
     }
 
     @Override
     public void wrapUp() {
-      System.out.println("----------------------------------------------------------------");
-      System.out.println("Histogram of benchmark execution plan accuracy in \u00B5s:");
+      LOG.info("----------------------------------------------------------------");
+      LOG.info("Histogram of benchmark execution plan accuracy in \u00B5s:");
       planExecutionAccuracy.outputPercentileDistribution(System.out, 1000.0);
+      LOG.info(BENCHMARK_TEST_RESULTS_LOG_PREFIX + "Histogram of benchmark execution plan accuracy in \u00B5s: " +
+          _histogramSerializer.serlialize(planExecutionAccuracy));
     }
   }
 
   abstract static class BenchmarkConfig {
-    int WARMUP_ROUNDS = 10000;
     int CONCURRENCY_LEVEL = Runtime.getRuntime().availableProcessors() / 2 + 1;
     double sampleRate = 0.001;
 
@@ -326,7 +361,7 @@ public abstract class AbstractBenchmark {
 
     @Override
     public String toString() {
-      return "BenchmarkConfig [WARMUP_ROUNDS=" + WARMUP_ROUNDS + ", CONCURRENCY_LEVEL=" + CONCURRENCY_LEVEL
+      return "BenchmarkConfig [CONCURRENCY_LEVEL=" + CONCURRENCY_LEVEL
           + ", sampleRate=" + sampleRate + "]";
     }
 
