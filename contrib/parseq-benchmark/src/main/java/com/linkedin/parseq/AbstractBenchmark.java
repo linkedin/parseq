@@ -25,7 +25,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Exchanger;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
@@ -57,7 +56,7 @@ public abstract class AbstractBenchmark {
 
   public void runExample(BenchmarkConfig config) throws Exception {
     final int numCores = Runtime.getRuntime().availableProcessors();
-    final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(numCores + 1,
+    final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(numCores - 1,
         new ThreadFactory() {
 
           @Override
