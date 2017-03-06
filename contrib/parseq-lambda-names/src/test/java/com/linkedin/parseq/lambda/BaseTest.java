@@ -65,23 +65,23 @@ class BaseTest {
 
   ASMBasedTaskDescriptor _asmBasedTaskDescriptor = new ASMBasedTaskDescriptor();
 
-  Optional<LambdaClassDescription> getDescriptionForFunction(Function<String, String> f) {
+  Optional<String> getDescriptionForFunction(Function<String, String> f) {
     return _asmBasedTaskDescriptor.getLambdaClassDescription(f.getClass());
   }
 
-  Optional<LambdaClassDescription> getDescriptionForBiFunction(BiFunction<String, String, String> f) {
+  Optional<String> getDescriptionForBiFunction(BiFunction<String, String, String> f) {
     return _asmBasedTaskDescriptor.getLambdaClassDescription(f.getClass());
   }
 
-  Optional<LambdaClassDescription> getDescriptionForCallable(Callable<String> c) {
+  Optional<String> getDescriptionForCallable(Callable<String> c) {
     return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass());
   }
 
-  Optional<LambdaClassDescription> getDescriptionForConsumer(Consumer<String> c) {
+  Optional<String> getDescriptionForConsumer(Consumer<String> c) {
     return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass());
   }
 
-  Optional<LambdaClassDescription> getDescriptionForBiConsumer(BiConsumer<String, String> c) {
+  Optional<String> getDescriptionForBiConsumer(BiConsumer<String, String> c) {
     return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass());
   }
 

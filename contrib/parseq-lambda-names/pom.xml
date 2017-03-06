@@ -4,15 +4,13 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.linkedin.parseq</groupId>
     <artifactId>parseq-lambda-names</artifactId>
-    <version>2.6.8</version>
+    <version>2.6.9-SNAPSHOT</version>
 
     <dependencies>
         <dependency>
         <groupId>com.linkedin.parseq</groupId>
             <artifactId>parseq</artifactId>
-            <version>2.6.8</version>
-            <!-- <scope>system</scope>
-            <systemPath>${basedir}/../../dist/parseq-${version}.jar</systemPath> -->
+            <version>2.6.9-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.ea.agentloader</groupId>
@@ -59,6 +57,18 @@
                     <target>1.8</target>
                     <testSource>1.8</testSource>
                     <testTarget>1.8</testTarget>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.5</version>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Agent-Class>com.linkedin.parseq.lambda.ASMBasedTaskDescriptor$Agent</Agent-Class>
+                        </manifestEntries>
+                    </archive>
                 </configuration>
             </plugin>
             <plugin>

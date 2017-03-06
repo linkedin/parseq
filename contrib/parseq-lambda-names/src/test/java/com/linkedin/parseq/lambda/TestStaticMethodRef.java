@@ -12,21 +12,21 @@ public class TestStaticMethodRef extends BaseTest {
 
   @Test
   public void testStaticFunction() {
-    Optional<LambdaClassDescription> description = getDescriptionForFunction(BaseTest::staticFunction);
+    Optional<String> description = getDescriptionForFunction(BaseTest::staticFunction);
     assertTrue(description.isPresent());
     assertNameMatch("BaseTest::staticFunction", "testStaticFunction", CLASSNAME, description.get().toString());
   }
 
   @Test
   public void testStaticCallable() {
-    Optional<LambdaClassDescription> description = getDescriptionForCallable(BaseTest::staticCallable);
+    Optional<String> description = getDescriptionForCallable(BaseTest::staticCallable);
     assertTrue(description.isPresent());
     assertNameMatch("BaseTest::staticCallable", "testStaticCallable", CLASSNAME, description.get().toString());
   }
 
   @Test
   public void testStaticConsumer() {
-    Optional<LambdaClassDescription> description = getDescriptionForConsumer(BaseTest::staticConsumer);
+    Optional<String> description = getDescriptionForConsumer(BaseTest::staticConsumer);
     assertTrue(description.isPresent());
     assertNameMatch("BaseTest::staticConsumer", "testStaticConsumer", CLASSNAME, description.get().toString());
   }
