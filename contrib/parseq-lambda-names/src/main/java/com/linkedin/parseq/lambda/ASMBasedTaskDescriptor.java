@@ -1,17 +1,26 @@
 package com.linkedin.parseq.lambda;
 
 import com.ea.agentloader.AgentLoader;
+import com.ea.agentloader.ClassPathUtils;
 import com.linkedin.parseq.TaskDescriptor;
+import java.io.Serializable;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
+import java.lang.reflect.Field;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.security.ProtectionDomain;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import sun.misc.Launcher;
 
 
 /**
@@ -19,40 +28,65 @@ import org.objectweb.asm.Opcodes;
  * Description of Lambda expression includes source code location of lambda, function call or method reference
  * within lambda.
  */
-public class ASMBasedTaskDescriptor implements TaskDescriptor {
+public class ASMBasedTaskDescriptor implements TaskDescriptor, Serializable {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(ASMBasedTaskDescriptor.class);
+
+  private static ConcurrentMap<String, String> _names = new ConcurrentHashMap<>();
 
   static {
-    AgentLoader.loadAgentClass(Agent.class.getName(), null);
-  }
+    if (ASMBasedTaskDescriptor.Agent.class.getClassLoader() != ClassLoader.getSystemClassLoader()) {
+      ClassPathUtils.appendToSystemPath(ClassPathUtils.getClassPathFor(ASMBasedTaskDescriptor.Agent.class));
+      AgentLoader.loadAgentClass(ASMBasedTaskDescriptor.Agent.class.getName(), null, null, true, true, false);
 
-  private static final ConcurrentMap<String, LambdaClassDescription> _names = new ConcurrentHashMap<>();
+      try {
+        Class<?> systemClazz = ClassLoader.getSystemClassLoader().loadClass(ASMBasedTaskDescriptor.class.getName());
+        Object _systemClassDescriptor = systemClazz.newInstance();
+
+        Field field = systemClazz.getDeclaredField("_names");
+        field.setAccessible(true);
+
+        ConcurrentMap<String, String> systemsNamesMap = (ConcurrentMap<String, String>) field.get(_systemClassDescriptor);
+        _names = systemsNamesMap;
+      } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchFieldException e) {
+        LOGGER.error("Unable to refer to names map of ASMBasedTaskDescriptor loaded from system classpath");
+      }
+    } else {
+      AgentLoader.loadAgentClass(ASMBasedTaskDescriptor.Agent.class.getName(), null);
+    }
+  }
 
   @Override
   public String getDescription(Class<?> clazz) {
-    Optional<LambdaClassDescription> lambdaClassDescription = getLambdaClassDescription(clazz);
+    Optional<String> lambdaClassDescription = getLambdaClassDescription(clazz);
     if (lambdaClassDescription.isPresent()) {
-      return lambdaClassDescription.get().getDescription();
+      return lambdaClassDescription.get();
     } else {
       return clazz.getName();
     }
   }
 
-  /*package private */ Optional<LambdaClassDescription> getLambdaClassDescription(Class<?> clazz) {
+  /*package private */ Optional<String> getLambdaClassDescription(Class<?> clazz) {
     String className = clazz.getName();
     int slashIndex = className.lastIndexOf('/');
     if (slashIndex > 0) {
       String name = className.substring(0, slashIndex);
-      return Optional.of(_names.get(name));
+      String desc = _names.get(name);
+      if (desc == null || desc.isEmpty()) {
+        return Optional.empty();
+      } else {
+        return Optional.of(desc);
+      }
     }
 
     return Optional.empty();
   }
 
-  private static void add(String lambdaClassName, LambdaClassDescription description) {
+  private static void add(String lambdaClassName, String description) {
     _names.put(lambdaClassName, description);
   }
 
-  static class Agent {
+  public static class Agent {
 
     private static final AtomicBoolean _initialized = new AtomicBoolean(false);
 
@@ -81,8 +115,8 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
         reader.accept(cv, 0);
 
         if (cv.isLambdaClass()) {
-          LambdaClassDescription description = cv.getLambdaClassDescription();
-          add(description.getClassName(), description);
+          LambdaClassDescription lambdaClassDescription = cv.getLambdaClassDescription();
+          add(lambdaClassDescription.getClassName(), lambdaClassDescription.getDescription());
         }
       }
     }

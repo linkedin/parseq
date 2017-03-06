@@ -13,15 +13,15 @@ class LambdaClassDescription {
                                 InferredOperation inferredOperation) {
     _className = className;
     _sourcePointer = sourcePointer;
-    _inferredOperationOptional = Optional.of(inferredOperation);
+    _inferredOperationOptional = inferredOperation == null ? Optional.empty() : Optional.of(inferredOperation);
   }
 
   String getDescription() {
     StringBuilder builder = new StringBuilder();
     if (_inferredOperationOptional.isPresent()) {
-      String inferredOperationDesc = _inferredOperationOptional.get().toString();
-      if (!inferredOperationDesc.isEmpty()) {
-        builder.append(_inferredOperationOptional.get()).append(" ");
+      String desc = _inferredOperationOptional.get().toString();
+      if (!desc.isEmpty()) {
+        builder.append(desc).append(" ");
       }
     }
 

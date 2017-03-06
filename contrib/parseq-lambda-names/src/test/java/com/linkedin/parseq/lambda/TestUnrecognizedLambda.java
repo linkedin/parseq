@@ -14,28 +14,28 @@ public class TestUnrecognizedLambda extends BaseTest {
 
   private static final String CLASSNAME = TestUnrecognizedLambda.class.getSimpleName();
 
-  Optional<LambdaClassDescription> getDescriptionForVoidCallable(Callable<Void> c) {
+  Optional<String> getDescriptionForVoidCallable(Callable<Void> c) {
     return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass());
   }
 
-  Optional<LambdaClassDescription> getDescriptionForIntCallable(Callable<Integer> c) {
+  Optional<String> getDescriptionForIntCallable(Callable<Integer> c) {
     return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass());
   }
 
-  Optional<LambdaClassDescription> getDescriptionForStringPredicate(Predicate<String> c) {
+  Optional<String> getDescriptionForStringPredicate(Predicate<String> c) {
     return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass());
   }
 
   @Test
   public void testReturnExpression() {
-    Optional<LambdaClassDescription> description = getDescriptionForCallable(() -> {return "";});
+    Optional<String> description = getDescriptionForCallable(() -> {return "";});
     assertTrue(description.isPresent());
     assertNameMatch("", "testReturnExpression", CLASSNAME, description.get().toString());
   }
 
   @Test
   public void testExpressions() {
-    Optional<LambdaClassDescription> description = getDescriptionForVoidCallable(() -> {
+    Optional<String> description = getDescriptionForVoidCallable(() -> {
       int a = 5;
       int b = 10;
       int c = a + b;
@@ -48,7 +48,7 @@ public class TestUnrecognizedLambda extends BaseTest {
   @Test
   public void testOperations() {
     MathOperation multiplication = (int a, int b) -> { return a * b; };
-    Optional<LambdaClassDescription> description = getDescriptionForIntCallable(() -> {return this.operate(5, 3, multiplication);});;
+    Optional<String> description = getDescriptionForIntCallable(() -> {return this.operate(5, 3, multiplication);});;
     assertTrue(description.isPresent());
     //if operate function's return type is changed to Integer, we aren't able to infer operation
     assertNameMatch("() -> operate(_,_,_).Integer.valueOf(_)", "testOperations", CLASSNAME, description.get().toString());
@@ -64,15 +64,15 @@ public class TestUnrecognizedLambda extends BaseTest {
 //        .sorted()
 //        .forEach(System.out::println);
 
-    Optional<LambdaClassDescription> predicateDescription = getDescriptionForStringPredicate(p -> p.startsWith("c"));
+    Optional<String> predicateDescription = getDescriptionForStringPredicate(p -> p.startsWith("c"));
     assertTrue(predicateDescription.isPresent());
     assertNameMatch("p -> startsWith(_)", "testStream", CLASSNAME, predicateDescription.get().toString());
 
-    Optional<LambdaClassDescription> mapDescription = getDescriptionForFunction(s -> s.toUpperCase());
+    Optional<String> mapDescription = getDescriptionForFunction(s -> s.toUpperCase());
     assertTrue(mapDescription.isPresent());
     assertNameMatch("s -> toUpperCase()", "testStream", CLASSNAME, mapDescription.get().toString());
 
-    Optional<LambdaClassDescription> foreachDescription = getDescriptionForConsumer(System.out::println);
+    Optional<String> foreachDescription = getDescriptionForConsumer(System.out::println);
     assertTrue(foreachDescription.isPresent());
     assertNameMatch("out::println", "testStream", CLASSNAME, foreachDescription.get().toString());
   }
