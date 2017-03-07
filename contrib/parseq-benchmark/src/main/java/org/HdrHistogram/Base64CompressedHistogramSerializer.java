@@ -15,8 +15,8 @@ public class Base64CompressedHistogramSerializer implements HistogramSerializer 
   private ByteBuffer targetBuffer;
 
   @Override
-  public synchronized String serlialize(Histogram histogram) {
-    int requiredBytes = histogram.getNeededByteBufferCapacity() + 16;
+  public synchronized String serialize(Histogram histogram) {
+    int requiredBytes = histogram.getNeededByteBufferCapacity() + (2 * Long.BYTES);  // Long.BYTES for start and end timestamps
     if ((targetBuffer == null) || targetBuffer.capacity() < requiredBytes) {
       targetBuffer = ByteBuffer.allocate(requiredBytes);
     }
@@ -24,8 +24,8 @@ public class Base64CompressedHistogramSerializer implements HistogramSerializer 
 
     int compressedLength = histogram.encodeIntoCompressedByteBuffer(targetBuffer, Deflater.BEST_COMPRESSION);
     targetBuffer.putLong(compressedLength, histogram.getStartTimeStamp());
-    targetBuffer.putLong(compressedLength + 8, histogram.getEndTimeStamp());
-    byte[] compressedArray = Arrays.copyOf(targetBuffer.array(), compressedLength + 16);
+    targetBuffer.putLong(compressedLength + Long.BYTES, histogram.getEndTimeStamp());
+    byte[] compressedArray = Arrays.copyOf(targetBuffer.array(), compressedLength + (2 * Long.BYTES));
     return DatatypeConverter.printBase64Binary(compressedArray);
   }
 
@@ -33,11 +33,11 @@ public class Base64CompressedHistogramSerializer implements HistogramSerializer 
   public Histogram deserialize(String serialized) {
     try {
       byte[] rawBytes = DatatypeConverter.parseBase64Binary(serialized);
-      final ByteBuffer buffer = ByteBuffer.wrap(rawBytes, 0, rawBytes.length - 16);
+      final ByteBuffer buffer = ByteBuffer.wrap(rawBytes, 0, rawBytes.length - (2 * Long.BYTES));
       Histogram histogram = (Histogram) EncodableHistogram.decodeFromCompressedByteBuffer(buffer, 0);
       final ByteBuffer timestamps = ByteBuffer.wrap(rawBytes, 0, rawBytes.length);
-      histogram.setStartTimeStamp(timestamps.getLong(rawBytes.length - 16));
-      histogram.setEndTimeStamp(timestamps.getLong(rawBytes.length - 16 + 8));
+      histogram.setStartTimeStamp(timestamps.getLong(rawBytes.length - (2 * Long.BYTES)));
+      histogram.setEndTimeStamp(timestamps.getLong(rawBytes.length - (2 * Long.BYTES) + Long.BYTES));
       return histogram;
     } catch (DataFormatException e) {
       throw new RuntimeException(e);

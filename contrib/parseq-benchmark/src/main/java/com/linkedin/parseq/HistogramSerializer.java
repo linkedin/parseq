@@ -4,7 +4,7 @@ import org.HdrHistogram.Histogram;
 
 public interface HistogramSerializer {
 
-  String serlialize(Histogram histogram);
+  String serialize(Histogram histogram);
 
   Histogram deserialize(String serialized);
 

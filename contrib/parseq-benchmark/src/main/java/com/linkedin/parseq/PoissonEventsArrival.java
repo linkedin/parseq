@@ -9,6 +9,9 @@ public class PoissonEventsArrival implements EventsArrival {
   private final double _nanosToNextEventMean;
 
   public PoissonEventsArrival(double events, TimeUnit perUnit) {
+    if (events <= 0) {
+      throw new IllegalArgumentException("events must be a positive number");
+    }
     _nanosToNextEventMean = perUnit.toNanos(1) / events;
   }
 

@@ -134,6 +134,9 @@ public class SerialExecutor {
         } catch (Throwable t) {
           _uncaughtExecutionHandler.uncaughtException(t);
         } finally {
+          // Guarantees that execution loop is scheduled only once to the underlying executor.
+          // Also makes sure that all memory effects of last Runnable are visible to the next Runnable
+          // in case value returned by decrementAndGet == 0.
           if (_pendingCount.decrementAndGet() == 0) {
             break;
           }

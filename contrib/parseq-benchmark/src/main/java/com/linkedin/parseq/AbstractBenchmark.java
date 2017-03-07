@@ -193,14 +193,14 @@ public abstract class AbstractBenchmark {
     LOG.info("Histogram of task execution times on parseq threads in \u00B5s:");
     taskHistogram.outputPercentileDistribution(System.out, 1000.0);
     LOG.info(BENCHMARK_TEST_RESULTS_LOG_PREFIX + "Histogram of task execution times on parseq threads in \u00B5s: " +
-        _histogramSerializer.serlialize(taskHistogram));
+        _histogramSerializer.serialize(taskHistogram));
 
 
     LOG.info("----------------------------------------------------------------");
     LOG.info("Histogram of plan completion times in \u00B5s:");
     planHistogram.outputPercentileDistribution(System.out, 1000.0);
     LOG.info(BENCHMARK_TEST_RESULTS_LOG_PREFIX + "Histogram of plan completion times in \u00B5s: " +
-        _histogramSerializer.serlialize(planHistogram));
+        _histogramSerializer.serialize(planHistogram));
 
     LOG.info("----------------------------------------------------------------");
     LOG.info("Throughput: " + String.format("%.3f", (N / ((double)(end - start) / 1000000000))) + " plans/s, " +
@@ -346,7 +346,7 @@ public abstract class AbstractBenchmark {
       LOG.info("Histogram of benchmark execution plan accuracy in \u00B5s:");
       planExecutionAccuracy.outputPercentileDistribution(System.out, 1000.0);
       LOG.info(BENCHMARK_TEST_RESULTS_LOG_PREFIX + "Histogram of benchmark execution plan accuracy in \u00B5s: " +
-          _histogramSerializer.serlialize(planExecutionAccuracy));
+          _histogramSerializer.serialize(planExecutionAccuracy));
     }
   }
 
