@@ -233,17 +233,9 @@ class FusionTask<S, T> extends BaseTask<T> {
               }
               settable.done(value);
               traceContext.getParent().getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);
-              if (ParSeqGlobalConfiguration.isTrampolineEnabled()) {
-                CONTINUATIONS.submit(() -> dest.done(value));
-              } else {
-                dest.done(value);
-              }
+              CONTINUATIONS.submit(() -> dest.done(value));
             } catch (Exception e) {
-              if (ParSeqGlobalConfiguration.isTrampolineEnabled()) {
-                CONTINUATIONS.submit(() -> dest.fail(e));
-              } else {
-                dest.fail(e);
-              }
+              CONTINUATIONS.submit(() -> dest.fail(e));
             }
           }
 
@@ -254,38 +246,20 @@ class FusionTask<S, T> extends BaseTask<T> {
               traceFailure(error);
               settable.fail(error);
               traceContext.getParent().getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);
-              if (ParSeqGlobalConfiguration.isTrampolineEnabled()) {
-                CONTINUATIONS.submit(() -> dest.fail(error));
-              } else {
-                dest.fail(error);
-              }
+              CONTINUATIONS.submit(() -> dest.fail(error));
             } catch (Exception e) {
-              if (ParSeqGlobalConfiguration.isTrampolineEnabled()) {
-                CONTINUATIONS.submit(() -> dest.fail(e));
-              } else {
-                dest.fail(e);
-              }
+              CONTINUATIONS.submit(() -> dest.fail(e));
             }
           }
         };
-
-        if (ParSeqGlobalConfiguration.isTrampolineEnabled()) {
-          CONTINUATIONS.submit(() -> {
-            try {
-              propagator.accept(traceContext, src, next);
-            } catch (Exception e) {
-              /* This can only happen if there is an internal problem. Propagators should not throw any exceptions. */
-              LOGGER.error("ParSeq ingternal error. An exception was thrown by propagator.", e);
-            }
-          });
-        } else {
+        CONTINUATIONS.submit(() -> {
           try {
             propagator.accept(traceContext, src, next);
           } catch (Exception e) {
             /* This can only happen if there is an internal problem. Propagators should not throw any exceptions. */
             LOGGER.error("ParSeq ingternal error. An exception was thrown by propagator.", e);
           }
-        }
+        });
       } else {
         //non-parent tasks subsequent executions
         addPotentialRelationships(traceContext, traceContext.getParent().getTraceBuilder());

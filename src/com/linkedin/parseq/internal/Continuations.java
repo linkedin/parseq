@@ -4,6 +4,8 @@ package com.linkedin.parseq.internal;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
+import com.linkedin.parseq.ParSeqGlobalConfiguration;
+
 /**
  * This class allows running the following code structure:
  * <pre><code>
@@ -38,7 +40,11 @@ public class Continuations {
   };
 
   public void submit(final Runnable action) {
-    CONTINUATION.get().submit(action);
+    if (ParSeqGlobalConfiguration.isTrampolineEnabled()) {
+      CONTINUATION.get().submit(action);
+    } else {
+      action.run();
+    }
   }
 
   private static final class Continuation {

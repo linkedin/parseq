@@ -115,13 +115,8 @@ import com.linkedin.parseq.internal.Continuations;
 
   private void doFinish(final T value, final Throwable error) throws PromiseResolvedException {
     final List<PromiseListener<T>> listeners = finalizeResult(value, error);
-    if (ParSeqGlobalConfiguration.isTrampolineEnabled()) {
-      CONTINUATIONS.submit(() -> notifyListeners(listeners));
-      CONTINUATIONS.submit(_awaitLatch::countDown);
-    } else {
-      notifyListeners(listeners);
-      _awaitLatch.countDown();
-    }
+    CONTINUATIONS.submit(() -> notifyListeners(listeners));
+    CONTINUATIONS.submit(_awaitLatch::countDown);
   }
 
   private List<PromiseListener<T>> finalizeResult(T value, Throwable error) {
