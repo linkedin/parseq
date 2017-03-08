@@ -41,10 +41,14 @@ public class Continuations {
 
   public void submit(final Runnable action) {
     if (ParSeqGlobalConfiguration.isTrampolineEnabled()) {
-      CONTINUATION.get().submit(action);
+      doSubmit(action);
     } else {
       action.run();
     }
+  }
+
+  void doSubmit(final Runnable action) {
+    CONTINUATION.get().submit(action);
   }
 
   private static final class Continuation {

@@ -16,7 +16,7 @@ public class TestContinuations {
   public void testActionCalled() {
     final AtomicBoolean action = new AtomicBoolean(false);
     Continuations CONT = new Continuations();
-    CONT.submit(() -> {
+    CONT.doSubmit(() -> {
       action.set(true);
     });
     assertTrue(action.get());
@@ -28,10 +28,10 @@ public class TestContinuations {
     final AtomicInteger action = new AtomicInteger();
     final AtomicInteger onSuccess = new AtomicInteger();
     Continuations CONT = new Continuations();
-    CONT.submit(() -> {
+    CONT.doSubmit(() -> {
       action.set(sequence.incrementAndGet());
     });
-    CONT.submit(() -> {
+    CONT.doSubmit(() -> {
       onSuccess.set(sequence.incrementAndGet());
     });
     assertEquals(action.get(), 1);
@@ -44,10 +44,10 @@ public class TestContinuations {
     final AtomicInteger onSuccess = new AtomicInteger();
     Continuations CONT = new Continuations();
     try {
-      CONT.submit(() -> {
+      CONT.doSubmit(() -> {
         throw new RuntimeException("test");
       });
-      CONT.submit(() -> {
+      CONT.doSubmit(() -> {
         onSuccess.set(sequence.incrementAndGet());
       });
       fail("should have thrown exception");
@@ -61,11 +61,11 @@ public class TestContinuations {
   public void testRecursiveOrder() {
     final Continuations CONT = new Continuations();
     final StringBuilder result = new StringBuilder();
-    CONT.submit(() -> {
+    CONT.doSubmit(() -> {
       result.append("BEGIN{");
       recursivePostOrder(CONT, result, "root", 0);
     });
-    CONT.submit(() -> {
+    CONT.doSubmit(() -> {
       result.append("}END");
     });
     assertEquals(result.toString(),
@@ -74,13 +74,13 @@ public class TestContinuations {
 
   private void recursivePostOrder(final Continuations CONT, final StringBuilder result, final String branch,
       final int depth) {
-    CONT.submit(() -> {
+    CONT.doSubmit(() -> {
       if (depth < 2) {
         recursivePostOrder(CONT, result, branch + "L", depth + 1);
         recursivePostOrder(CONT, result, branch + "R", depth + 1);
       }
     });
-    CONT.submit(() -> {
+    CONT.doSubmit(() -> {
       result.append("[done(" + branch + ":" + depth + ")]");
     });
   }
@@ -90,11 +90,11 @@ public class TestContinuations {
     final Continuations CONT = new Continuations();
     final StringBuilder result = new StringBuilder();
     try {
-      CONT.submit(() -> {
+      CONT.doSubmit(() -> {
         result.append("BEGIN{");
         recursivePostOrderWithException(CONT, result, "root", 0);
       });
-      CONT.submit(() -> {
+      CONT.doSubmit(() -> {
         result.append("}END");
       });
       fail("should have thrown exception");
@@ -106,7 +106,7 @@ public class TestContinuations {
 
   private void recursivePostOrderWithException(final Continuations CONT, final StringBuilder result,
       final String branch, final int depth) {
-    CONT.submit(() -> {
+    CONT.doSubmit(() -> {
       if (depth < 2) {
         recursivePostOrderWithException(CONT, result, branch + "L", depth + 1);
         recursivePostOrderWithException(CONT, result, branch + "R", depth + 1);
@@ -116,7 +116,7 @@ public class TestContinuations {
         }
       }
     });
-    CONT.submit(() -> {
+    CONT.doSubmit(() -> {
       result.append("[done(" + branch + ":" + depth + ")]");
     });
   }
@@ -125,19 +125,19 @@ public class TestContinuations {
   public void testDeepRecursion() {
     final Continuations CONT = new Continuations();
     final AtomicInteger result = new AtomicInteger();
-    CONT.submit(() -> {
+    CONT.doSubmit(() -> {
       deepRecursion(CONT, result, 0);
     });
     assertEquals(result.get(), 1000001);
   }
 
   private void deepRecursion(final Continuations CONT, final AtomicInteger result, final int depth) {
-    CONT.submit(() -> {
+    CONT.doSubmit(() -> {
       if (depth < 1000000) {
         deepRecursion(CONT, result, depth + 1);
       }
     });
-    CONT.submit(() -> {
+    CONT.doSubmit(() -> {
       result.incrementAndGet();
     });
   }
