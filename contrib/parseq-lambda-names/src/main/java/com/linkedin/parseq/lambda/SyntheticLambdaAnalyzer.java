@@ -20,8 +20,6 @@ import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.objectweb.asm.tree.analysis.Frame;
 import org.objectweb.asm.tree.analysis.SourceInterpreter;
 import org.objectweb.asm.tree.analysis.SourceValue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Given the uniquely generated synthetic lambda function, it analyzes class to infer information such as number of
@@ -55,8 +53,6 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
 
   private class SyntheticLambdaMethodVisitor extends MethodNode {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(SyntheticLambdaMethodVisitor.class);
-
     private String _methodInsnName;
     private String _methodInsnOwner;
     private String _methodInsnDesc;
@@ -78,7 +74,7 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
           _methodInsnOpcode = opcode;
           break;
         default:
-          LOGGER.debug("Unexpected opcode, falling back");
+          System.out.println("Unexpected opcode, falling back");
           break;
       }
 
@@ -93,7 +89,7 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
 
         int index = findMethodCall(this.instructions);
         if (index == -1) {
-          LOGGER.debug("Unable to find method call in instruction list, debug as this case is not expected");
+          System.out.println("Unable to find method call in instruction list, debug as this case is not expected");
           return;
         }
 
@@ -136,7 +132,7 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
 
         _inferredOperation = getInferredOperation(localVariables, fieldDesc);
       } catch (AnalyzerException e) {
-        LOGGER.debug("Unable to analyze class, could not infer operation", e.getMessage());
+        System.out.println("Unable to analyze class, could not infer operation");
       }
     }
 

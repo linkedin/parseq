@@ -1,6 +1,5 @@
 package com.linkedin.parseq.lambda;
 
-import com.linkedin.parseq.TaskDescriptor;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -24,8 +23,6 @@ import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.objectweb.asm.tree.analysis.Frame;
 import org.objectweb.asm.tree.analysis.SourceInterpreter;
 import org.objectweb.asm.tree.analysis.SourceValue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
@@ -63,8 +60,6 @@ class FindMethodCallAnalyzer extends ClassVisitor {
   }
 
   private class FindMethodCallMethodVisitor extends MethodNode {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(FindMethodCallAnalyzer.FindMethodCallMethodVisitor.class);
 
     FindMethodCallMethodVisitor(int api, int access, String name, String desc, String signature, String[] exceptions) {
       super(api, access, name, desc, signature, exceptions);
@@ -127,7 +122,7 @@ class FindMethodCallAnalyzer extends ClassVisitor {
           _inferredOperation = getInferredOperation(localVariables, field);
         }
       } catch (AnalyzerException e) {
-        LOGGER.debug("Unable to analyze class, could not infer operation", e.getMessage());
+        System.out.println("Unable to analyze class, could not infer operation");
       }
     }
 
