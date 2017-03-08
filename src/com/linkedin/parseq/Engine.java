@@ -54,7 +54,7 @@ public class Engine {
   private static final int DEFUALT_MAX_CONCURRENT_PLANS = Integer.MAX_VALUE;
 
   public static final String DRAIN_SERIAL_EXECUTOR_QUEUE = "_DrainSerialExecutorQueue_";
-  private static final boolean DEFUALT_DRAIN_SERIAL_EXECUTOR_QUEUE = true;
+  private static final boolean DEFAULT_DRAIN_SERIAL_EXECUTOR_QUEUE = true;
 
   public static final String DEFAULT_TASK_QUEUE = "_DefaultTaskQueue_";
 
@@ -126,7 +126,7 @@ public class Engine {
     if (_properties.containsKey(DRAIN_SERIAL_EXECUTOR_QUEUE)) {
       _drainSerialExecutorQueue = (Boolean) getProperty(DRAIN_SERIAL_EXECUTOR_QUEUE);
     } else {
-      _drainSerialExecutorQueue = DEFUALT_DRAIN_SERIAL_EXECUTOR_QUEUE;
+      _drainSerialExecutorQueue = DEFAULT_DRAIN_SERIAL_EXECUTOR_QUEUE;
     }
 
     _taskDoneListener = resolvedPromise -> {
