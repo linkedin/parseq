@@ -3,24 +3,17 @@ package com.linkedin.parseq.lambda;
 import com.ea.agentloader.AgentLoader;
 import com.ea.agentloader.ClassPathUtils;
 import com.linkedin.parseq.TaskDescriptor;
-import java.io.Serializable;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.Field;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.security.ProtectionDomain;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import sun.misc.Launcher;
 
 
 /**
@@ -28,9 +21,7 @@ import sun.misc.Launcher;
  * Description of Lambda expression includes source code location of lambda, function call or method reference
  * within lambda.
  */
-public class ASMBasedTaskDescriptor implements TaskDescriptor, Serializable {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(ASMBasedTaskDescriptor.class);
+public class ASMBasedTaskDescriptor implements TaskDescriptor {
 
   private static ConcurrentMap<String, String> _names = new ConcurrentHashMap<>();
 
@@ -49,7 +40,7 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor, Serializable {
         ConcurrentMap<String, String> systemsNamesMap = (ConcurrentMap<String, String>) field.get(_systemClassDescriptor);
         _names = systemsNamesMap;
       } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchFieldException e) {
-        LOGGER.error("Unable to refer to names map of ASMBasedTaskDescriptor loaded from system classpath");
+        System.err.println("Unable to refer to names map of ASMBasedTaskDescriptor loaded from system classpath");
       }
     } else {
       AgentLoader.loadAgentClass(ASMBasedTaskDescriptor.Agent.class.getName(), null);
@@ -57,17 +48,16 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor, Serializable {
   }
 
   @Override
-  public String getDescription(Class<?> clazz) {
-    Optional<String> lambdaClassDescription = getLambdaClassDescription(clazz);
+  public String getDescription(String className) {
+    Optional<String> lambdaClassDescription = getLambdaClassDescription(className);
     if (lambdaClassDescription.isPresent()) {
       return lambdaClassDescription.get();
     } else {
-      return clazz.getName();
+      return className;
     }
   }
 
-  /*package private */ Optional<String> getLambdaClassDescription(Class<?> clazz) {
-    String className = clazz.getName();
+  /*package private */ Optional<String> getLambdaClassDescription(String className) {
     int slashIndex = className.lastIndexOf('/');
     if (slashIndex > 0) {
       String name = className.substring(0, slashIndex);

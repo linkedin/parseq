@@ -5,13 +5,9 @@ import java.util.function.Consumer;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 class LambdaMethodVisitor extends MethodVisitor {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(LambdaMethodVisitor.class);
 
   private SourcePointer _lambdaSourcePointer;
   private Consumer<InferredOperation> _inferredOperationConsumer;
@@ -63,7 +59,7 @@ class LambdaMethodVisitor extends MethodVisitor {
         cr.accept(syntheticLambdaAnalyzer, 0);
         _inferredOperationConsumer.accept(new InferredOperation(_methodInsnOpcode, syntheticLambdaAnalyzer.getInferredOperation()));
       } catch (IOException e) {
-        LOGGER.debug("Unable to read class: " + classToVisit, e.getMessage());
+        System.out.println("Unable to read class: " + classToVisit);
       }
     } else {
       //if it is static invocation, details about function could be found directly from the methodInsnName itself
@@ -78,7 +74,7 @@ class LambdaMethodVisitor extends MethodVisitor {
           cr.accept(methodCallAnalyzer, 0);
           _inferredOperationConsumer.accept(new InferredOperation(_methodInsnOpcode, methodCallAnalyzer.getInferredOperation()));
         } catch (IOException e) {
-          LOGGER.debug("Unable to read class: " + classToVisit, e.getMessage());
+          System.out.println("Unable to read class: " + classToVisit);
         }
       }
     }
