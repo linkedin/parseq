@@ -13,9 +13,6 @@ import static org.testng.Assert.assertTrue;
 
 class BaseTest {
 
-  String JDK_VERSION = System.getProperty("java.version");
-  String JDK_1_8_0_72 = "1.8.0_72";
-
   static String staticFunction(String s) {
     return s;
   }
@@ -66,23 +63,23 @@ class BaseTest {
   ASMBasedTaskDescriptor _asmBasedTaskDescriptor = new ASMBasedTaskDescriptor();
 
   Optional<String> getDescriptionForFunction(Function<String, String> f) {
-    return _asmBasedTaskDescriptor.getLambdaClassDescription(f.getClass());
+    return _asmBasedTaskDescriptor.getLambdaClassDescription(f.getClass().getName());
   }
 
   Optional<String> getDescriptionForBiFunction(BiFunction<String, String, String> f) {
-    return _asmBasedTaskDescriptor.getLambdaClassDescription(f.getClass());
+    return _asmBasedTaskDescriptor.getLambdaClassDescription(f.getClass().getName());
   }
 
   Optional<String> getDescriptionForCallable(Callable<String> c) {
-    return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass());
+    return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass().getName());
   }
 
   Optional<String> getDescriptionForConsumer(Consumer<String> c) {
-    return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass());
+    return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass().getName());
   }
 
   Optional<String> getDescriptionForBiConsumer(BiConsumer<String, String> c) {
-    return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass());
+    return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass().getName());
   }
 
   void assertNameMatch(String inferredFunction, String callerMethodName, String callerClassName,

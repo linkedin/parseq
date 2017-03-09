@@ -70,18 +70,14 @@ public class TestInterface extends BaseTest {
     SampleImplementation impl = new SampleImplementation();
     Optional<String> description = getDescriptionForFunction(s -> impl.interfaceFunction(s));
     assertTrue(description.isPresent());
-    if (JDK_VERSION.equals(JDK_1_8_0_72)) {
-      assertNameMatch("(impl,s) -> interfaceFunction(_)", "testFunctionInvocationOnInterface", CLASSNAME, description.get().toString());
-    } else {
-      assertNameMatch("s -> interfaceFunction(_)", "testFunctionInvocationOnInterface", CLASSNAME, description.get().toString());
-    }
+    assertNameMatch("interfaceFunction(_)", "testFunctionInvocationOnInterface", CLASSNAME, description.get().toString());
   }
 
   @Test
   public void testStaticFunctionInvocationOnInterface() {
     Optional<String> description = getDescriptionForFunction(s -> SampleInterface.staticFunction(s));
     assertTrue(description.isPresent());
-    assertNameMatch("s -> TestInterface$SampleInterface.staticFunction(_)", "testStaticFunctionInvocationOnInterface", CLASSNAME, description.get().toString());
+    assertNameMatch("TestInterface$SampleInterface.staticFunction(_)", "testStaticFunctionInvocationOnInterface", CLASSNAME, description.get().toString());
   }
 
   @Test
@@ -89,12 +85,7 @@ public class TestInterface extends BaseTest {
     SampleImplementation impl = new SampleImplementation();
     Optional<String> description = getDescriptionForFunction(s -> impl.abstractFunction(s));
     assertTrue(description.isPresent());
-    if (JDK_VERSION.equals(JDK_1_8_0_72)) {
-      assertNameMatch("(impl,s) -> abstractFunction(_)", "testAbstractFunctionInvocationOnInterface", CLASSNAME,
-          description.get().toString());
-    } else {
-      assertNameMatch("s -> abstractFunction(_)", "testAbstractFunctionInvocationOnInterface", CLASSNAME,
-          description.get().toString());
-    }
+    assertNameMatch("abstractFunction(_)", "testAbstractFunctionInvocationOnInterface", CLASSNAME,
+        description.get().toString());
   }
 }

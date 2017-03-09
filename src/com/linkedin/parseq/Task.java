@@ -193,7 +193,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #map(String, Function1)
    */
   default <R> Task<R> map(final Function1<? super T, ? extends R> func) {
-    return map("map: " + _taskDescriptor.getDescription(func.getClass()), func);
+    return map("map: " + _taskDescriptor.getDescription(func.getClass().getName()), func);
   }
 
   /**
@@ -238,7 +238,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #flatMap(String, Function1)
    */
   default <R> Task<R> flatMap(final Function1<? super T, Task<R>> func) {
-    return flatMap("flatMap: " + _taskDescriptor.getDescription(func.getClass()), func);
+    return flatMap("flatMap: " + _taskDescriptor.getDescription(func.getClass().getName()), func);
   }
 
   /**
@@ -299,7 +299,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #withSideEffect(String, Function1)
    */
   default Task<T> withSideEffect(final Function1<? super T, Task<?>> func) {
-    return withSideEffect("sideEffect: " + _taskDescriptor.getDescription(func.getClass()), func);
+    return withSideEffect("sideEffect: " + _taskDescriptor.getDescription(func.getClass().getName()), func);
   }
 
   /**
@@ -496,7 +496,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #recover(String, Function1)
    */
   default Task<T> recover(final Function1<Throwable, T> func) {
-    return recover("recover: " + _taskDescriptor.getDescription(func.getClass()), func);
+    return recover("recover: " + _taskDescriptor.getDescription(func.getClass().getName()), func);
   }
 
   /**
@@ -679,7 +679,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #transform(String, Function1)
    */
   default <R> Task<R> transform(final Function1<Try<T>, Try<R>> func) {
-    return transform("transform: " + _taskDescriptor.getDescription(func.getClass()), func);
+    return transform("transform: " + _taskDescriptor.getDescription(func.getClass().getName()), func);
   }
 
   /**
@@ -755,7 +755,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #recoverWith(String, Function1)
    */
   default Task<T> recoverWith(final Function1<Throwable, Task<T>> func) {
-    return recoverWith("recoverWith: " + _taskDescriptor.getDescription(func.getClass()), func);
+    return recoverWith("recoverWith: " + _taskDescriptor.getDescription(func.getClass().getName()), func);
   }
 
   /**
@@ -1107,7 +1107,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #async(String, Function1)
    */
   public static <T> Task<T> async(final Function1<Context, Promise<? extends T>> func) {
-    return async("async: " + _taskDescriptor.getDescription(func.getClass()), func);
+    return async("async: " + _taskDescriptor.getDescription(func.getClass().getName()), func);
   }
 
   /**

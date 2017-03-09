@@ -1,8 +1,5 @@
 package com.linkedin.parseq.lambda;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.StringJoiner;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -10,11 +7,9 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.InsnList;
-import org.objectweb.asm.tree.LocalVariableNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TypeInsnNode;
-import org.objectweb.asm.tree.VarInsnNode;
 import org.objectweb.asm.tree.analysis.Analyzer;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.objectweb.asm.tree.analysis.Frame;
@@ -89,28 +84,16 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
 
         int index = findMethodCall(this.instructions);
         if (index == -1) {
-          System.out.println("Unable to find method call in instruction list, debug as this case is not expected");
           return;
         }
 
         Frame f = frames[index];
-        List<String> localVariables = new ArrayList<>();
         String fieldDesc = "";
 
         for (int j = 0; j < f.getStackSize(); ++j) {
           SourceValue stack = (SourceValue) f.getStack(j);
           Object insn = stack.insns.iterator().next();
-          if (insn instanceof VarInsnNode) {
-            VarInsnNode vinsn = (VarInsnNode) insn;
-            if (vinsn.var < this.localVariables.size()) {
-              String variable = ((LocalVariableNode) this.localVariables.get(vinsn.var)).name;
-
-              //this is hack!!!
-              if (!"this".equals(variable)) {
-                localVariables.add(variable);
-              }
-            }
-          } else if (insn instanceof FieldInsnNode) {
+          if (insn instanceof FieldInsnNode) {
             FieldInsnNode fieldInstr = (FieldInsnNode) insn;
             fieldDesc = fieldInstr.name;
           } else if (insn instanceof TypeInsnNode) {
@@ -130,7 +113,7 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
           }
         }
 
-        _inferredOperation = getInferredOperation(localVariables, fieldDesc);
+        _inferredOperation = getInferredOperation(fieldDesc);
       } catch (AnalyzerException e) {
         System.out.println("Unable to analyze class, could not infer operation");
       }
@@ -151,7 +134,7 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
       return ret;
     }
 
-    private String getInferredOperation(List<String> localVariables, String fieldDesc) {
+    private String getInferredOperation(String fieldDesc) {
       String functionName;
       if (_methodInsnOpcode == Opcodes.INVOKESTATIC) {
         functionName = Util.extractSimpleName(_methodInsnOwner, "/") + "." + _methodInsnName;
@@ -160,8 +143,6 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
       }
 
       StringBuilder sb = new StringBuilder();
-      sb.append(getDescriptionForLocalVars(localVariables));
-      sb.append(" -> ");
       if (!fieldDesc.isEmpty()) {
         sb.append(fieldDesc).append(".");
       }
@@ -169,19 +150,5 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
       sb.append(Util.getArgumentsInformation(_methodInsnDesc));
       return sb.toString();
     }
-  }
-
-  private static String getDescriptionForLocalVars(List<String> variables) {
-    if (variables == null || variables.size() == 0) {
-      return "()";
-    }
-
-    if (variables.size() == 1) {
-      return variables.get(0);
-    }
-
-    StringJoiner sj = new StringJoiner(",", "(", ")");
-    variables.forEach(sj::add);
-    return sj.toString();
   }
 }
