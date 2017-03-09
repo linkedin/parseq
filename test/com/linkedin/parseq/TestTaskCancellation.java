@@ -37,7 +37,7 @@ public class TestTaskCancellation extends BaseEngineTest {
     final AtomicReference<Throwable> cancelActionValue = new AtomicReference<>();
     final CountDownLatch runLatch = new CountDownLatch(1);
     final CountDownLatch listenerLatch = new CountDownLatch(1);
-    final CountDownLatch pendingLatch = new CountDownLatch(1);
+    final CountDownLatch pendingLatch = new CountDownLatch(2);
     Task<?> uncompleted = Task.async(() -> {
       runLatch.countDown();
       return Promises.settable();
@@ -48,18 +48,21 @@ public class TestTaskCancellation extends BaseEngineTest {
       }
       listenerLatch.countDown();
     } );
-    getEngine().run(Task.par(uncompleted, Task.action(() -> pendingLatch.countDown())));
+    getEngine().run(Task.par(Task.action(() -> pendingLatch.countDown()), uncompleted, Task.action(() -> pendingLatch.countDown())));
     assertTrue(runLatch.await(5, TimeUnit.SECONDS));
     /*
      *   pendingLatch makes sure that uncompleted transitioned to PENDING state
      *   This is a trick, we are relying here on a fact that Task.par will schedule
      *   tasks in order in which they are being passed to Tasp.par() method.
+     *   The order might be either FIFO or LIFO - this is why we need two tasks
+     *   that wrap the 'uncompleted' one.
      */
     assertTrue(pendingLatch.await(5, TimeUnit.SECONDS));
+    logTracingResults("TestTaskCancellation.testTaskCancellationAfterRun-before-cancellation", uncompleted);
     Exception cancelReason = new Exception();
     assertTrue(uncompleted.cancel(cancelReason));
+    logTracingResults("TestTaskCancellation.testTaskCancellationAfterRun-after-cancellation", uncompleted);
     assertTrue(listenerLatch.await(5, TimeUnit.SECONDS));
-    logTracingResults("TestTaskCancellation.testTaskCancellationAfterRun", uncompleted);
     assertEquals(cancelActionValue.get(), cancelReason);
   }
 

@@ -4,22 +4,23 @@ package com.linkedin.parseq.trace;
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
 public class TraceRelationship {
-  private final Long _from;
-  private final Long _to;
+  final ShallowTraceBuilder _from;
+  final ShallowTraceBuilder _to;
+
   private final Relationship _relationship;
 
-  public TraceRelationship(Long from, Long to, Relationship relationship) {
+  public TraceRelationship(ShallowTraceBuilder from, ShallowTraceBuilder to, Relationship relationship) {
     _from = from;
     _to = to;
     _relationship = relationship;
   }
 
   public Long getFrom() {
-    return _from;
+    return _from.getId();
   }
 
   public Long getTo() {
-    return _to;
+    return _to.getId();
   }
 
   public Relationship getRelationhsip() {
@@ -30,9 +31,9 @@ public class TraceRelationship {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((_from == null) ? 0 : _from.hashCode());
+    result = prime * result + ((_from.getId() == null) ? 0 : _from.getId().hashCode());
     result = prime * result + ((_relationship == null) ? 0 : _relationship.hashCode());
-    result = prime * result + ((_to == null) ? 0 : _to.hashCode());
+    result = prime * result + ((_to.getId() == null) ? 0 : _to.getId().hashCode());
     return result;
   }
 
@@ -45,24 +46,24 @@ public class TraceRelationship {
     if (getClass() != obj.getClass())
       return false;
     TraceRelationship other = (TraceRelationship) obj;
-    if (_from == null) {
-      if (other._from != null)
+    if (_from.getId() == null) {
+      if (other._from.getId() != null)
         return false;
-    } else if (!_from.equals(other._from))
+    } else if (!_from.getId().equals(other._from.getId()))
       return false;
     if (_relationship != other._relationship)
       return false;
-    if (_to == null) {
-      if (other._to != null)
+    if (_to.getId() == null) {
+      if (other._to.getId() != null)
         return false;
-    } else if (!_to.equals(other._to))
+    } else if (!_to.getId().equals(other._to.getId()))
       return false;
     return true;
   }
 
   @Override
   public String toString() {
-    return "TraceRelationship [from=" + _from + ", to=" + _to + ", relationhsip=" + _relationship + "]";
+    return "TraceRelationship [from=" + _from.getId() + ", to=" + _to.getId() + ", relationhsip=" + _relationship + "]";
   }
 
 }

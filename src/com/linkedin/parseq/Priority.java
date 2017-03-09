@@ -31,16 +31,16 @@ public class Priority {
    * Tasks with minimum priority will only be executed after all other tasks
    * have been executed.
    */
-  public static int MIN_PRIORITY = Integer.MIN_VALUE + 1;
+  public static final int MIN_PRIORITY = Integer.MIN_VALUE + 1;
 
   /**
    * Tasks with default priority can be run in any arbitrary order w.r.t to
    * other tasks of default priority.
    */
-  public static int DEFAULT_PRIORITY = 0;
+  public static final int DEFAULT_PRIORITY = 0;
 
   /**
    * Tasks with maximum priority will be executed before all other tasks.
    */
-  public static int MAX_PRIORITY = Integer.MAX_VALUE - 1;
+  public static final int MAX_PRIORITY = Integer.MAX_VALUE - 1;
 }

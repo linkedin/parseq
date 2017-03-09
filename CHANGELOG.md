@@ -1,3 +1,14 @@
+v2.6.10
+------
+
+* Performance optimizations:
+  - Eagerly drain task queue in SerialExecutor. The goal of this optimization is to avoid expensive context switches and improve memory cache utilization for the price of "fairness". Since this version the default behavior is to drain task queue eagerly. The previous behavior can be enabled by setting Engine configuration property: `Engine.DRAIN_SERIAL_EXECUTOR_QUEUE` to `true`.
+  - Disable trampoline. Trampoline is a mechanism that allows avoiding stack overflow. It is not without a cost and for certain workflows it is worth turning it off. Since this version trampoline is disabled. It can be enabled using `ParSeqGlobalConfiguration.setTrampolineEnabled()`.
+  - Use LIFOBiPriorityQueue as a task queue implementation in SerialExecutor. LIFOBiPriorityQueue is a task queue that recognizes only two priorities which allows faster implementation. It also uses LIFO order which can improve memory cache utilization. It is possible to use previous implementation by default by setting Engine configuration property: `Engine.DEFAULT_TASK_QUEUE` to `FIFOPriorityQueue.class.getName()`.
+  - Avoid creation and copying of arrays in TaskParImpl.
+  - Tracing improvements. Removed reference counting and replaced usage of HashMaps with ArrayLists.
+* Added benchmarks that can be used for testing ParSeq performance. This is just a beginning of work on more reliable and automated performance tests for ParSeq.
+
 v2.6.9
 ------
 

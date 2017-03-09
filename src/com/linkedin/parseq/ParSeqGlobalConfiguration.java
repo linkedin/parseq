@@ -21,9 +21,11 @@ package com.linkedin.parseq;
  * Global parseq configuration, applies to all Engine and Task instances
  *
  * @author Oleg Anashkin (oanashkin@linkedin.com)
+ * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
 public final class ParSeqGlobalConfiguration {
   private static volatile boolean _crossThreadStackTracesEnabled = false;
+  private static volatile boolean _trampolineEnabled = false;
 
   private ParSeqGlobalConfiguration() {
   }
@@ -58,4 +60,30 @@ public final class ParSeqGlobalConfiguration {
   public static void setCrossThreadStackTracesEnabled(boolean enabled) {
     _crossThreadStackTracesEnabled = enabled;
   }
+
+  /**
+   * Returns true if trampoline is currently enabled.
+   *
+   * Trampoline prevents stack overflow in situation of extremely deep large ParSeq plans. Typically this problem
+   * does not occur and trampoline can be disabled allowing performance optimization.
+   *
+   * @return true if trampoline is currently enabled
+   */
+  public static boolean isTrampolineEnabled() {
+    return _trampolineEnabled;
+  }
+
+  /**
+   * Enables or disables trampoline.
+   * This is a dynamic runtime configuration that has immediate effect on all tasks in the current process.
+   *
+   * Trampoline prevents stack overflow in situation of extremely deep large ParSeq plans. Typically this problem
+   * does not occur and trampoline can be disabled allowing performance optimization.
+   *
+   * @param enabled
+   */
+  public static void setTrampolineEnabled(boolean enabled) {
+    _trampolineEnabled = enabled;
+  }
+
 }

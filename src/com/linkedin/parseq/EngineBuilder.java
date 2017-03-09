@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.internal.CachedLoggerFactory;
-import com.linkedin.parseq.internal.FIFOPriorityQueue;
+import com.linkedin.parseq.internal.LIFOBiPriorityQueue;
 import com.linkedin.parseq.internal.PlanCompletionListener;
 import com.linkedin.parseq.internal.PlanDeactivationListener;
 
@@ -166,11 +166,12 @@ public class EngineBuilder {
     if (_timerScheduler == null) {
       throw new IllegalStateException("Timer scheduler is required to create an Engine, but it is not set");
     }
+
     return new Engine(_taskExecutor, new IndirectDelayedExecutor(_timerScheduler),
         _loggerFactory != null ? _loggerFactory : new CachedLoggerFactory(LoggerFactory.getILoggerFactory()),
         _properties, _planDeactivationListener != null ? _planDeactivationListener : planContext -> {},
         _planCompletionListener != null ? _planCompletionListener : planContext -> {},
-        _taskQueueFactory != null ? _taskQueueFactory : FIFOPriorityQueue::new);
+        _taskQueueFactory);
   }
 
   /**

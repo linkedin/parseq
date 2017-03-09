@@ -29,8 +29,11 @@ import org.slf4j.LoggerFactory;
 
 import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.internal.ContextImpl;
+import com.linkedin.parseq.internal.LIFOBiPriorityQueue;
 import com.linkedin.parseq.internal.PlanCompletionListener;
 import com.linkedin.parseq.internal.PlanDeactivationListener;
+import com.linkedin.parseq.internal.SerialExecutor;
+import com.linkedin.parseq.internal.SerialExecutor.TaskQueue;
 import com.linkedin.parseq.internal.PlanContext;
 
 
@@ -49,6 +52,11 @@ public class Engine {
 
   public static final String MAX_CONCURRENT_PLANS = "_MaxConcurrentPlans_";
   private static final int DEFUALT_MAX_CONCURRENT_PLANS = Integer.MAX_VALUE;
+
+  public static final String DRAIN_SERIAL_EXECUTOR_QUEUE = "_DrainSerialExecutorQueue_";
+  private static final boolean DEFAULT_DRAIN_SERIAL_EXECUTOR_QUEUE = true;
+
+  public static final String DEFAULT_TASK_QUEUE = "_DefaultTaskQueue_";
 
   private static final State INIT = new State(StateName.RUN, 0);
   private static final State TERMINATED = new State(StateName.TERMINATED, 0);
@@ -75,12 +83,14 @@ public class Engine {
   private final int _maxConcurrentPlans;
   private final Semaphore _concurrentPlans;
 
+  private final boolean _drainSerialExecutorQueue;
+
   private final PlanDeactivationListener _planDeactivationListener;
   private final PlanCompletionListener _planCompletionListener;
 
   private final PlanCompletionListener _taskDoneListener;
 
-  // Cache these, since we'll use them frequently and they can be precomputed.
+  // Cache these, since we'll use them frequently and they can be pre-computed.
   private final Logger _allLogger;
   private final Logger _rootLogger;
 
@@ -94,7 +104,8 @@ public class Engine {
     _loggerFactory = loggerFactory;
     _properties = properties;
     _planDeactivationListener = planActivityListener;
-    _taskQueueFactory = taskQueueFactory;
+
+    _taskQueueFactory = createTaskQueueFactory(properties, taskQueueFactory);
 
     _allLogger = loggerFactory.getLogger(LOGGER_BASE + ":all");
     _rootLogger = loggerFactory.getLogger(LOGGER_BASE + ":root");
@@ -111,6 +122,12 @@ public class Engine {
       _maxConcurrentPlans = DEFUALT_MAX_CONCURRENT_PLANS;
     }
     _concurrentPlans = new Semaphore(_maxConcurrentPlans);
+
+    if (_properties.containsKey(DRAIN_SERIAL_EXECUTOR_QUEUE)) {
+      _drainSerialExecutorQueue = (Boolean) getProperty(DRAIN_SERIAL_EXECUTOR_QUEUE);
+    } else {
+      _drainSerialExecutorQueue = DEFAULT_DRAIN_SERIAL_EXECUTOR_QUEUE;
+    }
 
     _taskDoneListener = resolvedPromise -> {
       assert _stateRef.get()._pendingCount > 0;
@@ -140,6 +157,31 @@ public class Engine {
       }
     };
 
+  }
+
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  private TaskQueueFactory createTaskQueueFactory(final Map<String, Object> properties, final TaskQueueFactory taskQueueFactory) {
+    if (taskQueueFactory == null) {
+      if (_properties.containsKey(DEFAULT_TASK_QUEUE)) {
+        String className = (String) properties.get(DEFAULT_TASK_QUEUE);
+        try {
+          final Class<? extends SerialExecutor.TaskQueue> clazz =
+              (Class<? extends TaskQueue>) Thread.currentThread().getContextClassLoader().loadClass(className);
+          return () -> {
+            try {
+              return clazz.newInstance();
+            } catch (InstantiationException | IllegalAccessException e) {
+              return new LIFOBiPriorityQueue();
+            }
+          };
+        } catch (ClassNotFoundException e) {
+          LOG.error("Failed to load TasQueue implementation: " + className + ", will use default implementation", e);
+        }
+      }
+      return LIFOBiPriorityQueue::new;
+    } else {
+      return taskQueueFactory;
+    }
   }
 
   public Object getProperty(String key) {
@@ -330,7 +372,7 @@ public class Engine {
 
     PlanContext planContext = new PlanContext(this, _taskExecutor, _timerExecutor, _loggerFactory, _allLogger,
         _rootLogger, planClass, task, _maxRelationshipsPerTrace, _planDeactivationListener, _planCompletionListener,
-        _taskQueueFactory.newTaskQueue());
+        _taskQueueFactory.newTaskQueue(), _drainSerialExecutorQueue);
     new ContextImpl(planContext, task).runTask();
   }
 
