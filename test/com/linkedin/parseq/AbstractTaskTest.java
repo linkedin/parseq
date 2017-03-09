@@ -197,7 +197,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
 
   @Test
   public void testWithTimeoutTwiceFailure() {
-    Task<Integer> failure = getSuccessTask().andThen(delayedValue(0, 110, TimeUnit.MILLISECONDS))
+    Task<Integer> failure = getSuccessTask().andThen(delayedValue(0, 2000, TimeUnit.MILLISECONDS))
         .withTimeout(5000, TimeUnit.MILLISECONDS).withTimeout(100, TimeUnit.MILLISECONDS);
     try {
       runAndWait("AbstractTaskTest.testWithTimeoutTwiceFailure", failure);
