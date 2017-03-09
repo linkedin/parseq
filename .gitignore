@@ -2,6 +2,8 @@
 .project
 .idea
 *.iml
+*.ipr
+*.iws
 build
 dist
 out
