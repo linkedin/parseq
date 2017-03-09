@@ -62,8 +62,8 @@ class TaskDescriptorFactory {
     }
 
     @Override
-    public String getDescription(Class<?> clazz) {
-      return clazz.getName();
+    public String getDescription(String className) {
+      return className;
     }
   }
 }

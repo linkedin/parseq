@@ -15,15 +15,15 @@ public class TestUnrecognizedLambda extends BaseTest {
   private static final String CLASSNAME = TestUnrecognizedLambda.class.getSimpleName();
 
   Optional<String> getDescriptionForVoidCallable(Callable<Void> c) {
-    return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass());
+    return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass().getName());
   }
 
   Optional<String> getDescriptionForIntCallable(Callable<Integer> c) {
-    return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass());
+    return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass().getName());
   }
 
   Optional<String> getDescriptionForStringPredicate(Predicate<String> c) {
-    return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass());
+    return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass().getName());
   }
 
   @Test
@@ -51,7 +51,7 @@ public class TestUnrecognizedLambda extends BaseTest {
     Optional<String> description = getDescriptionForIntCallable(() -> {return this.operate(5, 3, multiplication);});;
     assertTrue(description.isPresent());
     //if operate function's return type is changed to Integer, we aren't able to infer operation
-    assertNameMatch("() -> operate(_,_,_).Integer.valueOf(_)", "testOperations", CLASSNAME, description.get().toString());
+    assertNameMatch("operate(_,_,_).Integer.valueOf(_)", "testOperations", CLASSNAME, description.get().toString());
   }
 
   @Test
@@ -66,11 +66,11 @@ public class TestUnrecognizedLambda extends BaseTest {
 
     Optional<String> predicateDescription = getDescriptionForStringPredicate(p -> p.startsWith("c"));
     assertTrue(predicateDescription.isPresent());
-    assertNameMatch("p -> startsWith(_)", "testStream", CLASSNAME, predicateDescription.get().toString());
+    assertNameMatch("startsWith(_)", "testStream", CLASSNAME, predicateDescription.get().toString());
 
     Optional<String> mapDescription = getDescriptionForFunction(s -> s.toUpperCase());
     assertTrue(mapDescription.isPresent());
-    assertNameMatch("s -> toUpperCase()", "testStream", CLASSNAME, mapDescription.get().toString());
+    assertNameMatch("toUpperCase()", "testStream", CLASSNAME, mapDescription.get().toString());
 
     Optional<String> foreachDescription = getDescriptionForConsumer(System.out::println);
     assertTrue(foreachDescription.isPresent());
