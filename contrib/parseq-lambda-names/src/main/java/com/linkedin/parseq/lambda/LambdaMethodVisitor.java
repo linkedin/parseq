@@ -19,13 +19,17 @@ class LambdaMethodVisitor extends MethodVisitor {
   private String _methodInsnDesc;
   private int _methodInsnOpcode;
 
+  private ClassLoader _loader;
+
   public LambdaMethodVisitor(int api, MethodVisitor mv, SourcePointer lambdaSourcePointer,
-                              Consumer<InferredOperation> inferredOperationConsumer) {
+                              Consumer<InferredOperation> inferredOperationConsumer,
+                              ClassLoader loader) {
     super(api, mv);
     _lambdaSourcePointer = lambdaSourcePointer;
     _inferredOperationConsumer = inferredOperationConsumer;
     _visitedFirstInsn = false;
     _containsSyntheticLambda = false;
+    _loader = loader;
   }
 
   @Override
@@ -55,10 +59,23 @@ class LambdaMethodVisitor extends MethodVisitor {
       String classToVisit = _methodInsnOwner.replace('/', '.');
       try {
         SyntheticLambdaAnalyzer syntheticLambdaAnalyzer = new SyntheticLambdaAnalyzer(api, classToVisit, _methodInsnName);
-        ClassReader cr = new ClassReader(classToVisit);
-        cr.accept(syntheticLambdaAnalyzer, 0);
-        _inferredOperationConsumer.accept(new InferredOperation(_methodInsnOpcode, syntheticLambdaAnalyzer.getInferredOperation()));
-      } catch (IOException e) {
+        ClassReader cr = null;
+        try {
+          cr = new ClassReader(classToVisit);
+        } catch(Throwable e) {
+          try {
+            cr = new ClassReader(_loader.getResourceAsStream(classToVisit.replace(".", "/") + ".class"));
+          } catch (Throwable e1) {
+            e1.printStackTrace();
+          }
+        }
+        if (cr == null) {
+          System.out.println("STILL A PROBLEM");
+        } else {
+          cr.accept(syntheticLambdaAnalyzer, 0);
+          _inferredOperationConsumer.accept(new InferredOperation(_methodInsnOpcode, syntheticLambdaAnalyzer.getInferredOperation()));
+        }
+      } catch (Throwable e) {
         System.out.println("Unable to read class: " + classToVisit);
       }
     } else {
@@ -70,10 +87,23 @@ class LambdaMethodVisitor extends MethodVisitor {
         String classToVisit = _lambdaSourcePointer._className.replace('/', '.');
         try {
           FindMethodCallAnalyzer methodCallAnalyzer = new FindMethodCallAnalyzer(api, classToVisit, _lambdaSourcePointer, _methodInsnName);
-          ClassReader cr = new ClassReader(classToVisit);
-          cr.accept(methodCallAnalyzer, 0);
-          _inferredOperationConsumer.accept(new InferredOperation(_methodInsnOpcode, methodCallAnalyzer.getInferredOperation()));
-        } catch (IOException e) {
+          ClassReader cr = null;
+          try {
+            cr = new ClassReader(classToVisit);
+          } catch(Throwable e) {
+            try {
+              cr = new ClassReader(_loader.getResourceAsStream(classToVisit.replace(".", "/") + ".class"));
+            } catch (Throwable e1) {
+              e1.printStackTrace();
+            }
+          }
+          if (cr == null) {
+            System.out.println("STILL A PROBLEM");
+          } else {
+            cr.accept(methodCallAnalyzer, 0);
+            _inferredOperationConsumer.accept(new InferredOperation(_methodInsnOpcode, methodCallAnalyzer.getInferredOperation()));
+          }
+        } catch (Throwable e) {
           System.out.println("Unable to read class: " + classToVisit);
         }
       }
