@@ -29,11 +29,9 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
     if (ASMBasedTaskDescriptor.Agent.class.getClassLoader() != ClassLoader.getSystemClassLoader()) {
       try {
         ClassPathUtils.appendToSystemPath(ClassPathUtils.getClassPathFor(ASMBasedTaskDescriptor.Agent.class));
-
-//        ClassPathUtils.defineClass(ClassLoader.getSystemClassLoader(), ClassPathUtils.getClassFile(ASMBasedTaskDescriptor.Agent.class).openStream());
         AgentLoader.loadAgentClass(ASMBasedTaskDescriptor.Agent.class.getName(), null, null, true, true, false);
 
-        Class<?> systemClazz = ClassLoader.getSystemClassLoader().loadClass(ASMBasedTaskDescriptor.class.getName());
+        Class<?> systemClazz = Thread.currentThread().getContextClassLoader().loadClass(ASMBasedTaskDescriptor.class.getName());
         Object _systemClassDescriptor = systemClazz.newInstance();
 
         Field field = systemClazz.getDeclaredField("_names");
