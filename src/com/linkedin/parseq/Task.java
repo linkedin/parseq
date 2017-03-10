@@ -398,7 +398,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #andThen(String, Consumer1)
    */
   default Task<T> andThen(final Consumer1<? super T> consumer) {
-    return andThen("andThen: " + consumer.getClass().getName(), consumer);
+    return andThen("andThen: " + _taskDescriptor.getDescription(consumer.getClass().getName()), consumer);
   }
 
   /**
@@ -441,7 +441,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #andThen(String, Task)
    */
   default <R> Task<R> andThen(final Task<R> task) {
-    return andThen("andThen: " + task.getClass().getName(), task);
+    return andThen("andThen: " + _taskDescriptor.getDescription(task.getClass().getName()), task);
   }
 
   /**
@@ -561,7 +561,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #onFailure(String, Consumer1)
    */
   default Task<T> onFailure(final Consumer1<Throwable> consumer) {
-    return onFailure("onFailure: " + consumer.getClass().getName(), consumer);
+    return onFailure("onFailure: " + _taskDescriptor.getDescription(consumer.getClass().getName()), consumer);
   }
 
   /**
@@ -896,7 +896,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #action(String, Action)
    */
   public static Task<Void> action(final Action action) {
-    return action("action: " + action.getClass().getName(), action);
+    return action("action: " + _taskDescriptor.getDescription(action.getClass().getName()), action);
   }
 
   /**
@@ -988,7 +988,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #callable(String, Callable)
    */
   public static <T> Task<T> callable(final Callable<? extends T> callable) {
-    return callable("callable: " + callable.getClass().getName(), callable);
+    return callable("callable: " + _taskDescriptor.getDescription(callable.getClass().getName()), callable);
   }
 
   /**
@@ -1070,7 +1070,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #async(String, Callable)
    */
   public static <T> Task<T> async(final Callable<Promise<? extends T>> callable) {
-    return async("async: " + callable.getClass().getName(), callable);
+    return async("async: " + _taskDescriptor.getDescription(callable.getClass().getName()), callable);
   }
 
   /**
@@ -1156,7 +1156,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #blocking(String, Callable, Executor)
    */
   public static <T> Task<T> blocking(final Callable<? extends T> callable, final Executor executor) {
-    return blocking("blocking: " + callable.getClass().getName(), callable, executor);
+    return blocking("blocking: " + _taskDescriptor.getDescription(callable.getClass().getName()), callable, executor);
   }
 
   /**

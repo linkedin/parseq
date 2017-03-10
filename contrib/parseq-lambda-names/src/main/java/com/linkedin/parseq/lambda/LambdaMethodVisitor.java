@@ -57,26 +57,11 @@ class LambdaMethodVisitor extends MethodVisitor {
   public void visitEnd() {
     if (_containsSyntheticLambda) {
       String classToVisit = _methodInsnOwner.replace('/', '.');
-      try {
-        SyntheticLambdaAnalyzer syntheticLambdaAnalyzer = new SyntheticLambdaAnalyzer(api, classToVisit, _methodInsnName);
-        ClassReader cr = null;
-        try {
-          cr = new ClassReader(classToVisit);
-        } catch(Throwable e) {
-          try {
-            cr = new ClassReader(_loader.getResourceAsStream(classToVisit.replace(".", "/") + ".class"));
-          } catch (Throwable e1) {
-            e1.printStackTrace();
-          }
-        }
-        if (cr == null) {
-          System.out.println("STILL A PROBLEM");
-        } else {
-          cr.accept(syntheticLambdaAnalyzer, 0);
-          _inferredOperationConsumer.accept(new InferredOperation(_methodInsnOpcode, syntheticLambdaAnalyzer.getInferredOperation()));
-        }
-      } catch (Throwable e) {
-        System.out.println("Unable to read class: " + classToVisit);
+      SyntheticLambdaAnalyzer syntheticLambdaAnalyzer = new SyntheticLambdaAnalyzer(api, classToVisit, _methodInsnName);
+      ClassReader cr = getClassReader(classToVisit);
+      if (cr != null) {
+        cr.accept(syntheticLambdaAnalyzer, 0);
+        _inferredOperationConsumer.accept(new InferredOperation(_methodInsnOpcode, syntheticLambdaAnalyzer.getInferredOperation()));
       }
     } else {
       //if it is static invocation, details about function could be found directly from the methodInsnName itself
@@ -85,26 +70,11 @@ class LambdaMethodVisitor extends MethodVisitor {
         _inferredOperationConsumer.accept(new InferredOperation(Opcodes.INVOKESTATIC, functionName));
       } else {
         String classToVisit = _lambdaSourcePointer._className.replace('/', '.');
-        try {
-          FindMethodCallAnalyzer methodCallAnalyzer = new FindMethodCallAnalyzer(api, classToVisit, _lambdaSourcePointer, _methodInsnName);
-          ClassReader cr = null;
-          try {
-            cr = new ClassReader(classToVisit);
-          } catch(Throwable e) {
-            try {
-              cr = new ClassReader(_loader.getResourceAsStream(classToVisit.replace(".", "/") + ".class"));
-            } catch (Throwable e1) {
-              e1.printStackTrace();
-            }
-          }
-          if (cr == null) {
-            System.out.println("STILL A PROBLEM");
-          } else {
-            cr.accept(methodCallAnalyzer, 0);
-            _inferredOperationConsumer.accept(new InferredOperation(_methodInsnOpcode, methodCallAnalyzer.getInferredOperation()));
-          }
-        } catch (Throwable e) {
-          System.out.println("Unable to read class: " + classToVisit);
+        FindMethodCallAnalyzer methodCallAnalyzer = new FindMethodCallAnalyzer(api, classToVisit, _lambdaSourcePointer, _methodInsnName);
+        ClassReader cr = getClassReader(classToVisit);
+        if (cr != null) {
+          cr.accept(methodCallAnalyzer, 0);
+          _inferredOperationConsumer.accept(new InferredOperation(_methodInsnOpcode, methodCallAnalyzer.getInferredOperation()));
         }
       }
     }
@@ -122,5 +92,20 @@ class LambdaMethodVisitor extends MethodVisitor {
     } else {
       _containsSyntheticLambda = false;
     }
+  }
+
+  private ClassReader getClassReader(String classToVisit) {
+    ClassReader cr = null;
+    try {
+      cr = new ClassReader(classToVisit);
+    } catch(Throwable e) {
+      try {
+        cr = new ClassReader(_loader.getResourceAsStream(classToVisit.replace(".", "/") + ".class"));
+      } catch (Throwable e1) {
+        System.out.println("Unable to read class: " + classToVisit);
+      }
+    }
+
+    return cr;
   }
 }

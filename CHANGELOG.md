@@ -3,7 +3,7 @@ v2.6.12
 
 * Adding contrib project parseq-lambda-names
   - The project aims to provide more meaningful default descriptions for Parseq tasks. Using ASM, it tries to locate where lambda expression is defined in source code and also infer some details about its execution like function call within lambda expression with number of arguments.
-  - Using task descriptor in Task interface to infer description about task
+  - Using task descriptor in Task interface to infer task description
 
 v2.6.11
 ------
