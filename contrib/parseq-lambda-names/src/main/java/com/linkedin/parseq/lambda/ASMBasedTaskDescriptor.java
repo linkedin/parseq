@@ -27,10 +27,12 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
 
   static {
     if (ASMBasedTaskDescriptor.Agent.class.getClassLoader() != ClassLoader.getSystemClassLoader()) {
-      ClassPathUtils.appendToSystemPath(ClassPathUtils.getClassPathFor(ASMBasedTaskDescriptor.Agent.class));
-      AgentLoader.loadAgentClass(ASMBasedTaskDescriptor.Agent.class.getName(), null, null, true, true, false);
-
       try {
+        ClassPathUtils.appendToSystemPath(ClassPathUtils.getClassPathFor(ASMBasedTaskDescriptor.Agent.class));
+
+//        ClassPathUtils.defineClass(ClassLoader.getSystemClassLoader(), ClassPathUtils.getClassFile(ASMBasedTaskDescriptor.Agent.class).openStream());
+        AgentLoader.loadAgentClass(ASMBasedTaskDescriptor.Agent.class.getName(), null, null, true, true, false);
+
         Class<?> systemClazz = ClassLoader.getSystemClassLoader().loadClass(ASMBasedTaskDescriptor.class.getName());
         Object _systemClassDescriptor = systemClazz.newInstance();
 
@@ -39,8 +41,9 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
 
         ConcurrentMap<String, String> systemsNamesMap = (ConcurrentMap<String, String>) field.get(_systemClassDescriptor);
         _names = systemsNamesMap;
-      } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchFieldException e) {
+      } catch (Throwable e) {
         System.err.println("Unable to refer to names map of ASMBasedTaskDescriptor loaded from system classpath");
+        e.printStackTrace();
       }
     } else {
       AgentLoader.loadAgentClass(ASMBasedTaskDescriptor.Agent.class.getName(), null);
@@ -93,14 +96,14 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
           ProtectionDomain protectionDomain, byte[] classfileBuffer)
           throws IllegalClassFormatException {
         if (className == null && loader != null) {
-          analyze(classfileBuffer);
+          analyze(classfileBuffer, loader);
         }
         return classfileBuffer;
       }
 
-      private void analyze(byte[] byteCode) {
+      private void analyze(byte[] byteCode, ClassLoader loader) {
         ClassReader reader = new ClassReader(byteCode);
-        LambdaClassLocator cv = new LambdaClassLocator(Opcodes.ASM5);
+        LambdaClassLocator cv = new LambdaClassLocator(Opcodes.ASM5, loader);
 
         reader.accept(cv, 0);
 

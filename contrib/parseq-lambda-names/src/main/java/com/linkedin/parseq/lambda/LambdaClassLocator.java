@@ -16,8 +16,11 @@ class LambdaClassLocator extends ClassVisitor {
   private SourcePointer _sourcePointer;
   private InferredOperation _inferredOperation;
 
-  public LambdaClassLocator(int api) {
+  private ClassLoader _loader;
+
+  public LambdaClassLocator(int api, ClassLoader loader) {
     super(api);
+    _loader = loader;
   }
 
   @Override
@@ -45,7 +48,7 @@ class LambdaClassLocator extends ClassVisitor {
     }
 
     //parse generated lambda code to get details about operation
-    return new LambdaMethodVisitor(api, mv, _sourcePointer, this::setInferredOperation);
+    return new LambdaMethodVisitor(api, mv, _sourcePointer, this::setInferredOperation, _loader);
   }
 
   private void setInferredOperation(InferredOperation inferredOperation) {

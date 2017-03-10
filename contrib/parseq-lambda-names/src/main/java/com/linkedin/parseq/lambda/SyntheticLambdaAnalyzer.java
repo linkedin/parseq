@@ -63,6 +63,7 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
         case Opcodes.INVOKEVIRTUAL:
         case Opcodes.INVOKESPECIAL:
         case Opcodes.INVOKESTATIC:
+        case Opcodes.INVOKEINTERFACE:
           _methodInsnName = name;
           _methodInsnOwner = owner;
           _methodInsnDesc = desc;
