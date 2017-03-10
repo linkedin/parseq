@@ -28,10 +28,15 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
   static {
     if (ASMBasedTaskDescriptor.Agent.class.getClassLoader() != ClassLoader.getSystemClassLoader()) {
       try {
+        // Agent needs to be loaded through system class loader
+        // This piece of code adds Agent to system class path and then loads the Agent
         ClassPathUtils.appendToSystemPath(ClassPathUtils.getClassPathFor(ASMBasedTaskDescriptor.Agent.class));
         AgentLoader.loadAgentClass(ASMBasedTaskDescriptor.Agent.class.getName(), null, null, true, true, false);
 
-        Class<?> systemClazz = Thread.currentThread().getContextClassLoader().loadClass(ASMBasedTaskDescriptor.class.getName());
+        // Reference the names field to names field of instance loaded through system class loader
+        // Its the system class loaded instance names field which is populated with lambda descriptions
+        // because agent is loaded through system class loader
+        Class<?> systemClazz = ClassLoader.getSystemClassLoader().loadClass(ASMBasedTaskDescriptor.class.getName());
         Object _systemClassDescriptor = systemClazz.newInstance();
 
         Field field = systemClazz.getDeclaredField("_names");
@@ -41,10 +46,16 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
         _names = systemsNamesMap;
       } catch (Throwable e) {
         System.err.println("Unable to refer to names map of ASMBasedTaskDescriptor loaded from system classpath");
-        e.printStackTrace();
       }
     } else {
-      AgentLoader.loadAgentClass(ASMBasedTaskDescriptor.Agent.class.getName(), null);
+      try {
+        //for cases such as test executions which have only one class loader.
+        AgentLoader.loadAgentClass(ASMBasedTaskDescriptor.Agent.class.getName(), null);
+      } catch (Throwable e) {
+        // ignore this
+        // in case of multiple class loaders, this can throw an error as SystemClassLoaded loaded it already
+        // look above (ClassLoader.getSystemClassLoader().loadClass(ASMBasedTaskDescriptor.class.getName());)
+      }
     }
   }
 
