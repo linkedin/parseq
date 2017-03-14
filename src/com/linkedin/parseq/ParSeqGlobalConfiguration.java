@@ -77,7 +77,7 @@ public final class ParSeqGlobalConfiguration {
    * Enables or disables trampoline.
    * This is a dynamic runtime configuration that has immediate effect on all tasks in the current process.
    *
-   * Trampoline prevents stack overflow in situation of extremely deep large ParSeq plans. Typically this problem
+   * Trampoline prevents stack overflow in situation of extremely deep ParSeq plans. Typically this problem
    * does not occur and trampoline can be disabled allowing performance optimization.
    *
    * @param enabled
