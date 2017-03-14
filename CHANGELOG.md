@@ -1,5 +1,6 @@
 v2.6.11
 ------
+
 * Significantly reduce Task creation overhead when cross-thread stack tracing is enabled.
 
 v2.6.10
