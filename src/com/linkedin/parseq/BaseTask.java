@@ -329,7 +329,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
 
   // Concatenate stack traces if kept the original stack trace from the task creation
   private void appendTaskStackTrace(final Throwable error) {
-    StackTraceElement[] taskStackTrace = this._taskStackTraceHolder != null ? this._taskStackTraceHolder.getStackTrace() : null;
+    StackTraceElement[] taskStackTrace = _taskStackTraceHolder != null ? _taskStackTraceHolder.getStackTrace() : null;
 
     // At a minimum, any stack trace should have at least 3 stack frames (caller + BaseTask + getStackTrace).
     // So if there are less than 3 stack frames available then there's something fishy and it's better to ignore them.
