@@ -7,7 +7,6 @@ import java.util.StringJoiner;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.InsnList;
@@ -77,7 +76,7 @@ class FindMethodCallAnalyzer extends ClassVisitor {
         if (index != -1) {
           List<String> localVariables = new ArrayList<>();
 
-          String field = "";
+          String fieldDesc = "";
 
           Frame f = frames[index];
           boolean parsedThisOnce = false;
@@ -91,7 +90,7 @@ class FindMethodCallAnalyzer extends ClassVisitor {
                 String variable = ((LocalVariableNode) this.localVariables.get(vinsn.var)).name;
 
                 //This part is tricky: discard the first this.
-                if (variable.equals("this") && parsedThisOnce == false) {
+                if (variable.equals("this") && !parsedThisOnce) {
                   parsedThisOnce = true;
                 } else {
                   localVariables.add(variable);
@@ -99,27 +98,18 @@ class FindMethodCallAnalyzer extends ClassVisitor {
               }
             } else if (insn instanceof FieldInsnNode) {
               FieldInsnNode fieldInstr = (FieldInsnNode) insn;
-              field = fieldInstr.name;
+              fieldDesc = fieldInstr.name;
             } else if (insn instanceof TypeInsnNode) {
               TypeInsnNode typeInsnNode = (TypeInsnNode) insn;
               if (typeInsnNode.getOpcode() == Opcodes.NEW) {
-                field = "new " + Util.extractSimpleName(typeInsnNode.desc, "/") + "()";
+                fieldDesc = "new " + Util.extractSimpleName(typeInsnNode.desc, "/") + "()";
               }
             } else if (insn instanceof MethodInsnNode) {
-              MethodInsnNode methodInstr = (MethodInsnNode) insn;
-              if (methodInstr.getOpcode() == Opcodes.INVOKESPECIAL && methodInstr.name.equals("<init>")) {
-                field = "new " + Util.extractSimpleName(methodInstr.owner, "/") + "()";
-              } else {
-                Type methodType = Type.getMethodType(methodInstr.desc);
-                int retSize = methodType.getArgumentsAndReturnSizes() & 0x03;
-                if (retSize > 0) {
-                  field = methodInstr.name + Util.getArgumentsInformation(methodInstr.desc);
-                }
-              }
+              fieldDesc = Util.getDescriptionForMethodInsnNode((MethodInsnNode) insn);
             }
           }
 
-          _inferredOperation = getInferredOperation(localVariables, field);
+          _inferredOperation = getInferredOperation(localVariables, fieldDesc);
         }
       } catch (AnalyzerException e) {
         System.out.println("Unable to analyze class, could not infer operation");

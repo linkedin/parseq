@@ -166,7 +166,8 @@ public class TestMethodInv extends BaseTest {
 
   @Test
   public void testCallableOnParamStaticMethod() {
-    Optional<String> description = getDescriptionForCallable(() -> paramStaticMethod(Long.MAX_VALUE, "").callable());
+    Optional<String> description = getDescriptionForCallable(() ->
+        paramStaticMethod(Long.MAX_VALUE, "").callable());
     assertTrue(description.isPresent());
     assertNameMatch("paramStaticMethod(_,_).callable()", "testCallableOnParamStaticMethod", CLASSNAME,
         description.get().toString());
@@ -203,7 +204,9 @@ public class TestMethodInv extends BaseTest {
 
   @Test
   public void testNewInstance() {
-    Optional<String> description = getDescriptionForCallable(() -> new String("abc").toString());
+    Optional<String> description = getDescriptionForCallable(() ->
+        new String("abc").toString()
+    );
     assertTrue(description.isPresent());
     assertNameMatch("new String().toString()", "testNewInstance", CLASSNAME, description.get().toString());
   }
