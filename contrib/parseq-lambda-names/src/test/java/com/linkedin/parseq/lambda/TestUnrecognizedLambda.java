@@ -84,4 +84,27 @@ public class TestUnrecognizedLambda extends BaseTest {
   private int operate(int a, int b, MathOperation mathOperation){
     return mathOperation.operation(a, b);
   }
+
+  @Test
+  public void testBlockOfCodeInInvocation() {
+    Optional<String> codeBlockDescription = getDescriptionForFunction(str -> {
+      if (str.length() > 0) {
+        return str.trim();
+      } else {
+        return str;
+      }
+    });
+    assertTrue(codeBlockDescription.isPresent());
+    assertNameMatch("", "testBlockOfCodeInInvocation", CLASSNAME, codeBlockDescription.get().toString());
+  }
+
+  @Test
+  public void testParamMethodCallableMultipleLineCode() {
+    Optional<String> description = getDescriptionForCallable(() ->
+        paramMethod(Long.MAX_VALUE, "")
+            .callable()
+    );
+    assertTrue(description.isPresent());
+    assertNameMatch("", "testParamMethodCallableMultipleLineCode", CLASSNAME, description.get().toString());
+  }
 }

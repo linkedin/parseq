@@ -7,6 +7,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.InsnList;
+import org.objectweb.asm.tree.LineNumberNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TypeInsnNode;
@@ -101,16 +102,7 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
             TypeInsnNode typeInsnNode = (TypeInsnNode) insn;
             fieldDesc = "new " + Util.extractSimpleName(typeInsnNode.desc, "/") + "()";
           } else if (insn instanceof MethodInsnNode) {
-            MethodInsnNode methodInstr = (MethodInsnNode) insn;
-            if (methodInstr.getOpcode() == Opcodes.INVOKESPECIAL && methodInstr.name.equals("<init>")) {
-              fieldDesc = "new " + Util.extractSimpleName(methodInstr.owner, "/") + "()";
-            } else {
-              Type methodType = Type.getMethodType(methodInstr.desc);
-              int retSize = methodType.getArgumentsAndReturnSizes() & 0x03;
-              if (retSize > 0) {
-                fieldDesc = methodInstr.name + Util.getArgumentsInformation(methodInstr.desc);
-              }
-            }
+            fieldDesc = Util.getDescriptionForMethodInsnNode((MethodInsnNode) insn);
           }
         }
 
@@ -123,8 +115,18 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
     //find the last operation
     private int findMethodCall(InsnList insns) {
       int ret = -1;
+      boolean lineBlockStart = false;
       for (int i = 0; i < insns.size(); i++) {
         AbstractInsnNode n = insns.get(i);
+        if (n instanceof LineNumberNode) {
+          if (lineBlockStart) {
+            //this means another line of instructions, lets discard such code blocks
+            return -1;
+          }
+
+          lineBlockStart = true;
+        }
+
         if (n.getOpcode() == Opcodes.INVOKEVIRTUAL
             || n.getOpcode() == Opcodes.INVOKESTATIC
             || n.getOpcode() == Opcodes.INVOKEINTERFACE) {
