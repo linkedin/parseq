@@ -210,6 +210,6 @@ public class TestMethodRef extends BaseTest {
   public void testNewInstance() {
     Optional<String> description = getDescriptionForCallable(new String("abc")::toString);
     assertTrue(description.isPresent());
-    assertNameMatch("new String()::toString", "testNewInstance", CLASSNAME, description.get().toString());
+    assertNameMatch("new String(_)::toString", "testNewInstance", CLASSNAME, description.get().toString());
   }
 }

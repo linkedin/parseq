@@ -51,7 +51,7 @@ public class TestUnrecognizedLambda extends BaseTest {
     Optional<String> description = getDescriptionForIntCallable(() -> {return this.operate(5, 3, multiplication);});;
     assertTrue(description.isPresent());
     //if operate function's return type is changed to Integer, we aren't able to infer operation
-    assertNameMatch("operate(_,_,_).Integer.valueOf(_)", "testOperations", CLASSNAME, description.get().toString());
+    assertNameMatch("operate(_,_,_)", "testOperations", CLASSNAME, description.get().toString());
   }
 
   @Test

@@ -91,6 +91,7 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
 
         Frame f = frames[index];
         String fieldDesc = "";
+        String methodDesc = "";
 
         for (int j = 0; j < f.getStackSize(); ++j) {
           SourceValue stack = (SourceValue) f.getStack(j);
@@ -99,14 +100,13 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
             FieldInsnNode fieldInstr = (FieldInsnNode) insn;
             fieldDesc = fieldInstr.name;
           } else if (insn instanceof TypeInsnNode) {
-            TypeInsnNode typeInsnNode = (TypeInsnNode) insn;
-            fieldDesc = "new " + Util.extractSimpleName(typeInsnNode.desc, "/") + "()";
+            fieldDesc = Util.getDescriptionForTypeInsnNode((TypeInsnNode) insn);
           } else if (insn instanceof MethodInsnNode) {
-            fieldDesc = Util.getDescriptionForMethodInsnNode((MethodInsnNode) insn);
+            methodDesc = Util.getDescriptionForMethodInsnNode((MethodInsnNode) insn);
           }
         }
 
-        _inferredOperation = getInferredOperation(fieldDesc);
+        _inferredOperation = getInferredOperation(fieldDesc, methodDesc);
       } catch (AnalyzerException e) {
         System.out.println("Unable to analyze class, could not infer operation");
       }
@@ -137,7 +137,15 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
       return ret;
     }
 
-    private String getInferredOperation(String fieldDesc) {
+    private String getInferredOperation(String fieldDesc, String methodDesc) {
+      if (!fieldDesc.isEmpty() && !methodDesc.isEmpty()) {
+        return fieldDesc + "." + methodDesc;
+      }
+
+      if (!methodDesc.isEmpty()) {
+        return methodDesc;
+      }
+
       String functionName;
       if (_methodInsnOpcode == Opcodes.INVOKESTATIC) {
         functionName = Util.extractSimpleName(_methodInsnOwner, "/") + "." + _methodInsnName;

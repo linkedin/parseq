@@ -1,6 +1,5 @@
 package com.linkedin.parseq.lambda;
 
-import java.io.IOException;
 import java.util.function.Consumer;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.MethodVisitor;
@@ -21,7 +20,7 @@ class LambdaMethodVisitor extends MethodVisitor {
 
   private ClassLoader _loader;
 
-  public LambdaMethodVisitor(int api, MethodVisitor mv, SourcePointer lambdaSourcePointer,
+  LambdaMethodVisitor(int api, MethodVisitor mv, SourcePointer lambdaSourcePointer,
                               Consumer<InferredOperation> inferredOperationConsumer,
                               ClassLoader loader) {
     super(api, mv);
