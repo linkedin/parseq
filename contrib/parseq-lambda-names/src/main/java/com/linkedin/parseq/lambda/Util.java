@@ -4,7 +4,10 @@ import java.util.StringJoiner;
 import java.util.regex.Pattern;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
+import org.objectweb.asm.tree.TypeInsnNode;
 
 
 class Util {
@@ -51,6 +54,27 @@ class Util {
       if (retSize > 0) {
         return methodInstr.name + Util.getArgumentsInformation(methodInstr.desc);
       }
+    }
+
+    return "";
+  }
+
+  /* package private */
+  static String getDescriptionForTypeInsnNode(TypeInsnNode typeInsnNode) {
+    AbstractInsnNode nextInsn = typeInsnNode.getNext();
+    StringJoiner argsDesc = new StringJoiner(",", "(", ")");
+    while (nextInsn != null) {
+      if (nextInsn instanceof LdcInsnNode) {
+        argsDesc.add("_");
+      } else if (nextInsn.getOpcode() == Opcodes.DUP) {
+        //ignore
+      } else {
+        break;
+      }
+      nextInsn = nextInsn.getNext();
+    }
+    if (typeInsnNode.getOpcode() == Opcodes.NEW) {
+      return "new " + Util.extractSimpleName(typeInsnNode.desc, "/") + argsDesc.toString();
     }
 
     return "";

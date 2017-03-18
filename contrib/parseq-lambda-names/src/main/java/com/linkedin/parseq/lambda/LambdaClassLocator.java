@@ -18,7 +18,7 @@ class LambdaClassLocator extends ClassVisitor {
 
   private ClassLoader _loader;
 
-  public LambdaClassLocator(int api, ClassLoader loader) {
+  LambdaClassLocator(int api, ClassLoader loader) {
     super(api);
     _loader = loader;
   }

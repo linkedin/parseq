@@ -100,10 +100,7 @@ class FindMethodCallAnalyzer extends ClassVisitor {
               FieldInsnNode fieldInstr = (FieldInsnNode) insn;
               fieldDesc = fieldInstr.name;
             } else if (insn instanceof TypeInsnNode) {
-              TypeInsnNode typeInsnNode = (TypeInsnNode) insn;
-              if (typeInsnNode.getOpcode() == Opcodes.NEW) {
-                fieldDesc = "new " + Util.extractSimpleName(typeInsnNode.desc, "/") + "()";
-              }
+              fieldDesc = Util.getDescriptionForTypeInsnNode((TypeInsnNode) insn);
             } else if (insn instanceof MethodInsnNode) {
               fieldDesc = Util.getDescriptionForMethodInsnNode((MethodInsnNode) insn);
             }
