@@ -37,10 +37,12 @@ import com.linkedin.parseq.function.Tuple3;
 import com.linkedin.parseq.function.Tuples;
 import com.linkedin.r2.RemoteInvocationException;
 import com.linkedin.r2.message.RequestContext;
+import com.linkedin.r2.message.rest.RestResponseBuilder;
 import com.linkedin.restli.client.response.BatchKVResponse;
 import com.linkedin.restli.common.BatchResponse;
 import com.linkedin.restli.common.EntityResponse;
 import com.linkedin.restli.common.ErrorResponse;
+import com.linkedin.restli.common.HttpStatus;
 import com.linkedin.restli.common.ProtocolVersion;
 import com.linkedin.restli.common.ResourceMethod;
 import com.linkedin.restli.common.ResourceSpec;
@@ -53,6 +55,9 @@ import com.linkedin.restli.internal.common.ResponseUtils;
 class GetRequestGroup implements RequestGroup {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(GetRequestGroup.class);
+  private static final RestLiResponseException NOT_FOUND_EXCEPTION =
+      new RestLiResponseException(new RestResponseBuilder().setStatus(HttpStatus.S_404_NOT_FOUND.getCode()).build(),
+          null, new ErrorResponse().setStatus(HttpStatus.S_404_NOT_FOUND.getCode()));
 
   private final String _baseUriTemplate; //taken from first request, used to differentiate between groups
   private final ResourceSpec _resourceSpec;  //taken from first request
@@ -94,8 +99,11 @@ class GetRequestGroup implements RequestGroup {
         return new ResponseImpl<>(batchResponse, entityResult);
       }
     }
-    throw new RestLiDecodingException("No result or error for base URI " + request.getBaseUriTemplate() + ", id " + id
-        + ". Verify that the batchGet endpoint returns response keys that match batchGet request IDs.", null);
+
+    LOGGER.debug("No result or error for base URI : {}, id: {}. Verify that the batchGet endpoint returns response keys that match batchGet request IDs.",
+        request.getBaseUriTemplate(), id);
+
+    throw NOT_FOUND_EXCEPTION;
   }
 
   private DataMap filterIdsInBatchResult(DataMap data, Set<String> ids, boolean stripEntities) {
