@@ -115,28 +115,28 @@ public class TestMethodInv extends BaseTest {
   public void testFunctionOnNoParamMethod() {
     Optional<String> description = getDescriptionForFunction(s -> noParamMethod().function(s));
     assertTrue(description.isPresent());
-    assertNameMatch("noParamMethod()", "testFunctionOnNoParamMethod", CLASSNAME, description.get().toString());
+    assertNameMatch("function(_)", "testFunctionOnNoParamMethod", CLASSNAME, description.get().toString());
   }
 
   @Test
   public void testCallableOnNoParamMethod() {
     Optional<String> description = getDescriptionForCallable(() -> noParamMethod().callable());
     assertTrue(description.isPresent());
-    assertNameMatch("noParamMethod()", "testCallableOnNoParamMethod", CLASSNAME, description.get().toString());
+    assertNameMatch("callable()", "testCallableOnNoParamMethod", CLASSNAME, description.get().toString());
   }
 
   @Test
   public void testConsumerOnNoParamMethod() {
     Optional<String> description = getDescriptionForConsumer(s -> noParamMethod().consumer(s));
     assertTrue(description.isPresent());
-    assertNameMatch("noParamMethod()", "testConsumerOnNoParamMethod", CLASSNAME, description.get().toString());
+    assertNameMatch("consumer(_)", "testConsumerOnNoParamMethod", CLASSNAME, description.get().toString());
   }
 
   @Test
   public void testFunctionOnNoParamStaticMethod() {
     Optional<String> description = getDescriptionForFunction(s -> noParamStaticMethod().function(s));
     assertTrue(description.isPresent());
-    assertNameMatch("noParamStaticMethod()", "testFunctionOnNoParamStaticMethod", CLASSNAME,
+    assertNameMatch("function(_)", "testFunctionOnNoParamStaticMethod", CLASSNAME,
         description.get().toString());
   }
 
@@ -144,7 +144,7 @@ public class TestMethodInv extends BaseTest {
   public void testCallableOnNoParamStaticMethod() {
     Optional<String> description = getDescriptionForCallable(() -> noParamStaticMethod().callable());
     assertTrue(description.isPresent());
-    assertNameMatch("noParamStaticMethod()", "testCallableOnNoParamStaticMethod", CLASSNAME,
+    assertNameMatch("callable()", "testCallableOnNoParamStaticMethod", CLASSNAME,
         description.get().toString());
   }
 
@@ -152,7 +152,7 @@ public class TestMethodInv extends BaseTest {
   public void testConsumerOnNoParamStaticMethod() {
     Optional<String> description = getDescriptionForConsumer(s -> noParamStaticMethod().consumer(s));
     assertTrue(description.isPresent());
-    assertNameMatch("noParamStaticMethod()", "testConsumerOnNoParamStaticMethod", CLASSNAME,
+    assertNameMatch("consumer(_)", "testConsumerOnNoParamStaticMethod", CLASSNAME,
         description.get().toString());
   }
 
@@ -160,7 +160,7 @@ public class TestMethodInv extends BaseTest {
   public void testFunctionOnParamStaticMethod() {
     Optional<String> description = getDescriptionForFunction(s -> paramStaticMethod(0, "").function(s));
     assertTrue(description.isPresent());
-    assertNameMatch("paramStaticMethod(_,_)", "testFunctionOnParamStaticMethod", CLASSNAME,
+    assertNameMatch("function(_)", "testFunctionOnParamStaticMethod", CLASSNAME,
         description.get().toString());
   }
 
@@ -169,7 +169,7 @@ public class TestMethodInv extends BaseTest {
     Optional<String> description = getDescriptionForCallable(() ->
         paramStaticMethod(Long.MAX_VALUE, "").callable());
     assertTrue(description.isPresent());
-    assertNameMatch("paramStaticMethod(_,_)", "testCallableOnParamStaticMethod", CLASSNAME,
+    assertNameMatch("callable()", "testCallableOnParamStaticMethod", CLASSNAME,
         description.get().toString());
   }
 
@@ -177,7 +177,7 @@ public class TestMethodInv extends BaseTest {
   public void testConsumerOnParamStaticMethod() {
     Optional<String> description = getDescriptionForConsumer(s -> paramStaticMethod(Long.MAX_VALUE, "").consumer(s));
     assertTrue(description.isPresent());
-    assertNameMatch("paramStaticMethod(_,_)", "testConsumerOnParamStaticMethod", CLASSNAME,
+    assertNameMatch("consumer(_)", "testConsumerOnParamStaticMethod", CLASSNAME,
         description.get().toString());
   }
 
@@ -185,21 +185,21 @@ public class TestMethodInv extends BaseTest {
   public void testFunctionOnParamMethod() {
     Optional<String> description = getDescriptionForFunction(s -> paramMethod(0, "").function(s));
     assertTrue(description.isPresent());
-    assertNameMatch("paramMethod(_,_)", "testFunctionOnParamMethod", CLASSNAME, description.get().toString());
+    assertNameMatch("function(_)", "testFunctionOnParamMethod", CLASSNAME, description.get().toString());
   }
 
   @Test
   public void testConsumerOnParamMethod() {
     Optional<String> description = getDescriptionForConsumer(s -> paramMethod(Long.MAX_VALUE, "").consumer(s));
     assertTrue(description.isPresent());
-    assertNameMatch("paramMethod(_,_)", "testConsumerOnParamMethod", CLASSNAME, description.get().toString());
+    assertNameMatch("consumer(_)", "testConsumerOnParamMethod", CLASSNAME, description.get().toString());
   }
 
   @Test
   public void testCallableOnParamMethod() {
     Optional<String> description = getDescriptionForCallable(() -> paramMethod(Long.MAX_VALUE, "").callable());
     assertTrue(description.isPresent());
-    assertNameMatch("paramMethod(_,_)", "testCallableOnParamMethod", CLASSNAME, description.get().toString());
+    assertNameMatch("callable()", "testCallableOnParamMethod", CLASSNAME, description.get().toString());
   }
 
   @Test

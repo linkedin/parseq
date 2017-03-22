@@ -50,7 +50,6 @@ public class TestUnrecognizedLambda extends BaseTest {
     MathOperation multiplication = (int a, int b) -> { return a * b; };
     Optional<String> description = getDescriptionForIntCallable(() -> {return this.operate(5, 3, multiplication);});;
     assertTrue(description.isPresent());
-    //if operate function's return type is changed to Integer, we aren't able to infer operation
     assertNameMatch("operate(_,_,_)", "testOperations", CLASSNAME, description.get().toString());
   }
 
@@ -88,11 +87,7 @@ public class TestUnrecognizedLambda extends BaseTest {
   @Test
   public void testBlockOfCodeInInvocation() {
     Optional<String> codeBlockDescription = getDescriptionForFunction(str -> {
-      if (str.length() > 0) {
-        return str.trim();
-      } else {
-        return str;
-      }
+      return (str.length() > 0) ? str.trim() : str;
     });
     assertTrue(codeBlockDescription.isPresent());
     assertNameMatch("", "testBlockOfCodeInInvocation", CLASSNAME, codeBlockDescription.get().toString());
@@ -105,6 +100,6 @@ public class TestUnrecognizedLambda extends BaseTest {
             .callable()
     );
     assertTrue(description.isPresent());
-    assertNameMatch("", "testParamMethodCallableMultipleLineCode", CLASSNAME, description.get().toString());
+    assertNameMatch("callable()", "testParamMethodCallableMultipleLineCode", CLASSNAME, description.get().toString());
   }
 }
