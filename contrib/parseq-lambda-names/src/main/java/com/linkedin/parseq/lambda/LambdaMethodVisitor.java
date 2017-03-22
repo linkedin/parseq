@@ -60,20 +60,20 @@ class LambdaMethodVisitor extends MethodVisitor {
       ClassReader cr = getClassReader(classToVisit);
       if (cr != null) {
         cr.accept(syntheticLambdaAnalyzer, 0);
-        _inferredOperationConsumer.accept(new InferredOperation(_methodInsnOpcode, syntheticLambdaAnalyzer.getInferredOperation()));
+        _inferredOperationConsumer.accept(new InferredOperation(syntheticLambdaAnalyzer.getInferredOperation()));
       }
     } else {
       //if it is static invocation, details about function could be found directly from the methodInsnName itself
       if (_methodInsnOpcode == Opcodes.INVOKESTATIC) {
         String functionName = Util.extractSimpleName(_methodInsnOwner, "/") + "::" + _methodInsnName;
-        _inferredOperationConsumer.accept(new InferredOperation(Opcodes.INVOKESTATIC, functionName));
+        _inferredOperationConsumer.accept(new InferredOperation(functionName));
       } else {
         String classToVisit = _lambdaSourcePointer._className.replace('/', '.');
         FindMethodCallAnalyzer methodCallAnalyzer = new FindMethodCallAnalyzer(api, classToVisit, _lambdaSourcePointer, _methodInsnName);
         ClassReader cr = getClassReader(classToVisit);
         if (cr != null) {
           cr.accept(methodCallAnalyzer, 0);
-          _inferredOperationConsumer.accept(new InferredOperation(_methodInsnOpcode, methodCallAnalyzer.getInferredOperation()));
+          _inferredOperationConsumer.accept(new InferredOperation(methodCallAnalyzer.getInferredOperation()));
         }
       }
     }
@@ -86,11 +86,7 @@ class LambdaMethodVisitor extends MethodVisitor {
     _methodInsnOwner = owner;
     _methodInsnDesc = desc;
     _methodInsnOpcode = opcode;
-    if (name.startsWith("lambda$")) {
-      _containsSyntheticLambda = true;
-    } else {
-      _containsSyntheticLambda = false;
-    }
+    _containsSyntheticLambda = name.startsWith("lambda$");
   }
 
   private ClassReader getClassReader(String classToVisit) {

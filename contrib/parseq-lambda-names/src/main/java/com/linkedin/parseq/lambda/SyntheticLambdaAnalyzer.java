@@ -3,14 +3,19 @@ package com.linkedin.parseq.lambda;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.InsnList;
+import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.IntInsnNode;
+import org.objectweb.asm.tree.InvokeDynamicInsnNode;
+import org.objectweb.asm.tree.LabelNode;
+import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.LineNumberNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TypeInsnNode;
+import org.objectweb.asm.tree.VarInsnNode;
 import org.objectweb.asm.tree.analysis.Analyzer;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.objectweb.asm.tree.analysis.Frame;
@@ -115,16 +120,20 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
     //find the last operation
     private int findMethodCall(InsnList insns) {
       int ret = -1;
-      boolean lineBlockStart = false;
       for (int i = 0; i < insns.size(); i++) {
         AbstractInsnNode n = insns.get(i);
-        if (n instanceof LineNumberNode) {
-          if (lineBlockStart) {
-            //this means another line of instructions, lets discard such code blocks
-            return -1;
-          }
 
-          lineBlockStart = true;
+        if (!(n instanceof LabelNode
+            || n instanceof LineNumberNode
+            || n instanceof VarInsnNode
+            || n instanceof InvokeDynamicInsnNode
+            || n instanceof FieldInsnNode
+            || n instanceof InsnNode
+            || n instanceof IntInsnNode
+            || n instanceof LdcInsnNode
+            || n instanceof MethodInsnNode
+            || n instanceof TypeInsnNode)) {
+          return -1;
         }
 
         if (n.getOpcode() == Opcodes.INVOKEVIRTUAL
@@ -138,11 +147,10 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
     }
 
     private String getInferredOperation(String fieldDesc, String methodDesc) {
-      if (!fieldDesc.isEmpty() && !methodDesc.isEmpty()) {
-        return fieldDesc + "." + methodDesc;
-      }
-
-      if (!methodDesc.isEmpty()) {
+      //if the instruction is actually auto boxing
+      if (_methodInsnName.equals("valueOf")
+          && _methodInsnOwner.startsWith("java/lang")
+          && _methodInsnOpcode == Opcodes.INVOKESTATIC) {
         return methodDesc;
       }
 
