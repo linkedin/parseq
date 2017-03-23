@@ -100,6 +100,6 @@ public class TestUnrecognizedLambda extends BaseTest {
             .callable()
     );
     assertTrue(description.isPresent());
-    assertNameMatch("callable()", "testParamMethodCallableMultipleLineCode", CLASSNAME, description.get().toString());
+    assertNameMatch("", "testParamMethodCallableMultipleLineCode", CLASSNAME, description.get().toString());
   }
 }
