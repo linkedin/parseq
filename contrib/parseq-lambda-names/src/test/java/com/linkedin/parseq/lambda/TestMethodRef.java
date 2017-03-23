@@ -19,6 +19,20 @@ public class TestMethodRef extends BaseTest {
     assertNameMatch("this::function", "testFunctionOnThis", CLASSNAME, description.get().toString());
   }
 
+  TestMethodRef getTestMethodRef() {
+    return new TestMethodRef();
+  }
+
+  //TODO currently returns "getTestMethodRef()::function"
+  @Test
+  public void testFunctionOnThisChained() {
+    Optional<String> description = getTestMethodRef().getDescriptionForFunction(this::function);
+    System.out.println(description);
+    assertTrue(description.isPresent());
+    assertNameMatch("this::function", "testFunctionOnThisChainedOnTask", CLASSNAME, description.get().toString());
+  }
+
+
   @Test
   public void testCallableOnThis() {
     Optional<String> description = getDescriptionForCallable(this::callable);

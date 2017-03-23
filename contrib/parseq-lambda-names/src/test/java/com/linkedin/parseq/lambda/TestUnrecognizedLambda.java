@@ -102,4 +102,27 @@ public class TestUnrecognizedLambda extends BaseTest {
     assertTrue(description.isPresent());
     assertNameMatch("", "testParamMethodCallableMultipleLineCode", CLASSNAME, description.get().toString());
   }
+
+  //TODO currently returns "toString()"
+  @Test
+  public void testStringConcatenationWithMethodCalls() {
+    Optional<String> description = getDescriptionForCallable(() ->
+        "hello".toUpperCase() + " " + System.getProperty("user.name")
+    );
+    System.out.println(description);
+    assertTrue(description.isPresent());
+    assertNameMatch("", "testStringConcatenationWithMethodCalls", CLASSNAME, description.get().toString());
+  }
+
+  @Test
+  public void testStringConcatenation() {
+    Optional<String> description = getDescriptionForCallable(() ->
+        "hello" + " " + "world"
+    );
+    System.out.println(description);
+    assertTrue(description.isPresent());
+    assertNameMatch("", "testStringConcatenation", CLASSNAME, description.get().toString());
+  }
+
+
 }
