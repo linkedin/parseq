@@ -120,6 +120,7 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
     //find the last operation
     private int findMethodCall(InsnList insns) {
       int ret = -1;
+      boolean encounteredLineNode = false;
       for (int i = 0; i < insns.size(); i++) {
         AbstractInsnNode n = insns.get(i);
 
@@ -136,9 +137,18 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
           return -1;
         }
 
+        if (n instanceof LineNumberNode) {
+          if (encounteredLineNode) {
+            //if code is split across multiple lines, lets fail
+            return -1;
+          }
+          encounteredLineNode = true;
+        }
+
         if (n.getOpcode() == Opcodes.INVOKEVIRTUAL
             || n.getOpcode() == Opcodes.INVOKESTATIC
-            || n.getOpcode() == Opcodes.INVOKEINTERFACE) {
+            || n.getOpcode() == Opcodes.INVOKEINTERFACE
+            || n.getOpcode() == Opcodes.INVOKESPECIAL) {
           ret = i;
         }
       }
@@ -147,24 +157,25 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
     }
 
     private String getInferredOperation(String fieldDesc, String methodDesc) {
-      //if the instruction is actually auto boxing
+      //if the last instruction is autoboxing and instruction before that is identifiable then return that previous
+      //method description
       if (_methodInsnName.equals("valueOf")
           && _methodInsnOwner.startsWith("java/lang")
-          && _methodInsnOpcode == Opcodes.INVOKESTATIC) {
+          && _methodInsnOpcode == Opcodes.INVOKESTATIC
+          && !methodDesc.isEmpty()) {
         return methodDesc;
       }
 
       String functionName;
       if (_methodInsnOpcode == Opcodes.INVOKESTATIC) {
         functionName = Util.extractSimpleName(_methodInsnOwner, "/") + "." + _methodInsnName;
+      } else if (_methodInsnOpcode == Opcodes.INVOKESPECIAL && _methodInsnName.equals("<init>")) {
+        functionName = "new " + Util.extractSimpleName(_methodInsnOwner, "/");
       } else {
         functionName = _methodInsnName;
       }
 
       StringBuilder sb = new StringBuilder();
-      if (!fieldDesc.isEmpty()) {
-        sb.append(fieldDesc).append(".");
-      }
       sb.append(functionName);
       sb.append(Util.getArgumentsInformation(_methodInsnDesc));
       return sb.toString();

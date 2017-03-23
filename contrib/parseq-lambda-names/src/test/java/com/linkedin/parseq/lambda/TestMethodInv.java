@@ -35,42 +35,42 @@ public class TestMethodInv extends BaseTest {
   public void testFunctionInvocationOnNew() {
     Optional<String> description = getDescriptionForFunction(s -> new TestMethodInv().function(s));
     assertTrue(description.isPresent());
-    assertNameMatch("new TestMethodInv().function(_)", "testFunctionInvocationOnNew", CLASSNAME, description.get().toString());
+    assertNameMatch("function(_)", "testFunctionInvocationOnNew", CLASSNAME, description.get().toString());
   }
 
   @Test
   public void testCallableInvocationOnNew() {
     Optional<String> description = getDescriptionForCallable(() -> new TestMethodInv().callable());
     assertTrue(description.isPresent());
-    assertNameMatch("new TestMethodInv().callable()", "testCallableInvocationOnNew", CLASSNAME, description.get().toString());
+    assertNameMatch("callable()", "testCallableInvocationOnNew", CLASSNAME, description.get().toString());
   }
 
   @Test
   public void testConsumerInvocationOnNew() {
     Optional<String> description = getDescriptionForConsumer(s -> new TestMethodInv().consumer(s));
     assertTrue(description.isPresent());
-    assertNameMatch("new TestMethodInv().consumer(_)", "testConsumerInvocationOnNew", CLASSNAME, description.get().toString());
+    assertNameMatch("consumer(_)", "testConsumerInvocationOnNew", CLASSNAME, description.get().toString());
   }
 
   @Test
   public void testFunctionInvocationOnField() {
     Optional<String> description = getDescriptionForFunction(s -> staticField.function(s));
     assertTrue(description.isPresent());
-    assertNameMatch("staticField.function(_)", "testFunctionInvocationOnField", CLASSNAME, description.get().toString());
+    assertNameMatch("function(_)", "testFunctionInvocationOnField", CLASSNAME, description.get().toString());
   }
 
   @Test
   public void testCallableInvocationOnField() {
     Optional<String> description = getDescriptionForCallable(() -> staticField.callable());
     assertTrue(description.isPresent());
-    assertNameMatch("staticField.callable()", "testCallableInvocationOnField", CLASSNAME, description.get().toString());
+    assertNameMatch("callable()", "testCallableInvocationOnField", CLASSNAME, description.get().toString());
   }
 
   @Test
   public void testConsumerInvocationOnField() {
     Optional<String> description = getDescriptionForConsumer(s -> staticField.consumer(s));
     assertTrue(description.isPresent());
-    assertNameMatch("staticField.consumer(_)", "testConsumerInvocationOnField", CLASSNAME, description.get().toString());
+    assertNameMatch("consumer(_)", "testConsumerInvocationOnField", CLASSNAME, description.get().toString());
   }
 
   @Test
@@ -205,9 +205,18 @@ public class TestMethodInv extends BaseTest {
   @Test
   public void testNewInstance() {
     Optional<String> description = getDescriptionForCallable(() ->
-        new String("abc").toString()
+        new String("abc")
     );
     assertTrue(description.isPresent());
-    assertNameMatch("new String(_).toString()", "testNewInstance", CLASSNAME, description.get().toString());
+    assertNameMatch("new String(_)", "testNewInstance", CLASSNAME, description.get().toString());
+  }
+
+  @Test
+  public void testStringValueOf() {
+    Optional<String> description = getDescriptionForCallable(() -> {
+      return String.valueOf("10");
+    });
+    assertTrue(description.isPresent());
+    assertNameMatch("String.valueOf(_)", "testStringValueOf", CLASSNAME, description.get().toString());
   }
 }
