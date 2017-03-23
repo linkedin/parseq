@@ -10,6 +10,8 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.InsnList;
+import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.InvokeDynamicInsnNode;
 import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.LineNumberNode;
 import org.objectweb.asm.tree.LocalVariableNode;
@@ -101,8 +103,6 @@ class FindMethodCallAnalyzer extends ClassVisitor {
               fieldDesc = fieldInstr.name;
             } else if (insn instanceof TypeInsnNode) {
               fieldDesc = Util.getDescriptionForTypeInsnNode((TypeInsnNode) insn);
-            } else if (insn instanceof MethodInsnNode) {
-              fieldDesc = Util.getDescriptionForMethodInsnNode((MethodInsnNode) insn);
             }
           }
 
@@ -137,13 +137,16 @@ class FindMethodCallAnalyzer extends ClassVisitor {
     }
 
     private String getInferredOperation(List<String> localVariables, String fieldDesc) {
-      String localVarsDesc = getDescriptionForLocalVars(localVariables);
+//      String localVarsDesc = getDescriptionForLocalVars(localVariables);
       StringBuilder sb = new StringBuilder();
-      if (!localVarsDesc.isEmpty()) {
-        sb.append(localVarsDesc).append("::");
-      } else if (!fieldDesc.isEmpty()) {
-        sb.append(fieldDesc).append("::");
-      }
+//      if (!fieldDesc.isEmpty()) {
+//        sb.append(fieldDesc).append("::");
+//      } else if (!localVarsDesc.isEmpty()) {
+//        sb.append(localVarsDesc).append("::");
+//      } else if (!methodDesc.isEmpty()) {
+//        sb.append(methodDesc).append("::");
+//      }
+
       sb.append(_methodInsnName);
       return sb.toString();
     }

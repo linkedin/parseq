@@ -121,6 +121,7 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
     private int findMethodCall(InsnList insns) {
       int ret = -1;
       boolean encounteredLineNode = false;
+      int count = 0;
       for (int i = 0; i < insns.size(); i++) {
         AbstractInsnNode n = insns.get(i);
 
@@ -150,7 +151,13 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
             || n.getOpcode() == Opcodes.INVOKEINTERFACE
             || n.getOpcode() == Opcodes.INVOKESPECIAL) {
           ret = i;
+          count++;
         }
+      }
+
+      if (count > 2) {
+        //lets fail when we see more than 2 invocations of any type
+        return -1;
       }
 
       return ret;

@@ -16,20 +16,18 @@ public class TestMethodRef extends BaseTest {
   public void testFunctionOnThis() {
     Optional<String> description = getDescriptionForFunction(this::function);
     assertTrue(description.isPresent());
-    assertNameMatch("this::function", "testFunctionOnThis", CLASSNAME, description.get().toString());
+    assertNameMatch("function", "testFunctionOnThis", CLASSNAME, description.get());
   }
 
   TestMethodRef getTestMethodRef() {
     return new TestMethodRef();
   }
 
-  //TODO currently returns "getTestMethodRef()::function"
   @Test
   public void testFunctionOnThisChained() {
     Optional<String> description = getTestMethodRef().getDescriptionForFunction(this::function);
-    System.out.println(description);
     assertTrue(description.isPresent());
-    assertNameMatch("this::function", "testFunctionOnThisChainedOnTask", CLASSNAME, description.get().toString());
+    assertNameMatch("function", "testFunctionOnThisChained", CLASSNAME, description.get());
   }
 
 
@@ -37,70 +35,70 @@ public class TestMethodRef extends BaseTest {
   public void testCallableOnThis() {
     Optional<String> description = getDescriptionForCallable(this::callable);
     assertTrue(description.isPresent());
-    assertNameMatch("this::callable", "testCallableOnThis", CLASSNAME, description.get().toString());
+    assertNameMatch("callable", "testCallableOnThis", CLASSNAME, description.get());
   }
 
   @Test
   public void testConsumerOnThis() {
     Optional<String> description = getDescriptionForConsumer(this::consumer);
     assertTrue(description.isPresent());
-    assertNameMatch("this::consumer", "testConsumerOnThis", CLASSNAME, description.get().toString());
+    assertNameMatch("consumer", "testConsumerOnThis", CLASSNAME, description.get());
   }
 
   @Test
   public void testFunctionOnStaticField() {
     Optional<String> description = getDescriptionForFunction(staticField::function);
     assertTrue(description.isPresent());
-    assertNameMatch("staticField::function", "testFunctionOnStaticField", CLASSNAME, description.get().toString());
+    assertNameMatch("function", "testFunctionOnStaticField", CLASSNAME, description.get());
   }
 
   @Test
   public void testCallableOnStaticField() {
     Optional<String> description = getDescriptionForCallable(staticField::callable);
     assertTrue(description.isPresent());
-    assertNameMatch("staticField::callable", "testCallableOnStaticField", CLASSNAME, description.get().toString());
+    assertNameMatch("callable", "testCallableOnStaticField", CLASSNAME, description.get());
   }
 
   @Test
   public void testConsumerOnStaticField() {
     Optional<String> description = getDescriptionForConsumer(staticField::consumer);
     assertTrue(description.isPresent());
-    assertNameMatch("staticField::consumer", "testConsumerOnStaticField", CLASSNAME, description.get().toString());
+    assertNameMatch("consumer", "testConsumerOnStaticField", CLASSNAME, description.get());
   }
 
   @Test
   public void testFunctionOnField() {
     Optional<String> description = getDescriptionForFunction(field::function);
     assertTrue(description.isPresent());
-    assertNameMatch("field::function", "testFunctionOnField", CLASSNAME, description.get().toString());
+    assertNameMatch("function", "testFunctionOnField", CLASSNAME, description.get());
   }
 
   @Test
   public void testCallableOnField() {
     Optional<String> description = getDescriptionForCallable(field::callable);
     assertTrue(description.isPresent());
-    assertNameMatch("field::callable", "testCallableOnField", CLASSNAME, description.get().toString());
+    assertNameMatch("callable", "testCallableOnField", CLASSNAME, description.get());
   }
 
   @Test
   public void testConsumerOnField() {
     Optional<String> description = getDescriptionForConsumer(field::consumer);
     assertTrue(description.isPresent());
-    assertNameMatch("field::consumer", "testConsumerOnField", CLASSNAME, description.get().toString());
+    assertNameMatch("consumer", "testConsumerOnField", CLASSNAME, description.get());
   }
 
   @Test
   public void testFunctionWithTwoParams() {
     Optional<String> description = getDescriptionForBiFunction(this::functionTwo);
     assertTrue(description.isPresent());
-    assertNameMatch("this::functionTwo", "testFunctionWithTwoParams", CLASSNAME, description.get().toString());
+    assertNameMatch("functionTwo", "testFunctionWithTwoParams", CLASSNAME, description.get());
   }
 
   @Test
   public void testConsumerWithTwoParams() {
     Optional<String> description = getDescriptionForBiConsumer(this::consumerTwo);
     assertTrue(description.isPresent());
-    assertNameMatch("this::consumerTwo", "testConsumerWithTwoParams", CLASSNAME, description.get().toString());
+    assertNameMatch("consumerTwo", "testConsumerWithTwoParams", CLASSNAME, description.get());
   }
 
   @Test
@@ -108,7 +106,7 @@ public class TestMethodRef extends BaseTest {
     BaseTest localVar = noParamMethod();
     Optional<String> description = getDescriptionForFunction(localVar::function);
     assertTrue(description.isPresent());
-    assertNameMatch("localVar::function", "testFunctionOnVar", CLASSNAME, description.get().toString());
+    assertNameMatch("function", "testFunctionOnVar", CLASSNAME, description.get());
   }
 
   @Test
@@ -116,7 +114,7 @@ public class TestMethodRef extends BaseTest {
     BaseTest localVar = noParamMethod();
     Optional<String> description = getDescriptionForCallable(localVar::callable);
     assertTrue(description.isPresent());
-    assertNameMatch("localVar::callable", "testCallableOnVar", CLASSNAME, description.get().toString());
+    assertNameMatch("callable", "testCallableOnVar", CLASSNAME, description.get());
   }
 
   @Test
@@ -124,106 +122,106 @@ public class TestMethodRef extends BaseTest {
     BaseTest localVar = noParamMethod();
     Optional<String> description = getDescriptionForConsumer(localVar::consumer);
     assertTrue(description.isPresent());
-    assertNameMatch("localVar::consumer", "testConsumerOnVar", CLASSNAME, description.get().toString());
+    assertNameMatch("consumer", "testConsumerOnVar", CLASSNAME, description.get());
   }
 
   @Test
   public void testFunctionOnNoParamMethod() {
     Optional<String> description = getDescriptionForFunction(noParamMethod()::function);
     assertTrue(description.isPresent());
-    assertNameMatch("noParamMethod()::function", "testFunctionOnNoParamMethod", CLASSNAME,
-        description.get().toString());
+    assertNameMatch("function", "testFunctionOnNoParamMethod", CLASSNAME,
+        description.get());
   }
 
   @Test
   public void testCallableOnNoParamMethod() {
     Optional<String> description = getDescriptionForCallable(noParamMethod()::callable);
     assertTrue(description.isPresent());
-    assertNameMatch("noParamMethod()::callable", "testCallableOnNoParamMethod", CLASSNAME,
-        description.get().toString());
+    assertNameMatch("callable", "testCallableOnNoParamMethod", CLASSNAME,
+        description.get());
   }
 
   @Test
   public void testConsumerOnNoParamMethod() {
     Optional<String> description = getDescriptionForConsumer(noParamMethod()::consumer);
     assertTrue(description.isPresent());
-    assertNameMatch("noParamMethod()::consumer", "testConsumerOnNoParamMethod", CLASSNAME,
-        description.get().toString());
+    assertNameMatch("consumer", "testConsumerOnNoParamMethod", CLASSNAME,
+        description.get());
   }
 
   @Test
   public void testFunctionOnNoParamStaticMethod() {
     Optional<String> description = getDescriptionForFunction(noParamStaticMethod()::function);
     assertTrue(description.isPresent());
-    assertNameMatch("noParamStaticMethod()::function", "testFunctionOnNoParamStaticMethod", CLASSNAME,
-        description.get().toString());
+    assertNameMatch("function", "testFunctionOnNoParamStaticMethod", CLASSNAME,
+        description.get());
   }
 
   @Test
   public void testCallableOnNoParamStaticMethod() {
     Optional<String> description = getDescriptionForCallable(noParamStaticMethod()::callable);
     assertTrue(description.isPresent());
-    assertNameMatch("noParamStaticMethod()::callable", "testCallableOnNoParamStaticMethod", CLASSNAME,
-        description.get().toString());
+    assertNameMatch("callable", "testCallableOnNoParamStaticMethod", CLASSNAME,
+        description.get());
   }
 
   @Test
   public void testConsumerOnNoParamStaticMethod() {
     Optional<String> description = getDescriptionForConsumer(noParamStaticMethod()::consumer);
     assertTrue(description.isPresent());
-    assertNameMatch("noParamStaticMethod()::consumer", "testConsumerOnNoParamStaticMethod", CLASSNAME,
-        description.get().toString());
+    assertNameMatch("consumer", "testConsumerOnNoParamStaticMethod", CLASSNAME,
+        description.get());
   }
 
   @Test
   public void testFunctionOnParamStaticMethod() {
     Optional<String> description = getDescriptionForFunction(paramStaticMethod(0, "")::function);
     assertTrue(description.isPresent());
-    assertNameMatch("paramStaticMethod(_,_)::function", "testFunctionOnParamStaticMethod", CLASSNAME,
-        description.get().toString());
+    assertNameMatch("function", "testFunctionOnParamStaticMethod", CLASSNAME,
+        description.get());
   }
 
   @Test
   public void testCallableOnParamStaticMethod() {
     Optional<String> description = getDescriptionForCallable(paramStaticMethod(Long.MAX_VALUE, "")::callable);
     assertTrue(description.isPresent());
-    assertNameMatch("paramStaticMethod(_,_)::callable", "testCallableOnParamStaticMethod", CLASSNAME,
-        description.get().toString());
+    assertNameMatch("callable", "testCallableOnParamStaticMethod", CLASSNAME,
+        description.get());
   }
 
   @Test
   public void testConsumerOnParamStaticMethod() {
     Optional<String> description = getDescriptionForConsumer(paramStaticMethod(Long.MAX_VALUE, "")::consumer);
     assertTrue(description.isPresent());
-    assertNameMatch("paramStaticMethod(_,_)::consumer", "testConsumerOnParamStaticMethod", CLASSNAME,
-        description.get().toString());
+    assertNameMatch("consumer", "testConsumerOnParamStaticMethod", CLASSNAME,
+        description.get());
   }
 
   @Test
   public void testFunctionOnParamMethod() {
     Optional<String> description = getDescriptionForFunction(paramMethod(0, "")::function);
     assertTrue(description.isPresent());
-    assertNameMatch("paramMethod(_,_)::function", "testFunctionOnParamMethod", CLASSNAME, description.get().toString());
+    assertNameMatch("function", "testFunctionOnParamMethod", CLASSNAME, description.get());
   }
 
   @Test
   public void testCallableOnParamMethod() {
     Optional<String> description = getDescriptionForCallable(paramMethod(Long.MAX_VALUE, "")::callable);
     assertTrue(description.isPresent());
-    assertNameMatch("paramMethod(_,_)::callable", "testCallableOnParamMethod", CLASSNAME, description.get().toString());
+    assertNameMatch("callable", "testCallableOnParamMethod", CLASSNAME, description.get());
   }
 
   @Test
   public void testConsumerOnParamMethod() {
     Optional<String> description = getDescriptionForConsumer(paramMethod(Long.MAX_VALUE, "")::consumer);
     assertTrue(description.isPresent());
-    assertNameMatch("paramMethod(_,_)::consumer", "testConsumerOnParamMethod", CLASSNAME, description.get().toString());
+    assertNameMatch("consumer", "testConsumerOnParamMethod", CLASSNAME, description.get());
   }
 
   @Test
   public void testNewInstance() {
     Optional<String> description = getDescriptionForCallable(new String("abc")::toString);
     assertTrue(description.isPresent());
-    assertNameMatch("new String(_)::toString", "testNewInstance", CLASSNAME, description.get().toString());
+    assertNameMatch("toString", "testNewInstance", CLASSNAME, description.get());
   }
 }
