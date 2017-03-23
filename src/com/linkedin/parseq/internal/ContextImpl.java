@@ -74,16 +74,13 @@ public class ContextImpl implements Context, Cancellable {
 
   public void runTask() {
     // Cancel everything created by this task once it finishes
-    _task.addListener(new PromiseListener<Object>() {
-      @Override
-      public void onResolved(Promise<Object> resolvedPromise) {
+    _task.addListener(resolvedPromise -> {
         for (Iterator<Cancellable> it = _cancellables.iterator(); it.hasNext();) {
           final Cancellable cancellable = it.next();
           cancellable.cancel(Exceptions.EARLY_FINISH_EXCEPTION);
           it.remove();
         }
-      }
-    });
+      });
 
     _planContext.execute(new PrioritizableRunnable() {
       @Override
@@ -148,25 +145,17 @@ public class ContextImpl implements Context, Cancellable {
 
       @Override
       public void run(final Task<?> task) {
-        InternalUtil.after(new PromiseListener<Object>() {
-          @Override
-          public void onResolved(Promise<Object> resolvedPromise) {
-            runSubTask(task, predecessorTasks);
-          }
-        }, promises);
+        InternalUtil.after(resolvedPromise -> runSubTask(task, predecessorTasks), promises);
       }
 
       @Override
       public void run(final Supplier<Task<?>> taskSupplier) {
-        InternalUtil.after(new PromiseListener<Object>() {
-          @Override
-          public void onResolved(Promise<Object> resolvedPromise) {
-            Task<?> task = taskSupplier.get();
-            if (task != null) {
-              runSubTask(task, predecessorTasks);
-            }
+        InternalUtil.after(resolvedPromise -> {
+          Task<?> task = taskSupplier.get();
+          if (task != null) {
+            runSubTask(task, predecessorTasks);
           }
-        }, promises);
+        } , promises);
       }
     };
   }

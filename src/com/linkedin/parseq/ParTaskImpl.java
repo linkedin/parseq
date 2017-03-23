@@ -94,33 +94,29 @@ import com.linkedin.parseq.trace.ResultType;
 
     final SettablePromise<List<T>> result = Promises.settable();
 
-    final PromiseListener<?> listener = new PromiseListener<Object>() {
-      @SuppressWarnings("unchecked")
-      @Override
-      public void onResolved(Promise<Object> resolvedPromise) {
-        boolean allEarlyFinish = true;
-        final List<T> taskResult = new ArrayList<T>(_tasks.length);
-        List<Throwable> errors = null;
+    @SuppressWarnings("unchecked")
+    final PromiseListener<?> listener = resolvedPromise -> {
+      boolean allEarlyFinish = true;
+      final List<T> taskResult = new ArrayList<T>(_tasks.length);
+      List<Throwable> errors = null;
 
-        for (Task<?> task : _tasks) {
-          if (task.isFailed()) {
-            if (allEarlyFinish && ResultType.fromTask(task) != ResultType.EARLY_FINISH) {
-              allEarlyFinish = false;
-            }
-            if (errors == null) {
-              errors = new ArrayList<Throwable>();
-            }
-            errors.add(task.getError());
-          } else {
-            taskResult.add((T) task.get());
+      for (Task<?> task : _tasks) {
+        if (task.isFailed()) {
+          if (allEarlyFinish && ResultType.fromTask(task) != ResultType.EARLY_FINISH) {
+            allEarlyFinish = false;
           }
-        }
-        if (errors != null) {
-          result
-              .fail(allEarlyFinish ? errors.get(0) : new MultiException("Multiple errors in 'ParTask' task.", errors));
+          if (errors == null) {
+            errors = new ArrayList<Throwable>();
+          }
+          errors.add(task.getError());
         } else {
-          result.done(taskResult);
+          taskResult.add((T) task.get());
         }
+      }
+      if (errors != null) {
+        result.fail(allEarlyFinish ? errors.get(0) : new MultiException("Multiple errors in 'ParTask' task.", errors));
+      } else {
+        result.done(taskResult);
       }
     };
 
