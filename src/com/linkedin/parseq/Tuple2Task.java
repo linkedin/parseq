@@ -15,7 +15,7 @@ public interface Tuple2Task<T1, T2> extends Task<Tuple2<T1, T2>> {
    * @see #map(String, Function2)
    */
   default <R> Task<R> map(final Function2<T1, T2, R> f) {
-    return map(tuple -> f.apply(tuple._1(), tuple._2()));
+    return map("map: " + _taskDescriptor.getDescription(f.getClass().getName()), tuple -> f.apply(tuple._1(), tuple._2()));
   }
 
   /**
@@ -55,7 +55,7 @@ public interface Tuple2Task<T1, T2> extends Task<Tuple2<T1, T2>> {
    * @see #flatMap(String, Function2)
    */
   default <R> Task<R> flatMap(final Function2<T1, T2, Task<R>> f) {
-    return flatMap(tuple -> f.apply(tuple._1(), tuple._2()));
+    return flatMap("flatMap: " + _taskDescriptor.getDescription(f.getClass().getName()), tuple -> f.apply(tuple._1(), tuple._2()));
   }
 
   /**
@@ -97,7 +97,7 @@ public interface Tuple2Task<T1, T2> extends Task<Tuple2<T1, T2>> {
    * @see #andThen(String, Consumer2)
    */
   default Tuple2Task<T1, T2> andThen(final Consumer2<T1, T2> consumer) {
-    return cast(andThen(tuple -> consumer.accept(tuple._1(), tuple._2())));
+    return cast(andThen("andThen: " + _taskDescriptor.getDescription(consumer.getClass().getName()), tuple -> consumer.accept(tuple._1(), tuple._2())));
   }
 
   /**
@@ -202,7 +202,7 @@ public interface Tuple2Task<T1, T2> extends Task<Tuple2<T1, T2>> {
    * @see #withSideEffect(String, Function2)
    */
   default Tuple2Task<T1, T2> withSideEffect(Function2<T1, T2, Task<?>> func) {
-    return cast(Task.super.withSideEffect(tuple -> func.apply(tuple._1(), tuple._2())));
+    return cast(Task.super.withSideEffect("sideEffect: " + _taskDescriptor.getDescription(func.getClass().getName()), tuple -> func.apply(tuple._1(), tuple._2())));
   }
 
   /**
