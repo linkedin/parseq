@@ -228,7 +228,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   default <R> Task<R> flatMap(final String desc, final Function1<? super T, Task<R>> func) {
     ArgumentUtil.requireNotNull(func, "function");
-    final Task<Task<R>> nested = map("map: " + desc, func);
+    final Task<Task<R>> nested = map(desc, func);
     nested.getShallowTraceBuilder().setSystemHidden(true);
     return flatten(desc, nested);
   }

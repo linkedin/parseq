@@ -15,7 +15,7 @@ public interface Tuple5Task<T1, T2, T3, T4, T5> extends Task<Tuple5<T1, T2, T3, 
    * @see #map(String, Function5)
    */
   default <R> Task<R> map(final Function5<T1, T2, T3, T4, T5, R> f) {
-    return map(tuple -> f.apply(tuple._1(), tuple._2(), tuple._3(), tuple._4(), tuple._5()));
+    return map("map: " + _taskDescriptor.getDescription(f.getClass().getName()), tuple -> f.apply(tuple._1(), tuple._2(), tuple._3(), tuple._4(), tuple._5()));
   }
 
   /**
@@ -55,7 +55,7 @@ public interface Tuple5Task<T1, T2, T3, T4, T5> extends Task<Tuple5<T1, T2, T3, 
    * @see #flatMap(String, Function5)
    */
   default <R> Task<R> flatMap(final Function5<T1, T2, T3, T4, T5, Task<R>> f) {
-    return flatMap(tuple -> f.apply(tuple._1(), tuple._2(), tuple._3(), tuple._4(), tuple._5()));
+    return flatMap("flatMap: " + _taskDescriptor.getDescription(f.getClass().getName()), tuple -> f.apply(tuple._1(), tuple._2(), tuple._3(), tuple._4(), tuple._5()));
   }
 
   /**
@@ -97,7 +97,7 @@ public interface Tuple5Task<T1, T2, T3, T4, T5> extends Task<Tuple5<T1, T2, T3, 
    * @see #andThen(String, Consumer5)
    */
   default Tuple5Task<T1, T2, T3, T4, T5> andThen(final Consumer5<T1, T2, T3, T4, T5> consumer) {
-    return cast(andThen(tuple -> consumer.accept(tuple._1(), tuple._2(), tuple._3(), tuple._4(), tuple._5())));
+    return cast(andThen("andThen: " + _taskDescriptor.getDescription(consumer.getClass().getName()), tuple -> consumer.accept(tuple._1(), tuple._2(), tuple._3(), tuple._4(), tuple._5())));
   }
 
   /**
@@ -202,7 +202,7 @@ public interface Tuple5Task<T1, T2, T3, T4, T5> extends Task<Tuple5<T1, T2, T3, 
    * @see #withSideEffect(String, Function5)
    */
   default Tuple5Task<T1, T2, T3, T4, T5> withSideEffect(Function5<T1, T2, T3, T4, T5, Task<?>> func) {
-    return cast(Task.super.withSideEffect(tuple -> func.apply(tuple._1(), tuple._2(), tuple._3(), tuple._4(), tuple._5())));
+    return cast(Task.super.withSideEffect("sideEffect: " + _taskDescriptor.getDescription(func.getClass().getName()), tuple -> func.apply(tuple._1(), tuple._2(), tuple._3(), tuple._4(), tuple._5())));
   }
 
   /**

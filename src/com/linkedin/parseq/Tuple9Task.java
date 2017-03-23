@@ -15,7 +15,7 @@ public interface Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> extends Task<Tup
    * @see #map(String, Function9)
    */
   default <R> Task<R> map(final Function9<T1, T2, T3, T4, T5, T6, T7, T8, T9, R> f) {
-    return map(tuple -> f.apply(tuple._1(), tuple._2(), tuple._3(), tuple._4(), tuple._5(), tuple._6(), tuple._7(), tuple._8(), tuple._9()));
+    return map("map: " + _taskDescriptor.getDescription(f.getClass().getName()), tuple -> f.apply(tuple._1(), tuple._2(), tuple._3(), tuple._4(), tuple._5(), tuple._6(), tuple._7(), tuple._8(), tuple._9()));
   }
 
   /**
@@ -55,7 +55,7 @@ public interface Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> extends Task<Tup
    * @see #flatMap(String, Function9)
    */
   default <R> Task<R> flatMap(final Function9<T1, T2, T3, T4, T5, T6, T7, T8, T9, Task<R>> f) {
-    return flatMap(tuple -> f.apply(tuple._1(), tuple._2(), tuple._3(), tuple._4(), tuple._5(), tuple._6(), tuple._7(), tuple._8(), tuple._9()));
+    return flatMap("flatMap: " + _taskDescriptor.getDescription(f.getClass().getName()), tuple -> f.apply(tuple._1(), tuple._2(), tuple._3(), tuple._4(), tuple._5(), tuple._6(), tuple._7(), tuple._8(), tuple._9()));
   }
 
   /**
@@ -97,7 +97,7 @@ public interface Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> extends Task<Tup
    * @see #andThen(String, Consumer9)
    */
   default Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> andThen(final Consumer9<T1, T2, T3, T4, T5, T6, T7, T8, T9> consumer) {
-    return cast(andThen(tuple -> consumer.accept(tuple._1(), tuple._2(), tuple._3(), tuple._4(), tuple._5(), tuple._6(), tuple._7(), tuple._8(), tuple._9())));
+    return cast(andThen("andThen: " + _taskDescriptor.getDescription(consumer.getClass().getName()), tuple -> consumer.accept(tuple._1(), tuple._2(), tuple._3(), tuple._4(), tuple._5(), tuple._6(), tuple._7(), tuple._8(), tuple._9())));
   }
 
   /**
@@ -202,7 +202,7 @@ public interface Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> extends Task<Tup
    * @see #withSideEffect(String, Function9)
    */
   default Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> withSideEffect(Function9<T1, T2, T3, T4, T5, T6, T7, T8, T9, Task<?>> func) {
-    return cast(Task.super.withSideEffect(tuple -> func.apply(tuple._1(), tuple._2(), tuple._3(), tuple._4(), tuple._5(), tuple._6(), tuple._7(), tuple._8(), tuple._9())));
+    return cast(Task.super.withSideEffect("sideEffect: " + _taskDescriptor.getDescription(func.getClass().getName()), tuple -> func.apply(tuple._1(), tuple._2(), tuple._3(), tuple._4(), tuple._5(), tuple._6(), tuple._7(), tuple._8(), tuple._9())));
   }
 
   /**
