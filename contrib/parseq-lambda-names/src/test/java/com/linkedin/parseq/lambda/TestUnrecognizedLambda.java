@@ -73,7 +73,7 @@ public class TestUnrecognizedLambda extends BaseTest {
 
     Optional<String> foreachDescription = getDescriptionForConsumer(System.out::println);
     assertTrue(foreachDescription.isPresent());
-    assertNameMatch("out::println", "testStream", CLASSNAME, foreachDescription.get().toString());
+    assertNameMatch("println", "testStream", CLASSNAME, foreachDescription.get().toString());
   }
 
   interface MathOperation {
@@ -103,13 +103,11 @@ public class TestUnrecognizedLambda extends BaseTest {
     assertNameMatch("", "testParamMethodCallableMultipleLineCode", CLASSNAME, description.get().toString());
   }
 
-  //TODO currently returns "toString()"
   @Test
   public void testStringConcatenationWithMethodCalls() {
     Optional<String> description = getDescriptionForCallable(() ->
         "hello".toUpperCase() + " " + System.getProperty("user.name")
     );
-    System.out.println(description);
     assertTrue(description.isPresent());
     assertNameMatch("", "testStringConcatenationWithMethodCalls", CLASSNAME, description.get().toString());
   }
@@ -119,7 +117,6 @@ public class TestUnrecognizedLambda extends BaseTest {
     Optional<String> description = getDescriptionForCallable(() ->
         "hello" + " " + "world"
     );
-    System.out.println(description);
     assertTrue(description.isPresent());
     assertNameMatch("", "testStringConcatenation", CLASSNAME, description.get().toString());
   }
