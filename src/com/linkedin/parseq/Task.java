@@ -441,7 +441,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see #andThen(String, Task)
    */
   default <R> Task<R> andThen(final Task<R> task) {
-    return andThen("andThen: " + _taskDescriptor.getDescription(task.getClass().getName()), task);
+    return andThen("andThen: " + task.getName(), task);
   }
 
   /**
