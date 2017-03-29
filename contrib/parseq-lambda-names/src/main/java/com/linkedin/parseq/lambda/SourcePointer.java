@@ -30,7 +30,8 @@ class SourcePointer {
         || element.getClassName().startsWith(LambdaClassLocator.class.getName())
         || element.getClassName().startsWith(ASMBasedTaskDescriptor.Agent.class.getName())
         || element.getClassName().startsWith(ASMBasedTaskDescriptor.class.getName())
-        || element.getClassName().startsWith(SourcePointer.class.getName()));
+        || element.getClassName().startsWith(SourcePointer.class.getName())
+        || element.getMethodName().startsWith("lambda$"));
   }
 
   private static SourcePointer sourcePointer(StackTraceElement stackTraceElement) {

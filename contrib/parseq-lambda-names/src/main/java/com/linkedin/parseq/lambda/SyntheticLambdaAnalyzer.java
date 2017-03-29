@@ -164,18 +164,20 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
     }
 
     private String getInferredOperation(String fieldDesc, String methodDesc) {
-      //if the last instruction is autoboxing and instruction before that is identifiable then return that previous
-      //method description
-      if (_methodInsnName.equals("valueOf")
-          && _methodInsnOwner.startsWith("java/lang")
-          && _methodInsnOpcode == Opcodes.INVOKESTATIC
-          && !methodDesc.isEmpty()) {
-        return methodDesc;
-      }
-
       String functionName;
       if (_methodInsnOpcode == Opcodes.INVOKESTATIC) {
-        functionName = Util.extractSimpleName(_methodInsnOwner, "/") + "." + _methodInsnName;
+        //if the last instruction is autoboxing and instruction before that is identifiable then return that previous
+        //method description
+        if (_methodInsnName.equals("valueOf")
+            && _methodInsnOwner.startsWith("java/lang")) {
+          if (!methodDesc.isEmpty()) {
+            return methodDesc;
+          } else {
+            return "";
+          }
+        } else {
+          functionName = Util.extractSimpleName(_methodInsnOwner, "/") + "." + _methodInsnName;
+        }
       } else if (_methodInsnOpcode == Opcodes.INVOKESPECIAL && _methodInsnName.equals("<init>")) {
         functionName = "new " + Util.extractSimpleName(_methodInsnOwner, "/");
       } else {
