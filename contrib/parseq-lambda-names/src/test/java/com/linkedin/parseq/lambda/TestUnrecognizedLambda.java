@@ -13,15 +13,15 @@ public class TestUnrecognizedLambda extends BaseTest {
 
   private static final String CLASSNAME = TestUnrecognizedLambda.class.getSimpleName();
 
-  Optional<String> getDescriptionForVoidCallable(Callable<Void> c) {
+  private Optional<String> getDescriptionForVoidCallable(Callable<Void> c) {
     return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass().getName());
   }
 
-  Optional<String> getDescriptionForIntCallable(Callable<Integer> c) {
+  private Optional<String> getDescriptionForIntCallable(Callable<Integer> c) {
     return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass().getName());
   }
 
-  Optional<String> getDescriptionForStringPredicate(Predicate<String> c) {
+  private Optional<String> getDescriptionForStringPredicate(Predicate<String> c) {
     return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass().getName());
   }
 
@@ -29,16 +29,14 @@ public class TestUnrecognizedLambda extends BaseTest {
   public void testReturnExpression() {
     Optional<String> description = getDescriptionForCallable(() -> {return "";});
     assertTrue(description.isPresent());
-    assertNameMatch("", "testReturnExpression", CLASSNAME, description.get().toString());
+    assertNameMatch("", "testReturnExpression", CLASSNAME, description.get());
   }
 
-  //TODO currently returns: "Integer.valueOf(_)" would be great if we could improve on this (detect autoboxing?)
   @Test
   public void testReturnIntegerExpression() {
     Optional<String> description = getDescriptionForCallableInteger(() -> 0);
     assertTrue(description.isPresent());
-    System.out.println(description);
-    assertNameMatch("", "testReturnIntegerExpression", CLASSNAME, description.get().toString());
+    assertNameMatch("", "testReturnIntegerExpression", CLASSNAME, description.get());
   }
 
   @Test
@@ -50,7 +48,7 @@ public class TestUnrecognizedLambda extends BaseTest {
       return null;
     });
     assertTrue(description.isPresent());
-    assertNameMatch("", "testExpressions", CLASSNAME, description.get().toString());
+    assertNameMatch("", "testExpressions", CLASSNAME, description.get());
   }
 
   @Test
@@ -58,7 +56,7 @@ public class TestUnrecognizedLambda extends BaseTest {
     MathOperation multiplication = (int a, int b) -> { return a * b; };
     Optional<String> description = getDescriptionForIntCallable(() -> {return this.operate(5, 3, multiplication);});;
     assertTrue(description.isPresent());
-    assertNameMatch("operate(_,_,_)", "testOperations", CLASSNAME, description.get().toString());
+    assertNameMatch("operate(_,_,_)", "testOperations", CLASSNAME, description.get());
   }
 
   @Test
@@ -73,15 +71,15 @@ public class TestUnrecognizedLambda extends BaseTest {
 
     Optional<String> predicateDescription = getDescriptionForStringPredicate(p -> p.startsWith("c"));
     assertTrue(predicateDescription.isPresent());
-    assertNameMatch("startsWith(_)", "testStream", CLASSNAME, predicateDescription.get().toString());
+    assertNameMatch("startsWith(_)", "testStream", CLASSNAME, predicateDescription.get());
 
     Optional<String> mapDescription = getDescriptionForFunction(s -> s.toUpperCase());
     assertTrue(mapDescription.isPresent());
-    assertNameMatch("toUpperCase()", "testStream", CLASSNAME, mapDescription.get().toString());
+    assertNameMatch("toUpperCase()", "testStream", CLASSNAME, mapDescription.get());
 
     Optional<String> foreachDescription = getDescriptionForConsumer(System.out::println);
     assertTrue(foreachDescription.isPresent());
-    assertNameMatch("println", "testStream", CLASSNAME, foreachDescription.get().toString());
+    assertNameMatch("println", "testStream", CLASSNAME, foreachDescription.get());
   }
 
   interface MathOperation {
@@ -98,7 +96,7 @@ public class TestUnrecognizedLambda extends BaseTest {
       return (str.length() > 0) ? str.trim() : str;
     });
     assertTrue(codeBlockDescription.isPresent());
-    assertNameMatch("", "testBlockOfCodeInInvocation", CLASSNAME, codeBlockDescription.get().toString());
+    assertNameMatch("", "testBlockOfCodeInInvocation", CLASSNAME, codeBlockDescription.get());
   }
 
   @Test
@@ -108,7 +106,7 @@ public class TestUnrecognizedLambda extends BaseTest {
             .callable()
     );
     assertTrue(description.isPresent());
-    assertNameMatch("", "testParamMethodCallableMultipleLineCode", CLASSNAME, description.get().toString());
+    assertNameMatch("", "testParamMethodCallableMultipleLineCode", CLASSNAME, description.get());
   }
 
   @Test
@@ -117,7 +115,7 @@ public class TestUnrecognizedLambda extends BaseTest {
         "hello".toUpperCase() + " " + System.getProperty("user.name")
     );
     assertTrue(description.isPresent());
-    assertNameMatch("", "testStringConcatenationWithMethodCalls", CLASSNAME, description.get().toString());
+    assertNameMatch("", "testStringConcatenationWithMethodCalls", CLASSNAME, description.get());
   }
 
   @Test
@@ -126,8 +124,14 @@ public class TestUnrecognizedLambda extends BaseTest {
         "hello" + " " + "world"
     );
     assertTrue(description.isPresent());
-    assertNameMatch("", "testStringConcatenation", CLASSNAME, description.get().toString());
+    assertNameMatch("", "testStringConcatenation", CLASSNAME, description.get());
   }
 
-
+  @Test
+  public void testNestedCallbackLambdas() throws Exception {
+    Callable<Optional<String>> descriptionProvider = () -> getDescriptionForCallable(() -> "hello");
+    Optional<String> description = descriptionProvider.call();
+    assertTrue(description.isPresent());
+    assertNameMatch("", "testNestedCallbackLambdas", CLASSNAME, description.get());
+  }
 }
