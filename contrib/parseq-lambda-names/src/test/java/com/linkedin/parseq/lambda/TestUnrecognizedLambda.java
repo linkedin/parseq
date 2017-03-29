@@ -1,13 +1,12 @@
 package com.linkedin.parseq.lambda;
 
-import java.util.Arrays;
-import java.util.List;
+import static org.testng.Assert.assertTrue;
+
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Predicate;
-import org.testng.annotations.Test;
 
-import static org.testng.Assert.assertTrue;
+import org.testng.annotations.Test;
 
 
 public class TestUnrecognizedLambda extends BaseTest {
@@ -31,6 +30,15 @@ public class TestUnrecognizedLambda extends BaseTest {
     Optional<String> description = getDescriptionForCallable(() -> {return "";});
     assertTrue(description.isPresent());
     assertNameMatch("", "testReturnExpression", CLASSNAME, description.get().toString());
+  }
+
+  //TODO currently returns: "Integer.valueOf(_)" would be great if we could improve on this (detect autoboxing?)
+  @Test
+  public void testReturnIntegerExpression() {
+    Optional<String> description = getDescriptionForCallableInteger(() -> 0);
+    assertTrue(description.isPresent());
+    System.out.println(description);
+    assertNameMatch("", "testReturnIntegerExpression", CLASSNAME, description.get().toString());
   }
 
   @Test

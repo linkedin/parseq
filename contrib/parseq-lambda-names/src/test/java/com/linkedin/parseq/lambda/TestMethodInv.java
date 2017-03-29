@@ -1,6 +1,9 @@
 package com.linkedin.parseq.lambda;
 
 import java.util.Optional;
+import java.util.concurrent.Callable;
+import java.util.function.Function;
+
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertTrue;
@@ -219,4 +222,15 @@ public class TestMethodInv extends BaseTest {
     assertTrue(description.isPresent());
     assertNameMatch("String.valueOf(_)", "testStringValueOf", CLASSNAME, description.get().toString());
   }
+
+  //TODO currently returns "lambda$28" as a method name e.g. lambda$28(TestMethodInv:228)
+  //we should detect string "lambda$" in method name on a stack while we figure out method name
+  @Test
+  public void testNestedCallbackLambdas() throws Exception {
+    Callable<Optional<String>> descriptionProvider = () -> getDescriptionForCallable(() -> "hello");
+    Optional<String> description = descriptionProvider.call();
+    assertTrue(description.isPresent());
+    assertNameMatch("", "testNestedCallbackLambdas", CLASSNAME, description.get().toString());
+  }
+
 }
