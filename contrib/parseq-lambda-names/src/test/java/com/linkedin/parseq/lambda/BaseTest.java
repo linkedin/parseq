@@ -74,6 +74,10 @@ class BaseTest {
     return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass().getName());
   }
 
+  Optional<String> getDescriptionForCallableInteger(Callable<Integer> c) {
+    return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass().getName());
+  }
+
   Optional<String> getDescriptionForConsumer(Consumer<String> c) {
     return _asmBasedTaskDescriptor.getLambdaClassDescription(c.getClass().getName());
   }
