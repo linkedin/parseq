@@ -10,12 +10,9 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.InsnList;
-import org.objectweb.asm.tree.InsnNode;
-import org.objectweb.asm.tree.InvokeDynamicInsnNode;
 import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.LineNumberNode;
 import org.objectweb.asm.tree.LocalVariableNode;
-import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
@@ -136,6 +133,7 @@ class FindMethodCallAnalyzer extends ClassVisitor {
       return -1;
     }
 
+    //Keeping the code commented if we were to improve this functionality in future
     private String getInferredOperation(List<String> localVariables, String fieldDesc) {
 //      String localVarsDesc = getDescriptionForLocalVars(localVariables);
       StringBuilder sb = new StringBuilder();
@@ -147,7 +145,7 @@ class FindMethodCallAnalyzer extends ClassVisitor {
 //        sb.append(methodDesc).append("::");
 //      }
 
-      sb.append(_methodInsnName);
+      sb.append("::" + _methodInsnName);
       return sb.toString();
     }
   }
