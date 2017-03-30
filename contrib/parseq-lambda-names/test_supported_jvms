@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -e
+
+source setjdk_osx
+
+while read jvm
+do
+    echo "Testing with $jvm"
+    setjdk $jvm
+    mvn clean test
+done < supported_jvms

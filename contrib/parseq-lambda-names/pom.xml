@@ -3,37 +3,24 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.linkedin.parseq</groupId>
-    <artifactId>parseq-zk-client</artifactId>
+    <artifactId>parseq-lambda-names</artifactId>
     <version>2.6.12</version>
 
     <dependencies>
         <dependency>
-            <groupId>com.linkedin.parseq</groupId>
-            <artifactId>parseq</artifactId>
-            <version>2.6.12</version>
+            <groupId>com.ea.agentloader</groupId>
+            <artifactId>ea-agent-loader</artifactId>
+            <version>1.0.2</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.zookeeper</groupId>
-            <artifactId>zookeeper</artifactId>
-            <version>3.4.6</version>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-all</artifactId>
+            <version>5.1</version>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <version>6.9.9</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.linkedin.parseq</groupId>
-            <artifactId>parseq</artifactId>
-            <version>2.6.12</version>
-            <classifier>test</classifier>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.linkedin.pegasus</groupId>
-            <artifactId>d2</artifactId>
-            <version>2.6.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -64,6 +51,18 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.5</version>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Agent-Class>com.linkedin.parseq.lambda.ASMBasedTaskDescriptor$Agent</Agent-Class>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
                 <executions>
                     <execution>
@@ -83,6 +82,30 @@
                         <goals>
                             <goal>jar</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+	        <plugin>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <relocations>
+                                <relocation>
+                                    <pattern>org.objectweb</pattern>
+                                    <shadedPattern>parseq.org.objectweb</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.ea</pattern>
+                                    <shadedPattern>parseq.com.ea</shadedPattern>
+                                </relocation>
+                            </relocations>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -127,27 +150,33 @@
         </plugins>
     </build>
 
-    <name>parseq-zk-client</name>
+    <name>parseq-lambda-names</name>
     <url>https://github.com/linkedin/parseq</url>
     <scm>
-      <url>https://github.com/linkedin/parseq</url>
-      <connection>scm:git:git://github.com/linkedin/parseq.git</connection>
+        <url>https://github.com/linkedin/parseq</url>
+        <connection>scm:git:git://github.com/linkedin/parseq.git</connection>
     </scm>
-  <description>
-    Integrates ParSeq with Apache ZooKeeper Library
-  </description>
-  <licenses>
-    <license>
-      <name>The Apache Software License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
-  <developers>
-    <developer>
-      <id>axu</id>
-      <name>Ang Xu</name>
-      <email>axu@linkedin.com</email>
-    </developer>
-  </developers>
+    <description>
+      Finds source code location and infers operation for lambda expressions
+    </description>
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <id>jodzga</id>
+            <name>Jaroslaw Odzga</name>
+            <email>jodzga@linkedin.com</email>
+        </developer>
+        <developer>
+            <id>ssodhanilinkedin</id>
+            <name>Siddharth Sodhani</name>
+            <email>ssodhani@linkedin.com</email>
+        </developer>
+    </developers>
+
 </project>
