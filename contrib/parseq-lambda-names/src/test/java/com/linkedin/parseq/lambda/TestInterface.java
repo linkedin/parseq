@@ -47,7 +47,7 @@ public class TestInterface extends BaseTest {
     SampleImplementation impl = new SampleImplementation();
     Optional<String> description = getDescriptionForFunction(impl::interfaceFunction);
     assertTrue(description.isPresent());
-    assertNameMatch("interfaceFunction", "testFunctionReferenceOnInterface", CLASSNAME, description.get().toString());
+    assertNameMatch("::interfaceFunction", "testFunctionReferenceOnInterface", CLASSNAME, description.get().toString());
   }
 
   @Test
@@ -62,7 +62,7 @@ public class TestInterface extends BaseTest {
     SampleImplementation impl = new SampleImplementation();
     Optional<String> description = getDescriptionForFunction(impl::abstractFunction);
     assertTrue(description.isPresent());
-    assertNameMatch("abstractFunction", "testAbstractFunctionReferenceOnInterface", CLASSNAME, description.get().toString());
+    assertNameMatch("::abstractFunction", "testAbstractFunctionReferenceOnInterface", CLASSNAME, description.get().toString());
   }
 
   @Test

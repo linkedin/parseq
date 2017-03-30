@@ -79,7 +79,7 @@ public class TestUnrecognizedLambda extends BaseTest {
 
     Optional<String> foreachDescription = getDescriptionForConsumer(System.out::println);
     assertTrue(foreachDescription.isPresent());
-    assertNameMatch("println", "testStream", CLASSNAME, foreachDescription.get());
+    assertNameMatch("::println", "testStream", CLASSNAME, foreachDescription.get());
   }
 
   interface MathOperation {
