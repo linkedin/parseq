@@ -106,18 +106,18 @@ class GetRequestGroup implements RequestGroup {
     throw NOT_FOUND_EXCEPTION;
   }
 
-  private DataMap filterIdsInBatchResult(DataMap data, Set<String> ids, boolean stripEntities) {
+  private DataMap filterIdsInBatchResult(DataMap data, Set<String> ids) {
     DataMap dm = new DataMap(data.size());
     data.forEach((key, value) -> {
       switch(key) {
         case BatchResponse.ERRORS:
-          dm.put(key, filterIds((DataMap)value, ids, stripEntities ? EntityResponse.ERROR : null));
+          dm.put(key, filterIds((DataMap)value, ids));
           break;
         case BatchResponse.RESULTS:
-          dm.put(key, filterIds((DataMap)value, ids, stripEntities ? EntityResponse.ENTITY : null));
+          dm.put(key, filterIds((DataMap)value, ids));
           break;
         case BatchResponse.STATUSES:
-          dm.put(key, filterIds((DataMap)value, ids, stripEntities ? EntityResponse.STATUS : null));
+          dm.put(key, filterIds((DataMap)value, ids));
           break;
         default:
           dm.put(key, value);
@@ -127,15 +127,11 @@ class GetRequestGroup implements RequestGroup {
     return dm;
   }
 
-  private Object filterIds(DataMap data, Set<String> ids, String keyToStrip) {
+  private Object filterIds(DataMap data, Set<String> ids) {
     DataMap dm = new DataMap(data.size());
     data.forEach((key, value) -> {
       if (ids.contains(key)) {
-        if (keyToStrip == null) {
-          dm.put(key, value);
-        } else {
-          dm.put(key, ((DataMap)value).get(keyToStrip));
-        }
+        dm.put(key, value);
       }
     });
     return dm;
@@ -243,7 +239,7 @@ class GetRequestGroup implements RequestGroup {
         Set<String> ids = (Set<String>) request.getObjectIds().stream()
             .map(o -> BatchResponse.keyToString(o, version))
             .collect(Collectors.toSet());
-        DataMap dm = filterIdsInBatchResult(responseToBatch.getEntity().data(), ids, false);
+        DataMap dm = filterIdsInBatchResult(responseToBatch.getEntity().data(), ids);
         BatchKVResponse br = new BatchEntityResponse<>(dm, request.getResourceSpec().getKeyType(),
             request.getResourceSpec().getValueType(), request.getResourceSpec().getKeyParts(),
             request.getResourceSpec().getComplexKeyType(), version);
@@ -256,7 +252,7 @@ class GetRequestGroup implements RequestGroup {
         Set<String> ids = (Set<String>) request.getObjectIds().stream()
             .map(o -> BatchResponse.keyToString(o, version))
             .collect(Collectors.toSet());
-        DataMap dm = filterIdsInBatchResult(responseToBatch.getEntity().data(), ids, true);
+        DataMap dm = filterIdsInBatchResult(responseToBatch.getEntity().data(), ids);
         BatchResponse br = new BatchResponse<>(dm, request.getResponseDecoder().getEntityClass());
         Response rsp = new ResponseImpl(responseToBatch, br);
         entry.getValue().getPromise().done(rsp);
@@ -269,7 +265,7 @@ class GetRequestGroup implements RequestGroup {
         Set<String> ids = (Set<String>) request.getObjectIds().stream()
             .map(o -> BatchResponse.keyToString(o, version))
             .collect(Collectors.toSet());
-        DataMap dm = filterIdsInBatchResult(responseToBatch.getEntity().data(), ids, true);
+        DataMap dm = filterIdsInBatchResult(responseToBatch.getEntity().data(), ids);
         BatchKVResponse br = new BatchKVResponse(dm, request.getResourceSpec().getKeyType(),
             request.getResourceSpec().getValueType(), request.getResourceSpec().getKeyParts(),
             request.getResourceSpec().getComplexKeyType(), version);
