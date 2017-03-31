@@ -24,6 +24,7 @@ import org.testng.annotations.Test;
 
 import com.linkedin.parseq.Task;
 import com.linkedin.restli.client.config.RequestConfigOverrides;
+import com.linkedin.restli.examples.greetings.api.Greeting;
 import com.linkedin.restli.examples.greetings.client.GreetingsBuilders;
 
 
@@ -347,5 +348,25 @@ public abstract class ParSeqRestClientBatchingIntegrationTest extends ParSeqRest
     Task<?> task = Task.par(greetingGet(1L, overrides()), greetingGet(1L, overrides()));
     runAndWait(getTestClassName() + ".testDuplicateGetRequestIsNotBatchedOverrides", task);
     assertFalse(hasTask("greetings batch_get(reqs: 1, ids: 1)", task.getTrace()));
+  }
+
+  @Test
+  public void testBatchGet404() {
+    try {
+      setInboundRequestContext(new InboundRequestContextBuilder()
+          .setName("withBatching")
+          .build());
+      Task<?> task = Task.par(greetingGet(1L).map(Response::getEntity).map(Greeting::getMessage),
+                              greetingGet(2L).map(Response::getEntity).map(Greeting::getMessage),
+                              greetingGet(400L).map(Response::getEntity).map(Greeting::getMessage).recover(t -> t.toString()))
+          .map((a, b, c) -> a + b + c);
+      runAndWait(getTestClassName() + ".testBatchGet404", task);
+
+      assertTrue(task.get().toString().contains("Good morning!"));
+      assertTrue(task.get().toString().contains("Guten Morgen!"));
+      assertTrue(task.get().toString().contains("com.linkedin.restli.client.RestLiResponseException: Response status 404"));
+    } finally {
+      clearInboundRequestContext();
+    }
   }
 }
