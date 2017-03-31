@@ -1,3 +1,9 @@
+v2.6.13
+------
+
+* Upgraded dependency on pegasus to 11.0.0 in parseq-restli-client contrib project
+* Create 404 synthetic result when batch get request does not return any response for an id
+
 v2.6.12
 ------
 
