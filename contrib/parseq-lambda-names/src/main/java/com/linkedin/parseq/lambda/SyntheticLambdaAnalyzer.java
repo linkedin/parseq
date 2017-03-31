@@ -33,7 +33,7 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
   private final String _methodToFind;
 
   private String _inferredOperation;
-  private int _lineNumber;
+  private int _lineNumber = -1;
 
   SyntheticLambdaAnalyzer(int api, String classToAnalyze, String methodToFind) {
     super(api);
@@ -71,7 +71,9 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
 
     @Override
     public void visitLineNumber(int line, Label start) {
-      _lineNumber = line;
+      if (_lineNumber == -1) {
+        _lineNumber = line;
+      }
     }
 
     @Override
