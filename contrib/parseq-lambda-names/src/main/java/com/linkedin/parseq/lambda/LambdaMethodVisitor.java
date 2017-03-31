@@ -10,6 +10,7 @@ class LambdaMethodVisitor extends MethodVisitor {
 
   private SourcePointer _lambdaSourcePointer;
   private Consumer<InferredOperation> _inferredOperationConsumer;
+  private Consumer<Integer> _lineNumberConsumer;
   private boolean _visitedFirstInsn;
   private boolean _containsSyntheticLambda;
 
@@ -22,10 +23,12 @@ class LambdaMethodVisitor extends MethodVisitor {
 
   LambdaMethodVisitor(int api, MethodVisitor mv, SourcePointer lambdaSourcePointer,
                               Consumer<InferredOperation> inferredOperationConsumer,
+                              Consumer<Integer> lineNumberConsumer,
                               ClassLoader loader) {
     super(api, mv);
     _lambdaSourcePointer = lambdaSourcePointer;
     _inferredOperationConsumer = inferredOperationConsumer;
+    _lineNumberConsumer = lineNumberConsumer;
     _visitedFirstInsn = false;
     _containsSyntheticLambda = false;
     _loader = loader;
@@ -61,6 +64,7 @@ class LambdaMethodVisitor extends MethodVisitor {
       if (cr != null) {
         cr.accept(syntheticLambdaAnalyzer, 0);
         _inferredOperationConsumer.accept(new InferredOperation(syntheticLambdaAnalyzer.getInferredOperation()));
+        _lineNumberConsumer.accept(syntheticLambdaAnalyzer.getLineNumber());
       }
     } else {
       //if it is static invocation, details about function could be found directly from the methodInsnName itself

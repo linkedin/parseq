@@ -7,7 +7,8 @@ class SourcePointer {
 
   final String _className;
   final String _callingMethod;
-  final int _lineNumber;
+
+  int _lineNumber;
 
   private SourcePointer(String className, String methodName, Integer lineNumber) {
     _className = className;
@@ -27,10 +28,14 @@ class SourcePointer {
     return !(element.getClassName().startsWith("java.")
         || element.getClassName().startsWith("sun.")
         || element.getClassName().startsWith("org.objectweb.asm.")
-        || element.getClassName().startsWith(LambdaClassLocator.class.getName())
-        || element.getClassName().startsWith(ASMBasedTaskDescriptor.Agent.class.getName())
         || element.getClassName().startsWith(ASMBasedTaskDescriptor.class.getName())
+        || element.getClassName().startsWith(ASMBasedTaskDescriptor.Agent.class.getName())
+        || element.getClassName().startsWith(FindMethodCallAnalyzer.class.getName())
+        || element.getClassName().startsWith(LambdaClassLocator.class.getName())
+        || element.getClassName().startsWith(LambdaMethodVisitor.class.getName())
         || element.getClassName().startsWith(SourcePointer.class.getName())
+        || element.getClassName().startsWith(SyntheticLambdaAnalyzer.class.getName())
+        || element.getClassName().startsWith(SyntheticLambdaAnalyzer.SyntheticLambdaMethodVisitor.class.getName())
         || element.getMethodName().startsWith("lambda$")
         || element.getClassName().contains("$$Lambda$"));
   }
@@ -38,6 +43,10 @@ class SourcePointer {
   private static SourcePointer sourcePointer(StackTraceElement stackTraceElement) {
     return new SourcePointer(stackTraceElement.getClassName(), stackTraceElement.getMethodName(),
         stackTraceElement.getLineNumber());
+  }
+
+  public void setLineNumber(int lineNumber) {
+    _lineNumber = lineNumber;
   }
 
   @Override

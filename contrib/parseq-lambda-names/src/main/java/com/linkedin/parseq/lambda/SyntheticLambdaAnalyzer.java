@@ -1,6 +1,7 @@
 package com.linkedin.parseq.lambda;
 
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -32,6 +33,7 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
   private final String _methodToFind;
 
   private String _inferredOperation;
+  private int _lineNumber;
 
   SyntheticLambdaAnalyzer(int api, String classToAnalyze, String methodToFind) {
     super(api);
@@ -52,7 +54,11 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
     return _inferredOperation;
   }
 
-  private class SyntheticLambdaMethodVisitor extends MethodNode {
+  int getLineNumber() {
+    return _lineNumber;
+  }
+
+  class SyntheticLambdaMethodVisitor extends MethodNode {
 
     private String _methodInsnName;
     private String _methodInsnOwner;
@@ -61,6 +67,11 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
 
     SyntheticLambdaMethodVisitor(int api, int access, String name, String desc, String signature, String[] exceptions) {
       super(api, access, name, desc, signature, exceptions);
+    }
+
+    @Override
+    public void visitLineNumber(int line, Label start) {
+      _lineNumber = line;
     }
 
     @Override
@@ -184,10 +195,7 @@ class SyntheticLambdaAnalyzer extends ClassVisitor {
         functionName = _methodInsnName;
       }
 
-      StringBuilder sb = new StringBuilder();
-      sb.append(functionName);
-      sb.append(Util.getArgumentsInformation(_methodInsnDesc));
-      return sb.toString();
+      return functionName + Util.getArgumentsInformation(_methodInsnDesc);
     }
   }
 }
