@@ -99,4 +99,14 @@ class BaseTest {
       assertTrue(m.matches());
     }
   }
+
+  void assertNameMatch(String inferredFunction, String callerMethodName, String callerClassName, int lineNumber,
+      String lambdaClassDescription) {
+    if (inferredFunction.isEmpty()) {
+      assertTrue(lambdaClassDescription.equalsIgnoreCase(callerMethodName + "(" + callerClassName + ":" + lineNumber + ")"));
+    } else {
+      assertTrue(lambdaClassDescription.equals(inferredFunction + " "
+          + callerMethodName + "(" + callerClassName+ ":" + lineNumber + ")"));
+    }
+  }
 }

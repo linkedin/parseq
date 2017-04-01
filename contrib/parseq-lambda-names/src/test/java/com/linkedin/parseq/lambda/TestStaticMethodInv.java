@@ -14,20 +14,22 @@ public class TestStaticMethodInv extends BaseTest {
   public void testStaticFunction() {
     Optional<String> description = getDescriptionForFunction(s -> BaseTest.staticFunction(s));
     assertTrue(description.isPresent());
-    assertNameMatch("BaseTest.staticFunction(_)", "testStaticFunction", CLASSNAME, description.get().toString());
+    assertNameMatch("BaseTest.staticFunction(_)", "testStaticFunction", CLASSNAME, 15, description.get().toString());
   }
 
   @Test
   public void testStaticCallable() {
     Optional<String> description = getDescriptionForCallable(() -> BaseTest.staticCallable());
     assertTrue(description.isPresent());
-    assertNameMatch("BaseTest.staticCallable()", "testStaticCallable", CLASSNAME, description.get().toString());
+    assertNameMatch("BaseTest.staticCallable()", "testStaticCallable", CLASSNAME, 22, description.get().toString());
   }
 
   @Test
   public void testStaticConsumer() {
-    Optional<String> description = getDescriptionForConsumer(s -> BaseTest.staticConsumer(s));
+    Optional<String> description = getDescriptionForConsumer(s
+        ->
+        BaseTest.staticConsumer(s));
     assertTrue(description.isPresent());
-    assertNameMatch("BaseTest.staticConsumer(_)", "testStaticConsumer", CLASSNAME, description.get().toString());
+    assertNameMatch("BaseTest.staticConsumer(_)", "testStaticConsumer", CLASSNAME, 31, description.get().toString());
   }
 }
