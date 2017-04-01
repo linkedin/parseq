@@ -1,3 +1,8 @@
+v2.6.14
+------
+
+* Fixing line number for method invocations in parseq-lambda-names contrib project.
+
 v2.6.13
 ------
 
