@@ -64,7 +64,10 @@ class LambdaMethodVisitor extends MethodVisitor {
       if (cr != null) {
         cr.accept(syntheticLambdaAnalyzer, 0);
         _inferredOperationConsumer.accept(new InferredOperation(syntheticLambdaAnalyzer.getInferredOperation()));
-        _lineNumberConsumer.accept(syntheticLambdaAnalyzer.getLineNumber());
+        int inferredLineNumber = syntheticLambdaAnalyzer.getLineNumber();
+        if (inferredLineNumber != -1) {
+          _lineNumberConsumer.accept(inferredLineNumber);
+        }
       }
     } else {
       //if it is static invocation, details about function could be found directly from the methodInsnName itself
