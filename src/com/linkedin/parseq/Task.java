@@ -228,7 +228,15 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   default <R> Task<R> flatMap(final String desc, final Function1<? super T, Task<R>> func) {
     ArgumentUtil.requireNotNull(func, "function");
-    final Task<Task<R>> nested = map(desc, func);
+    final Function1<? super T, Task<R>> flatMapFunc = x -> {
+      Task<R> t = func.apply(x);
+      if (t == null) {
+        throw new RuntimeException(desc + " returned null");
+      } else {
+        return t;
+      }
+    };
+    final Task<Task<R>> nested = map(desc, flatMapFunc);
     nested.getShallowTraceBuilder().setSystemHidden(true);
     return flatten(desc, nested);
   }
@@ -268,7 +276,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @param desc description of a side effect, it will show up in a trace
    * @param func function to be applied on result of successful completion of this task
    * to get side effect task
-   * @return a new task that will run side effect task specified by given function upon succesful
+   * @return a new task that will run side effect task specified by given function upon successful
    * completion of this task
    */
   default Task<T> withSideEffect(final String desc, final Function1<? super T, Task<?>> func) {
@@ -279,7 +287,13 @@ public interface Task<T> extends Promise<T>, Cancellable {
         SettablePromise<T> promise = Promises.settable();
         if (!that.isFailed()) {
           Task<?> sideEffect = func.apply(that.get());
-          ctx.runSideEffect(sideEffect);
+          //TODO test that none of changed methods hang
+          //TODO add javadoc about returning null
+          if (sideEffect == null) {
+            throw new RuntimeException(desc + " returned null");
+          } else {
+            ctx.runSideEffect(sideEffect);
+          }
         }
         Promises.propagateResult(that, promise);
         return promise;
@@ -726,6 +740,9 @@ public interface Task<T> extends Promise<T>, Cancellable {
           if (!(Exceptions.isCancellation(that.getError()))) {
             try {
               Task<T> r = func.apply(that.getError());
+              if (r == null) {
+                throw new RuntimeException(desc + " returned null");
+              }
               Promises.propagateResult(r, recoveryResult);
               ctx.run(r);
             } catch (Throwable t) {
@@ -833,8 +850,12 @@ public interface Task<T> extends Promise<T>, Cancellable {
         try {
           if (!task.isFailed()) {
             Task<R> t = task.get();
-            Promises.propagateResult(t, result);
-            return t;
+            if (t == null) {
+              throw new RuntimeException(desc + " returned null");
+            } else {
+              Promises.propagateResult(t, result);
+              return t;
+            }
           } else {
             result.fail(task.getError());
           }

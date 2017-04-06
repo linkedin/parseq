@@ -298,8 +298,12 @@ class FusionTask<S, T> extends BaseTask<T> {
           if (!(Exceptions.isCancellation(that.getError()))) {
             try {
               Task<T> r = func.apply(that.getError());
-              Promises.propagateResult(r, result);
-              return r;
+              if (r == null) {
+                throw new RuntimeException(desc + " returned null");
+              } else {
+                Promises.propagateResult(r, result);
+                return r;
+              }
             } catch (Throwable t) {
               result.fail(t);
               return null;

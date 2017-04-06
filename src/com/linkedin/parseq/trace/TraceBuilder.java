@@ -19,9 +19,7 @@ package com.linkedin.parseq.trace;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 
@@ -35,7 +33,7 @@ public class TraceBuilder {
   private static final int INITIAL_RELATIONSHIP_ARRAY_SIZE = 128;
   private static final int INITIAL_BUILDER_ARRAY_SIZE = 128;
 
-  private final int _maxRelationshipsPerTrace;
+  private final int _maxTraceBuildersPerTrace;
 
   private final String _planClass;
 
@@ -53,20 +51,20 @@ public class TraceBuilder {
   public TraceBuilder(int maxRelationshipsCount, String planClass, Long planId) {
     _relationships = new ArrayList<>(INITIAL_RELATIONSHIP_ARRAY_SIZE);
     _traceBuilders = new ArrayList<>(INITIAL_BUILDER_ARRAY_SIZE);
-    _maxRelationshipsPerTrace = maxRelationshipsCount;
+    _maxTraceBuildersPerTrace = maxRelationshipsCount;
     _planClass = planClass;
     _planId = planId;
   }
 
   public synchronized void addShallowTrace(final ShallowTraceBuilder shallowTrace) {
-    if (_traceBuilders.size() < _maxRelationshipsPerTrace) {
+    if (_traceBuilders.size() < _maxTraceBuildersPerTrace) {
       _traceBuilders.add(shallowTrace);
     }
   }
 
   public synchronized void addRelationship(final Relationship relationship, final ShallowTraceBuilder from,
       final ShallowTraceBuilder to) {
-    if (_relationships.size() < _maxRelationshipsPerTrace) {
+    if (_relationships.size() < _maxTraceBuildersPerTrace) {
       TraceRelationship rel = new TraceRelationship(from, to, relationship);
       _relationships.add(rel);
     }

@@ -47,8 +47,10 @@ import com.linkedin.parseq.internal.PlanContext;
 public class Engine {
   public static final String LOGGER_BASE = Engine.class.getName();
 
+  // TODO: this constant should be renamed.
+  // Need to fix in the next major version release.
   public static final String MAX_RELATIONSHIPS_PER_TRACE = "_MaxRelationshipsPerTrace_";
-  private static final int DEFUALT_MAX_RELATIONSHIPS_PER_TRACE = 4096;
+  private static final int DEFUALT_MAX_RELATIONSHIPS_PER_TRACE = 65536;
 
   public static final String MAX_CONCURRENT_PLANS = "_MaxConcurrentPlans_";
   private static final int DEFUALT_MAX_CONCURRENT_PLANS = Integer.MAX_VALUE;

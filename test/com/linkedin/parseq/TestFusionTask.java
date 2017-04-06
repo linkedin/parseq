@@ -1,6 +1,5 @@
 package com.linkedin.parseq;
 
-import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
@@ -20,6 +19,26 @@ import com.linkedin.parseq.trace.Trace;
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
 public class TestFusionTask extends AbstractTaskTest {
+
+  @Test
+  public void testFlatMapFuncReturnNulll() {
+    super.testFlatMapFuncReturnNulll();
+  }
+
+  @Test
+  public void testFlattenTaskReturnNulll() {
+    super.testFlattenTaskReturnNulll();
+  }
+
+  @Test
+  public void testRecoverWithFuncReturnNulll() {
+    super.testRecoverWithFuncReturnNulll();
+  }
+
+  @Test
+  public void testWithSideEffectFuncReturnNulll() {
+    super.testWithSideEffectFuncReturnNulll();
+  }
 
   @Test
   public void testMap() {

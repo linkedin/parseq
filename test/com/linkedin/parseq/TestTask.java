@@ -123,6 +123,26 @@ public class TestTask extends AbstractTaskTest {
     }
   }
 
+  @Test
+  public void testFlatMapFuncReturnNulll() {
+    super.testFlatMapFuncReturnNulll();
+  }
+
+  @Test
+  public void testFlattenTaskReturnNulll() {
+    super.testFlattenTaskReturnNulll();
+  }
+
+  @Test
+  public void testRecoverWithFuncReturnNulll() {
+    super.testRecoverWithFuncReturnNulll();
+  }
+
+  @Test
+  public void testWithSideEffectFuncReturnNulll() {
+    super.testWithSideEffectFuncReturnNulll();
+  }
+
   @Override
   Task<String> getSuccessTask() {
     return Task.async("success", () -> Promises.value(TASK_VALUE));

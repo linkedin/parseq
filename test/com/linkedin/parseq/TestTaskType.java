@@ -1,15 +1,15 @@
 package com.linkedin.parseq;
 
-import com.linkedin.parseq.retry.RetryPolicy;
-import com.linkedin.parseq.trace.ShallowTrace;
-import com.linkedin.parseq.trace.Trace;
-import java.util.Map;
+import static org.testng.Assert.assertEquals;
+
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.assertEquals;
+import com.linkedin.parseq.retry.RetryPolicy;
+import com.linkedin.parseq.trace.Trace;
 
 
 /**
