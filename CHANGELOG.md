@@ -1,3 +1,10 @@
+v2.6.15
+------
+
+* Improved exception in case when function that is supposed return a Task instance returns null, see issue #105. From now on exception's stack trace and message will inform about the root cause of a problem.
+* Increased trace size limit from 4096 to 65536. Trace size limit is a heuristic that prevents allocating huge amount of memory for the purpose of tracing.
+* Publish parseq-benchmark artifact to maven central.
+
 v2.6.14
 ------
 
