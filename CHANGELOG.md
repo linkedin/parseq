@@ -1,3 +1,8 @@
+v2.6.16
+------
+
+* Bug fix: Removing ea agents jar from being shaded as part of parseq-lambda-names jar.
+
 v2.6.15
 ------
 
