@@ -100,10 +100,6 @@
                                     <pattern>org.objectweb</pattern>
                                     <shadedPattern>parseq.org.objectweb</shadedPattern>
                                 </relocation>
-                                <relocation>
-                                    <pattern>com.ea</pattern>
-                                    <shadedPattern>parseq.com.ea</shadedPattern>
-                                </relocation>
                             </relocations>
                         </configuration>
                     </execution>
