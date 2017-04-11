@@ -2,6 +2,8 @@ v2.6.16
 ------
 
 * Bug fix: Removing ea agents jar from being shaded as part of parseq-lambda-names jar.
+* Created ParSeqUnitTestHelper helper class for unit tests so that it is not necessary to extend BaseEngineTest class.
+* Created BaseEngineParTest for parallel unit tests.
 
 v2.6.15
 ------

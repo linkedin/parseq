@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 LinkedIn, Inc
+ * Copyright 2017 LinkedIn, Inc
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,43 +16,38 @@
 
 package com.linkedin.parseq;
 
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 
 
 /**
  * A base class that builds an Engine with default configuration.
  *
- * This class creates new Engine and shuts it down before and after every test method, so it can't be used
- * to run tests in parallel.
+ * This class creates new Engine before any test method is run and shuts it down after all tests are finished.
+ * It can be used to run tests in parallel.
  *
- * The difference between this class and {@link BaseEngineParTest} is that {@code BaseEngineParTest} creates and
+ * The difference between this class and {@link BaseEngineTest} is that {@code BaseEngineTest} creates new
+ * {@code Engine} instance for every test and thus provides higher level of isolation between the tests.
  *
- * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
- *
- * @see ParSeqUnitTestHelper
- * @see BaseEngineParTest
  */
-public class BaseEngineTest extends AbstractBaseEngineTest {
+public class BaseEngineParTest extends AbstractBaseEngineTest {
 
-  @BeforeMethod
+  @BeforeClass
   public void setUp() throws Exception {
     getParSeqUnitTestHelper().setUp();
   }
 
-  @AfterMethod
+  @AfterClass
   public void tearDown() throws Exception {
     if (getEngine() != null) {
       getParSeqUnitTestHelper().tearDown();
     }  else {
       throw new RuntimeException("Tried to shut down Engine but it either has not even been created or has "
-          + "already been shut down. Please make sure you are not running unit tests in parallel. If you need to "
-          + "run unit tests in parallel, then use BaseEngineParTest instead.");
+          + "already been shut down.");
     }
   }
 
   protected void customizeEngine(EngineBuilder engineBuilder) {
   }
-
 }
