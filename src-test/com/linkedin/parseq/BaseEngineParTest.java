@@ -34,17 +34,17 @@ import org.testng.annotations.BeforeClass;
 public class BaseEngineParTest extends AbstractBaseEngineTest {
 
   @BeforeClass
-  public void setUp() throws Exception {
+  public void setUpBaseEngineParTest() throws Exception {
     getParSeqUnitTestHelper().setUp();
   }
 
   @AfterClass
-  public void tearDown() throws Exception {
+  public void tearDownBaseEngineParTest() throws Exception {
     if (getEngine() != null) {
       getParSeqUnitTestHelper().tearDown();
     }  else {
       throw new RuntimeException("Tried to shut down Engine but it either has not even been created or has "
-          + "already been shut down.");
+          + "already been shut down, in "  + this.getClass().getName());
     }
   }
 

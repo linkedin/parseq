@@ -24,7 +24,9 @@ import com.linkedin.parseq.trace.Trace;
 
 
 /**
- * A parent class for base unit test classes. It contains
+ * A parent class for base unit test classes. It contains definitions
+ * for all helper methods and delegates them to instance of
+ * {@link ParSeqUnitTestHelper}.
  *
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
@@ -55,7 +57,7 @@ public abstract class AbstractBaseEngineTest {
    * @see #runAndWait(String, Task, long, TimeUnit)
    */
   protected <T> T runAndWait(Task<T> task) {
-    return _parSeqUnitTestHelper.runAndWait(task);
+    return _parSeqUnitTestHelper.runAndWait(this.getClass().getName(), task);
   }
 
   /**
@@ -63,7 +65,7 @@ public abstract class AbstractBaseEngineTest {
    * @see #runAndWait(String, Task, long, TimeUnit)
    */
   protected <T> T runAndWait(Task<T> task, long time, TimeUnit timeUnit) {
-    return _parSeqUnitTestHelper.runAndWait(task, time, timeUnit);
+    return _parSeqUnitTestHelper.runAndWait(this.getClass().getName(), task, time, timeUnit);
   }
 
   /**
@@ -106,6 +108,10 @@ public abstract class AbstractBaseEngineTest {
     return _parSeqUnitTestHelper.runAndWaitForPlanToComplete(desc, task, time, timeUnit);
   }
 
+  protected <T> T runAndWaitForPlanToComplete(Task<T> task, long time, TimeUnit timeUnit) {
+    return _parSeqUnitTestHelper.runAndWaitForPlanToComplete(this.getClass().getName(), task, time, timeUnit);
+  }
+
   /**
    * Runs a task and verifies that it finishes with an error.
    * @param desc description of a test
@@ -134,7 +140,7 @@ public abstract class AbstractBaseEngineTest {
    * @see #runAndWaitException(String, Task, Class, long, TimeUnit)
    */
   protected <T extends Throwable> T runAndWaitException(Task<?> task, Class<T> exceptionClass) {
-    return runAndWaitException("runAndWaitException", task, exceptionClass);
+    return runAndWaitException(this.getClass().getName(), task, exceptionClass);
   }
 
   /**
@@ -142,7 +148,7 @@ public abstract class AbstractBaseEngineTest {
    * @see #runAndWaitException(String, Task, Class, long, TimeUnit)
    */
   protected <T extends Throwable> T runAndWaitException(Task<?> task, Class<T> exceptionClass, long time, TimeUnit timeUnit) {
-    return runAndWaitException("runAndWaitException", task, exceptionClass, time, timeUnit);
+    return runAndWaitException(this.getClass().getName(), task, exceptionClass, time, timeUnit);
   }
 
   /**

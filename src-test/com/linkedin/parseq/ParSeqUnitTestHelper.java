@@ -54,11 +54,11 @@ public class ParSeqUnitTestHelper {
 
   private final Consumer<EngineBuilder> _engineCustomizer;
 
-  private ScheduledExecutorService _scheduler;
-  private ExecutorService _asyncExecutor;
-  private Engine _engine;
-  private ListLoggerFactory _loggerFactory;
-  private TaskDoneListener _taskDoneListener;
+  private volatile ScheduledExecutorService _scheduler;
+  private volatile ExecutorService _asyncExecutor;
+  private volatile Engine _engine;
+  private volatile ListLoggerFactory _loggerFactory;
+  private volatile TaskDoneListener _taskDoneListener;
 
   public ParSeqUnitTestHelper() {
     this(engineBuilder -> {});
@@ -100,7 +100,7 @@ public class ParSeqUnitTestHelper {
 
   public void tearDown() throws Exception {
     _engine.shutdown();
-    _engine.awaitTermination(200, TimeUnit.MILLISECONDS);
+    _engine.awaitTermination(60, TimeUnit.SECONDS);
     _engine = null;
     _scheduler.shutdownNow();
     _scheduler = null;
@@ -119,7 +119,7 @@ public class ParSeqUnitTestHelper {
   }
 
   /**
-   * Equivalent to {@code runAndWait("runAndWait", task)}.
+   * Equivalent to {@code runAndWait(this.getClass().getName(), task)}.
    * @see #runAndWait(String, Task, long, TimeUnit)
    */
   public <T> T runAndWait(Task<T> task) {
@@ -127,7 +127,7 @@ public class ParSeqUnitTestHelper {
   }
 
   /**
-   * Equivalent to {@code runAndWait("runAndWait", task, 5, TimeUnit.SECONDS)}.
+   * Equivalent to {@code runAndWait(this.getClass().getName(), task, 5, TimeUnit.SECONDS)}.
    * @see #runAndWait(String, Task, long, TimeUnit)
    */
   public <T> T runAndWait(Task<T> task, long time, TimeUnit timeUnit) {
@@ -190,6 +190,10 @@ public class ParSeqUnitTestHelper {
     }
   }
 
+  public <T> T runAndWaitForPlanToComplete(Task<T> task, long time, TimeUnit timeUnit) {
+    return runAndWaitForPlanToComplete("runAndWaitForPlanToComplete", task, time, timeUnit);
+  }
+
   /**
    * Runs a task and verifies that it finishes with an error.
    * @param desc description of a test
@@ -225,7 +229,7 @@ public class ParSeqUnitTestHelper {
   }
 
   /**
-   * Equivalent to {@code runAndWaitException("runAndWaitException", task, exceptionClass)}.
+   * Equivalent to {@code runAndWaitException(this.getClass().getName(), task, exceptionClass)}.
    * @see #runAndWaitException(String, Task, Class, long, TimeUnit)
    */
   public <T extends Throwable> T runAndWaitException(Task<?> task, Class<T> exceptionClass) {
@@ -233,7 +237,7 @@ public class ParSeqUnitTestHelper {
   }
 
   /**
-   * Equivalent to {@code runAndWaitException("runAndWaitException", task, exceptionClass, time, timeUnit)}.
+   * Equivalent to {@code runAndWaitException(this.getClass().getName(), task, exceptionClass, time, timeUnit)}.
    * @see #runAndWaitException(String, Task, Class, long, TimeUnit)
    */
   public <T extends Throwable> T runAndWaitException(Task<?> task, Class<T> exceptionClass, long time, TimeUnit timeUnit) {
