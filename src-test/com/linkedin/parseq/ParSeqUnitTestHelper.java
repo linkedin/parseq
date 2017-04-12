@@ -100,7 +100,7 @@ public class ParSeqUnitTestHelper {
 
   public void tearDown() throws Exception {
     _engine.shutdown();
-    _engine.awaitTermination(60, TimeUnit.SECONDS);
+    _engine.awaitTermination(200, TimeUnit.MILLISECONDS);
     _engine = null;
     _scheduler.shutdownNow();
     _scheduler = null;
