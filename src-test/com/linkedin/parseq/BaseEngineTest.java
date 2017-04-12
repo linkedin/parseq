@@ -16,300 +16,97 @@
 
 package com.linkedin.parseq;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
-
-import com.linkedin.parseq.internal.PlanCompletionListener;
-import com.linkedin.parseq.internal.PlanContext;
-import java.io.IOException;
-import java.io.InterruptedIOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
-
-import com.linkedin.parseq.internal.TimeUnitHelper;
-import com.linkedin.parseq.promise.PromiseException;
-import com.linkedin.parseq.promise.Promises;
-import com.linkedin.parseq.promise.SettablePromise;
-import com.linkedin.parseq.trace.Trace;
-import com.linkedin.parseq.trace.TraceUtil;
 
 
 /**
  * A base class that builds an Engine with default configuration.
  *
+ * This class creates new Engine and shuts it down before and after every test method, so it can't be used
+ * to run tests in parallel.
+ *
+ * The difference between this class and {@link BaseEngineParTest} is that {@code BaseEngineParTest} creates new
+ * {@code Engine} instance only once for all tests in the class and thus can be used to run test methods in parallel.
+ *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
+ *
+ * @see ParSeqUnitTestHelper
+ * @see BaseEngineParTest
  */
-public class BaseEngineTest {
-  private static final Logger LOG = LoggerFactory.getLogger(BaseEngineTest.class.getName());
+public class BaseEngineTest extends AbstractBaseEngineTest {
 
-  private ScheduledExecutorService _scheduler;
-  private ExecutorService _asyncExecutor;
-  private Engine _engine;
-  private ListLoggerFactory _loggerFactory;
-  private TaskDoneListener _taskDoneListener;
+  private volatile boolean _setUpCalled = false;
+  private volatile boolean _tearDownCalled = false;
 
-  @SuppressWarnings("deprecation")
+  @BeforeMethod
+  public void setUpBaseEngineTest() throws Exception {
+    if (!_setUpCalled) {
+      _setUpCalled = true;
+      _tearDownCalled = false;
+      getParSeqUnitTestHelper().setUp();
+    }
+  }
+
+  /**
+   * This method is left for backwards compatibility purpose.
+   * It is not a good idea to have a @BeforeMethod method named
+   * setUp because chances are that subclass will accidentally
+   * override this method.
+   * TODO in next major version this method should be removed
+   * @deprecated
+   */
+  @Deprecated
   @BeforeMethod
   public void setUp() throws Exception {
-    final int numCores = Runtime.getRuntime().availableProcessors();
-    _scheduler = Executors.newScheduledThreadPool(numCores + 1);
-    _asyncExecutor = Executors.newFixedThreadPool(2);
-    _loggerFactory = new ListLoggerFactory();
-    EngineBuilder engineBuilder =
-        new EngineBuilder().setTaskExecutor(_scheduler).setTimerScheduler(_scheduler).setLoggerFactory(_loggerFactory);
-    AsyncCallableTask.register(engineBuilder, _asyncExecutor);
-    customizeEngine(engineBuilder);
-
-    // Add taskDoneListener to engine builder.
-    _taskDoneListener = new TaskDoneListener();
-    PlanCompletionListener planCompletionListener = engineBuilder.getPlanCompletionListener();
-    if (planCompletionListener == null) {
-      engineBuilder.setPlanCompletionListener(_taskDoneListener);
-    } else {
-      engineBuilder.setPlanCompletionListener(planContext -> {
-        try {
-          planCompletionListener.onPlanCompleted(planContext);
-        } catch (Throwable t) {
-          LOG.error("Uncaught exception from custom planCompletionListener.", t);
-        } finally {
-          _taskDoneListener.onPlanCompleted(planContext);
-        }
-      });
+    if (!_setUpCalled) {
+      _setUpCalled = true;
+      _tearDownCalled = false;
+      getParSeqUnitTestHelper().setUp();
     }
-    _engine = engineBuilder.build();
+  }
+
+  /**
+   * This method is left for backwards compatibility purpose.
+   * It is not a good idea to have a @AfterMethod method named
+   * tearDown because chances are that subclass will accidentally
+   * override this method.
+   * TODO in next major version this method should be removed
+   * @deprecated
+   */
+  @Deprecated
+  @AfterMethod
+  public void tearDown() throws Exception {
+    if (!_tearDownCalled) {
+      _setUpCalled = false;
+      _tearDownCalled = true;
+      if (getEngine() != null) {
+        getParSeqUnitTestHelper().tearDown();
+      }  else {
+        throw new RuntimeException("Tried to shut down Engine but it either has not even been created or has "
+            + "already been shut down. Please make sure you are not running unit tests in parallel. If you need to "
+            + "run unit tests in parallel, then use BaseEngineParTest instead, in "  + this.getClass().getName());
+      }
+    }
   }
 
   @AfterMethod
-  public void tearDown() throws Exception {
-    _engine.shutdown();
-    _engine.awaitTermination(200, TimeUnit.MILLISECONDS);
-    _engine = null;
-    _scheduler.shutdownNow();
-    _scheduler = null;
-    _asyncExecutor.shutdownNow();
-    _asyncExecutor = null;
-    _loggerFactory.reset();
-    _loggerFactory = null;
+  public void tearDownBaseEngineTest() throws Exception {
+    if (!_tearDownCalled) {
+      _setUpCalled = false;
+      _tearDownCalled = true;
+      if (getEngine() != null) {
+        getParSeqUnitTestHelper().tearDown();
+      }  else {
+        throw new RuntimeException("Tried to shut down Engine but it either has not even been created or has "
+            + "already been shut down. Please make sure you are not running unit tests in parallel. If you need to "
+            + "run unit tests in parallel, then use BaseEngineParTest instead, in "  + this.getClass().getName());
+      }
+    }
   }
 
   protected void customizeEngine(EngineBuilder engineBuilder) {
-  }
-
-  protected Engine getEngine() {
-    return _engine;
-  }
-
-  protected ScheduledExecutorService getScheduler() {
-    return _scheduler;
-  }
-
-  /**
-   * Equivalent to {@code runAndWait("runAndWait", task)}.
-   * @see #runAndWait(String, Task, long, TimeUnit)
-   */
-  protected <T> T runAndWait(Task<T> task) {
-    return runAndWait("runAndWait", task);
-  }
-
-  /**
-   * Equivalent to {@code runAndWait("runAndWait", task, 5, TimeUnit.SECONDS)}.
-   * @see #runAndWait(String, Task, long, TimeUnit)
-   */
-  protected <T> T runAndWait(Task<T> task, long time, TimeUnit timeUnit) {
-    return runAndWait("runAndWait", task, time, timeUnit);
-  }
-
-  /**
-   * Equivalent to {@code runAndWait(desc, task, 5, TimeUnit.SECONDS)}.
-   * @see #runAndWait(String, Task, long, TimeUnit)
-   */
-  protected <T> T runAndWait(final String desc, Task<T> task) {
-    return runAndWait(desc, task, 5, TimeUnit.SECONDS);
-  }
-
-  /**
-   * Runs task, verifies that task finishes within specified amount of time,
-   * logs trace from the task execution and return value which task completed with.
-   * If task completes with an exception, it is re-thrown by this method.
-   *
-   * @param desc description of a test
-   * @param task task to run
-   * @param time amount of time to wait for task completion
-   * @param timeUnit unit of time
-   * @return value task was completed with or exception is being thrown if task failed
-   */
-  protected <T> T runAndWait(final String desc, Task<T> task, long time, TimeUnit timeUnit) {
-    try {
-      _engine.run(task);
-      assertTrue(task.await(time, timeUnit));
-      return task.get();
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    } finally {
-      logTracingResults(desc, task);
-    }
-  }
-
-  /**
-   * Runs task, verifies that the entire plan(including side-effect tasks)
-   * finishes within specified amount of time, logs trace from the task execution
-   * and return value which task completed with.
-   * If task completes with an exception, it is re-thrown by this method.
-   *
-   * @param desc description of a test
-   * @param task task to run
-   * @param time amount of time to wait for task completion
-   * @param timeUnit unit of time
-   * @param <T> task result type
-   * @return value task was completed with or exception is being thrown if task failed
-   */
-  protected <T> T runAndWaitForPlanToComplete(final String desc, Task<T> task, long time, TimeUnit timeUnit) {
-    try {
-      _engine.run(task);
-      _taskDoneListener.await(task, time, timeUnit);
-      return task.get();
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    } finally {
-      logTracingResults(desc, task);
-    }
-  }
-
-  /**
-   * Runs a task and verifies that it finishes with an error.
-   * @param desc description of a test
-   * @param task task to run
-   * @param exceptionClass expected exception class
-   * @param time amount of time to wait for task completion
-   * @param timeUnit unit of time
-   * @param <T> expected exception type
-   * @return error returned by the task
-   */
-  protected <T extends Throwable> T runAndWaitException(final String desc, Task<?> task, Class<T> exceptionClass,
-      long time, TimeUnit timeUnit) {
-    try {
-      runAndWait(desc, task, time, timeUnit);
-      fail("An exception is expected, but the task succeeded");
-      // just to make the compiler happy, we will never get here
-      return null;
-    } catch (PromiseException pe) {
-      Throwable cause = pe.getCause();
-      assertEquals(cause.getClass(), exceptionClass);
-      return exceptionClass.cast(cause);
-    } finally {
-      logTracingResults(desc, task);
-    }
-  }
-
-  /**
-   * Equivalent to {@code runAndWaitException(desc, task, exceptionClass, 5, TimeUnit.SECONDS)}.
-   * @see #runAndWaitException(String, Task, Class, long, TimeUnit)
-   */
-  protected <T extends Throwable> T runAndWaitException(final String desc, Task<?> task, Class<T> exceptionClass) {
-    return runAndWaitException(desc, task, exceptionClass, 5, TimeUnit.SECONDS);
-  }
-
-  /**
-   * Equivalent to {@code runAndWaitException("runAndWaitException", task, exceptionClass)}.
-   * @see #runAndWaitException(String, Task, Class, long, TimeUnit)
-   */
-  protected <T extends Throwable> T runAndWaitException(Task<?> task, Class<T> exceptionClass) {
-    return runAndWaitException("runAndWaitException", task, exceptionClass);
-  }
-
-  /**
-   * Equivalent to {@code runAndWaitException("runAndWaitException", task, exceptionClass, time, timeUnit)}.
-   * @see #runAndWaitException(String, Task, Class, long, TimeUnit)
-   */
-  protected <T extends Throwable> T runAndWaitException(Task<?> task, Class<T> exceptionClass, long time, TimeUnit timeUnit) {
-    return runAndWaitException("runAndWaitException", task, exceptionClass, time, timeUnit);
-  }
-
-  /**
-   * Runs task.
-   * @param task task to run
-   */
-  protected void run(Task<?> task) {
-    _engine.run(task);
-  }
-
-  protected void logTracingResults(final String test, final Task<?> task) {
-    try {
-      LOG.info("Trace [" + test + "]:\n" + TraceUtil.getJsonTrace(task));
-    } catch (IOException e) {
-      LOG.error("Failed to encode JSON");
-    }
-  }
-
-  protected void setLogLevel(final String loggerName, final int level) {
-    _loggerFactory.getLogger(loggerName).setLogLevel(level);
-  }
-
-  protected List<ListLogger.Entry> getLogEntries(final String loggerName) {
-    return _loggerFactory.getLogger(loggerName).getEntries();
-  }
-
-  protected void resetLoggers() {
-    _loggerFactory.reset();
-  }
-
-  /**
-   * Returns task which completes with given value after specified period
-   * of time. Timer starts counting the moment this method is invoked.
-   */
-  protected <T> Task<T> delayedValue(T value, long time, TimeUnit timeUnit) {
-    return Task.async(value.toString() + " delayed " + time + " " + TimeUnitHelper.toString(timeUnit), () -> {
-      final SettablePromise<T> promise = Promises.settable();
-      _scheduler.schedule(() -> promise.done(value), time, timeUnit);
-      return promise;
-    });
-  }
-
-  /**
-   * Returns task which fails with given error after specified period
-   * of time. Timer starts counting the moment this method is invoked.
-   */
-  protected <T> Task<T> delayedFailure(Throwable error, long time, TimeUnit timeUnit) {
-    return Task.async(error.toString() + " delayed " + time + " " + TimeUnitHelper.toString(timeUnit), () -> {
-      final SettablePromise<T> promise = Promises.settable();
-      _scheduler.schedule(() -> promise.fail(error), time, timeUnit);
-      return promise;
-    });
-  }
-
-  protected int countTasks(Trace trace) {
-    return trace.getTraceMap().size();
-  }
-
-  private static final class TaskDoneListener implements PlanCompletionListener {
-
-    private final ConcurrentMap<Task<?>, CountDownLatch> _taskDoneLatch = new ConcurrentHashMap<>();
-
-    @Override
-    public void onPlanCompleted(PlanContext planContext) {
-      CountDownLatch latch = _taskDoneLatch.computeIfAbsent(planContext.getRootTask(), key -> new CountDownLatch(1));
-      latch.countDown();
-    }
-
-    public void await(Task<?> root, long timeout, TimeUnit unit) throws InterruptedException {
-      CountDownLatch latch = _taskDoneLatch.computeIfAbsent(root, key -> new CountDownLatch(1));
-      latch.await(timeout, unit);
-    }
   }
 
 }
