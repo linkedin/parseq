@@ -68,6 +68,9 @@ public class ParSeqUnitTestHelper {
     _engineCustomizer = engineCustomizer;
   }
 
+  /**
+   * Creates Engine instance to be used for testing.
+   */
   @SuppressWarnings("deprecation")
   public void setUp() throws Exception {
     final int numCores = Runtime.getRuntime().availableProcessors();
@@ -98,9 +101,17 @@ public class ParSeqUnitTestHelper {
     _engine = engineBuilder.build();
   }
 
+  /**
+   * Equivalent to {@code tearDown(200, TimeUnit.MILLISECONDS);}.
+   * @see #tearDown(int, TimeUnit)
+   */
   public void tearDown() throws Exception {
+    tearDown(200, TimeUnit.MILLISECONDS);
+  }
+
+  public void tearDown(final int time, final TimeUnit unit) throws Exception {
     _engine.shutdown();
-    _engine.awaitTermination(200, TimeUnit.MILLISECONDS);
+    _engine.awaitTermination(time, unit);
     _engine = null;
     _scheduler.shutdownNow();
     _scheduler = null;
