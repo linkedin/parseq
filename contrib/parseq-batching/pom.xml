@@ -4,13 +4,13 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.linkedin.parseq</groupId>
     <artifactId>parseq-batching</artifactId>
-    <version>2.6.16</version>
+    <version>2.6.17</version>
 
     <dependencies>
         <dependency>
             <groupId>com.linkedin.parseq</groupId>
             <artifactId>parseq</artifactId>
-            <version>2.6.16</version>
+            <version>2.6.17</version>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>
@@ -21,7 +21,7 @@
         <dependency>
             <groupId>com.linkedin.parseq</groupId>
             <artifactId>parseq</artifactId>
-            <version>2.6.16</version>
+            <version>2.6.17</version>
             <classifier>test</classifier>
             <scope>test</scope>
         </dependency>

@@ -1,3 +1,8 @@
+v2.6.17
+------
+
+* Added ParSeqUnitTestHelper.tearDown(int, TimeUnit) method which waits for specified amount of time for all currently running plans to complete.
+
 v2.6.16
 ------
 
