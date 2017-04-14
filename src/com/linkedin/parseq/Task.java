@@ -287,8 +287,6 @@ public interface Task<T> extends Promise<T>, Cancellable {
         SettablePromise<T> promise = Promises.settable();
         if (!that.isFailed()) {
           Task<?> sideEffect = func.apply(that.get());
-          //TODO test that none of changed methods hang
-          //TODO add javadoc about returning null
           if (sideEffect == null) {
             throw new RuntimeException(desc + " returned null");
           } else {
