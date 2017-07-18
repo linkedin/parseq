@@ -26,9 +26,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 
 import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.internal.ContextImpl;
+import com.linkedin.parseq.internal.ExecutionMonitor;
 import com.linkedin.parseq.internal.LIFOBiPriorityQueue;
 import com.linkedin.parseq.internal.PlanCompletionListener;
 import com.linkedin.parseq.internal.PlanDeactivationListener;
@@ -64,6 +66,30 @@ public class Engine {
   private static final State TERMINATED = new State(StateName.TERMINATED, 0);
   private static final Logger LOG = LoggerFactory.getLogger(LOGGER_BASE);
 
+  public static final String MAX_EXECUTION_MONITORS = "_MaxExecutionMonitors_";
+  private static final int DEFAULT_MAX_EXECUTION_MONITORS = 1024;
+
+  public static final String MONITOR_EXECUTION = "_MonitorExecution_";
+  private static final boolean DEFAULT_MONITOR_EXECUTION = false;
+
+  public static final String EXECUTION_MONITOR_DURATION_THRESHOLD_NANO = "_ExecutionMonitorDurationThresholdNano_";
+  private static final long DEFAULT_EXECUTION_MONITOR_DURATION_THRESHOLD_NANO = TimeUnit.SECONDS.toNanos(1);
+
+  public static final String EXECUTION_MONITOR_CHECK_INTERVAL_NANO = "_ExecutionMonitorCheckIntervaldNano_";
+  private static final long DEFAULT_EXECUTION_MONITOR_CHECK_INTERVAL_NANO = TimeUnit.MILLISECONDS.toNanos(10);
+
+  public static final String EXECUTION_MONITOR_IDLE_DURATION_NANO = "_ExecutionMonitorIdleDurationNano_";
+  private static final long DEFAULT_EXECUTION_MONITOR_IDLE_DURATION_NANO = TimeUnit.MINUTES.toNanos(1);
+
+  public static final String EXECUTION_MONITOR_LOGGING_INTERVAL_NANO = "_ExecutionMonitorLoggingIntervalNano_";
+  private static final long DEFAULT_EXECUTION_MONITOR_LOGGING_INTERVAL_NANO = TimeUnit.MINUTES.toNanos(1);
+
+  public static final String EXECUTION_MONITOR_MIN_STALL_NANO = "_ExecutionMonitorMinStallNano_";
+  private static final long DEFAULT_EXECUTION_MONITOR_MIN_STALL_NANO = TimeUnit.MILLISECONDS.toNanos(10);
+
+  public static final String EXECUTION_MONITOR_LOG_LEVEL = "_ExecutionMonitorLogLevel_";
+  private static final Level DEFAULT_EXECUTION_MONITOR_LOG_LEVEL = Level.WARN;
+
   private static enum StateName {
     RUN,
     SHUTDOWN,
@@ -86,6 +112,8 @@ public class Engine {
   private final Semaphore _concurrentPlans;
 
   private final boolean _drainSerialExecutorQueue;
+
+  private final ExecutionMonitor _executionMonitor;
 
   private final PlanDeactivationListener _planDeactivationListener;
   private final PlanCompletionListener _planCompletionListener;
@@ -159,6 +187,49 @@ public class Engine {
       }
     };
 
+    int maxMonitors = DEFAULT_MAX_EXECUTION_MONITORS;
+    if (_properties.containsKey(MAX_EXECUTION_MONITORS)) {
+      maxMonitors = (Integer) getProperty(MAX_EXECUTION_MONITORS);
+    }
+
+    long durationThresholdNano = DEFAULT_EXECUTION_MONITOR_DURATION_THRESHOLD_NANO;
+    if (_properties.containsKey(EXECUTION_MONITOR_DURATION_THRESHOLD_NANO)) {
+      durationThresholdNano = (Long) getProperty(EXECUTION_MONITOR_DURATION_THRESHOLD_NANO);
+    }
+
+    long checkIntervalNano = DEFAULT_EXECUTION_MONITOR_CHECK_INTERVAL_NANO;
+    if (_properties.containsKey(EXECUTION_MONITOR_CHECK_INTERVAL_NANO)) {
+      checkIntervalNano = (Long) getProperty(EXECUTION_MONITOR_CHECK_INTERVAL_NANO);
+    }
+
+    long idleDurationNano = DEFAULT_EXECUTION_MONITOR_IDLE_DURATION_NANO;
+    if (_properties.containsKey(EXECUTION_MONITOR_IDLE_DURATION_NANO)) {
+      idleDurationNano = (Long) getProperty(EXECUTION_MONITOR_IDLE_DURATION_NANO);
+    }
+
+    long loggingIntervalNano = DEFAULT_EXECUTION_MONITOR_LOGGING_INTERVAL_NANO;
+    if (_properties.containsKey(EXECUTION_MONITOR_LOGGING_INTERVAL_NANO)) {
+      loggingIntervalNano = (Long) getProperty(EXECUTION_MONITOR_LOGGING_INTERVAL_NANO);
+    }
+
+    long minStallNano = DEFAULT_EXECUTION_MONITOR_MIN_STALL_NANO;
+    if (_properties.containsKey(EXECUTION_MONITOR_MIN_STALL_NANO)) {
+      minStallNano = (Long) getProperty(EXECUTION_MONITOR_MIN_STALL_NANO);
+    }
+
+    Level level = DEFAULT_EXECUTION_MONITOR_LOG_LEVEL;
+    if (_properties.containsKey(EXECUTION_MONITOR_LOG_LEVEL)) {
+      level = (Level) getProperty(EXECUTION_MONITOR_LOG_LEVEL);
+    }
+
+    boolean monitorExecution = DEFAULT_MONITOR_EXECUTION;
+    if (_properties.containsKey(MONITOR_EXECUTION)) {
+      monitorExecution = (Boolean) getProperty(MONITOR_EXECUTION);
+    }
+
+    _executionMonitor = monitorExecution
+        ? new ExecutionMonitor(maxMonitors, durationThresholdNano, checkIntervalNano, idleDurationNano,
+            loggingIntervalNano, minStallNano, level) : null;
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -374,7 +445,7 @@ public class Engine {
 
     PlanContext planContext = new PlanContext(this, _taskExecutor, _timerExecutor, _loggerFactory, _allLogger,
         _rootLogger, planClass, task, _maxRelationshipsPerTrace, _planDeactivationListener, _planCompletionListener,
-        _taskQueueFactory.newTaskQueue(), _drainSerialExecutorQueue);
+        _taskQueueFactory.newTaskQueue(), _drainSerialExecutorQueue, _executionMonitor);
     new ContextImpl(planContext, task).runTask();
   }
 

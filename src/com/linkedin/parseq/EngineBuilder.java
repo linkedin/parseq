@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.internal.CachedLoggerFactory;
-import com.linkedin.parseq.internal.LIFOBiPriorityQueue;
 import com.linkedin.parseq.internal.PlanCompletionListener;
 import com.linkedin.parseq.internal.PlanDeactivationListener;
 
