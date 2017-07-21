@@ -1,3 +1,8 @@
+v2.6.18
+------
+
+* Added Execution Monitoring - mechanism which allows detecting long running tasks and potential programming bugs.
+
 v2.6.17
 ------
 

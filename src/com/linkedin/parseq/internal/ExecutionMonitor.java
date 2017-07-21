@@ -87,7 +87,7 @@ public class ExecutionMonitor {
    *
    * @param maxMonitors maximum number of monitored threads. It should be greater than expected number of threads
    * in ParSeq thread pool. When number of active threads exceeds this number then warning is logged and some threads
-   * are not being ignored.
+   * will be ignored.
    * @param durationThresholdNano specifies the duration of execution that is considered as exceedingly long. Thread
    * executing {@code Runnable} longer than this value will trigger log event containing thread dump and state of
    * all actively monitored threads.
@@ -234,14 +234,14 @@ public class ExecutionMonitor {
     } while(monitor != null);
   }
 
-  private void logMonitoredThreads(Set<ExecutionMonitorState> monitoreThreads) {
+  private void logMonitoredThreads(Set<ExecutionMonitorState> monitoredThreads) {
     StringBuilder sb = new StringBuilder();
 
     sb.append("Found ParSeq threads running longer than ")
       .append(DECIMAL_FORMAT.format(((double) _durationThresholdNano) / 1000000))
       .append("ms.\n\nMonitored ParSeq threads before thread dump: \n");
 
-    logMonitoredThreads(monitoreThreads, System.nanoTime(), sb);
+    logMonitoredThreads(monitoredThreads, System.nanoTime(), sb);
 
     sb.append("\nThread dump:\n\n");
 
@@ -249,7 +249,7 @@ public class ExecutionMonitor {
 
     sb.append("Monitored ParSeq threads after thread dump: \n");
 
-    logMonitoredThreads(monitoreThreads, System.nanoTime(), sb);
+    logMonitoredThreads(monitoredThreads, System.nanoTime(), sb);
 
     _logger.accept(sb.toString());
 
