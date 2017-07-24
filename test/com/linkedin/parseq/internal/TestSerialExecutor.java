@@ -37,7 +37,7 @@ public class TestSerialExecutor {
     _rejectionHandler = new CapturingExceptionHandler();
     _capturingDeactivationListener = new CapturingActivityListener();
     _serialExecutor = new SerialExecutor(_executorService, _rejectionHandler, _capturingDeactivationListener,
-        new FIFOPriorityQueue<>(), (boolean)testArgs[0]);
+        new FIFOPriorityQueue<>(), (boolean)testArgs[0], null);
   }
 
   @AfterMethod

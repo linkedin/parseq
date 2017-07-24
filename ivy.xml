@@ -27,9 +27,9 @@
     <dependencies>
         <dependency org="org.codehaus.jackson" name="jackson-core-asl" rev="1.8.8" conf="build->default"/>
         <dependency org="org.codehaus.jackson" name="jackson-mapper-asl" rev="1.8.8" conf="build->default"/>
-        <dependency org="org.slf4j" name="slf4j-api" rev="1.6.2" conf="build->default"/>
+        <dependency org="org.slf4j" name="slf4j-api" rev="1.7.25" conf="build->default"/>
         <dependency org="org.testng" name="testng" rev="6.9.9" conf="bootstrap->default; test->default"/>
-        <dependency org="org.slf4j" name="slf4j-log4j12" rev="1.6.2" conf="test->default"/>
+        <dependency org="org.slf4j" name="slf4j-log4j12" rev="1.7.25" conf="test->default"/>
         <dependency org="net.sourceforge.fmpp" name="fmpp" rev="0.9.15" conf="bootstrap->default"/>
     </dependencies>
 </ivy-module>
