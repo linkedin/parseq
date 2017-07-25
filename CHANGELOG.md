@@ -1,3 +1,8 @@
+v2.6.19
+------
+
+* Improved ExecutionMonitor by taking into consideration shortest observable delta between scheduled wake up and actual wake up.
+
 v2.6.18
 ------
 
