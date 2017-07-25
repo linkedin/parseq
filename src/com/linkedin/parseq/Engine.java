@@ -34,6 +34,7 @@ import com.linkedin.parseq.internal.ExecutionMonitor;
 import com.linkedin.parseq.internal.LIFOBiPriorityQueue;
 import com.linkedin.parseq.internal.PlanCompletionListener;
 import com.linkedin.parseq.internal.PlanDeactivationListener;
+import com.linkedin.parseq.internal.PlatformClock;
 import com.linkedin.parseq.internal.SerialExecutor;
 import com.linkedin.parseq.internal.SerialExecutor.TaskQueue;
 import com.linkedin.parseq.internal.PlanContext;
@@ -86,6 +87,9 @@ public class Engine {
 
   public static final String EXECUTION_MONITOR_MIN_STALL_NANO = "_ExecutionMonitorMinStallNano_";
   private static final long DEFAULT_EXECUTION_MONITOR_MIN_STALL_NANO = TimeUnit.MILLISECONDS.toNanos(10);
+
+  public static final String EXECUTION_MONITOR_STALLS_HISTORY_SIZE = "_ExecutionMonitorStallsHistorySize_";
+  private static final int DEFAULT_EXECUTION_MONITOR_STALLS_HISTORY_SIZE = 1024;
 
   public static final String EXECUTION_MONITOR_LOG_LEVEL = "_ExecutionMonitorLogLevel_";
   private static final Level DEFAULT_EXECUTION_MONITOR_LOG_LEVEL = Level.WARN;
@@ -217,6 +221,11 @@ public class Engine {
       minStallNano = (Long) getProperty(EXECUTION_MONITOR_MIN_STALL_NANO);
     }
 
+    int stallsHistorySize = DEFAULT_EXECUTION_MONITOR_STALLS_HISTORY_SIZE;
+    if (_properties.containsKey(EXECUTION_MONITOR_STALLS_HISTORY_SIZE)) {
+      stallsHistorySize = (Integer) getProperty(EXECUTION_MONITOR_STALLS_HISTORY_SIZE);
+    }
+
     Level level = DEFAULT_EXECUTION_MONITOR_LOG_LEVEL;
     if (_properties.containsKey(EXECUTION_MONITOR_LOG_LEVEL)) {
       level = (Level) getProperty(EXECUTION_MONITOR_LOG_LEVEL);
@@ -229,7 +238,7 @@ public class Engine {
 
     _executionMonitor = monitorExecution
         ? new ExecutionMonitor(maxMonitors, durationThresholdNano, checkIntervalNano, idleDurationNano,
-            loggingIntervalNano, minStallNano, level) : null;
+            loggingIntervalNano, minStallNano, stallsHistorySize, level, new PlatformClock()) : null;
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })

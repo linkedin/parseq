@@ -73,7 +73,10 @@ public class ExecutionMonitor {
   private final long _idleDurationNano;
   private final long _loggingIntervalNano;
   private final long _minStallNano;
+  private final int _stallsHistorySize;
   private final Consumer<String> _logger;
+  private final Clock _clock;
+  private volatile boolean _stopped = false;
 
   private final Set<ExecutionMonitorState> _monitors = new HashSet<>();
   private final TreeMap<Long, Long> _stalls = new TreeMap<>();
@@ -81,6 +84,7 @@ public class ExecutionMonitor {
 
   private long _lastMonitoringStep;
   private long _nextAllowedLogging;
+  private long _shortestObservedDelta = Long.MAX_VALUE;
 
   /**
    * Creates an instance of ExecutionMonitor and starts monitoring daemon thread.
@@ -100,16 +104,21 @@ public class ExecutionMonitor {
    * triggering thread dumps on events such as long STW GCs this class tries to identify stalls cause by external
    * factors by measuring the difference between time at which monitoring thread was woken up and scheduled wake up time.
    * The difference is considered to be a stall if it is larger than this parameter.
+   * @param stallsHistorySize size of the maximum stalls history to be kept in memory
    * @param level level at which log events containing state of monitored threads and thread dump is generated.
+   * @param clock clock implementation to be used.
    */
   public ExecutionMonitor(int maxMonitors, long durationThresholdNano, long checkIntervalNano, long idleDurationNano,
-      long loggingIntervalNano, long minStallNano, Level level) {
+      long loggingIntervalNano, long minStallNano, int stallsHistorySize, Level level, Clock clock) {
     _maxMonitors = maxMonitors;
     _durationThresholdNano = durationThresholdNano;
     _checkIntervalNano = checkIntervalNano;
     _idleDurationNano = idleDurationNano;
     _loggingIntervalNano = loggingIntervalNano;
     _minStallNano = minStallNano;
+    _stallsHistorySize = stallsHistorySize;
+    _clock = clock;
+
     switch(level) {
       case INFO:
         _logger = LOG::info;
@@ -140,15 +149,19 @@ public class ExecutionMonitor {
     return LOCAL_MONITOR.get();
   }
 
+  void shutdown() {
+    _stopped = true;
+  }
+
   /**
    * Main loop of monitoring thread.
    */
   private void monitor() {
-    _lastMonitoringStep = System.nanoTime();
+    _lastMonitoringStep = _clock.nanoTime();
     _nextAllowedLogging = _lastMonitoringStep;
-    while(true) {
+    while(!_stopped) {
       try {
-        Thread.sleep(_checkIntervalNano / 1000000, (int) (_checkIntervalNano % 1000000));
+        _clock.sleepNano(_checkIntervalNano);
       } catch (InterruptedException e) {
         break;
       }
@@ -157,7 +170,7 @@ public class ExecutionMonitor {
   }
 
   private void monitorStep() {
-    long currentTime = System.nanoTime();
+    long currentTime = _clock.nanoTime();
 
     checkForStall(currentTime);
 
@@ -205,7 +218,7 @@ public class ExecutionMonitor {
     //remove stalls that will not be used anymore
     trimStalls(oldestTimestamp);
 
-    _lastMonitoringStep = System.nanoTime();
+    _lastMonitoringStep = _clock.nanoTime();
   }
 
   /**
@@ -213,9 +226,16 @@ public class ExecutionMonitor {
    * then consider it a stall and remember it.
    */
   private void checkForStall(long currentTime) {
-    long stall = Math.max(0, currentTime - (_lastMonitoringStep + _checkIntervalNano));
+    long delta = currentTime - _lastMonitoringStep;
+    if (delta < _shortestObservedDelta) {
+      _shortestObservedDelta = delta;
+    }
+    long stall = Math.max(0, delta - _shortestObservedDelta);
     if (stall > _minStallNano) {
       _stalls.put(_lastMonitoringStep, stall);
+      if (_stalls.size() > _stallsHistorySize) {
+        _stalls.pollFirstEntry();
+      }
     }
   }
 
@@ -241,7 +261,7 @@ public class ExecutionMonitor {
       .append(DECIMAL_FORMAT.format(((double) _durationThresholdNano) / 1000000))
       .append("ms.\n\nMonitored ParSeq threads before thread dump: \n");
 
-    logMonitoredThreads(monitoredThreads, System.nanoTime(), sb);
+    logMonitoredThreads(monitoredThreads, _clock.nanoTime(), sb);
 
     sb.append("\nThread dump:\n\n");
 
@@ -249,7 +269,7 @@ public class ExecutionMonitor {
 
     sb.append("Monitored ParSeq threads after thread dump: \n");
 
-    logMonitoredThreads(monitoredThreads, System.nanoTime(), sb);
+    logMonitoredThreads(monitoredThreads, _clock.nanoTime(), sb);
 
     _logger.accept(sb.toString());
 
@@ -277,7 +297,7 @@ public class ExecutionMonitor {
     }
   }
 
-  private long getStallsSince(long lastUpdate) {
+  long getStallsSince(long lastUpdate) {
     long stall = 0;
     Entry<Long, Long> entry = _stalls.ceilingEntry(lastUpdate);
     while(entry != null) {
@@ -299,7 +319,7 @@ public class ExecutionMonitor {
     }
 
     public void activate() {
-      _lastUpdate = System.nanoTime();
+      _lastUpdate = _clock.nanoTime();
       _isActive = true;
       if (!_isMonitored) {
         _isMonitored = true;
@@ -308,7 +328,7 @@ public class ExecutionMonitor {
     }
 
     public void deactivate() {
-      _lastUpdate = System.nanoTime();
+      _lastUpdate = _clock.nanoTime();
       _isActive = false;
     }
 
