@@ -88,7 +88,7 @@ We can do various transforms on the data we retrieved. Here's a very simple tran
 
 The `sumLengths` task can be given to an engine for execution and its result value will be set to the sum of the length of the 3 fetched pages.
 
-Notice that we added descriptions to tasks. e.g. `map("sum", (g, y, b) -> g + y + b)`. Using ParSeq's [[trace visualization tools|Tracing]] we can visualize execution of the plan.
+Notice that we added descriptions to tasks. e.g. `map("sum", (g, y, b) -> g + y + b)`. Using ParSeq's [trace visualization tools](https://github.com/linkedin/parseq/wiki/Tracing) we can visualize execution of the plan.
 Waterfall graph shows tasks execution in time (notice how all GET requests are executed in parallel):
 
 ![sum-lengths-waterfall-example.png](images/sum-lengths-waterfall-example.png)
