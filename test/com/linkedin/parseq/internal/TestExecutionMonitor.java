@@ -193,6 +193,10 @@ public class TestExecutionMonitor extends BaseEngineTest {
 
     try {
 
+      for (int i = 0; i < 100; i++) {
+        run(Task.value(null));
+      }
+
       runAndWait(Task.action(() -> Thread.sleep(2000)));
 
       assertEquals(logAppender.getNumberOfLogEvents(), 1);

@@ -278,14 +278,14 @@ public class ExecutionMonitor {
   private void logMonitoredThreads(Set<ExecutionMonitorState> monitoredThreads, long currentTime, StringBuilder sb) {
     for (ExecutionMonitorState m : monitoredThreads) {
       long runTime = Math.max(0,  currentTime - m._lastUpdate);
-      if (runTime > _durationThresholdNano) {
+      if (runTime > _durationThresholdNano && m._isActive) {
         sb.append("(!) ");
       } else {
         sb.append("    ");
       }
       sb.append("Thread Id=")
       .append(m._threadId)
-      .append(" running for ")
+      .append(m._isActive ? " busy for " : " idle for ")
       .append(DECIMAL_FORMAT.format(((double)runTime) / 1000000))
       .append("ms\n");
     }
