@@ -1,3 +1,8 @@
+v2.6.20
+------
+
+* Fixed bug which caused logging idle threads as busy ones in Execution Monitoring.
+
 v2.6.19
 ------
 
