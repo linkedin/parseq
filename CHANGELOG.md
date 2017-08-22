@@ -1,3 +1,8 @@
+v2.6.21
+------
+
+* Include description of the task that timed out in TimeoutException created by Task.withTimeout().
+
 v2.6.20
 ------
 

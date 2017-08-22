@@ -217,6 +217,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
       fail("should have failed!");
     } catch (Exception ex) {
       assertEquals(ex.getCause().getClass(), Exceptions.TIMEOUT_EXCEPTION.getClass());
+      assertEquals(ex.getCause().getMessage(), "task: 'andThen: 0 delayed 110 ms' withTimeout 100ms");
     }
     assertEquals(countTasks(failure.getTrace()), 5);
   }

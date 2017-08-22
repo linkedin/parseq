@@ -805,12 +805,13 @@ public interface Task<T> extends Promise<T>, Cancellable {
     final Task<T> that = this;
     final String taskName = "withTimeout " + time + TimeUnitHelper.toString(unit) +
         (desc != null ? " " + desc : "");
+    final String timeoutExceptionMessage = "task: '" + getName() + "' " + taskName;
     Task<T> withTimeout = async(taskName, ctx -> {
       final AtomicBoolean committed = new AtomicBoolean();
       final SettablePromise<T> result = Promises.settable();
       final Task<?> timeoutTask = Task.action("timeout", () -> {
         if (committed.compareAndSet(false, true)) {
-          result.fail(Exceptions.timeoutException(taskName));
+          result.fail(Exceptions.timeoutException(timeoutExceptionMessage));
         }
       } );
       //timeout tasks should run as early as possible
