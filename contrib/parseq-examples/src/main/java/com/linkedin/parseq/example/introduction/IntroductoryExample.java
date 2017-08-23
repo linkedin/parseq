@@ -5,6 +5,7 @@ import com.linkedin.parseq.Task;
 import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.example.common.ExampleUtil;
 import com.linkedin.parseq.httpclient.HttpClient;
+import com.ning.http.client.Response;
 
 
 /**
@@ -17,8 +18,7 @@ public class IntroductoryExample extends AbstractExample {
   }
 
   private Task<String> fetchBody(String url) {
-    return HttpClient.get(url).task()
-        .map("getBody", response -> response.getResponseBody());
+    return HttpClient.get(url).task().map(Response::getResponseBody);
   }
 
   @Override
@@ -35,9 +35,9 @@ public class IntroductoryExample extends AbstractExample {
 //        .andThen(System.out::println);
 
     final Task<Integer> sumLengths =
-        Task.par(google.map("length", s -> s.length()),
-                 yahoo.map("length", s -> s.length()),
-                 bing.map("length",s -> s.length()))
+        Task.par(google.map(String::length),
+                 yahoo.map(String::length),
+                 bing.map(String::length))
              .map("sum", (g, y, b) -> g + y + b);
 
     engine.run(sumLengths);
