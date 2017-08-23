@@ -41,7 +41,7 @@ In this code snippet we don't really get any benefit from ParSeq. Essentially we
 
 ```java
     final Task<String> google = HttpClient.get("http://www.google.com").task()
-        .map(response -> response.getResponseBody())
+        .map(Response::getResponseBody)
         .andThen(body -> System.out.println("Google Page: " + body));
 
     engine.run(google);
@@ -53,8 +53,7 @@ First, let's create a helper method that creates a task responsible for fetching
 
 ```java
     private Task<String> fetchBody(String url) {
-      return HttpClient.get(url).task()
-        .map("getBody", response -> response.getResponseBody());
+      return HttpClient.get(url).task().map(Response::getResponseBody);
     }
 ```
 
@@ -80,9 +79,9 @@ We can do various transforms on the data we retrieved. Here's a very simple tran
 
 ```java
     final Task<Integer> sumLengths =
-        Task.par(google.map("length", s -> s.length()),
-                 yahoo.map("length", s -> s.length()),
-                 bing.map("length", s -> s.length()))
+        Task.par(google.map(String::length),
+                 yahoo.map(String::length),
+                 bing.map(String::length))
              .map("sum", (g, y, b) -> g + y + b);
 ```
 
