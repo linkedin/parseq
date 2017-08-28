@@ -29,6 +29,11 @@ Run server passing path to `dot` as an argument e.g. `java -jar parseq-tracevis-
 You can optionally specify port number, by default it will run on port 8080.
 
 
+Docker
+======================================
+
+To start tracevis server using docker: `docker run -d -p 8080:8080 jodzga/parseq-tracevis-server:latest`. The server is accessible at [http://localhost:8080](http://localhost:8080).
+
 More Info
 =========
 
