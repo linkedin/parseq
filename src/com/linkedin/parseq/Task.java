@@ -431,6 +431,20 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * </pre></blockquote>
    * <img src="https://raw.githubusercontent.com/linkedin/parseq/master/src/com/linkedin/parseq/doc-files/andThen-3.png" height="90" width="462"/>
    *
+   * <p>
+   *
+   * Task passed in as a parameter is typically not started before this task starts.
+   * However, if task passed in as a parameter is completed before this task was started
+   * then this task will get cancelled and will not be executed at all. For example, if in above
+   * code snippet the {@code shipProduct} task is completed before the {@code processPayment}
+   * task is started then the {@code processPayment} task will be cancelled. This is the consequence
+   * of a general mechanism of task cancellation: parent task's completion automatically cancels
+   * all children tasks:
+   *
+   * <p>
+   *
+   * <img src="https://raw.githubusercontent.com/linkedin/parseq/master/src/com/linkedin/parseq/doc-files/andThen-4.png" height="152" width="462"/>
+   *
    * @param <R> return type of the <code>task</code>
    * @param desc description of a task, it will show up in a trace
    * @param task task which will be executed after completion of this task
