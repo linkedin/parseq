@@ -97,6 +97,21 @@ public class JavadocExamples extends AbstractExample {
 //    Task<?> shipAfterPayment =
 //        processPayment.andThen("shipProductAterPayment", shipProduct);
 
+//andThen-4
+  // task that processes payment
+  Task<?> processPayment = Task.callable("processPayment", () -> "");
+
+  // task that ships product
+  Task<?> shipProduct = Task.action("ship", () -> {});
+  engine.run(shipProduct);
+  shipProduct.await();
+
+  // this task will ship product only if payment was
+  // successfully processed
+  Task<?> shipAfterPayment =
+      processPayment.andThen("shipProductAterPayment", shipProduct);
+
+
 
 //recover-1
 //    long id = 1234L;
@@ -160,14 +175,13 @@ public class JavadocExamples extends AbstractExample {
 //         .recoverWith(e -> fetchFromDB(id));
 
 //withtimeout-1
-    final Task<Response> google = HttpClient.get("http://google.com").task()
-        .withTimeout("global limit", 10, TimeUnit.MILLISECONDS);
+//    final Task<Response> google = HttpClient.get("http://google.com").task()
+//        .withTimeout("global limit", 10, TimeUnit.MILLISECONDS);
 
-    engine.run(google);
+  engine.run(shipAfterPayment);
+  shipAfterPayment.await();
 
-    google.await();
-
-    ExampleUtil.printTracingResults(google);
+    ExampleUtil.printTracingResults(shipAfterPayment);
   }
 
   Task<Person> fetchFromCache(Long id) {
