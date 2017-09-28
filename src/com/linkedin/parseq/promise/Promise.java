@@ -104,6 +104,9 @@ public interface Promise<P> {
    * notified immediately.
    * <p>
    * Listener will be called on a thread that completed this promise.
+   * <p>
+   * The instance passed in to {@link PromiseListener#onResolved(Promise)} method does not have to
+   * be the exact same instance the {@code PromiseListener} was registered with.
    *
    * @param listener the listener to add to this promise
    */

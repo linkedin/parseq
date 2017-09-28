@@ -17,9 +17,10 @@
 package com.linkedin.parseq.promise;
 
 /**
- * A listener can be registered with a promise. When that promise is resolved
+ * A listener that can be registered with a promise. When that promise is resolved
  * (either it has a value or an error) the {@link #onResolved(Promise)} method will
- * be invoked.
+ * be invoked. The instance passed in to {@code onResolved} method does not have to
+ * be the exact same instance the {@code PromiseListener} was registered with.
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Chi Chan (ckchan@linkedin.com)
@@ -32,7 +33,8 @@ public interface PromiseListener<P> {
    * A callback method that is invoked when the promise completes. The code
    * in this method should not block.
    *
-   * @param promise the promise that was completed
+   * @param promise the promise containing result. It is not guaranteed that it is exact same
+   * instance the {@code PromiseListener} was registered with.
    */
   void onResolved(Promise<P> promise);
 }
