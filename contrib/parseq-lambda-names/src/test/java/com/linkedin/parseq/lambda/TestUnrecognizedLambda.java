@@ -4,9 +4,14 @@ import static org.testng.Assert.assertTrue;
 
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import org.testng.annotations.Test;
+
+import com.linkedin.parseq.function.Function1;
+import com.linkedin.parseq.promise.PromiseTransformer;
 
 
 public class TestUnrecognizedLambda extends BaseTest {
@@ -134,4 +139,26 @@ public class TestUnrecognizedLambda extends BaseTest {
     assertTrue(description.isPresent());
     assertNameMatch("", "testNestedCallbackLambdas", CLASSNAME, description.get());
   }
+
+  private class Nest implements Callable<Optional<String>> {
+    private final Callable<Optional<String>> _callable;
+    public Nest(Callable<Optional<String>> callable) {
+      _callable = callable;
+    }
+    @Override
+    public Optional<String> call() throws Exception {
+      return _callable.call();
+    }
+  }
+
+  @Test
+  public void testDeeplyNestedCallbackLambdas() throws Exception {
+    Callable<Optional<String>> c = new Nest(() -> {
+        return getDescriptionForCallable(() -> "hello");
+    });
+    Optional<String> description = c.call();
+    assertTrue(description.isPresent());
+    assertNameMatch("", "", CLASSNAME, description.get());
+  }
+
 }

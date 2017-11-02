@@ -1,6 +1,7 @@
 package com.linkedin.parseq.lambda;
 
 import java.util.function.Consumer;
+
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -10,25 +11,20 @@ class LambdaMethodVisitor extends MethodVisitor {
 
   private SourcePointer _lambdaSourcePointer;
   private Consumer<InferredOperation> _inferredOperationConsumer;
-  private Consumer<Integer> _lineNumberConsumer;
   private boolean _visitedFirstInsn;
   private boolean _containsSyntheticLambda;
-
   private String _methodInsnOwner;
   private String _methodInsnName;
-  private String _methodInsnDesc;
   private int _methodInsnOpcode;
 
   private ClassLoader _loader;
 
   LambdaMethodVisitor(int api, MethodVisitor mv, SourcePointer lambdaSourcePointer,
                               Consumer<InferredOperation> inferredOperationConsumer,
-                              Consumer<Integer> lineNumberConsumer,
                               ClassLoader loader) {
     super(api, mv);
     _lambdaSourcePointer = lambdaSourcePointer;
     _inferredOperationConsumer = inferredOperationConsumer;
-    _lineNumberConsumer = lineNumberConsumer;
     _visitedFirstInsn = false;
     _containsSyntheticLambda = false;
     _loader = loader;
@@ -66,7 +62,11 @@ class LambdaMethodVisitor extends MethodVisitor {
         _inferredOperationConsumer.accept(new InferredOperation(syntheticLambdaAnalyzer.getInferredOperation()));
         int inferredLineNumber = syntheticLambdaAnalyzer.getLineNumber();
         if (inferredLineNumber != -1) {
-          _lineNumberConsumer.accept(inferredLineNumber);
+          _lambdaSourcePointer.setLineNumber(inferredLineNumber);
+          if (!_lambdaSourcePointer.getClassName().equals(classToVisit)) {
+            _lambdaSourcePointer.setClassName(classToVisit);
+            _lambdaSourcePointer.setCallingMethod(null);
+          }
         }
       }
     } else {
@@ -91,7 +91,6 @@ class LambdaMethodVisitor extends MethodVisitor {
   private void handleMethodInvoke(String owner, String name, String desc, int opcode) {
     _methodInsnName = name;
     _methodInsnOwner = owner;
-    _methodInsnDesc = desc;
     _methodInsnOpcode = opcode;
     _containsSyntheticLambda = name.startsWith("lambda$");
   }

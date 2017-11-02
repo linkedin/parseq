@@ -89,9 +89,15 @@ class BaseTest {
   void assertNameMatch(String inferredFunction, String callerMethodName, String callerClassName,
                                   String lambdaClassDescription) {
     if (inferredFunction.isEmpty()) {
-      Pattern p = Pattern.compile(callerMethodName + "\\(" + callerClassName + ":\\d+\\)");
-      Matcher m = p.matcher(lambdaClassDescription);
-      assertTrue(m.matches());
+      if (callerMethodName.isEmpty()) {
+        Pattern p = Pattern.compile(callerClassName + ":\\d+");
+        Matcher m = p.matcher(lambdaClassDescription);
+        assertTrue(m.matches());
+      } else {
+        Pattern p = Pattern.compile(callerMethodName + "\\(" + callerClassName + ":\\d+\\)");
+        Matcher m = p.matcher(lambdaClassDescription);
+        assertTrue(m.matches());
+      }
     } else {
       Pattern p = Pattern.compile(Pattern.quote(inferredFunction) + " "
           + callerMethodName + "\\(" + callerClassName+ ":\\d+\\)");

@@ -5,9 +5,8 @@ import java.util.Optional;
 
 class SourcePointer {
 
-  final String _className;
-  final String _callingMethod;
-
+  String _className;
+  String _callingMethod;
   int _lineNumber;
 
   private SourcePointer(String className, String methodName, Integer lineNumber) {
@@ -49,9 +48,25 @@ class SourcePointer {
     _lineNumber = lineNumber;
   }
 
+  public void setClassName(String className) {
+    _className = className;
+  }
+
+  public void setCallingMethod(String callingMethod) {
+    _callingMethod = callingMethod;
+  }
+
+  public String getClassName() {
+    return _className;
+  }
+
   @Override
   public String toString() {
-    return _callingMethod + "(" + Util.extractSimpleName(_className, ".") + (_lineNumber > 0 ? ":" + _lineNumber : "")
-        + ")";
+    String classAndLine = Util.extractSimpleName(_className, ".") + (_lineNumber > 0 ? ":" + _lineNumber : "");
+    if (_callingMethod != null) {
+      return _callingMethod + "(" + classAndLine + ")";
+    } else {
+      return classAndLine;
+    }
   }
 }

@@ -48,15 +48,11 @@ class LambdaClassLocator extends ClassVisitor {
     }
 
     //parse generated lambda code to get details about operation
-    return new LambdaMethodVisitor(api, mv, _sourcePointer, this::setInferredOperation, this::setLineNumber, _loader);
+    return new LambdaMethodVisitor(api, mv, _sourcePointer, this::setInferredOperation, _loader);
   }
 
   private void setInferredOperation(InferredOperation inferredOperation) {
     _inferredOperation = inferredOperation;
-  }
-
-  private void setLineNumber(int lineNumber) {
-    _sourcePointer.setLineNumber(lineNumber);
   }
 
   boolean isLambdaClass() {
