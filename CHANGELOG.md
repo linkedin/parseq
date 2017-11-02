@@ -1,3 +1,8 @@
+v2.6.22
+------
+
+* Improved generation of task descriptions for deeply nested structures, see issue #145 on Github.
+
 v2.6.21
 ------
 
