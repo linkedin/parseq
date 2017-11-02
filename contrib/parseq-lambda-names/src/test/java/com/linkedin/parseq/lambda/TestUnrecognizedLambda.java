@@ -4,15 +4,9 @@ import static org.testng.Assert.assertTrue;
 
 import java.util.Optional;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 import org.testng.annotations.Test;
-
-import com.linkedin.parseq.function.Function1;
-import com.linkedin.parseq.promise.PromiseTransformer;
-
 
 public class TestUnrecognizedLambda extends BaseTest {
 
