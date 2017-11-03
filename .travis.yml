@@ -2,5 +2,7 @@ language: java
 script: ant -Dtestng.verbosity=2 test
 jdk:
   - oraclejdk8
-node_js:
-  - "5"
+before_install:
+  - nvm install 5
+  - nvm use 5
+  - node --version
