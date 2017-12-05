@@ -43,7 +43,7 @@ interface RequestGroup {
         && config.isBatchingEnabled().getValue();
   }
 
-  <RT extends RecordTemplate> void executeBatch(RestClient restClient,
+  <RT extends RecordTemplate> void executeBatch(Client client,
       Batch<RestRequestBatchKey, Response<Object>> batch, Function<Request<?>, RequestContext> requestContextProvider);
 
   <K, V> String getBatchName(Batch<K, V> batch);
