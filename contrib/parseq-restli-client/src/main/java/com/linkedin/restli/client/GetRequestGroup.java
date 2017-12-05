@@ -191,7 +191,7 @@ class GetRequestGroup implements RequestGroup {
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
-  private <K, RT extends RecordTemplate> void doExecuteBatchGet(final RestClient restClient,
+  private <K, RT extends RecordTemplate> void doExecuteBatchGet(final Client client,
     final Batch<RestRequestBatchKey, Response<Object>> batch, final Set<Object> ids, final Set<PathSpec> fields,
     Function<Request<?>, RequestContext> requestContextProvider) {
     final BatchGetEntityRequestBuilder<K, RT> builder = new BatchGetEntityRequestBuilder<>(_baseUriTemplate, _resourceSpec, _requestOptions);
@@ -205,7 +205,7 @@ class GetRequestGroup implements RequestGroup {
 
     final BatchGetEntityRequest<K, RT> batchGet = builder.build();
 
-    restClient.sendRequest(batchGet, requestContextProvider.apply(batchGet), new Callback<Response<BatchKVResponse<K, EntityResponse<RT>>>>() {
+    client.sendRequest(batchGet, requestContextProvider.apply(batchGet), new Callback<Response<BatchKVResponse<K, EntityResponse<RT>>>>() {
 
       @Override
       public void onSuccess(Response<BatchKVResponse<K, EntityResponse<RT>>> responseToBatch) {
@@ -298,7 +298,7 @@ class GetRequestGroup implements RequestGroup {
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
-  private <K, RT extends RecordTemplate> void doExecuteGet(final RestClient restClient,
+  private <K, RT extends RecordTemplate> void doExecuteGet(final Client client,
       final Batch<RestRequestBatchKey, Response<Object>> batch, final Set<Object> ids, final Set<PathSpec> fields,
       Function<Request<?>, RequestContext> requestContextProvider) {
 
@@ -314,7 +314,7 @@ class GetRequestGroup implements RequestGroup {
 
     final GetRequest<RT> get = builder.build();
 
-    restClient.sendRequest(get, requestContextProvider.apply(get), new Callback<Response<RT>>() {
+    client.sendRequest(get, requestContextProvider.apply(get), new Callback<Response<RT>>() {
 
       @Override
       public void onError(Throwable e) {
@@ -357,7 +357,7 @@ class GetRequestGroup implements RequestGroup {
   }
 
   @Override
-  public <RT extends RecordTemplate> void executeBatch(final RestClient restClient, final Batch<RestRequestBatchKey, Response<Object>> batch,
+  public <RT extends RecordTemplate> void executeBatch(final Client client, final Batch<RestRequestBatchKey, Response<Object>> batch,
       Function<Request<?>, RequestContext> requestContextProvider) {
     final Tuple3<Set<Object>, Set<PathSpec>, Boolean> reductionResults = reduceRequests(batch);
     final Set<Object> ids = reductionResults._1();
@@ -367,9 +367,9 @@ class GetRequestGroup implements RequestGroup {
     LOGGER.debug("executeBatch, ids: '{}', fields: {}", ids, fields);
 
     if (ids.size() == 1 && !containsBatchGet) {
-      doExecuteGet(restClient, batch, ids, fields, requestContextProvider);
+      doExecuteGet(client, batch, ids, fields, requestContextProvider);
     } else {
-      doExecuteBatchGet(restClient, batch, ids, fields, requestContextProvider);
+      doExecuteBatchGet(client, batch, ids, fields, requestContextProvider);
     }
   }
 

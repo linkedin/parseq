@@ -19,7 +19,7 @@ public class ParSeqRestliClientBuilder {
 
   private static final String DEFAULT_CONFIG = "default";
 
-  private RestClient _restClient;
+  private Client _client;
   private ParSeqRestliClientConfig _config;
   Map<String, ParSeqRestliClientConfig> _configs;
   ParSeqRestliClientConfigChooser _configChooser;
@@ -57,7 +57,7 @@ public class ParSeqRestliClientBuilder {
         request -> new RequestContext() :
         _requestContextProvider;
 
-    ParSeqRestClient parseqClient = new ParSeqRestClient(_restClient, configProvider, requestContextProvider);
+    ParSeqRestClient parseqClient = new ParSeqRestClient(_client, configProvider, requestContextProvider);
     if (_batchingSupport != null) {
       LOGGER.debug("Found batching support");
       _batchingSupport.registerStrategy(parseqClient);
@@ -67,8 +67,8 @@ public class ParSeqRestliClientBuilder {
     return parseqClient;
   }
 
-  public RestClient getRestClient() {
-    return _restClient;
+  public Client getRestClient() {
+    return _client;
   }
 
   public ParSeqRestliClientBuilder setBatchingSupport(BatchingSupport batchingSupport) {
@@ -76,9 +76,9 @@ public class ParSeqRestliClientBuilder {
     return this;
   }
 
-  public ParSeqRestliClientBuilder setRestClient(RestClient restClient) {
-    ArgumentUtil.requireNotNull(restClient, "restClient");
-    _restClient = restClient;
+  public ParSeqRestliClientBuilder setRestClient(Client client) {
+    ArgumentUtil.requireNotNull(client, "client");
+    _client = client;
     return this;
   }
 
