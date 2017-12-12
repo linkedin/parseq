@@ -1,3 +1,8 @@
+v2.6.23
+------
+
+* Change the underlying client of ParSeqRestClient from the RestClient class to the Client interface.
+
 v2.6.22
 ------
 
