@@ -1,3 +1,8 @@
+v2.6.24
+------
+
+* Adds back #setRestClient method with RestClient as the parameter to maintain binary backward-compatibility.
+
 v2.6.23
 ------
 

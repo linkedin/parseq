@@ -67,6 +67,13 @@ public class ParSeqRestliClientBuilder {
     return parseqClient;
   }
 
+  /**
+   * Gets the underlying Rest.li client implementation.
+   *
+   * @deprecated Calling #get in a builder is an anti-pattern
+   * @return The underlying Rest.li client
+   */
+  @Deprecated
   public Client getRestClient() {
     return _client;
   }
@@ -76,7 +83,21 @@ public class ParSeqRestliClientBuilder {
     return this;
   }
 
-  public ParSeqRestliClientBuilder setRestClient(Client client) {
+  /**
+   * Sets the underlying Rest.li client implementation.
+   *
+   * @param client The underlying Rest.li client
+   * @deprecated Use #setClient instead
+   * @return The builder itself
+   */
+  @Deprecated
+  public ParSeqRestliClientBuilder setRestClient(RestClient client) {
+    ArgumentUtil.requireNotNull(client, "client");
+    _client = client;
+    return this;
+  }
+
+  public ParSeqRestliClientBuilder setClient(Client client) {
     ArgumentUtil.requireNotNull(client, "client");
     _client = client;
     return this;
