@@ -80,6 +80,19 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
     _requestContextProvider = request -> new RequestContext();
   }
 
+  /**
+   * Creates new ParSeqRestClient with default configuration.
+   *
+   * @deprecated Please use {@link ParSeqRestliClientBuilder} to create instances.
+   */
+  @Deprecated
+  public ParSeqRestClient(final RestClient client) {
+    ArgumentUtil.requireNotNull(client, "client");
+    _client = client;
+    _clientConfig = RequestConfigProvider.build(new ParSeqRestliClientConfigBuilder().build(), () -> Optional.empty());
+    _requestContextProvider = request -> new RequestContext();
+  }
+
   @Override
   public <T> Promise<Response<T>> sendRequest(final Request<T> request) {
     return sendRequest(request, _requestContextProvider.apply(request));

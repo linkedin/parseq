@@ -1,3 +1,8 @@
+v2.6.25
+------
+
+* Adds back ParSeqRestClient(RestClient) constructor to maintain binary backward-compatibility.
+
 v2.6.24
 ------
 
