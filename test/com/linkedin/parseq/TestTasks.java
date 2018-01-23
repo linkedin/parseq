@@ -25,6 +25,8 @@ import static org.testng.AssertJUnit.fail;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -87,6 +89,53 @@ public class TestTasks extends BaseEngineTest {
 
     runAndWait("TestTasks.testAwait", task);
     assertEquals(Boolean.TRUE, resultRef.get());
+  }
+
+  @Test
+  public void testToTask() {
+    final AtomicReference<Boolean> resultRef = new AtomicReference<Boolean>(false);
+    Task<String> task = ParSeqHelper.toTask(() ->{
+      CompletableFuture<String> completableFuture
+          = CompletableFuture.supplyAsync(() -> {
+        resultRef.set(true);
+        return "";
+      });
+      return completableFuture;
+    });
+    runAndWait("testToTask.success", task);
+    assertEquals(Boolean.TRUE, resultRef.get());
+  }
+
+  @Test
+  public void testToTaskWithFailure() {
+    final AtomicReference<Boolean> resultRef = new AtomicReference<Boolean>(false);
+    Task<String> task = ParSeqHelper.toTask(() ->{
+      CompletableFuture<String> completableFuture
+          = CompletableFuture.supplyAsync(() -> {
+        try {
+          Thread.sleep(10000);
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+        resultRef.set(true);
+        return "";
+      });
+      return completableFuture;
+    });
+    run(task);
+    assertEquals(Boolean.FALSE, resultRef.get());
+  }
+
+  @Test
+  public void testToTaskWithException() {
+    Task<String> task = ParSeqHelper.toTask(() ->{
+      CompletableFuture<String> completableFuture
+          = CompletableFuture.supplyAsync(() -> {
+        throw new RuntimeException();
+      });
+      return completableFuture;
+    });
+    runAndWaitException(task, CompletionException.class);
   }
 
   @Test
