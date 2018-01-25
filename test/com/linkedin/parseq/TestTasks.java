@@ -94,7 +94,7 @@ public class TestTasks extends BaseEngineTest {
   @Test
   public void testToTask() {
     final AtomicReference<Boolean> resultRef = new AtomicReference<Boolean>(false);
-    Task<String> task = ParSeqHelper.toTask(() ->{
+    Task<String> task = Task.fromFuture(() ->{
       CompletableFuture<String> completableFuture
           = CompletableFuture.supplyAsync(() -> {
         resultRef.set(true);
@@ -109,7 +109,7 @@ public class TestTasks extends BaseEngineTest {
   @Test
   public void testToTaskWithFailure() {
     final AtomicReference<Boolean> resultRef = new AtomicReference<Boolean>(false);
-    Task<String> task = ParSeqHelper.toTask(() ->{
+    Task<String> task = Task.fromFuture(() ->{
       CompletableFuture<String> completableFuture
           = CompletableFuture.supplyAsync(() -> {
         try {
@@ -128,7 +128,7 @@ public class TestTasks extends BaseEngineTest {
 
   @Test
   public void testToTaskWithException() {
-    Task<String> task = ParSeqHelper.toTask(() ->{
+    Task<String> task = Task.fromFuture(() ->{
       CompletableFuture<String> completableFuture
           = CompletableFuture.supplyAsync(() -> {
         throw new RuntimeException();

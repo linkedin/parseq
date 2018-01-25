@@ -18,6 +18,7 @@ package com.linkedin.parseq;
 
 import java.util.Collection;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -48,6 +49,8 @@ import com.linkedin.parseq.trace.ShallowTrace;
 import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.Trace;
 import com.linkedin.parseq.trace.TraceBuilder;
+
+import static com.linkedin.parseq.Task.*;
 
 
 /**
@@ -1023,6 +1026,43 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   public static <T> Task<T> callable(final Callable<? extends T> callable) {
     return callable("callable: " + _taskDescriptor.getDescription(callable.getClass().getName()), callable);
+  }
+
+  /**
+   * Creates a new task that's value will be set to the value returned
+   * from the CompletionStage.
+   *
+   * Returned task will fail if callable passed in as a parameter throws
+   * an exception.
+   *
+   * @param <T> the type of the return value for this task
+   * @param desc description of the task, it will show up in a trace
+   * @param callable the callable to execute when this task is run
+   * @return the new task that will invoke the callable and complete CompletionStage with its result
+   */
+    public static <T> Task<T> fromFuture(final String desc, final Callable<CompletionStage<? extends T>> callable)
+    {
+    return async(desc, () -> {
+      final SettablePromise<T> promise = Promises.settable();
+      CompletionStage<? extends T> future = callable.call();
+      future.whenComplete((value, exception) -> {
+        if (exception != null) {
+          promise.fail(exception);
+        }
+        else {
+          promise.done(value);
+        }
+      });
+      return promise;
+    });
+  }
+
+  /**
+   * Equivalent to {@code fromFuture("fromFuture", callable)}.
+   * @see #fromFuture(Callable) (String, Callable)
+   */
+  public static <T> Task<T> fromFuture(final Callable<CompletionStage<? extends T>> callable) {
+    return fromFuture("fromFuture: " + _taskDescriptor.getDescription(callable.getClass().getName()), callable);
   }
 
   /**
