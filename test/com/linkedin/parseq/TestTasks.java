@@ -92,42 +92,40 @@ public class TestTasks extends BaseEngineTest {
   }
 
   @Test
-  public void testToTask() {
-    final AtomicReference<Boolean> resultRef = new AtomicReference<Boolean>(false);
+  public void testFromFuture() {
+    String result = "FROMFUTURERESULT";
     Task<String> task = Task.fromFuture(() ->{
       CompletableFuture<String> completableFuture
-          = CompletableFuture.supplyAsync(() -> {
-        resultRef.set(true);
-        return "";
-      });
+          = CompletableFuture.supplyAsync(() -> result);
       return completableFuture;
     });
-    runAndWait("testToTask.success", task);
-    assertEquals(Boolean.TRUE, resultRef.get());
+    String taskResult = runAndWait("testToTask.success", task);
+    assertEquals(result, taskResult);
   }
 
   @Test
-  public void testToTaskWithFailure() {
-    final AtomicReference<Boolean> resultRef = new AtomicReference<Boolean>(false);
+  public void testFromFutureWithTimeConsumingFuture() throws InterruptedException {
+    String result = "FROMFUTURERESULT";
     Task<String> task = Task.fromFuture(() ->{
       CompletableFuture<String> completableFuture
           = CompletableFuture.supplyAsync(() -> {
         try {
-          Thread.sleep(10000);
+          Thread.sleep(1000);
         } catch (InterruptedException e) {
           throw new RuntimeException(e);
         }
-        resultRef.set(true);
-        return "";
+        return result;
       });
       return completableFuture;
     });
     run(task);
-    assertEquals(Boolean.FALSE, resultRef.get());
+    assertFalse(task.await(500, TimeUnit.MILLISECONDS));
+    assertTrue(task.await(1000, TimeUnit.MILLISECONDS));
+    assertEquals(result, task.get());
   }
 
   @Test
-  public void testToTaskWithException() {
+  public void testFromFutureWithCompletionStageException() {
     Task<String> task = Task.fromFuture(() ->{
       CompletableFuture<String> completableFuture
           = CompletableFuture.supplyAsync(() -> {
@@ -136,6 +134,14 @@ public class TestTasks extends BaseEngineTest {
       return completableFuture;
     });
     runAndWaitException(task, CompletionException.class);
+  }
+
+  @Test
+  public void testFromFutureWithCallableException() {
+    Task<String> task = Task.fromFuture(() ->{
+      throw new RuntimeException();
+    });
+    runAndWaitException(task, RuntimeException.class);
   }
 
   @Test

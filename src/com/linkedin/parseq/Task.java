@@ -1038,7 +1038,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @param <T> the type of the return value for this task
    * @param desc description of the task, it will show up in a trace
    * @param callable the callable to execute when this task is run
-   * @return the new task that will invoke the callable and complete CompletionStage with its result
+   * @return the new task that will invoke the callable and complete with result of returned CompletionStage
    */
     public static <T> Task<T> fromFuture(final String desc, final Callable<CompletionStage<? extends T>> callable)
     {
