@@ -50,8 +50,6 @@ import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.Trace;
 import com.linkedin.parseq.trace.TraceBuilder;
 
-import static com.linkedin.parseq.Task.*;
-
 
 /**
  * A task represents a deferred execution that also contains its resulting

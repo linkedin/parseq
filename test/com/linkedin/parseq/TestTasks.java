@@ -99,7 +99,7 @@ public class TestTasks extends BaseEngineTest {
           = CompletableFuture.supplyAsync(() -> result);
       return completableFuture;
     });
-    runAndWait("testToTask.success", task);
+    runAndWait("testFromFuture", task);
     assertEquals(result, task.get());
   }
 
@@ -118,7 +118,7 @@ public class TestTasks extends BaseEngineTest {
       });
       return completableFuture;
     });
-    runAndWait(task);
+    runAndWait("testFromFutureWithTimeConsumingFuture", task);
     assertEquals(result, task.get());
   }
 
@@ -131,7 +131,7 @@ public class TestTasks extends BaseEngineTest {
       });
       return completableFuture;
     });
-    runAndWaitException(task, CompletionException.class);
+    runAndWaitException("testFromFutureWithCompletionStageException", task, CompletionException.class);
   }
 
   @Test
@@ -139,7 +139,7 @@ public class TestTasks extends BaseEngineTest {
     Task<String> task = Task.fromFuture(() ->{
       throw new RuntimeException();
     });
-    runAndWaitException(task, RuntimeException.class);
+    runAndWaitException("testFromFutureWithCallableException", task, RuntimeException.class);
   }
 
   @Test
