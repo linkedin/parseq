@@ -99,8 +99,8 @@ public class TestTasks extends BaseEngineTest {
           = CompletableFuture.supplyAsync(() -> result);
       return completableFuture;
     });
-    String taskResult = runAndWait("testToTask.success", task);
-    assertEquals(result, taskResult);
+    runAndWait("testToTask.success", task);
+    assertEquals(result, task.get());
   }
 
   @Test
@@ -110,7 +110,7 @@ public class TestTasks extends BaseEngineTest {
       CompletableFuture<String> completableFuture
           = CompletableFuture.supplyAsync(() -> {
         try {
-          Thread.sleep(1000);
+          Thread.sleep(100);
         } catch (InterruptedException e) {
           throw new RuntimeException(e);
         }
@@ -118,9 +118,7 @@ public class TestTasks extends BaseEngineTest {
       });
       return completableFuture;
     });
-    run(task);
-    assertFalse(task.await(500, TimeUnit.MILLISECONDS));
-    assertTrue(task.await(1000, TimeUnit.MILLISECONDS));
+    runAndWait(task);
     assertEquals(result, task.get());
   }
 
