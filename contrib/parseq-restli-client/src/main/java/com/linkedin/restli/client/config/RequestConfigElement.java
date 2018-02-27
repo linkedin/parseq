@@ -12,6 +12,7 @@ import com.linkedin.restli.client.config.RequestConfigKeyParser.KeyContext;
 import com.linkedin.restli.client.config.RequestConfigKeyParser.OperationInContext;
 import com.linkedin.restli.client.config.RequestConfigKeyParser.OperationOutContext;
 import com.linkedin.restli.client.config.RequestConfigKeyParser.OutboundContext;
+import com.linkedin.restli.client.config.RequestConfigKeyParser.ResourceContext;
 import com.linkedin.restli.common.ResourceMethod;
 
 
@@ -77,6 +78,14 @@ class RequestConfigElement implements Comparable<RequestConfigElement> {
     return _outboundOp;
   }
 
+  private static Optional<String> handlingWildcard(ResourceContext resourceContext) {
+    if (resourceContext == null) {
+      return Optional.empty();
+    } else {
+      return Optional.of(resourceContext.getText());
+    }
+  }
+
   private static Optional<String> handlingWildcard(TerminalNode input) {
     if (input == null) {
       return Optional.empty();
@@ -100,8 +109,8 @@ class RequestConfigElement implements Comparable<RequestConfigElement> {
     if (!errorListener.hasErrors()) {
       InboundContext inbound = keyTree.inbound();
       OutboundContext outbound = keyTree.outbound();
-      Optional<String> inboundName = handlingWildcard(inbound.Name());
-      Optional<String> outboundName = handlingWildcard(outbound.Name());
+      Optional<String> inboundName = handlingWildcard(inbound.resource());
+      Optional<String> outboundName = handlingWildcard(outbound.resource());
       Optional<String> inboundOp = getOpIn(inbound.operationIn());
       Optional<ResourceMethod> outboundOp = getOpOut(outbound.operationOut());
       Optional<String> inboundOpName = inboundOp.flatMap(method -> getOpInName(method, inbound.operationIn()));

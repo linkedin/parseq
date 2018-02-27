@@ -23,8 +23,10 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.Test;
 
 import com.linkedin.parseq.Task;
+import com.linkedin.parseq.Tuple2Task;
 import com.linkedin.restli.client.config.RequestConfigOverrides;
 import com.linkedin.restli.examples.greetings.api.Greeting;
+import com.linkedin.restli.examples.greetings.api.Message;
 import com.linkedin.restli.examples.greetings.client.GreetingsBuilders;
 
 
@@ -48,6 +50,21 @@ public abstract class ParSeqRestClientBatchingIntegrationTest extends ParSeqRest
   }
 
   @Test
+  public void testGetSubResourceRequests() {
+    Tuple2Task<Response<Message>,Response<Message>> task = Task.par(associationsGet("a", "b", "x"), associationsGet("a", "b", "y"));
+    if (expectBatching()) {
+      runAndWaitException(task, RestLiResponseException.class);
+      assertTrue(task.getError().getCause().getMessage().contains("associationsSub?ids=List(x,y)"));
+    } else {
+      runAndWait(getTestClassName() + ".testGetSubResourceRequests", task);
+      assertEquals(task.get()._1().getEntity().getMessage(), "b");
+      assertEquals(task.get()._1().getEntity().getId(), "a");
+      assertEquals(task.get()._2().getEntity().getMessage(), "b");
+      assertEquals(task.get()._2().getEntity().getId(), "a");
+    }
+  }
+
+  @Test
   public void testGetRequestsOverrides() {
     Task<?> task = Task.par(greetingGet(1L, overrides()), greetingGet(2L, overrides()));
     runAndWait(getTestClassName() + ".testGetRequestsOverrides", task);
@@ -55,6 +72,21 @@ public abstract class ParSeqRestClientBatchingIntegrationTest extends ParSeqRest
       assertTrue(hasTask("greetings batch_get(reqs: 2, ids: 2)", task.getTrace()));
     } else {
       assertFalse(hasTask("greetings batch_get(reqs: 2, ids: 2)", task.getTrace()));
+    }
+  }
+
+  @Test
+  public void testGetSubResourceRequestsOverrides() {
+    Tuple2Task<Response<Message>,Response<Message>> task = Task.par(associationsGet("a", "b", "x", overrides()), associationsGet("a", "b", "y", overrides()));
+    if (expectBatchingOverrides()) {
+      runAndWaitException(task, RestLiResponseException.class);
+      assertTrue(task.getError().getCause().getMessage().contains("associationsSub?ids=List(x,y)"));
+    } else {
+      runAndWait(getTestClassName() + ".testGetSubResourceRequestsOverrides", task);
+      assertEquals(task.get()._1().getEntity().getMessage(), "b");
+      assertEquals(task.get()._1().getEntity().getId(), "a");
+      assertEquals(task.get()._2().getEntity().getMessage(), "b");
+      assertEquals(task.get()._2().getEntity().getId(), "a");
     }
   }
 

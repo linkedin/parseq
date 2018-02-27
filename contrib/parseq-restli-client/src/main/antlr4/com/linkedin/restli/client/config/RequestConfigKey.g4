@@ -1,8 +1,9 @@
 grammar RequestConfigKey;
 
 key 			: inbound '/' outbound EOF;
-inbound			: ( Name | '*' ) '.' ( operationIn | '*' );
-outbound		: ( Name | '*' ) '.' ( operationOut | '*' );
+inbound			: ( resource | '*' ) '.' ( operationIn | '*' );
+outbound		: ( resource | '*' ) '.' ( operationOut | '*' );
+resource 	: Name ( ':' Name )*;
 operationIn		: simpleOp | complex | httpExtraOp;
 operationOut    : simpleOp | complex;
 simpleOp   		: 'GET' | 'BATCH_GET' | 'CREATE' | 'BATCH_CREATE' |

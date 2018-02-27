@@ -23,32 +23,39 @@ Each property is defined by a set of Key-Value pairs where Key has the following
 <INBOUND_RESOURCE>.<OPERATION>/<OUTBOUND_RESOURCE>.<OPERATION>
 ```
 
-Every part of the Key can be substituted with wildcard symbol: \*.
+Every part of the Key can be substituted with wildcard symbol: `*`.
+
+Inbound and outbound resource names may consist of more than one part if they refer to a sub-resources. In this case path components are separated with a `:` symbol. If name consist of one part and is a name of a parent resource then it will apply to all it's sub-resources.  
+
 More formally, Key is specified by the following grammar:
 
 ```
 grammar RequestConfigKey;
 
-key             : inbound '/' outbound EOF;
-inbound         : ( Name | '*' ) '.' ( operationIn | '*' );
-outbound        : ( Name | '*' ) '.' ( operationOut | '*' );
-operationIn     : simpleOp | complex | httpExtraOp;
+key 			: inbound '/' outbound EOF;
+inbound			: ( resource | '*' ) '.' ( operationIn | '*' );
+outbound		: ( resource | '*' ) '.' ( operationOut | '*' );
+resource 	    : Name ( ':' Name )*;
+operationIn		: simpleOp | complex | httpExtraOp;
 operationOut    : simpleOp | complex;
-simpleOp        : 'GET' | 'BATCH_GET' | 'CREATE' | 'BATCH_CREATE' |
-                  'PARTIAL_UPDATE' | 'UPDATE' | 'BATCH_UPDATE' |
-                  'DELETE' | 'BATCH_PARTIAL_UPDATE' | 'BATCH_DELETE' |
-                  'GET_ALL' | 'OPTIONS';
+simpleOp   		: 'GET' | 'BATCH_GET' | 'CREATE' | 'BATCH_CREATE' |
+				  'PARTIAL_UPDATE' | 'UPDATE' | 'BATCH_UPDATE' |
+				  'DELETE' | 'BATCH_PARTIAL_UPDATE' | 'BATCH_DELETE' |
+				  'GET_ALL' | 'OPTIONS';
 httpExtraOp     : 'HEAD' | 'POST' | 'PUT' | 'TRACE' | 'CONNECT';
-complex         : complexOp '-' ( Name | '*' );
-complexOp       : 'FINDER' | 'ACTION';
-Name            : [a-zA-Z0-9]+;
+complex 		: complexOp '-' ( Name | '*' );
+complexOp   	: 'FINDER' | 'ACTION';
+Name 			: [a-zA-Z0-9]+;
 ```
 
 Examples:
 ```
-*.*/*.*            fallback configuration
-*.*/*.GET          configuration for all outgoing GET requests
-profileView.*/*.*  configuration for all downstream requests if 'profileView' resource was called
+*.*/*.*                fallback configuration
+*.*/*.GET              configuration for all outgoing GET requests
+*.*/assets:media.GET   configuration for all outgoing GET requests to assets/media sub-resource
+*.*/assets.GET         configuration for all outgoing GET requests to all assets resource
+                       and all it's sub-resources
+profileView.*/*.*      configuration for all downstream requests if 'profileView' resource was called
 ```
 
 The format consists of fixed number of parts, is explicit and resembles familiar file-path structure to make it easier for humans to understand and manipulate.

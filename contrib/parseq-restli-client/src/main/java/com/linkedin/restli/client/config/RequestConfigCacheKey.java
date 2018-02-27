@@ -1,6 +1,7 @@
 package com.linkedin.restli.client.config;
 
 import java.util.Optional;
+import java.util.StringJoiner;
 
 import com.linkedin.restli.client.InboundRequestContext;
 import com.linkedin.restli.client.Request;
@@ -18,7 +19,11 @@ class RequestConfigCacheKey {
   private final Optional<String> _outboundOpName;
 
   RequestConfigCacheKey(Optional<InboundRequestContext> inbound, Request<?> outbound) {
-    _outboundName = URIParamUtils.extractPathComponentsFromUriTemplate(outbound.getBaseUriTemplate())[0];
+    StringJoiner sj = new StringJoiner(":");
+    for (String pathComponent: URIParamUtils.extractPathComponentsFromUriTemplate(outbound.getBaseUriTemplate())) {
+      sj.add(pathComponent);
+    }
+    _outboundName = sj.toString();
     _inboundName = inbound.map(r -> r.getName());
     _outboundOp = outbound.getMethod();
     _outboundOpName = getOpOutName(outbound);

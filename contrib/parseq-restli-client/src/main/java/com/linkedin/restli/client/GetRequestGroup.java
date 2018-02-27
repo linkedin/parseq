@@ -64,6 +64,7 @@ class GetRequestGroup implements RequestGroup {
   private final Map<String, String> _headers; //taken from first request, used to differentiate between groups
   private final RestliRequestOptions _requestOptions; //taken from first request, used to differentiate between groups
   private final Map<String, Object> _queryParams; //taken from first request, used to differentiate between groups
+  private final Map<String, Object> _pathKeys; //taken from first request, used to differentiate between groups
   private final int _maxBatchSize;
 
   @SuppressWarnings("deprecation")
@@ -73,6 +74,7 @@ class GetRequestGroup implements RequestGroup {
     _queryParams = getQueryParamsForBatchingKey(request);
     _resourceSpec = request.getResourceSpec();
     _requestOptions = request.getRequestOptions();
+    _pathKeys = request.getPathKeys();
     _maxBatchSize = maxBatchSize;
   }
 
@@ -197,6 +199,7 @@ class GetRequestGroup implements RequestGroup {
     final BatchGetEntityRequestBuilder<K, RT> builder = new BatchGetEntityRequestBuilder<>(_baseUriTemplate, _resourceSpec, _requestOptions);
     builder.setHeaders(_headers);
     _queryParams.forEach((key, value) -> builder.setParam(key, value));
+    _pathKeys.forEach((key, value) -> builder.pathKey(key, value));
 
     builder.setParam(RestConstants.QUERY_BATCH_IDS_PARAM, ids);
     if (fields != null && !fields.isEmpty()) {
@@ -306,6 +309,7 @@ class GetRequestGroup implements RequestGroup {
         _resourceSpec.getValueClass(), _resourceSpec, _requestOptions);
     builder.setHeaders(_headers);
     _queryParams.forEach((key, value) -> builder.setParam(key, value));
+    _pathKeys.forEach((key, value) -> builder.pathKey(key, value));
 
     builder.id((K) ids.iterator().next());
     if (fields != null && !fields.isEmpty()) {
@@ -386,6 +390,10 @@ class GetRequestGroup implements RequestGroup {
     return _queryParams;
   }
 
+  public Map<String, Object> getPathKeys() {
+    return _pathKeys;
+  }
+
   public ResourceSpec getResourceSpec() {
     return _resourceSpec;
   }
@@ -402,6 +410,7 @@ class GetRequestGroup implements RequestGroup {
     result = prime * result + ((_baseUriTemplate == null) ? 0 : _baseUriTemplate.hashCode());
     result = prime * result + ((_headers == null) ? 0 : _headers.hashCode());
     result = prime * result + ((_queryParams == null) ? 0 : _queryParams.hashCode());
+    result = prime * result + ((_pathKeys == null) ? 0 : _pathKeys.hashCode());
     result = prime * result + ((_requestOptions == null) ? 0 : _requestOptions.hashCode());
     return result;
   }
@@ -430,6 +439,11 @@ class GetRequestGroup implements RequestGroup {
         return false;
     } else if (!_queryParams.equals(other._queryParams))
       return false;
+    if (_pathKeys == null) {
+      if (other._pathKeys != null)
+        return false;
+    } else if (!_pathKeys.equals(other._pathKeys))
+      return false;
     if (_requestOptions == null) {
       if (other._requestOptions != null)
         return false;
@@ -440,7 +454,7 @@ class GetRequestGroup implements RequestGroup {
 
   @Override
   public String toString() {
-    return "GetRequestGroup [_baseUriTemplate=" + _baseUriTemplate + ", _queryParams=" + _queryParams
+    return "GetRequestGroup [_baseUriTemplate=" + _baseUriTemplate + ", _queryParams=" + _queryParams + ", _pathKeys=" + _pathKeys
         + ", _requestOptions=" + _requestOptions + ", _headers=" + _headers + ", _maxBatchSize=" + _maxBatchSize + "]";
   }
 
