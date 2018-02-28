@@ -104,26 +104,26 @@ class RequestConfigTree<T> {
    * - resolver(Optional.of("foo"))
    * - resolver(Optional.empty())
    */
-  <X> Optional<X> resolveRecursivelyName(Optional<String> name, Function<Optional<String>, Optional<X>> resolver) {
-    Optional<X> value = resolver.apply(name);
+  Optional<ConfigValue<T>> resolveNameRecursively(Optional<String> name, Function<Optional<String>, Optional<ConfigValue<T>>> resolver) {
+    Optional<ConfigValue<T>> value = resolver.apply(name);
     if (value.isPresent()) {
       return value;
     } else {
-      return resolveRecursivelyName(name.filter(s -> s.lastIndexOf(':') > 0).map(s -> s.substring(0, s.lastIndexOf(':'))), resolver);
+      return resolveNameRecursively(name.filter(s -> s.lastIndexOf(':') > 0).map(s -> s.substring(0, s.lastIndexOf(':'))), resolver);
     }
   }
 
   Optional<ConfigValue<T>> resolveInboundName(RequestConfigCacheKey cacheKeyd,
       Map<Optional<String>, Map<Optional<ResourceMethod>, Map<Optional<String>, Map<Optional<String>, Map<Optional<String>, ConfigValue<T>>>>>> map) {
     if (map != null) {
-      return resolveRecursivelyName(cacheKeyd.getInboundName(), x -> resolveOutboundOp(cacheKeyd, map.get(x)));
+      return resolveNameRecursively(cacheKeyd.getInboundName(), x -> resolveOutboundOp(cacheKeyd, map.get(x)));
     } else {
       return Optional.empty();
     }
   }
 
   Optional<ConfigValue<T>> resolveOutboundName(RequestConfigCacheKey cacheKeyd) {
-    return resolveRecursivelyName(Optional.of(cacheKeyd.getOutboundName()), x -> resolveInboundName(cacheKeyd, _tree.get(x)));
+    return resolveNameRecursively(Optional.of(cacheKeyd.getOutboundName()), x -> resolveInboundName(cacheKeyd, _tree.get(x)));
   }
 
   ConfigValue<T> resolve(RequestConfigCacheKey cacheKey) {

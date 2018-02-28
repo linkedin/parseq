@@ -39,15 +39,15 @@ public interface RequestConfigKeyListener extends ParseTreeListener {
 	 */
 	void exitOutbound(RequestConfigKeyParser.OutboundContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link RequestConfigKeyParser#resource}.
+	 * Enter a parse tree produced by {@link RequestConfigKeyParser#restResource}.
 	 * @param ctx the parse tree
 	 */
-	void enterResource(RequestConfigKeyParser.ResourceContext ctx);
+	void enterRestResource(RequestConfigKeyParser.RestResourceContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link RequestConfigKeyParser#resource}.
+	 * Exit a parse tree produced by {@link RequestConfigKeyParser#restResource}.
 	 * @param ctx the parse tree
 	 */
-	void exitResource(RequestConfigKeyParser.ResourceContext ctx);
+	void exitRestResource(RequestConfigKeyParser.RestResourceContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link RequestConfigKeyParser#operationIn}.
 	 * @param ctx the parse tree

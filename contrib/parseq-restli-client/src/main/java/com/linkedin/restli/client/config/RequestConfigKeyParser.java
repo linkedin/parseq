@@ -22,11 +22,11 @@ public class RequestConfigKeyParser extends Parser {
 		T__17=18, T__18=19, T__19=20, T__20=21, T__21=22, T__22=23, T__23=24, 
 		Name=25;
 	public static final int
-		RULE_key = 0, RULE_inbound = 1, RULE_outbound = 2, RULE_resource = 3, 
+		RULE_key = 0, RULE_inbound = 1, RULE_outbound = 2, RULE_restResource = 3, 
 		RULE_operationIn = 4, RULE_operationOut = 5, RULE_simpleOp = 6, RULE_httpExtraOp = 7, 
 		RULE_complex = 8, RULE_complexOp = 9;
 	public static final String[] ruleNames = {
-		"key", "inbound", "outbound", "resource", "operationIn", "operationOut", 
+		"key", "inbound", "outbound", "restResource", "operationIn", "operationOut", 
 		"simpleOp", "httpExtraOp", "complex", "complexOp"
 	};
 
@@ -141,8 +141,8 @@ public class RequestConfigKeyParser extends Parser {
 	}
 
 	public static class InboundContext extends ParserRuleContext {
-		public ResourceContext resource() {
-			return getRuleContext(ResourceContext.class,0);
+		public RestResourceContext restResource() {
+			return getRuleContext(RestResourceContext.class,0);
 		}
 		public OperationInContext operationIn() {
 			return getRuleContext(OperationInContext.class,0);
@@ -172,7 +172,7 @@ public class RequestConfigKeyParser extends Parser {
 			case Name:
 				{
 				setState(25);
-				resource();
+				restResource();
 				}
 				break;
 			case T__1:
@@ -235,8 +235,8 @@ public class RequestConfigKeyParser extends Parser {
 	}
 
 	public static class OutboundContext extends ParserRuleContext {
-		public ResourceContext resource() {
-			return getRuleContext(ResourceContext.class,0);
+		public RestResourceContext restResource() {
+			return getRuleContext(RestResourceContext.class,0);
 		}
 		public OperationOutContext operationOut() {
 			return getRuleContext(OperationOutContext.class,0);
@@ -266,7 +266,7 @@ public class RequestConfigKeyParser extends Parser {
 			case Name:
 				{
 				setState(34);
-				resource();
+				restResource();
 				}
 				break;
 			case T__1:
@@ -323,28 +323,28 @@ public class RequestConfigKeyParser extends Parser {
 		return _localctx;
 	}
 
-	public static class ResourceContext extends ParserRuleContext {
+	public static class RestResourceContext extends ParserRuleContext {
 		public List<TerminalNode> Name() { return getTokens(RequestConfigKeyParser.Name); }
 		public TerminalNode Name(int i) {
 			return getToken(RequestConfigKeyParser.Name, i);
 		}
-		public ResourceContext(ParserRuleContext parent, int invokingState) {
+		public RestResourceContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
-		@Override public int getRuleIndex() { return RULE_resource; }
+		@Override public int getRuleIndex() { return RULE_restResource; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RequestConfigKeyListener ) ((RequestConfigKeyListener)listener).enterResource(this);
+			if ( listener instanceof RequestConfigKeyListener ) ((RequestConfigKeyListener)listener).enterRestResource(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RequestConfigKeyListener ) ((RequestConfigKeyListener)listener).exitResource(this);
+			if ( listener instanceof RequestConfigKeyListener ) ((RequestConfigKeyListener)listener).exitRestResource(this);
 		}
 	}
 
-	public final ResourceContext resource() throws RecognitionException {
-		ResourceContext _localctx = new ResourceContext(_ctx, getState());
-		enterRule(_localctx, 6, RULE_resource);
+	public final RestResourceContext restResource() throws RecognitionException {
+		RestResourceContext _localctx = new RestResourceContext(_ctx, getState());
+		enterRule(_localctx, 6, RULE_restResource);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
