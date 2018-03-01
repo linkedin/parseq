@@ -3,6 +3,7 @@ package com.linkedin.restli.client.config;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 import com.linkedin.restli.common.ResourceMethod;
 
@@ -27,7 +28,7 @@ class RequestConfigTree<T> {
          .computeIfAbsent(element.getOutboundOp(), k -> new HashMap<>())
          .computeIfAbsent(element.getOutboundOpName(), k -> new HashMap<>())
          .computeIfAbsent(element.getInboundOp(), k -> new HashMap<>())
-         .putIfAbsent(element.getInboundOpName(), new ConfigValue<T>((T)element.getValue(), element.getKey()));
+         .putIfAbsent(element.getInboundOpName(), new ConfigValue<>((T)element.getValue(), element.getKey()));
   }
 
   Optional<ConfigValue<T>> resolveInboundOpName(RequestConfigCacheKey cacheKeyd,
@@ -94,31 +95,35 @@ class RequestConfigTree<T> {
     }
   }
 
+  /**
+   * This method recursively uses given resolver to resolve a config by given name taking into account
+   * syntax of sub-resource names. For example, for given name: Optional.of("foo:bar:baz") it will make
+   * the following resolver calls:
+   * - resolver(Optional.of("foo:bar:baz"))
+   * - resolver(Optional.of("foo:bar"))
+   * - resolver(Optional.of("foo"))
+   * - resolver(Optional.empty())
+   */
+  Optional<ConfigValue<T>> resolveNameRecursively(Optional<String> name, Function<Optional<String>, Optional<ConfigValue<T>>> resolver) {
+    Optional<ConfigValue<T>> value = resolver.apply(name);
+    if (value.isPresent()) {
+      return value;
+    } else {
+      return resolveNameRecursively(name.filter(s -> s.lastIndexOf(':') > 0).map(s -> s.substring(0, s.lastIndexOf(':'))), resolver);
+    }
+  }
+
   Optional<ConfigValue<T>> resolveInboundName(RequestConfigCacheKey cacheKeyd,
       Map<Optional<String>, Map<Optional<ResourceMethod>, Map<Optional<String>, Map<Optional<String>, Map<Optional<String>, ConfigValue<T>>>>>> map) {
     if (map != null) {
-      Optional<String> inboundName = cacheKeyd.getInboundName();
-      if (inboundName.isPresent()) {
-        Optional<ConfigValue<T>> value = resolveOutboundOp(cacheKeyd, map.get(inboundName));
-        if (value.isPresent()) {
-          return value;
-        }
-      }
-      return resolveOutboundOp(cacheKeyd, map.get(Optional.empty()));
+      return resolveNameRecursively(cacheKeyd.getInboundName(), x -> resolveOutboundOp(cacheKeyd, map.get(x)));
     } else {
       return Optional.empty();
     }
   }
 
   Optional<ConfigValue<T>> resolveOutboundName(RequestConfigCacheKey cacheKeyd) {
-    Optional<String> outboundName = Optional.of(cacheKeyd.getOutboundName());
-    if (outboundName.isPresent()) {
-      Optional<ConfigValue<T>> value = resolveInboundName(cacheKeyd, _tree.get(outboundName));
-      if (value.isPresent()) {
-        return value;
-      }
-    }
-    return resolveInboundName(cacheKeyd, _tree.get(Optional.empty()));
+    return resolveNameRecursively(Optional.of(cacheKeyd.getOutboundName()), x -> resolveInboundName(cacheKeyd, _tree.get(x)));
   }
 
   ConfigValue<T> resolve(RequestConfigCacheKey cacheKey) {

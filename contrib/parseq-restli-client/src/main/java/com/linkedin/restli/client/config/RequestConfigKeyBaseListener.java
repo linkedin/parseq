@@ -53,6 +53,18 @@ public class RequestConfigKeyBaseListener implements RequestConfigKeyListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterRestResource(RequestConfigKeyParser.RestResourceContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitRestResource(RequestConfigKeyParser.RestResourceContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterOperationIn(RequestConfigKeyParser.OperationInContext ctx) { }
 	/**
 	 * {@inheritDoc}

@@ -19,26 +19,28 @@ public class RequestConfigKeyParser extends Parser {
 	public static final int
 		T__0=1, T__1=2, T__2=3, T__3=4, T__4=5, T__5=6, T__6=7, T__7=8, T__8=9, 
 		T__9=10, T__10=11, T__11=12, T__12=13, T__13=14, T__14=15, T__15=16, T__16=17, 
-		T__17=18, T__18=19, T__19=20, T__20=21, T__21=22, T__22=23, Name=24;
+		T__17=18, T__18=19, T__19=20, T__20=21, T__21=22, T__22=23, T__23=24, 
+		Name=25;
 	public static final int
-		RULE_key = 0, RULE_inbound = 1, RULE_outbound = 2, RULE_operationIn = 3, 
-		RULE_operationOut = 4, RULE_simpleOp = 5, RULE_httpExtraOp = 6, RULE_complex = 7, 
-		RULE_complexOp = 8;
+		RULE_key = 0, RULE_inbound = 1, RULE_outbound = 2, RULE_restResource = 3, 
+		RULE_operationIn = 4, RULE_operationOut = 5, RULE_simpleOp = 6, RULE_httpExtraOp = 7, 
+		RULE_complex = 8, RULE_complexOp = 9;
 	public static final String[] ruleNames = {
-		"key", "inbound", "outbound", "operationIn", "operationOut", "simpleOp", 
-		"httpExtraOp", "complex", "complexOp"
+		"key", "inbound", "outbound", "restResource", "operationIn", "operationOut", 
+		"simpleOp", "httpExtraOp", "complex", "complexOp"
 	};
 
 	private static final String[] _LITERAL_NAMES = {
-		null, "'/'", "'*'", "'.'", "'GET'", "'BATCH_GET'", "'CREATE'", "'BATCH_CREATE'", 
-		"'PARTIAL_UPDATE'", "'UPDATE'", "'BATCH_UPDATE'", "'DELETE'", "'BATCH_PARTIAL_UPDATE'", 
-		"'BATCH_DELETE'", "'GET_ALL'", "'OPTIONS'", "'HEAD'", "'POST'", "'PUT'", 
-		"'TRACE'", "'CONNECT'", "'-'", "'FINDER'", "'ACTION'"
+		null, "'/'", "'*'", "'.'", "':'", "'GET'", "'BATCH_GET'", "'CREATE'", 
+		"'BATCH_CREATE'", "'PARTIAL_UPDATE'", "'UPDATE'", "'BATCH_UPDATE'", "'DELETE'", 
+		"'BATCH_PARTIAL_UPDATE'", "'BATCH_DELETE'", "'GET_ALL'", "'OPTIONS'", 
+		"'HEAD'", "'POST'", "'PUT'", "'TRACE'", "'CONNECT'", "'-'", "'FINDER'", 
+		"'ACTION'"
 	};
 	private static final String[] _SYMBOLIC_NAMES = {
 		null, null, null, null, null, null, null, null, null, null, null, null, 
 		null, null, null, null, null, null, null, null, null, null, null, null, 
-		"Name"
+		null, "Name"
 	};
 	public static final Vocabulary VOCABULARY = new VocabularyImpl(_LITERAL_NAMES, _SYMBOLIC_NAMES);
 
@@ -117,13 +119,13 @@ public class RequestConfigKeyParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(18);
-			inbound();
-			setState(19);
-			match(T__0);
 			setState(20);
-			outbound();
+			inbound();
 			setState(21);
+			match(T__0);
+			setState(22);
+			outbound();
+			setState(23);
 			match(EOF);
 			}
 		}
@@ -139,7 +141,9 @@ public class RequestConfigKeyParser extends Parser {
 	}
 
 	public static class InboundContext extends ParserRuleContext {
-		public TerminalNode Name() { return getToken(RequestConfigKeyParser.Name, 0); }
+		public RestResourceContext restResource() {
+			return getRuleContext(RestResourceContext.class,0);
+		}
 		public OperationInContext operationIn() {
 			return getRuleContext(OperationInContext.class,0);
 		}
@@ -160,22 +164,30 @@ public class RequestConfigKeyParser extends Parser {
 	public final InboundContext inbound() throws RecognitionException {
 		InboundContext _localctx = new InboundContext(_ctx, getState());
 		enterRule(_localctx, 2, RULE_inbound);
-		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(23);
-			_la = _input.LA(1);
-			if ( !(_la==T__1 || _la==Name) ) {
-			_errHandler.recoverInline(this);
-			} else {
-				consume();
-			}
-			setState(24);
-			match(T__2);
 			setState(27);
 			switch (_input.LA(1)) {
-			case T__3:
+			case Name:
+				{
+				setState(25);
+				restResource();
+				}
+				break;
+			case T__1:
+				{
+				setState(26);
+				match(T__1);
+				}
+				break;
+			default:
+				throw new NoViableAltException(this);
+			}
+			setState(29);
+			match(T__2);
+			setState(32);
+			switch (_input.LA(1)) {
 			case T__4:
 			case T__5:
 			case T__6:
@@ -192,16 +204,17 @@ public class RequestConfigKeyParser extends Parser {
 			case T__17:
 			case T__18:
 			case T__19:
-			case T__21:
+			case T__20:
 			case T__22:
+			case T__23:
 				{
-				setState(25);
+				setState(30);
 				operationIn();
 				}
 				break;
 			case T__1:
 				{
-				setState(26);
+				setState(31);
 				match(T__1);
 				}
 				break;
@@ -222,7 +235,9 @@ public class RequestConfigKeyParser extends Parser {
 	}
 
 	public static class OutboundContext extends ParserRuleContext {
-		public TerminalNode Name() { return getToken(RequestConfigKeyParser.Name, 0); }
+		public RestResourceContext restResource() {
+			return getRuleContext(RestResourceContext.class,0);
+		}
 		public OperationOutContext operationOut() {
 			return getRuleContext(OperationOutContext.class,0);
 		}
@@ -243,22 +258,30 @@ public class RequestConfigKeyParser extends Parser {
 	public final OutboundContext outbound() throws RecognitionException {
 		OutboundContext _localctx = new OutboundContext(_ctx, getState());
 		enterRule(_localctx, 4, RULE_outbound);
-		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(29);
-			_la = _input.LA(1);
-			if ( !(_la==T__1 || _la==Name) ) {
-			_errHandler.recoverInline(this);
-			} else {
-				consume();
-			}
-			setState(30);
-			match(T__2);
-			setState(33);
+			setState(36);
 			switch (_input.LA(1)) {
-			case T__3:
+			case Name:
+				{
+				setState(34);
+				restResource();
+				}
+				break;
+			case T__1:
+				{
+				setState(35);
+				match(T__1);
+				}
+				break;
+			default:
+				throw new NoViableAltException(this);
+			}
+			setState(38);
+			match(T__2);
+			setState(41);
+			switch (_input.LA(1)) {
 			case T__4:
 			case T__5:
 			case T__6:
@@ -270,21 +293,79 @@ public class RequestConfigKeyParser extends Parser {
 			case T__12:
 			case T__13:
 			case T__14:
-			case T__21:
+			case T__15:
 			case T__22:
+			case T__23:
 				{
-				setState(31);
+				setState(39);
 				operationOut();
 				}
 				break;
 			case T__1:
 				{
-				setState(32);
+				setState(40);
 				match(T__1);
 				}
 				break;
 			default:
 				throw new NoViableAltException(this);
+			}
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	public static class RestResourceContext extends ParserRuleContext {
+		public List<TerminalNode> Name() { return getTokens(RequestConfigKeyParser.Name); }
+		public TerminalNode Name(int i) {
+			return getToken(RequestConfigKeyParser.Name, i);
+		}
+		public RestResourceContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_restResource; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof RequestConfigKeyListener ) ((RequestConfigKeyListener)listener).enterRestResource(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof RequestConfigKeyListener ) ((RequestConfigKeyListener)listener).exitRestResource(this);
+		}
+	}
+
+	public final RestResourceContext restResource() throws RecognitionException {
+		RestResourceContext _localctx = new RestResourceContext(_ctx, getState());
+		enterRule(_localctx, 6, RULE_restResource);
+		int _la;
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(43);
+			match(Name);
+			setState(48);
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			while (_la==T__3) {
+				{
+				{
+				setState(44);
+				match(T__3);
+				setState(45);
+				match(Name);
+				}
+				}
+				setState(50);
+				_errHandler.sync(this);
+				_la = _input.LA(1);
 			}
 			}
 		}
@@ -325,11 +406,10 @@ public class RequestConfigKeyParser extends Parser {
 
 	public final OperationInContext operationIn() throws RecognitionException {
 		OperationInContext _localctx = new OperationInContext(_ctx, getState());
-		enterRule(_localctx, 6, RULE_operationIn);
+		enterRule(_localctx, 8, RULE_operationIn);
 		try {
-			setState(38);
+			setState(54);
 			switch (_input.LA(1)) {
-			case T__3:
 			case T__4:
 			case T__5:
 			case T__6:
@@ -341,28 +421,29 @@ public class RequestConfigKeyParser extends Parser {
 			case T__12:
 			case T__13:
 			case T__14:
+			case T__15:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(35);
+				setState(51);
 				simpleOp();
 				}
 				break;
-			case T__21:
 			case T__22:
+			case T__23:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(36);
+				setState(52);
 				complex();
 				}
 				break;
-			case T__15:
 			case T__16:
 			case T__17:
 			case T__18:
 			case T__19:
+			case T__20:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(37);
+				setState(53);
 				httpExtraOp();
 				}
 				break;
@@ -404,11 +485,10 @@ public class RequestConfigKeyParser extends Parser {
 
 	public final OperationOutContext operationOut() throws RecognitionException {
 		OperationOutContext _localctx = new OperationOutContext(_ctx, getState());
-		enterRule(_localctx, 8, RULE_operationOut);
+		enterRule(_localctx, 10, RULE_operationOut);
 		try {
-			setState(42);
+			setState(58);
 			switch (_input.LA(1)) {
-			case T__3:
 			case T__4:
 			case T__5:
 			case T__6:
@@ -420,17 +500,18 @@ public class RequestConfigKeyParser extends Parser {
 			case T__12:
 			case T__13:
 			case T__14:
+			case T__15:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(40);
+				setState(56);
 				simpleOp();
 				}
 				break;
-			case T__21:
 			case T__22:
+			case T__23:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(41);
+				setState(57);
 				complex();
 				}
 				break;
@@ -466,14 +547,14 @@ public class RequestConfigKeyParser extends Parser {
 
 	public final SimpleOpContext simpleOp() throws RecognitionException {
 		SimpleOpContext _localctx = new SimpleOpContext(_ctx, getState());
-		enterRule(_localctx, 10, RULE_simpleOp);
+		enterRule(_localctx, 12, RULE_simpleOp);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(44);
+			setState(60);
 			_la = _input.LA(1);
-			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__3) | (1L << T__4) | (1L << T__5) | (1L << T__6) | (1L << T__7) | (1L << T__8) | (1L << T__9) | (1L << T__10) | (1L << T__11) | (1L << T__12) | (1L << T__13) | (1L << T__14))) != 0)) ) {
+			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__4) | (1L << T__5) | (1L << T__6) | (1L << T__7) | (1L << T__8) | (1L << T__9) | (1L << T__10) | (1L << T__11) | (1L << T__12) | (1L << T__13) | (1L << T__14) | (1L << T__15))) != 0)) ) {
 			_errHandler.recoverInline(this);
 			} else {
 				consume();
@@ -508,14 +589,14 @@ public class RequestConfigKeyParser extends Parser {
 
 	public final HttpExtraOpContext httpExtraOp() throws RecognitionException {
 		HttpExtraOpContext _localctx = new HttpExtraOpContext(_ctx, getState());
-		enterRule(_localctx, 12, RULE_httpExtraOp);
+		enterRule(_localctx, 14, RULE_httpExtraOp);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(46);
+			setState(62);
 			_la = _input.LA(1);
-			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__15) | (1L << T__16) | (1L << T__17) | (1L << T__18) | (1L << T__19))) != 0)) ) {
+			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__16) | (1L << T__17) | (1L << T__18) | (1L << T__19) | (1L << T__20))) != 0)) ) {
 			_errHandler.recoverInline(this);
 			} else {
 				consume();
@@ -554,16 +635,16 @@ public class RequestConfigKeyParser extends Parser {
 
 	public final ComplexContext complex() throws RecognitionException {
 		ComplexContext _localctx = new ComplexContext(_ctx, getState());
-		enterRule(_localctx, 14, RULE_complex);
+		enterRule(_localctx, 16, RULE_complex);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(48);
+			setState(64);
 			complexOp();
-			setState(49);
-			match(T__20);
-			setState(50);
+			setState(65);
+			match(T__21);
+			setState(66);
 			_la = _input.LA(1);
 			if ( !(_la==T__1 || _la==Name) ) {
 			_errHandler.recoverInline(this);
@@ -600,14 +681,14 @@ public class RequestConfigKeyParser extends Parser {
 
 	public final ComplexOpContext complexOp() throws RecognitionException {
 		ComplexOpContext _localctx = new ComplexOpContext(_ctx, getState());
-		enterRule(_localctx, 16, RULE_complexOp);
+		enterRule(_localctx, 18, RULE_complexOp);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(52);
+			setState(68);
 			_la = _input.LA(1);
-			if ( !(_la==T__21 || _la==T__22) ) {
+			if ( !(_la==T__22 || _la==T__23) ) {
 			_errHandler.recoverInline(this);
 			} else {
 				consume();
@@ -626,21 +707,25 @@ public class RequestConfigKeyParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\329\4\2\t\2\4\3\t"+
-		"\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\3\2\3\2\3\2"+
-		"\3\2\3\2\3\3\3\3\3\3\3\3\5\3\36\n\3\3\4\3\4\3\4\3\4\5\4$\n\4\3\5\3\5\3"+
-		"\5\5\5)\n\5\3\6\3\6\5\6-\n\6\3\7\3\7\3\b\3\b\3\t\3\t\3\t\3\t\3\n\3\n\3"+
-		"\n\2\2\13\2\4\6\b\n\f\16\20\22\2\6\4\2\4\4\32\32\3\2\6\21\3\2\22\26\3"+
-		"\2\30\31\64\2\24\3\2\2\2\4\31\3\2\2\2\6\37\3\2\2\2\b(\3\2\2\2\n,\3\2\2"+
-		"\2\f.\3\2\2\2\16\60\3\2\2\2\20\62\3\2\2\2\22\66\3\2\2\2\24\25\5\4\3\2"+
-		"\25\26\7\3\2\2\26\27\5\6\4\2\27\30\7\2\2\3\30\3\3\2\2\2\31\32\t\2\2\2"+
-		"\32\35\7\5\2\2\33\36\5\b\5\2\34\36\7\4\2\2\35\33\3\2\2\2\35\34\3\2\2\2"+
-		"\36\5\3\2\2\2\37 \t\2\2\2 #\7\5\2\2!$\5\n\6\2\"$\7\4\2\2#!\3\2\2\2#\""+
-		"\3\2\2\2$\7\3\2\2\2%)\5\f\7\2&)\5\20\t\2\')\5\16\b\2(%\3\2\2\2(&\3\2\2"+
-		"\2(\'\3\2\2\2)\t\3\2\2\2*-\5\f\7\2+-\5\20\t\2,*\3\2\2\2,+\3\2\2\2-\13"+
-		"\3\2\2\2./\t\3\2\2/\r\3\2\2\2\60\61\t\4\2\2\61\17\3\2\2\2\62\63\5\22\n"+
-		"\2\63\64\7\27\2\2\64\65\t\2\2\2\65\21\3\2\2\2\66\67\t\5\2\2\67\23\3\2"+
-		"\2\2\6\35#(,";
+		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\33I\4\2\t\2\4\3\t"+
+		"\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t\13\3"+
+		"\2\3\2\3\2\3\2\3\2\3\3\3\3\5\3\36\n\3\3\3\3\3\3\3\5\3#\n\3\3\4\3\4\5\4"+
+		"\'\n\4\3\4\3\4\3\4\5\4,\n\4\3\5\3\5\3\5\7\5\61\n\5\f\5\16\5\64\13\5\3"+
+		"\6\3\6\3\6\5\69\n\6\3\7\3\7\5\7=\n\7\3\b\3\b\3\t\3\t\3\n\3\n\3\n\3\n\3"+
+		"\13\3\13\3\13\2\2\f\2\4\6\b\n\f\16\20\22\24\2\6\3\2\7\22\3\2\23\27\4\2"+
+		"\4\4\33\33\3\2\31\32F\2\26\3\2\2\2\4\35\3\2\2\2\6&\3\2\2\2\b-\3\2\2\2"+
+		"\n8\3\2\2\2\f<\3\2\2\2\16>\3\2\2\2\20@\3\2\2\2\22B\3\2\2\2\24F\3\2\2\2"+
+		"\26\27\5\4\3\2\27\30\7\3\2\2\30\31\5\6\4\2\31\32\7\2\2\3\32\3\3\2\2\2"+
+		"\33\36\5\b\5\2\34\36\7\4\2\2\35\33\3\2\2\2\35\34\3\2\2\2\36\37\3\2\2\2"+
+		"\37\"\7\5\2\2 #\5\n\6\2!#\7\4\2\2\" \3\2\2\2\"!\3\2\2\2#\5\3\2\2\2$\'"+
+		"\5\b\5\2%\'\7\4\2\2&$\3\2\2\2&%\3\2\2\2\'(\3\2\2\2(+\7\5\2\2),\5\f\7\2"+
+		"*,\7\4\2\2+)\3\2\2\2+*\3\2\2\2,\7\3\2\2\2-\62\7\33\2\2./\7\6\2\2/\61\7"+
+		"\33\2\2\60.\3\2\2\2\61\64\3\2\2\2\62\60\3\2\2\2\62\63\3\2\2\2\63\t\3\2"+
+		"\2\2\64\62\3\2\2\2\659\5\16\b\2\669\5\22\n\2\679\5\20\t\28\65\3\2\2\2"+
+		"8\66\3\2\2\28\67\3\2\2\29\13\3\2\2\2:=\5\16\b\2;=\5\22\n\2<:\3\2\2\2<"+
+		";\3\2\2\2=\r\3\2\2\2>?\t\2\2\2?\17\3\2\2\2@A\t\3\2\2A\21\3\2\2\2BC\5\24"+
+		"\13\2CD\7\30\2\2DE\t\4\2\2E\23\3\2\2\2FG\t\5\2\2G\25\3\2\2\2\t\35\"&+"+
+		"\628<";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

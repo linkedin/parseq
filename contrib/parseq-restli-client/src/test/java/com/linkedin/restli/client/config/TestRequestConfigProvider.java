@@ -12,6 +12,7 @@ import com.linkedin.restli.client.InboundRequestContext;
 import com.linkedin.restli.client.InboundRequestContextFinder;
 import com.linkedin.restli.client.ParSeqRestliClientConfigBuilder;
 import com.linkedin.restli.common.ResourceMethod;
+import com.linkedin.restli.examples.greetings.client.AssociationsSubBuilders;
 import com.linkedin.restli.examples.greetings.client.GreetingsBuilders;
 import com.linkedin.restli.examples.groups.client.GroupsBuilders;
 
@@ -27,6 +28,12 @@ public class TestRequestConfigProvider {
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(DEFAULT_TIMEOUT));
     assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
     assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
+
+    rc = provider.apply(new AssociationsSubBuilders().get().srcKey("a").destKey("b").id("x").build());
+    assertNotNull(rc);
+    assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(DEFAULT_TIMEOUT));
+    assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
+    assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
   }
 
   @Test
@@ -37,6 +44,12 @@ public class TestRequestConfigProvider {
     configBuilder.addBatchingEnabled("*.*/*.*", true);
     RequestConfigProvider provider = RequestConfigProvider.build(configBuilder.build(), () -> Optional.empty());
     RequestConfig rc = provider.apply(new GreetingsBuilders().get().id(0L).build());
+    assertNotNull(rc);
+    assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(1000L));
+    assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(true));
+    assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(4096));
+
+    rc = provider.apply(new AssociationsSubBuilders().get().srcKey("a").destKey("b").id("x").build());
     assertNotNull(rc);
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(1000L));
     assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(true));
@@ -59,12 +72,20 @@ public class TestRequestConfigProvider {
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(DEFAULT_TIMEOUT));
     assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
     assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
+
+    rc = provider.apply(new AssociationsSubBuilders().get().srcKey("a").destKey("b").id("x").build());
+    assertNotNull(rc);
+    assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(1000L));
+    assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
+    assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
   }
 
   @Test
   public void testOutboundName() throws RequestConfigKeyParsingException {
     ParSeqRestliClientConfigBuilder configBuilder = new ParSeqRestliClientConfigBuilder();
     configBuilder.addTimeoutMs("*.*/greetings.*", 1000L);
+    configBuilder.addTimeoutMs("*.*/associations:foo.*", 1001L);
+    configBuilder.addTimeoutMs("*.*/associations.*", 1000L);
     RequestConfigProvider provider = RequestConfigProvider.build(configBuilder.build(), () -> Optional.empty());
     RequestConfig rc = provider.apply(new GreetingsBuilders().get().id(0L).build());
     assertNotNull(rc);
@@ -75,6 +96,26 @@ public class TestRequestConfigProvider {
     rc = provider.apply(new GroupsBuilders().get().id(10).build());
     assertNotNull(rc);
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(DEFAULT_TIMEOUT));
+    assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
+    assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
+
+    rc = provider.apply(new AssociationsSubBuilders().get().srcKey("a").destKey("b").id("x").build());
+    assertNotNull(rc);
+    assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(1000L));
+    assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
+    assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
+  }
+
+  @Test
+  public void testPrioritiesOutboundNameSubResource() throws RequestConfigKeyParsingException {
+    ParSeqRestliClientConfigBuilder configBuilder = new ParSeqRestliClientConfigBuilder();
+    configBuilder.addTimeoutMs("*.*/associations:foo.*", 1000L);
+    configBuilder.addTimeoutMs("*.*/associations.*", 1001L);
+    configBuilder.addTimeoutMs("*.*/associations:associationsSub.*", 1002L);
+    RequestConfigProvider provider = RequestConfigProvider.build(configBuilder.build(), () -> Optional.empty());
+    RequestConfig rc = provider.apply(new AssociationsSubBuilders().get().srcKey("a").destKey("b").id("x").build());
+    assertNotNull(rc);
+    assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(1002L));
     assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
     assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
   }
@@ -131,6 +172,85 @@ public class TestRequestConfigProvider {
     rc = provider.apply(new GreetingsBuilders().delete().id(0L).build());
     assertNotNull(rc);
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(500L));
+    assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
+    assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
+  }
+
+  @Test
+  public void testPrioritiesWithInboundSubresourceAndOutboundMatch() throws RequestConfigKeyParsingException {
+    ParSeqRestliClientConfigBuilder configBuilder = new ParSeqRestliClientConfigBuilder();
+    configBuilder.addTimeoutMs("*.*/*.GET", 1000L);
+    configBuilder.addTimeoutMs("x.GET/*.GET", 1000L);
+    configBuilder.addTimeoutMs("y.GET/x1.GET", 1000L);
+    configBuilder.addTimeoutMs("y.GET/x2.GET", 1000L);
+    configBuilder.addTimeoutMs("*.GET/x.GET", 1000L);
+    configBuilder.addTimeoutMs("*.GET/x2.GET", 1000L);
+    configBuilder.addTimeoutMs("*.GET/greetings.GET", 1000L);
+    configBuilder.addTimeoutMs("greetings.GET/*.GET", 1000L);
+    configBuilder.addTimeoutMs("greetings.GET/greetings.GET", 100L);
+    configBuilder.addTimeoutMs("*.*/greetings.DELETE", 1000L);
+    configBuilder.addTimeoutMs("greetings.*/greetings.DELETE", 1000L);
+    configBuilder.addTimeoutMs("*.GET/greetings.DELETE", 1000L);
+    configBuilder.addTimeoutMs("greetings.GET/greetings.DELETE", 500L);
+
+    RequestConfigProvider provider =
+        RequestConfigProvider.build(configBuilder.build(), requestContextFinder("greetings:associationsSub",
+            ResourceMethod.GET.toString().toUpperCase(), Optional.empty(), Optional.empty()));
+    RequestConfig rc = provider.apply(new GreetingsBuilders().get().id(0L).build());
+    assertNotNull(rc);
+    assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(100L));
+    assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
+    assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
+
+    rc = provider.apply(new GreetingsBuilders().delete().id(0L).build());
+    assertNotNull(rc);
+    assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(500L));
+    assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
+    assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
+  }
+
+  @Test
+  public void testPrioritiesWithInboundAndOutboundMatchSubresource() throws RequestConfigKeyParsingException {
+    ParSeqRestliClientConfigBuilder configBuilder = new ParSeqRestliClientConfigBuilder();
+    configBuilder.addTimeoutMs("*.*/*.GET", 1000L);
+    configBuilder.addTimeoutMs("x.GET/*.GET", 1001L);
+    configBuilder.addTimeoutMs("y.GET/x1.GET", 1002L);
+    configBuilder.addTimeoutMs("y.GET/x2.GET", 1003L);
+    configBuilder.addTimeoutMs("*.GET/x.GET", 1004L);
+    configBuilder.addTimeoutMs("*.GET/x2.GET", 1005L);
+    configBuilder.addTimeoutMs("*.GET/greetings.GET", 1006L);
+    configBuilder.addTimeoutMs("greetings.GET/*.GET", 1007L);
+    configBuilder.addTimeoutMs("greetings:associationsSub.GET/greetings.GET", 1008L);
+
+    RequestConfigProvider provider =
+        RequestConfigProvider.build(configBuilder.build(), requestContextFinder("greetings",
+            ResourceMethod.GET.toString().toUpperCase(), Optional.empty(), Optional.empty()));
+    RequestConfig rc = provider.apply(new GreetingsBuilders().get().id(0L).build());
+    assertNotNull(rc);
+    assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(1006L));
+    assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
+    assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
+  }
+
+  @Test
+  public void testPrioritiesWithInboundAndOutboundMatchSubresource2() throws RequestConfigKeyParsingException {
+    ParSeqRestliClientConfigBuilder configBuilder = new ParSeqRestliClientConfigBuilder();
+    configBuilder.addTimeoutMs("*.*/*.GET", 1000L);
+    configBuilder.addTimeoutMs("x.GET/*.GET", 1001L);
+    configBuilder.addTimeoutMs("y.GET/x1.GET", 1002L);
+    configBuilder.addTimeoutMs("y.GET/x2.GET", 1003L);
+    configBuilder.addTimeoutMs("*.GET/x.GET", 1004L);
+    configBuilder.addTimeoutMs("*.GET/x2.GET", 1005L);
+    configBuilder.addTimeoutMs("*.GET/greetings.GET", 1006L);
+    configBuilder.addTimeoutMs("greetings.GET/*.GET", 1007L);
+    configBuilder.addTimeoutMs("greetings:associationsSub.GET/greetings.GET", 1008L);
+
+    RequestConfigProvider provider =
+        RequestConfigProvider.build(configBuilder.build(), requestContextFinder("greetings:associationsSub",
+            ResourceMethod.GET.toString().toUpperCase(), Optional.empty(), Optional.empty()));
+    RequestConfig rc = provider.apply(new GreetingsBuilders().get().id(0L).build());
+    assertNotNull(rc);
+    assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(1008L));
     assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
     assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
   }
