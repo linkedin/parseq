@@ -16,7 +16,9 @@
 
 package com.linkedin.restli.client;
 
+import com.linkedin.data.schema.PathSpec;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -157,6 +159,10 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
     return _parseqClient.createTask(new GreetingsBuilders().get().id(id).build());
   }
 
+  protected Task<Response<Greeting>> greetingGetWithProjection(Long id, PathSpec... fields) {
+    return _parseqClient.createTask(new GreetingsBuilders().get().id(id).fields(fields).build());
+  }
+
   protected Task<Response<Message>> associationsGet(String src, String dst, String id) {
     return _parseqClient.createTask(new AssociationsSubBuilders().get().srcKey(src).destKey(dst).id(id).build());
   }
@@ -179,6 +185,10 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
 
   protected Task<Response<BatchResponse<Greeting>>> greetings(Long... ids) {
     return _parseqClient.createTask(new GreetingsBuilders().batchGet().ids(ids).build());
+  }
+
+  protected Task<Response<BatchResponse<Greeting>>> greetingsWithProjection(Collection<PathSpec> fields, Long... ids) {
+    return _parseqClient.createTask(new GreetingsBuilders().batchGet().ids(ids).fields(fields.toArray(new PathSpec[fields.size()])).build());
   }
 
   protected Task<Response<BatchResponse<Greeting>>> greetings(RequestConfigOverrides configOverrides, Long... ids) {
