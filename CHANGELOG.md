@@ -1,3 +1,8 @@
+v2.6.26
+------
+
+* Use typesaft batch request builder method to build batch_get.
+
 v2.6.25
 ------
 
