@@ -201,9 +201,9 @@ class GetRequestGroup implements RequestGroup {
     _queryParams.forEach((key, value) -> builder.setParam(key, value));
     _pathKeys.forEach((key, value) -> builder.pathKey(key, value));
 
-    builder.setParam(RestConstants.QUERY_BATCH_IDS_PARAM, ids);
+    builder.ids((Set<K>)ids);
     if (fields != null && !fields.isEmpty()) {
-      builder.setParam(RestConstants.FIELDS_PARAM, fields.toArray());
+      builder.fields(fields.toArray(new PathSpec[fields.size()]));
     }
 
     final BatchGetEntityRequest<K, RT> batchGet = builder.build();

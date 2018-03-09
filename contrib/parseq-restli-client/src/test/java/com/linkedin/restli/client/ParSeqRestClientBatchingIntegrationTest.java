@@ -20,6 +20,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import java.util.Arrays;
 import org.testng.annotations.Test;
 
 import com.linkedin.parseq.Task;
@@ -322,6 +323,18 @@ public abstract class ParSeqRestClientBatchingIntegrationTest extends ParSeqRest
   }
 
   @Test
+  public void testBatchGetRequestsWithProjection() {
+    Task<?> task = Task.par(greetingsWithProjection(Arrays.asList(Greeting.fields().tone()), 1L, 2L),
+        greetingsWithProjection(Arrays.asList(Greeting.fields().message()),3L, 4L));
+    runAndWait(getTestClassName() + ".testBatchGetRequests", task);
+    if (expectBatching()) {
+      assertTrue(hasTask("greetings batch_get(reqs: 2, ids: 4)", task.getTrace()));
+    } else {
+      assertFalse(hasTask("greetings batch_get(reqs: 2, ids: 4)", task.getTrace()));
+    }
+  }
+
+  @Test
   public void testBatchGetRequestsOverrides() {
     Task<?> task = Task.par(greetings(overrides(), 1L, 2L), greetings(overrides(), 3L, 4L));
     runAndWait(getTestClassName() + ".testBatchGetRequestsOverrides", task);
@@ -335,6 +348,18 @@ public abstract class ParSeqRestClientBatchingIntegrationTest extends ParSeqRest
   @Test
   public void testGetAndBatchGetRequests() {
     Task<?> task = Task.par(greetingGet(1L), greetings(2L, 3L));
+    runAndWait(getTestClassName() + ".testGetAndBatchGetRequests", task);
+    if (expectBatching()) {
+      assertTrue(hasTask("greetings batch_get(reqs: 2, ids: 3)", task.getTrace()));
+    } else {
+      assertFalse(hasTask("greetings batch_get(reqs: 2, ids: 3)", task.getTrace()));
+    }
+  }
+
+  @Test
+  public void testGetAndBatchGetRequestsWithProjection() {
+    Task<?> task = Task.par(greetingGetWithProjection(1L, Greeting.fields().message()), greetingsWithProjection(
+        Arrays.asList(Greeting.fields().tone()),2L, 3L));
     runAndWait(getTestClassName() + ".testGetAndBatchGetRequests", task);
     if (expectBatching()) {
       assertTrue(hasTask("greetings batch_get(reqs: 2, ids: 3)", task.getTrace()));
@@ -380,6 +405,24 @@ public abstract class ParSeqRestClientBatchingIntegrationTest extends ParSeqRest
     Task<?> task = Task.par(greetingGet(1L, overrides()), greetingGet(1L, overrides()));
     runAndWait(getTestClassName() + ".testDuplicateGetRequestIsNotBatchedOverrides", task);
     assertFalse(hasTask("greetings batch_get(reqs: 1, ids: 1)", task.getTrace()));
+  }
+
+  @Test
+  public void testBatchGetWithProjection() {
+    try {
+      setInboundRequestContext(new InboundRequestContextBuilder()
+          .setName("withBatching")
+          .build());
+      Task<?> task = Task.par(
+          greetingGetWithProjection(1L, Greeting.fields().tone()).map(Response::getEntity).map(Greeting::hasMessage),
+          greetingGetWithProjection(2L, Greeting.fields().tone()).map(Response::getEntity).map(Greeting::hasMessage))
+          .map((a, b) -> a || b);
+      runAndWait(getTestClassName() + ".testBatchGetWithProjection", task);
+
+      assertFalse((Boolean)task.get());
+    } finally {
+      clearInboundRequestContext();
+    }
   }
 
   @Test
