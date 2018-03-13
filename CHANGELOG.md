@@ -1,7 +1,12 @@
+v2.6.27
+------
+
+* Use typesafe method to build projection for single get.
+
 v2.6.26
 ------
 
-* Use typesaft batch request builder method to build batch_get.
+* Use typesafe batch request builder method to build batch_get.
 
 v2.6.25
 ------
