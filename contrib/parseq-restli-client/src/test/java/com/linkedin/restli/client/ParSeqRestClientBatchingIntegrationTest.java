@@ -394,6 +394,14 @@ public abstract class ParSeqRestClientBatchingIntegrationTest extends ParSeqRest
   }
 
   @Test
+  public void testSingleGetRequestIsNotBatchedWithProjection() {
+    Task<Boolean> task = greetingGetWithProjection(1L, Greeting.fields().tone()).map(Response::getEntity).map(Greeting::hasMessage);
+    runAndWait(getTestClassName() + ".testSingleGetRequestIsNotBatchedWithProjection", task);
+    assertFalse(hasTask("greetings batch_get(reqs: 1, ids: 1)", task.getTrace()));
+    assertFalse(task.get());
+  }
+
+  @Test
   public void testDuplicateGetRequestIsNotBatched() {
     Task<?> task = Task.par(greetingGet(1L), greetingGet(1L));
     runAndWait(getTestClassName() + ".testDuplicateGetRequestIsNotBatched", task);
