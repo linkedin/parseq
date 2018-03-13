@@ -313,7 +313,7 @@ class GetRequestGroup implements RequestGroup {
 
     builder.id((K) ids.iterator().next());
     if (fields != null && !fields.isEmpty()) {
-      builder.setParam(RestConstants.FIELDS_PARAM, fields.toArray());
+      builder.fields(fields.toArray(new PathSpec[fields.size()]));
     }
 
     final GetRequest<RT> get = builder.build();
