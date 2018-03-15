@@ -1,3 +1,8 @@
+v2.6.28
+------
+
+* Fix StackOverflowError in RequestConfigTree.
+
 v2.6.27
 ------
 
@@ -7,6 +12,7 @@ v2.6.26
 ------
 
 * Use typesafe batch request builder method to build batch_get.
+* Support sub-resource level configuration in ParSeqRestClient.
 
 v2.6.25
 ------
