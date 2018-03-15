@@ -325,6 +325,31 @@ public class TestRequestConfigProvider {
     assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
   }
 
+  /**
+   * Default values are specified only at the top of the config hierarchy.
+   * It means that when RequestConfigTree is traversing configuration it is
+   * not guaranteed that it will return a full Optional for parameter Optional.empty.
+   * It is guaranteed only at the root level.
+   * This unit test tests case when while traversing configuration tree there is no match
+   * in the middle of the hierarchy. More specifically, the outbound name will match but then
+   * operation name will not match: config tree contains only entry for DELETE but test is
+   * trying to find entry for GET.
+   */
+  @Test
+  public void testNoMatchInTheMiddleOfHierarchy() throws RequestConfigKeyParsingException {
+    ParSeqRestliClientConfigBuilder configBuilder = new ParSeqRestliClientConfigBuilder();
+    configBuilder.addTimeoutMs("*.*/greetings.DELETE", 1000L);
+
+    RequestConfigProvider provider = RequestConfigProvider.build(configBuilder.build(), () -> Optional.empty());
+
+    RequestConfig rc = provider.apply(new GreetingsBuilders().get().id(0L).build());
+    assertNotNull(rc);
+    assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(RequestConfigProviderImpl.DEFAULT_TIMEOUT));
+    assertEquals(rc.isBatchingEnabled().getValue(), RequestConfigProviderImpl.DEFAULT_BATCHING_ENABLED);
+    assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(RequestConfigProviderImpl.DEFAULT_MAX_BATCH_SIZE));
+  }
+
+
   private InboundRequestContextFinder requestContextFinder(String name, String method, Optional<String> finderName,
       Optional<String> actionName) {
     return new InboundRequestContextFinder() {

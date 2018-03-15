@@ -109,7 +109,11 @@ class RequestConfigTree<T> {
     if (value.isPresent()) {
       return value;
     } else {
-      return resolveNameRecursively(name.filter(s -> s.lastIndexOf(':') > 0).map(s -> s.substring(0, s.lastIndexOf(':'))), resolver);
+      if (name.isPresent()) {
+        return resolveNameRecursively(name.filter(s -> s.lastIndexOf(':') > 0).map(s -> s.substring(0, s.lastIndexOf(':'))), resolver);
+      } else {
+        return Optional.empty();
+      }
     }
   }
 
