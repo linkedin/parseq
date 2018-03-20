@@ -199,6 +199,30 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
   }
 
   @Test
+  public void testPar10AndThen() {
+    AtomicInteger value = new AtomicInteger();
+    Task<?> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6), Task.value(7), Task.value(8), Task.value(9), Task.value(10))
+        .andThen((a, b, c, d, e, f, g, h, i, j) -> value.set(a + b + c + d + e + f + g + h + i + j));
+
+    runAndWait("TestTaskFactoryMethods.testPar10AndThen", task);
+    assertEquals(value.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10);
+
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 10);
+  }
+
+  @Test
+  public void testPar11AndThen() {
+    AtomicInteger value = new AtomicInteger();
+    Task<?> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6), Task.value(7), Task.value(8), Task.value(9), Task.value(10), Task.value(11))
+        .andThen((a, b, c, d, e, f, g, h, i, j, k) -> value.set(a + b + c + d + e + f + g + h + i + j + k));
+
+    runAndWait("TestTaskFactoryMethods.testPar11AndThen", task);
+    assertEquals(value.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11);
+
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 11);
+  }
+
+  @Test
   public void testPar2AndThenDsc() {
     AtomicInteger value = new AtomicInteger();
     Task<?> task = Task.par(Task.value(1), Task.value(2)).andThen("test", (a, b) -> value.set(a + b));
@@ -288,6 +312,30 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     assertEquals(value.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9);
 
     assertEquals(countTasks(task.getTrace()), 2 + 1 + 9);
+  }
+
+  @Test
+  public void testPar10AndThenDsc() {
+    AtomicInteger value = new AtomicInteger();
+    Task<?> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6), Task.value(7), Task.value(8), Task.value(9), Task.value(10))
+        .andThen("test", (a, b, c, d, e, f, g, h, i, j) -> value.set(a + b + c + d + e + f + g + h + i + j));
+
+    runAndWait("TestTaskFactoryMethods.testPar10AndThenDsc", task);
+    assertEquals(value.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10);
+
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 10);
+  }
+
+  @Test
+  public void testPar11AndThenDsc() {
+    AtomicInteger value = new AtomicInteger();
+    Task<?> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6), Task.value(7), Task.value(8), Task.value(9), Task.value(10), Task.value(11))
+        .andThen("test", (a, b, c, d, e, f, g, h, i, j, k) -> value.set(a + b + c + d + e + f + g + h + i + j + k));
+
+    runAndWait("TestTaskFactoryMethods.testPar11AndThenDsc", task);
+    assertEquals(value.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11);
+
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 11);
   }
 
   @Test
@@ -381,6 +429,30 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
   }
 
   @Test
+  public void testPar10() {
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6),
+        Task.value(7), Task.value(8), Task.value(9), Task.value(10))
+        .map((a, b, c, d, e, f, g, h, i, j) -> a + b + c + d + e + f + g + h + i + j);
+
+    runAndWait("TestTaskFactoryMethods.testPar10", task);
+    assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10);
+
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 10);
+  }
+
+  @Test
+  public void testPar11() {
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6),
+        Task.value(7), Task.value(8), Task.value(9), Task.value(10), Task.value(11))
+        .map((a, b, c, d, e, f, g, h, i, j, k) -> a + b + c + d + e + f + g + h + i + j + k);
+
+    runAndWait("TestTaskFactoryMethods.testPar11", task);
+    assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11);
+
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 11);
+  }
+
+  @Test
   public void testPar2Dsc() {
     Task<Integer> task = Task.par(Task.value(1), Task.value(2)).map("test", (a, b) -> a + b);
 
@@ -471,6 +543,30 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
   }
 
   @Test
+  public void testPar10Dsc() {
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6),
+        Task.value(7), Task.value(8), Task.value(9), Task.value(10))
+        .map("test", (a, b, c, d, e, f, g, h, i, j) -> a + b + c + d + e + f + g + h + i + j);
+
+    runAndWait("TestTaskFactoryMethods.testPar10Dsc", task);
+    assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10);
+
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 10);
+  }
+
+  @Test
+  public void testPar11Dsc() {
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6),
+        Task.value(7), Task.value(8), Task.value(9), Task.value(10), Task.value(11))
+        .map("test", (a, b, c, d, e, f, g, h, i, j, k) -> a + b + c + d + e + f + g + h + i + j + k);
+
+    runAndWait("TestTaskFactoryMethods.testPar11Dsc", task);
+    assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11);
+
+    assertEquals(countTasks(task.getTrace()), 2 + 1 + 11);
+  }
+
+  @Test
   public void testPar2FlatMap() {
     Task<Integer> task = Task.par(Task.value(1), Task.value(2)).flatMap((a, b) -> Task.value(a + b));
 
@@ -556,6 +652,28 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
   }
 
   @Test
+  public void testPar10FlatMap() {
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6), Task.value(7), Task.value(8), Task.value(9), Task.value(10))
+        .flatMap((a, b, c, d, e, f, g, h, i, j) -> Task.value(a + b + c + d + e + f + g + h + i + j));
+
+    runAndWait("TestTaskFactoryMethods.testPar10FlatMap", task);
+    assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10);
+
+    assertEquals(countTasks(task.getTrace()), 2 + 3 + 10);
+  }
+
+  @Test
+  public void testPar11FlatMap() {
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6), Task.value(7), Task.value(8), Task.value(9), Task.value(10), Task.value(11))
+        .flatMap((a, b, c, d, e, f, g, h, i, j, k) -> Task.value(a + b + c + d + e + f + g + h + i + j + k));
+
+    runAndWait("TestTaskFactoryMethods.testPar11FlatMap", task);
+    assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11);
+
+    assertEquals(countTasks(task.getTrace()), 2 + 3 + 11);
+  }
+
+  @Test
   public void testPar2FlatMapDsc() {
     Task<Integer> task = Task.par(Task.value(1), Task.value(2)).flatMap("test", (a, b) -> Task.value(a + b));
 
@@ -638,6 +756,28 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
     assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9);
 
     assertEquals(countTasks(task.getTrace()), 2 + 3 + 9);
+  }
+
+  @Test
+  public void testPar10FlatMapDsc() {
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6), Task.value(7), Task.value(8), Task.value(9), Task.value(10))
+        .flatMap("test", (a, b, c, d, e, f, g, h, i, j) -> Task.value(a + b + c + d + e + f + g + h + i + j));
+
+    runAndWait("TestTaskFactoryMethods.testPar10FlatMapDsc", task);
+    assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10);
+
+    assertEquals(countTasks(task.getTrace()), 2 + 3 + 10);
+  }
+
+  @Test
+  public void testPar11FlatMapDsc() {
+    Task<Integer> task = Task.par(Task.value(1), Task.value(2), Task.value(3), Task.value(4), Task.value(5), Task.value(6), Task.value(7), Task.value(8), Task.value(9), Task.value(10), Task.value(11))
+        .flatMap("test", (a, b, c, d, e, f, g, h, i, j, k) -> Task.value(a + b + c + d + e + f + g + h + i + j + k));
+
+    runAndWait("TestTaskFactoryMethods.testPar11FlatMapDsc", task);
+    assertEquals((int)task.get(), 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11);
+
+    assertEquals(countTasks(task.getTrace()), 2 + 3 + 11);
   }
 
   @Test
