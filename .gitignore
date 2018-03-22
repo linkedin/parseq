@@ -9,3 +9,4 @@ dist
 out
 node_modules
 target
+.DS_Store
