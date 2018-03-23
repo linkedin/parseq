@@ -11,16 +11,16 @@
     <jettyVersion>9.3.0.v20150612</jettyVersion>
   </properties>
 
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
+  <distributionManagement>
+    <snapshotRepository>
+          <id>ossrh</id>
+          <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
 
 	<dependencies>
 		<dependency>
@@ -33,11 +33,11 @@
 			<artifactId>parseq-exec</artifactId>
 			<version>2.6.28</version>
 		</dependency>
-        <dependency>
-            <groupId>com.linkedin.parseq</groupId>
-            <artifactId>parseq-http-client</artifactId>
-            <version>2.6.28</version>
-        </dependency>
+    <dependency>
+      <groupId>com.linkedin.parseq</groupId>
+      <artifactId>parseq-http-client</artifactId>
+      <version>2.6.28</version>
+    </dependency>
 		<dependency>
 			<groupId>com.linkedin.parseq</groupId>
 			<artifactId>parseq-tracevis</artifactId>
@@ -172,31 +172,31 @@
 					</execution>
 				</executions>
 			</plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>default-deploy</id>
-                        <phase>deploy</phase>
-                        <goals>
-                            <goal>deploy</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <serverId>ossrh</serverId>
-                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
-                </configuration>
-            </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+        <plugin>
+          <groupId>org.sonatype.plugins</groupId>
+          <artifactId>nexus-staging-maven-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>default-deploy</id>
+              <phase>deploy</phase>
+              <goals>
+                  <goal>deploy</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <serverId>ossrh</serverId>
+            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+          </configuration>
+        </plugin>
 		</plugins>
 	</build>
 
@@ -206,22 +206,22 @@
   </scm>
   <url>https://github.com/linkedin/parseq</url>
   <name>parseq-tracevis-server</name>
-    <description>
-      Serves tracevis tool capable of rendering graphviz diagrams
-    </description>
-    <licenses>
-        <license>
-            <name>The Apache Software License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-    <developers>
-        <developer>
-            <id>jodzga</id>
-            <name>Jaroslaw Odzga</name>
-            <email>jodzga@linkedin.com</email>
-        </developer>
-    </developers>
+  <description>
+    Serves tracevis tool capable of rendering graphviz diagrams
+  </description>
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>jodzga</id>
+      <name>Jaroslaw Odzga</name>
+      <email>jodzga@linkedin.com</email>
+    </developer>
+  </developers>
 
 </project>
