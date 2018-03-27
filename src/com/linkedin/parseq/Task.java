@@ -1441,6 +1441,252 @@ public interface Task<T> extends Promise<T>, Cancellable {
   }
 
   /**
+   * Creates a new task that will run given tasks in parallel. Returned task
+   * will be resolved with results of all tasks as soon as all of them has
+   * been completed successfully.
+   *
+   * <blockquote><pre>
+   *  // this task will asynchronously fetch user and company in parallel
+   *  // and create signature in a form {@code "<first name> <last name> working for <company>"}
+   *  Task{@code <String>} signature =
+   *      Task.par(fetchUser(userId), fetchCompany(companyId))
+   *        .map((user, company) {@code ->}
+   *          user.getFirstName() + user.getLastName() + " working for " + company.getName());
+   * </pre></blockquote>
+   *
+   * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
+   * In this case returned task will be resolved with error from the first of failing tasks and other
+   * tasks will be cancelled (if possible).
+   * <p>
+   * @return task that will run given tasks in parallel
+   */
+  public static <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> Tuple10Task<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> par(
+      final Task<T1> task1, final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5,
+      final Task<T6> task6, final Task<T7> task7, final Task<T8> task8, final Task<T9> task9, final Task<T10> task10) {
+    ArgumentUtil.requireNotNull(task1, "task1");
+    ArgumentUtil.requireNotNull(task2, "task2");
+    ArgumentUtil.requireNotNull(task3, "task3");
+    ArgumentUtil.requireNotNull(task4, "task4");
+    ArgumentUtil.requireNotNull(task5, "task5");
+    ArgumentUtil.requireNotNull(task6, "task6");
+    ArgumentUtil.requireNotNull(task7, "task7");
+    ArgumentUtil.requireNotNull(task8, "task8");
+    ArgumentUtil.requireNotNull(task9, "task9");
+    ArgumentUtil.requireNotNull(task10, "task10");
+    return new Par10Task<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>("par10", task1, task2, task3, task4, task5, task6,
+        task7, task8, task9, task10);
+  }
+
+  /**
+   * Creates a new task that will run given tasks in parallel. Returned task
+   * will be resolved with results of all tasks as soon as all of them has
+   * been completed successfully.
+   *
+   * <blockquote><pre>
+   *  // this task will asynchronously fetch user and company in parallel
+   *  // and create signature in a form {@code "<first name> <last name> working for <company>"}
+   *  Task{@code <String>} signature =
+   *      Task.par(fetchUser(userId), fetchCompany(companyId))
+   *        .map((user, company) {@code ->}
+   *          user.getFirstName() + user.getLastName() + " working for " + company.getName());
+   * </pre></blockquote>
+   *
+   * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
+   * In this case returned task will be resolved with error from the first of failing tasks and other
+   * tasks will be cancelled (if possible).
+   * <p>
+   * @return task that will run given tasks in parallel
+   */
+  public static <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> Tuple11Task<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> par(
+      final Task<T1> task1, final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5,
+      final Task<T6> task6, final Task<T7> task7, final Task<T8> task8, final Task<T9> task9, final Task<T10> task10,
+      final Task<T11> task11) {
+    ArgumentUtil.requireNotNull(task1, "task1");
+    ArgumentUtil.requireNotNull(task2, "task2");
+    ArgumentUtil.requireNotNull(task3, "task3");
+    ArgumentUtil.requireNotNull(task4, "task4");
+    ArgumentUtil.requireNotNull(task5, "task5");
+    ArgumentUtil.requireNotNull(task6, "task6");
+    ArgumentUtil.requireNotNull(task7, "task7");
+    ArgumentUtil.requireNotNull(task8, "task8");
+    ArgumentUtil.requireNotNull(task9, "task9");
+    ArgumentUtil.requireNotNull(task10, "task10");
+    ArgumentUtil.requireNotNull(task11, "task11");
+    return new Par11Task<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>("par11", task1, task2, task3, task4, task5,
+        task6, task7, task8, task9, task10, task11);
+  }
+
+  /**
+   * Creates a new task that will run given tasks in parallel. Returned task
+   * will be resolved with results of all tasks as soon as all of them has
+   * been completed successfully.
+   *
+   * <blockquote><pre>
+   *  // this task will asynchronously fetch user and company in parallel
+   *  // and create signature in a form {@code "<first name> <last name> working for <company>"}
+   *  Task{@code <String>} signature =
+   *      Task.par(fetchUser(userId), fetchCompany(companyId))
+   *        .map((user, company) {@code ->}
+   *          user.getFirstName() + user.getLastName() + " working for " + company.getName());
+   * </pre></blockquote>
+   *
+   * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
+   * In this case returned task will be resolved with error from the first of failing tasks and other
+   * tasks will be cancelled (if possible).
+   * <p>
+   * @return task that will run given tasks in parallel
+   */
+  public static <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> Tuple12Task<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> par(
+      final Task<T1> task1, final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5,
+      final Task<T6> task6, final Task<T7> task7, final Task<T8> task8, final Task<T9> task9, final Task<T10> task10,
+      final Task<T11> task11, final Task<T12> task12) {
+    ArgumentUtil.requireNotNull(task1, "task1");
+    ArgumentUtil.requireNotNull(task2, "task2");
+    ArgumentUtil.requireNotNull(task3, "task3");
+    ArgumentUtil.requireNotNull(task4, "task4");
+    ArgumentUtil.requireNotNull(task5, "task5");
+    ArgumentUtil.requireNotNull(task6, "task6");
+    ArgumentUtil.requireNotNull(task7, "task7");
+    ArgumentUtil.requireNotNull(task8, "task8");
+    ArgumentUtil.requireNotNull(task9, "task9");
+    ArgumentUtil.requireNotNull(task10, "task10");
+    ArgumentUtil.requireNotNull(task11, "task11");
+    ArgumentUtil.requireNotNull(task12, "task12");
+    return new Par12Task<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>("par12", task1, task2, task3, task4,
+        task5, task6, task7, task8, task9, task10, task11, task12);
+  }
+
+  /**
+   * Creates a new task that will run given tasks in parallel. Returned task
+   * will be resolved with results of all tasks as soon as all of them has
+   * been completed successfully.
+   *
+   * <blockquote><pre>
+   *  // this task will asynchronously fetch user and company in parallel
+   *  // and create signature in a form {@code "<first name> <last name> working for <company>"}
+   *  Task{@code <String>} signature =
+   *      Task.par(fetchUser(userId), fetchCompany(companyId))
+   *        .map((user, company) {@code ->}
+   *          user.getFirstName() + user.getLastName() + " working for " + company.getName());
+   * </pre></blockquote>
+   *
+   * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
+   * In this case returned task will be resolved with error from the first of failing tasks and other
+   * tasks will be cancelled (if possible).
+   * <p>
+   * @return task that will run given tasks in parallel
+   */
+  public static <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> Tuple13Task<T1, T2, T3, T4, T5, T6, T7, T8,
+      T9, T10, T11, T12, T13> par(
+      final Task<T1> task1, final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5,
+      final Task<T6> task6, final Task<T7> task7, final Task<T8> task8, final Task<T9> task9, final Task<T10> task10,
+      final Task<T11> task11, final Task<T12> task12, final Task<T13> task13) {
+    ArgumentUtil.requireNotNull(task1, "task1");
+    ArgumentUtil.requireNotNull(task2, "task2");
+    ArgumentUtil.requireNotNull(task3, "task3");
+    ArgumentUtil.requireNotNull(task4, "task4");
+    ArgumentUtil.requireNotNull(task5, "task5");
+    ArgumentUtil.requireNotNull(task6, "task6");
+    ArgumentUtil.requireNotNull(task7, "task7");
+    ArgumentUtil.requireNotNull(task8, "task8");
+    ArgumentUtil.requireNotNull(task9, "task9");
+    ArgumentUtil.requireNotNull(task10, "task10");
+    ArgumentUtil.requireNotNull(task11, "task11");
+    ArgumentUtil.requireNotNull(task12, "task12");
+    ArgumentUtil.requireNotNull(task13, "task13");
+    return new Par13Task<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>("par13", task1, task2, task3, task4,
+        task5, task6, task7, task8, task9, task10, task11, task12, task13);
+  }
+
+  /**
+   * Creates a new task that will run given tasks in parallel. Returned task
+   * will be resolved with results of all tasks as soon as all of them has
+   * been completed successfully.
+   *
+   * <blockquote><pre>
+   *  // this task will asynchronously fetch user and company in parallel
+   *  // and create signature in a form {@code "<first name> <last name> working for <company>"}
+   *  Task{@code <String>} signature =
+   *      Task.par(fetchUser(userId), fetchCompany(companyId))
+   *        .map((user, company) {@code ->}
+   *          user.getFirstName() + user.getLastName() + " working for " + company.getName());
+   * </pre></blockquote>
+   *
+   * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
+   * In this case returned task will be resolved with error from the first of failing tasks and other
+   * tasks will be cancelled (if possible).
+   * <p>
+   * @return task that will run given tasks in parallel
+   */
+  public static <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> Tuple14Task<T1, T2, T3, T4, T5, T6, T7,
+      T8, T9, T10, T11, T12, T13, T14> par(
+      final Task<T1> task1, final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5,
+      final Task<T6> task6, final Task<T7> task7, final Task<T8> task8, final Task<T9> task9, final Task<T10> task10,
+      final Task<T11> task11, final Task<T12> task12, final Task<T13> task13, final Task<T14> task14) {
+    ArgumentUtil.requireNotNull(task1, "task1");
+    ArgumentUtil.requireNotNull(task2, "task2");
+    ArgumentUtil.requireNotNull(task3, "task3");
+    ArgumentUtil.requireNotNull(task4, "task4");
+    ArgumentUtil.requireNotNull(task5, "task5");
+    ArgumentUtil.requireNotNull(task6, "task6");
+    ArgumentUtil.requireNotNull(task7, "task7");
+    ArgumentUtil.requireNotNull(task8, "task8");
+    ArgumentUtil.requireNotNull(task9, "task9");
+    ArgumentUtil.requireNotNull(task10, "task10");
+    ArgumentUtil.requireNotNull(task11, "task11");
+    ArgumentUtil.requireNotNull(task12, "task12");
+    ArgumentUtil.requireNotNull(task13, "task13");
+    ArgumentUtil.requireNotNull(task14, "task14");
+    return new Par14Task<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>("par14", task1, task2, task3,
+        task4, task5, task6, task7, task8, task9, task10, task11, task12, task13, task14);
+  }
+
+  /**
+   * Creates a new task that will run given tasks in parallel. Returned task
+   * will be resolved with results of all tasks as soon as all of them has
+   * been completed successfully.
+   *
+   * <blockquote><pre>
+   *  // this task will asynchronously fetch user and company in parallel
+   *  // and create signature in a form {@code "<first name> <last name> working for <company>"}
+   *  Task{@code <String>} signature =
+   *      Task.par(fetchUser(userId), fetchCompany(companyId))
+   *        .map((user, company) {@code ->}
+   *          user.getFirstName() + user.getLastName() + " working for " + company.getName());
+   * </pre></blockquote>
+   *
+   * If any of tasks passed in as a parameters fails then returned task will also fail immediately.
+   * In this case returned task will be resolved with error from the first of failing tasks and other
+   * tasks will be cancelled (if possible).
+   * <p>
+   * @return task that will run given tasks in parallel
+   */
+  public static <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> Tuple15Task<T1, T2, T3, T4, T5, T6,
+      T7, T8, T9, T10, T11, T12, T13, T14, T15> par(
+      final Task<T1> task1, final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5,
+      final Task<T6> task6, final Task<T7> task7, final Task<T8> task8, final Task<T9> task9, final Task<T10> task10,
+      final Task<T11> task11, final Task<T12> task12, final Task<T13> task13, final Task<T14> task14, final Task<T15>
+      task15) {
+    ArgumentUtil.requireNotNull(task1, "task1");
+    ArgumentUtil.requireNotNull(task2, "task2");
+    ArgumentUtil.requireNotNull(task3, "task3");
+    ArgumentUtil.requireNotNull(task4, "task4");
+    ArgumentUtil.requireNotNull(task5, "task5");
+    ArgumentUtil.requireNotNull(task6, "task6");
+    ArgumentUtil.requireNotNull(task7, "task7");
+    ArgumentUtil.requireNotNull(task8, "task8");
+    ArgumentUtil.requireNotNull(task9, "task9");
+    ArgumentUtil.requireNotNull(task10, "task10");
+    ArgumentUtil.requireNotNull(task11, "task11");
+    ArgumentUtil.requireNotNull(task12, "task12");
+    ArgumentUtil.requireNotNull(task13, "task13");
+    ArgumentUtil.requireNotNull(task14, "task14");
+    ArgumentUtil.requireNotNull(task15, "task15");
+    return new Par15Task<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>("par15", task1, task2,
+        task3, task4, task5, task6, task7, task8, task9, task10, task11, task12, task13, task14, task15);
+  }
+
+  /**
    * Creates a new task that will run each of the supplied tasks in parallel (e.g.
    * tasks[0] can be run at the same time as tasks[1]).
    * <p>
