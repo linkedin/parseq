@@ -1,3 +1,9 @@
+v2.6.29
+------
+
+* Increase the arity of Task.par() to support 15 parameters.
+* Standardize indentation by 2 spaces on all pom.xml files.
+
 v2.6.28
 ------
 
