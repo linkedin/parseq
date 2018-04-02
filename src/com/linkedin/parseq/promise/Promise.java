@@ -16,6 +16,7 @@
 
 package com.linkedin.parseq.promise;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 
@@ -127,4 +128,22 @@ public interface Promise<P> {
    * @return {@code true} if the promise has en error.
    */
   boolean isFailed();
+
+  /**
+   * Converts {@code Promise<P>} into {@code CompletableFuture<P>}.
+   *
+   * @return CompletableFuture
+   */
+  default CompletableFuture<P> toFuture() {
+    final CompletableFuture<P> future = new CompletableFuture<>();
+    addListener(p -> {
+      if (!p.isFailed()) {
+        future.complete(p.get());
+      }
+      else {
+        future.completeExceptionally(p.getError());
+      }
+    });
+    return future;
+  }
 }

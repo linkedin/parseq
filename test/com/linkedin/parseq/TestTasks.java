@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -90,6 +91,20 @@ public class TestTasks extends BaseEngineTest {
     runAndWait("TestTasks.testAwait", task);
     assertEquals(Boolean.TRUE, resultRef.get());
   }
+
+  @Test
+  public void testToFuture() throws InterruptedException, ExecutionException {
+    String result = "TOFUTURERESULT";
+    Task<String> task = Task.fromFuture(() ->{
+      CompletableFuture<String> completableFuture
+          = CompletableFuture.supplyAsync(() -> result);
+      return completableFuture;
+    });
+    CompletableFuture<String> future = task.toFuture();
+    runAndWait("TestTasks.testToFuture", task);
+    assertEquals(result, future.get());
+  }
+
 
   @Test
   public void testFromFuture() {
