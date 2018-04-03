@@ -17,6 +17,7 @@
 package com.linkedin.parseq.promise;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 
 
@@ -130,11 +131,11 @@ public interface Promise<P> {
   boolean isFailed();
 
   /**
-   * Converts {@code Promise<P>} into {@code CompletableFuture<P>}.
+   * Converts {@code Promise<P>} into {@code CompletionStage<P>}.
    *
-   * @return CompletableFuture
+   * @return CompletionStage
    */
-  default CompletableFuture<P> toFuture() {
+  default CompletionStage<P> toCompletionStage() {
     final CompletableFuture<P> future = new CompletableFuture<>();
     addListener(p -> {
       if (!p.isFailed()) {

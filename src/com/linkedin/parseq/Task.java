@@ -1038,7 +1038,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @param callable the callable to execute when this task is run
    * @return the new task that will invoke the callable and complete with result of returned CompletionStage
    */
-    public static <T> Task<T> fromFuture(final String desc, final Callable<CompletionStage<? extends T>> callable)
+    public static <T> Task<T> fromCompletionStage(final String desc, final Callable<CompletionStage<? extends T>> callable)
     {
     return async(desc, () -> {
       final SettablePromise<T> promise = Promises.settable();
@@ -1056,11 +1056,12 @@ public interface Task<T> extends Promise<T>, Cancellable {
   }
 
   /**
-   * Equivalent to {@code fromFuture("fromFuture", callable)}.
-   * @see #fromFuture(Callable) (String, Callable)
+   * Equivalent to {@code fromCompletionStage("fromFuture", callable)}.
+   * @see #fromCompletionStage(Callable) (String, Callable)
    */
-  public static <T> Task<T> fromFuture(final Callable<CompletionStage<? extends T>> callable) {
-    return fromFuture("fromFuture: " + _taskDescriptor.getDescription(callable.getClass().getName()), callable);
+  public static <T> Task<T> fromCompletionStage(final Callable<CompletionStage<? extends T>> callable) {
+    return fromCompletionStage(
+        "fromCompletionStage: " + _taskDescriptor.getDescription(callable.getClass().getName()), callable);
   }
 
   /**
