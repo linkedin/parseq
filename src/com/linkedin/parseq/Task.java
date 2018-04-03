@@ -1056,7 +1056,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
   }
 
   /**
-   * Equivalent to {@code fromCompletionStage("fromFuture", callable)}.
+   * Equivalent to {@code fromCompletionStage("fromCompletionStage", callable)}.
    * @see #fromCompletionStage(Callable) (String, Callable)
    */
   public static <T> Task<T> fromCompletionStage(final Callable<CompletionStage<? extends T>> callable) {
