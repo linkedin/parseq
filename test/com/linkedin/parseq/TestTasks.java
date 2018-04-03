@@ -25,12 +25,15 @@ import static org.testng.AssertJUnit.fail;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
-
 import org.testng.annotations.Test;
 
 import com.linkedin.parseq.promise.Promise;
@@ -87,6 +90,71 @@ public class TestTasks extends BaseEngineTest {
 
     runAndWait("TestTasks.testAwait", task);
     assertEquals(Boolean.TRUE, resultRef.get());
+  }
+
+  @Test
+  public void testToCompletionStage() throws InterruptedException, ExecutionException {
+    String result = "CompletionStageResult";
+    Task<String> task = Task.fromCompletionStage(() ->{
+      CompletableFuture<String> completableFuture
+          = CompletableFuture.supplyAsync(() -> result);
+      return completableFuture;
+    });
+    CompletionStage<String> future = task.toCompletionStage();
+    runAndWait("TestTasks.testToCompletionStage", task);
+    future.whenComplete((r, ex) -> assertEquals(result, r));
+  }
+
+
+  @Test
+  public void testFromCompletionStage() {
+    String result = "FromCompletionStageResult";
+    Task<String> task = Task.fromCompletionStage(() ->{
+      CompletableFuture<String> completableFuture
+          = CompletableFuture.supplyAsync(() -> result);
+      return completableFuture;
+    });
+    runAndWait("testFromCompletionStage", task);
+    assertEquals(result, task.get());
+  }
+
+  @Test
+  public void testFromCompletionStageWithTimeConsumingFuture() throws InterruptedException {
+    String result = "FromCompletionStageResult";
+    Task<String> task = Task.fromCompletionStage(() ->{
+      CompletableFuture<String> completableFuture
+          = CompletableFuture.supplyAsync(() -> {
+        try {
+          Thread.sleep(100);
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+        return result;
+      });
+      return completableFuture;
+    });
+    runAndWait("testFromCompletionStageWithTimeConsumingFuture", task);
+    assertEquals(result, task.get());
+  }
+
+  @Test
+  public void testFromCompletionStageWithCompletionStageException() {
+    Task<String> task = Task.fromCompletionStage(() ->{
+      CompletableFuture<String> completableFuture
+          = CompletableFuture.supplyAsync(() -> {
+        throw new RuntimeException();
+      });
+      return completableFuture;
+    });
+    runAndWaitException("testFromCompletionStageWithCompletionStageException", task, CompletionException.class);
+  }
+
+  @Test
+  public void testFromCompletionStageWithCallableException() {
+    Task<String> task = Task.fromCompletionStage(() ->{
+      throw new RuntimeException();
+    });
+    runAndWaitException("testFromCompletionStageWithCallableException", task, RuntimeException.class);
   }
 
   @Test

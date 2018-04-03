@@ -18,6 +18,7 @@ package com.linkedin.parseq;
 
 import java.util.Collection;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -1023,6 +1024,44 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   public static <T> Task<T> callable(final Callable<? extends T> callable) {
     return callable("callable: " + _taskDescriptor.getDescription(callable.getClass().getName()), callable);
+  }
+
+  /**
+   * Creates a new task that's value will be set to the value returned
+   * from the CompletionStage.
+   *
+   * Returned task will fail if callable passed in as a parameter throws
+   * an exception.
+   *
+   * @param <T> the type of the return value for this task
+   * @param desc description of the task, it will show up in a trace
+   * @param callable the callable to execute when this task is run
+   * @return the new task that will invoke the callable and complete with result of returned CompletionStage
+   */
+    public static <T> Task<T> fromCompletionStage(final String desc, final Callable<CompletionStage<? extends T>> callable)
+    {
+    return async(desc, () -> {
+      final SettablePromise<T> promise = Promises.settable();
+      CompletionStage<? extends T> future = callable.call();
+      future.whenComplete((value, exception) -> {
+        if (exception != null) {
+          promise.fail(exception);
+        }
+        else {
+          promise.done(value);
+        }
+      });
+      return promise;
+    });
+  }
+
+  /**
+   * Equivalent to {@code fromCompletionStage("fromCompletionStage", callable)}.
+   * @see #fromCompletionStage(Callable) (String, Callable)
+   */
+  public static <T> Task<T> fromCompletionStage(final Callable<CompletionStage<? extends T>> callable) {
+    return fromCompletionStage(
+        "fromCompletionStage: " + _taskDescriptor.getDescription(callable.getClass().getName()), callable);
   }
 
   /**
