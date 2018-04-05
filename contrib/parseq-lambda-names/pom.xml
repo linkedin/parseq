@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.linkedin.parseq</groupId>
   <artifactId>parseq-lambda-names</artifactId>
-  <version>2.6.29</version>
+  <version>2.6.30</version>
 
   <dependencies>
     <dependency>
