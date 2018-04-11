@@ -22,7 +22,7 @@ var WIDTH = 960, MARGIN = {
   top : 40,
   bottom : 10,
   left : 10,
-  right : 250
+  right : 2130 // the width of each character is 7~8 muliply by the length of the name string(less than 255 chars)
 }, BAR_HEIGHT = 25, BAR_SPACING = 10, MIN_BAR_WIDTH = 3,
 
 // How long in ms to take when hiding / revealing elements
