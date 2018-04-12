@@ -1,3 +1,13 @@
+v2.6.31
+------
+
+* PlanCompletionListener should be invoked after batch task is finished.
+
+v2.6.30
+------
+
+* Bridge between Task and CompletionStage.
+
 v2.6.29
 ------
 

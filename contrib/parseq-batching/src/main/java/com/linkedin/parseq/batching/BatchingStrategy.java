@@ -1,9 +1,6 @@
 package com.linkedin.parseq.batching;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -152,7 +149,7 @@ public abstract class BatchingStrategy<G, K, T> {
     return Task.async(getBatchName(group, batch), ctx -> {
       final SettablePromise<T> result = Promises.settable();
       final PromiseListener<T> countDownListener =
-          new CountDownPromiseListener<T>(batch.keySize(), result, null);
+          new CountDownPromiseListener<>(batch.keySize(), result, null);
 
       boolean assignedParent = false;
       final TraceBuilder traceBuilder = ctx.getTraceBuilder();
@@ -184,7 +181,9 @@ public abstract class BatchingStrategy<G, K, T> {
 
   private void runBatch(final PlanContext planContext, G group, final Batch<K, T> batch) {
     try {
-      new ContextImpl(planContext, taskForBatch(group, batch, false)).runTask();
+      Task<?> batchedTask = taskForBatch(group, batch, false);
+      PlanContext forkedPlan = planContext.fork(batchedTask);
+      new ContextImpl(forkedPlan, batchedTask).runTask();
     } catch (Throwable t) {
       //we don't care if some of promises have already been completed
       //all we care is that all remaining promises have been failed
@@ -205,9 +204,7 @@ public abstract class BatchingStrategy<G, K, T> {
         .append(group)
         .append("\n")
         .append("batch keys: \n");
-      batch.keys().forEach(key -> {
-        debugInfo.append("    ").append(key).append("\n");
-      });
+      batch.keys().forEach(key -> debugInfo.append("    ").append(key).append("\n"));
     return debugInfo.toString();
   }
 
