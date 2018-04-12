@@ -1,5 +1,13 @@
 package com.linkedin.parseq.batching;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.linkedin.parseq.Context;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.batching.BatchImpl.BatchBuilder;
@@ -14,12 +22,6 @@ import com.linkedin.parseq.promise.SettablePromise;
 import com.linkedin.parseq.trace.Relationship;
 import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.TraceBuilder;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * {@code BatchingStrategy} helps build "batching clients" in ParSeq. "Client" means an object that given {@code K key}
