@@ -148,7 +148,8 @@ public abstract class BatchingStrategy<G, K, T> {
     }
     return Task.async(getBatchName(group, batch), ctx -> {
       final SettablePromise<T> result = Promises.settable();
-      final PromiseListener<T> countDownListener = new CountDownPromiseListener<>(batch.keySize(), result, null);
+      final PromiseListener<T> countDownListener =
+          new CountDownPromiseListener<>(batch.keySize(), result, null);
 
       boolean assignedParent = false;
       final TraceBuilder traceBuilder = ctx.getTraceBuilder();
