@@ -1,3 +1,9 @@
+v2.6.32
+------
+
+* Add javadoc to ParSeqRestClient to explain error handling.
+* Update README for parseq-restli-client maxBatchSize configuration limitation on existing BATCH_GET.
+
 v2.6.31
 ------
 
