@@ -43,6 +43,17 @@ import com.linkedin.restli.common.OperationNameGenerator;
 
 
 /**
+ * A ParSeq client that creates a ParSeq task from a rest.li {@link Request} by sending the request to underlying rest.li
+ * {@link Client}. ParSeqRestClient delegates task execution to Rest.li Client {@link Client#sendRequest(Request, Callback)}
+ * method that takes a {@link PromiseCallbackAdapter}. ParSeq task created from {@link ParSeqRestClient} may fail when
+ * {@link PromiseCallbackAdapter} receives the following error conditions:
+ * <p>
+ * 1. @{link RestLiResponseExcepion}: Request has reached Rest.li server and rest.li server throws RestLiServiceException.
+ * 2. @{link RemoteInvocationException}: Request failed before reaching rest.li server, for example, RestException thrown
+ * from request filters, {@link javax.naming.ServiceUnavailableException} when client cannot find available server instance
+ * that could serve the request, etc.
+ * 3. @{link TimeoutException}: Request times out after configured timeoutMs.
+ * </p>
  *
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  *
