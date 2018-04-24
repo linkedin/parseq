@@ -16,6 +16,7 @@
 
 package com.linkedin.parseq;
 
+import com.linkedin.parseq.promise.SettablePromise;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -177,7 +178,7 @@ public class Engine {
       _concurrentPlans.release();
 
       if (newState._stateName == StateName.SHUTDOWN && newState._pendingCount == 0) {
-        tryTransitionTerminate();
+        tryTransitionTerminate(null);
       }
     };
 
@@ -468,8 +469,12 @@ public class Engine {
    * no effect.
    */
   public void shutdown() {
+    shutdown(null);
+  }
+
+  public void shutdown(SettablePromise<?> executionCompletePromise) {
     if (tryTransitionShutdown()) {
-      tryTransitionTerminate();
+      tryTransitionTerminate(executionCompletePromise);
     }
   }
 
@@ -524,7 +529,7 @@ public class Engine {
     return true;
   }
 
-  private void tryTransitionTerminate() {
+  private void tryTransitionTerminate(SettablePromise<?> executionCompletePromise) {
     State currState;
     do {
       currState = _stateRef.get();
@@ -534,6 +539,10 @@ public class Engine {
     } while (!_stateRef.compareAndSet(currState, TERMINATED));
 
     _terminated.countDown();
+
+    if (executionCompletePromise != null) {
+      executionCompletePromise.done(null);
+    }
   }
 
   private static class State {
