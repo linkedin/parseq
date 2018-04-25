@@ -29,6 +29,8 @@ public class TestParSeqRestClient extends ParSeqRestClientIntegrationTest {
   @Override
   public ParSeqRestliClientConfig getParSeqRestClientConfig() {
     return new ParSeqRestliClientConfigBuilder()
+        .addD2RequestTimeoutEnabled("withD2Timeout.*/greetings.*", true)
+        .addTimeoutMs("withD2Timeout.*/greetings.*", 5000L)
         .addTimeoutMs("*.*/greetings.GET", 9999L)
         .addTimeoutMs("*.*/greetings.*", 10001L)
         .addTimeoutMs("*.*/*.GET", 10002L)
@@ -64,6 +66,16 @@ public class TestParSeqRestClient extends ParSeqRestClientIntegrationTest {
           .build());
       runAndWait(getTestClassName() + ".testConfiguredTimeoutOutbound", task);
       assertTrue(hasTask("withTimeout 5555ms", task.getTrace()));
+  }
+
+  @Test
+  public void testConfiguredD2TimeoutOutboundOverride() {
+    Task<?> task = greetingGet(1L, new RequestConfigOverridesBuilder()
+      .setTimeoutMs(5555L)
+      .setD2RequestTimeoutEnabled(true)
+      .build());
+    runAndWait(getTestClassName() + ".testConfiguredTimeoutOutbound", task);
+    assertFalse(hasTask("withTimeout 5555ms", task.getTrace()));
   }
 
   @Test
@@ -137,6 +149,20 @@ public class TestParSeqRestClient extends ParSeqRestClientIntegrationTest {
       Task<?> task = greetingDel(9999L).toTry();
       runAndWait(getTestClassName() + ".testConfiguredTimeoutOutboundOp", task);
       assertTrue(hasTask("withTimeout 10001ms src: *.*/greetings.*", task.getTrace()));
+    } finally {
+      clearInboundRequestContext();
+    }
+  }
+
+  @Test
+  public void testConfiguredD2TimeoutOutboundOp() {
+    try {
+      setInboundRequestContext(new InboundRequestContextBuilder()
+        .setName("withD2Timeout")
+        .build());
+      Task<?> task = greetingDel(9999L).toTry();
+      runAndWait(getTestClassName() + ".testConfiguredD2TimeoutOutboundOp", task);
+      assertFalse(hasTask("withTimeout 10001ms src: withD2Timeout.*/greetings.*", task.getTrace()));
     } finally {
       clearInboundRequestContext();
     }

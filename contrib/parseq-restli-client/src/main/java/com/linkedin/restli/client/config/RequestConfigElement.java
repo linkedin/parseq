@@ -128,6 +128,8 @@ class RequestConfigElement implements Comparable<RequestConfigElement> {
   private static Object coerceValue(String property, Object value) throws RequestConfigKeyParsingException {
     try {
       switch(property) {
+        case "d2RequestTimeoutEnabled":
+          return ConfigValueCoercers.BOOLEAN.apply(value);
         case "timeoutMs":
           return ConfigValueCoercers.LONG.apply(value);
         case "batchingEnabled":

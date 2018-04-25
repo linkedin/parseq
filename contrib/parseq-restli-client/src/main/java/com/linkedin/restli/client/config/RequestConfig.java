@@ -18,6 +18,8 @@ package com.linkedin.restli.client.config;
 
 public interface RequestConfig {
 
+  public ConfigValue<Boolean> isD2RequestTimeoutEnabled();
+
   public ConfigValue<Long> getTimeoutMs();
 
   public ConfigValue<Boolean> isBatchingEnabled();

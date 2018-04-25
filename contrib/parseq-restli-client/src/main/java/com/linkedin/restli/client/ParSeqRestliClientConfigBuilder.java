@@ -5,6 +5,7 @@ import java.util.Map;
 
 public class ParSeqRestliClientConfigBuilder {
 
+  private final Map<String, Boolean> _d2RequestTimeoutEnabledConfig = new HashMap<>();
   private final Map<String, Long> _timeoutMsConfig = new HashMap<>();
   private final Map<String, Boolean> _batchingEnabledConfig = new HashMap<>();
   private final Map<String, Integer> _maxBatchSizeConfig = new HashMap<>();
@@ -17,13 +18,24 @@ public class ParSeqRestliClientConfigBuilder {
   }
 
   public void addConfig(ParSeqRestliClientConfig config) {
+    addD2RequestTimeoutEnabledConfigMap(config.isD2RequestTimeoutEnabledConfig());
     addTimeoutMsConfigMap(config.getTimeoutMsConfig());
     addBatchingEnabledConfigMap(config.isBatchingEnabledConfig());
     addMaxBatchSizeConfigMap(config.getMaxBatchSizeConfig());
   }
 
   public ParSeqRestliClientConfig build() {
-    return new ParSeqRestliClientConfigImpl(_timeoutMsConfig, _batchingEnabledConfig, _maxBatchSizeConfig);
+    return new ParSeqRestliClientConfigImpl(_d2RequestTimeoutEnabledConfig, _timeoutMsConfig, _batchingEnabledConfig, _maxBatchSizeConfig);
+  }
+
+  public ParSeqRestliClientConfigBuilder addD2RequestTimeoutEnabled(String key, boolean value) {
+    _d2RequestTimeoutEnabledConfig.put(key, value);
+    return this;
+  }
+
+  public ParSeqRestliClientConfigBuilder addD2RequestTimeoutEnabledConfigMap(Map<String, Boolean> config) {
+    _d2RequestTimeoutEnabledConfig.putAll(config);
+    return this;
   }
 
   public ParSeqRestliClientConfigBuilder addTimeoutMs(String key, long value) {

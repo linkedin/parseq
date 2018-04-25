@@ -16,8 +16,15 @@
 
 package com.linkedin.restli.client;
 
+import com.linkedin.parseq.Exceptions;
+import com.linkedin.parseq.function.Failure;
+import com.linkedin.parseq.function.Success;
+import com.linkedin.parseq.function.Try;
+import com.linkedin.parseq.internal.TimeUnitHelper;
+import com.linkedin.r2.filter.R2Constants;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
 import org.slf4j.Logger;
@@ -181,8 +188,7 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
         + OperationNameGenerator.generate(request.getMethod(), request.getMethodName());
   }
 
-  private <T> Task<Response<T>> withTimeout(final Task<Response<T>> task, RequestConfig config) {
-    ConfigValue<Long> timeout = config.getTimeoutMs();
+  private <T> Task<Response<T>> withTimeout(final Task<Response<T>> task, ConfigValue<Long> timeout) {
     if (timeout.getValue() != null && timeout.getValue() > 0) {
       if (timeout.getSource().isPresent()) {
         return task.withTimeout("src: " + timeout.getSource().get(), timeout.getValue(), TimeUnit.MILLISECONDS);
@@ -197,10 +203,43 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
   private <T> Task<Response<T>> createTask(final String name, final Request<T> request,
       final RequestContext requestContext, RequestConfig config) {
     LOGGER.debug("createTask, name: '{}', config: {}", name, config);
+    return createTaskWithTimeout(name, request, requestContext, config);
+  }
+
+  private <T> Task<Response<T>> createTaskWithTimeout(final String name, final Request<T> request,
+      final RequestContext requestContext, RequestConfig config) {
+    ConfigValue<Long> timeout = config.getTimeoutMs();
+    Boolean d2RequestTimeoutEnabled = (config.isD2RequestTimeoutEnabled() == null) ? false :
+      config.isD2RequestTimeoutEnabled().getValue();
+    if (timeout.getValue() != null && timeout.getValue() > 0 && d2RequestTimeoutEnabled) {
+      // d2 request timeout can only accept Integer timeout
+      requestContext.putLocalAttr(R2Constants.REQUEST_TIMEOUT, Math.min(timeout.getValue(), Integer.MAX_VALUE));
+    }
+    Task<Response<T>> requestTask;
     if (RequestGroup.isBatchable(request, config)) {
-      return withTimeout(createBatchableTask(name, request, requestContext, config), config);
+      requestTask = createBatchableTask(name, request, requestContext, config);
     } else {
-      return withTimeout(Task.async(name, () -> sendRequest(request, requestContext)), config);
+      requestTask = Task.async(name, () -> sendRequest(request, requestContext));
+    }
+    if (!d2RequestTimeoutEnabled) {
+      return withTimeout(requestTask, timeout);
+    } else {
+      // transform TimeoutException to be compatible with current Task timeout exception message
+      return requestTask.transform((Try<Response<T>> tryGet) -> {
+        if (tryGet.isFailed()) {
+          if (tryGet.getError() instanceof TimeoutException && timeout.getValue() != null && timeout.getValue() > 0) {
+            Optional<String> desc = timeout.getSource().map(src -> "src: " + src);
+            String timeoutDetails = "withTimeout " + Math.min(timeout.getValue(), Integer.MAX_VALUE)
+              + TimeUnitHelper.toString(TimeUnit.MILLISECONDS) + (desc != null ? " " + desc : "");
+            String timeoutExceptionMessage = "task: '" + requestTask.getName() + "' " + timeoutDetails;
+            return Failure.of(Exceptions.timeoutException(timeoutExceptionMessage));
+          } else {
+            return Failure.of(tryGet.getError());
+          }
+        } else {
+          return Success.of(tryGet.get());
+        }
+      });
     }
   }
 

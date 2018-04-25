@@ -22,11 +22,13 @@ class RequestConfigProviderImpl implements RequestConfigProvider {
   static final int DEFAULT_MAX_BATCH_SIZE = 1024;
   static final int CONFIG_CACHE_SIZE = 4096;
   static final Boolean DEFAULT_BATCHING_ENABLED = Boolean.FALSE;
+  static final Boolean DEFAULT_D2REQUEST_TIMEOUT_ENABLED = Boolean.FALSE;
   static final long DEFAULT_TIMEOUT = 0L;
 
   static final ParSeqRestliClientConfig DEFAULT_CONFIG = createDefaultConfig();
 
   private final InboundRequestContextFinder _inboundRequestContextFinder;
+  private final RequestConfigTree<Boolean> _d2RequestTimeoutEnabled = new RequestConfigTree<>();
   private final RequestConfigTree<Long> _timeoutMs = new RequestConfigTree<>();
   private final RequestConfigTree<Boolean> _batchingEnabled = new RequestConfigTree<>();
   private final RequestConfigTree<Integer> _maxBatchSize = new RequestConfigTree<>();
@@ -38,7 +40,8 @@ class RequestConfigProviderImpl implements RequestConfigProvider {
   }
 
   private void initialize(ParSeqRestliClientConfig config) throws RequestConfigKeyParsingException {
-    boolean failed = initializeProperty(config.getTimeoutMsConfig(), "timeoutMs") ||
+    boolean failed = initializeProperty(config.isD2RequestTimeoutEnabledConfig(), "d2RequestTimeoutEnabled") ||
+                     initializeProperty(config.getTimeoutMsConfig(), "timeoutMs") ||
                      initializeProperty(config.isBatchingEnabledConfig(), "batchingEnabled") ||
                      initializeProperty(config.getMaxBatchSizeConfig(), "maxBatchSize");
     if (failed) {
@@ -74,6 +77,7 @@ class RequestConfigProviderImpl implements RequestConfigProvider {
 
   private void processConfigElement(RequestConfigElement element) throws RequestConfigKeyParsingException {
     switch (element.getProperty()) {
+      case "d2RequestTimeoutEnabled": _d2RequestTimeoutEnabled.add(element); break;
       case "timeoutMs": _timeoutMs.add(element); break;
       case "batchingEnabled": _batchingEnabled.add(element); break;
       case "maxBatchSize": _maxBatchSize.add(element); break;
@@ -95,6 +99,7 @@ class RequestConfigProviderImpl implements RequestConfigProvider {
 
   private RequestConfig resolve(RequestConfigCacheKey cacheKey) {
     return new RequestConfigBuilder()
+      .setD2RequestTimeoutEnabled(_d2RequestTimeoutEnabled.resolve(cacheKey))
       .setTimeoutMs(_timeoutMs.resolve(cacheKey))
       .setBatchingEnabled(_batchingEnabled.resolve(cacheKey))
       .setMaxBatchSize(_maxBatchSize.resolve(cacheKey))
@@ -106,6 +111,7 @@ class RequestConfigProviderImpl implements RequestConfigProvider {
    */
   private static ParSeqRestliClientConfig createDefaultConfig() {
     ParSeqRestliClientConfigBuilder builder = new ParSeqRestliClientConfigBuilder();
+    builder.addD2RequestTimeoutEnabled("*.*/*.*", DEFAULT_D2REQUEST_TIMEOUT_ENABLED);
     builder.addTimeoutMs("*.*/*.*", DEFAULT_TIMEOUT);
     builder.addBatchingEnabled("*.*/*.*", DEFAULT_BATCHING_ENABLED);
     builder.addMaxBatchSize("*.*/*.*", DEFAULT_MAX_BATCH_SIZE);

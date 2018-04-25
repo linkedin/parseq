@@ -20,13 +20,16 @@ import java.util.Optional;
 
 public class RequestConfigOverridesBuilder {
 
+  private ConfigValue<Boolean> _d2RequestTimeoutEnabled;
   private ConfigValue<Long> _timeoutMs;
   private ConfigValue<Boolean>  _batchingEnabled;
   private ConfigValue<Integer> _maxBatchSize;
 
   public RequestConfigOverrides build() {
-    return new RequestConfigOverridesImpl(Optional.ofNullable(_timeoutMs), Optional.ofNullable(_batchingEnabled),
-        Optional.ofNullable(_maxBatchSize));
+    return new RequestConfigOverridesImpl(Optional.ofNullable(_d2RequestTimeoutEnabled),
+      Optional.ofNullable(_timeoutMs),
+      Optional.ofNullable(_batchingEnabled),
+      Optional.ofNullable(_maxBatchSize));
   }
 
   public RequestConfigOverridesBuilder setTimeoutMs(long timeoutMs, String source) {
@@ -36,6 +39,11 @@ public class RequestConfigOverridesBuilder {
 
   public RequestConfigOverridesBuilder setTimeoutMs(long timeoutMs) {
     _timeoutMs = new ConfigValue<>(timeoutMs, null);
+    return this;
+  }
+
+  public RequestConfigOverridesBuilder setD2RequestTimeoutEnabled(boolean d2RequestTimeoutEnabled) {
+    _d2RequestTimeoutEnabled = new ConfigValue<>(d2RequestTimeoutEnabled, null);
     return this;
   }
 

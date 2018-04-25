@@ -24,22 +24,22 @@
     <dependency>
       <groupId>com.linkedin.pegasus</groupId>
       <artifactId>pegasus-common</artifactId>
-      <version>11.0.0</version>
+      <version>19.0.3</version>
     </dependency>
     <dependency>
       <groupId>com.linkedin.pegasus</groupId>
       <artifactId>restli-common</artifactId>
-      <version>11.0.0</version>
+      <version>19.0.3</version>
     </dependency>
     <dependency>
       <groupId>com.linkedin.pegasus</groupId>
       <artifactId>restli-client</artifactId>
-      <version>11.0.0</version>
+      <version>19.0.3</version>
     </dependency>
     <dependency>
       <groupId>com.linkedin.pegasus</groupId>
       <artifactId>r2-core</artifactId>
-      <version>11.0.0</version>
+      <version>19.0.3</version>
     </dependency>
     <dependency>
       <groupId>org.hdrhistogram</groupId>

@@ -12,6 +12,10 @@ import com.linkedin.r2.transport.common.Client;
 import com.linkedin.restli.client.multiplexer.MultiplexedRequest;
 import com.linkedin.restli.client.multiplexer.MultiplexedResponse;
 
+
+/**
+ * The type Capturing rest client.
+ */
 class CapturingRestClient extends RestClient {
 
   private final Map<Request<?>, RequestContext> _capturedRequestContexts = new ConcurrentHashMap<>();

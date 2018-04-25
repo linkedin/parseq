@@ -20,6 +20,8 @@ import java.util.Optional;
 
 public interface RequestConfigOverrides {
 
+  public Optional<ConfigValue<Boolean>> isD2RequestTimeoutEnabled();
+
   public Optional<ConfigValue<Long>> getTimeoutMs();
 
   public Optional<ConfigValue<Boolean>> isBatchingEnabled();

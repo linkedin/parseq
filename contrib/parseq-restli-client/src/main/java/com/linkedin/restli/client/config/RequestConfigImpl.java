@@ -2,14 +2,22 @@ package com.linkedin.restli.client.config;
 
 class RequestConfigImpl implements RequestConfig {
 
+  private final ConfigValue<Boolean> _d2RequestTimeoutEnabled;
   private final ConfigValue<Long> _timeoutMs;
   private final ConfigValue<Boolean>  _batchingEnabled;
   private final ConfigValue<Integer> _maxBatchSize;
 
-  RequestConfigImpl(ConfigValue<Long> timeoutMs, ConfigValue<Boolean> batchingEnabled, ConfigValue<Integer> maxBatchSize) {
+  RequestConfigImpl(ConfigValue<Boolean> d2RequestTimeoutEnabled, ConfigValue<Long> timeoutMs,
+      ConfigValue<Boolean> batchingEnabled, ConfigValue<Integer> maxBatchSize) {
+    _d2RequestTimeoutEnabled = d2RequestTimeoutEnabled;
     _timeoutMs = timeoutMs;
     _batchingEnabled = batchingEnabled;
     _maxBatchSize = maxBatchSize;
+  }
+
+  @Override
+  public ConfigValue<Boolean> isD2RequestTimeoutEnabled() {
+    return _d2RequestTimeoutEnabled;
   }
 
   @Override
@@ -29,7 +37,8 @@ class RequestConfigImpl implements RequestConfig {
 
   @Override
   public String toString() {
-    return "RequestConfigImpl _timeoutMs=" + _timeoutMs + ", batchingEnabled=" + _batchingEnabled
+    return "RequestConfigImpl d2RequestTimeoutEnabled=" + _d2RequestTimeoutEnabled + ", _timeoutMs=" + _timeoutMs
+        + ", batchingEnabled=" + _batchingEnabled
         + ", maxBatchSize=" + _maxBatchSize + "]";
   }
 
@@ -39,6 +48,7 @@ class RequestConfigImpl implements RequestConfig {
     int result = 1;
     result = prime * result + ((_batchingEnabled == null) ? 0 : _batchingEnabled.hashCode());
     result = prime * result + ((_maxBatchSize == null) ? 0 : _maxBatchSize.hashCode());
+    result = prime * result + ((_d2RequestTimeoutEnabled == null) ? 0 : _d2RequestTimeoutEnabled.hashCode());
     result = prime * result + ((_timeoutMs == null) ? 0 : _timeoutMs.hashCode());
     return result;
   }
@@ -61,6 +71,11 @@ class RequestConfigImpl implements RequestConfig {
       if (other._maxBatchSize != null)
         return false;
     } else if (!_maxBatchSize.equals(other._maxBatchSize))
+      return false;
+    if (_d2RequestTimeoutEnabled == null) {
+      if (other._d2RequestTimeoutEnabled != null)
+        return false;
+    } else if (!_d2RequestTimeoutEnabled.equals(other._d2RequestTimeoutEnabled))
       return false;
     if (_timeoutMs == null) {
       if (other._timeoutMs != null)
