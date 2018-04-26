@@ -3,6 +3,8 @@ v2.6.32
 
 * Add javadoc to ParSeqRestClient to explain error handling.
 * Update README for parseq-restli-client maxBatchSize configuration limitation on existing BATCH_GET.
+* Fix tracevis name truncation bug
+* Attach version number to tracevis server jar
 
 v2.6.31
 ------
