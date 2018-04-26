@@ -290,8 +290,8 @@
     <fail message="Did not find dot under ${dot.location}. Make sure graphviz is installed and property dot.location points to dot executable." unless="${dot.found}"/>
   </target>
 
-  <target name="run-tracevis-server" depends="verify-dot-exists, dist-tracevis, package-tracevis-server" description="Runs the tracevis-server" >
-    <java fork="true" jar="${contrib.dir}/parseq-tracevis-server/target/parseq-tracevis-server-jar-with-dependencies.jar" failonerror="true">
+  <target name="run-tracevis-server" depends="verify-dot-exists, dist-tracevis, package-tracevis-server, version-props" description="Runs the tracevis-server" >
+    <java fork="true" jar="${contrib.dir}/parseq-tracevis-server/target/parseq-tracevis-server-${version}-jar-with-dependencies.jar" failonerror="true">
       <arg value="${dot.location}" />
     </java>
   </target>

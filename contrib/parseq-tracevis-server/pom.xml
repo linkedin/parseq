@@ -101,7 +101,6 @@
 					<descriptors>
 						<descriptor>assembly-descriptor.xml</descriptor>
 					</descriptors>
-					<finalName>parseq-tracevis-server</finalName>
 					<archive>
 						<manifest>
 							<mainClass>com.linkedin.parseq.TracevisServerJarMain</mainClass>
