@@ -64,6 +64,7 @@ import com.linkedin.restli.common.OperationNameGenerator;
  * </p>
  *
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
+ * @author Min Chen (mnchen@linkedin.com)
  *
  */
 public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequestBatchKey, Response<Object>>
