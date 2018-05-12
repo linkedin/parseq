@@ -21,6 +21,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
+import com.linkedin.parseq.ParSeqGlobalConfiguration;
 import com.linkedin.r2.filter.R2Constants;
 import java.util.Collection;
 
@@ -40,7 +41,6 @@ public class TestRequestContextProvider extends ParSeqRestClientIntegrationTest 
   @Override
   public ParSeqRestliClientConfig getParSeqRestClientConfig() {
     return new ParSeqRestliClientConfigBuilder()
-        .addD2RequestTimeoutEnabled("withD2Timeout.*/greetings.*", true)
         .addTimeoutMs("withD2Timeout.*/greetings.*", 5000L)
         .addTimeoutMs("*.*/greetings.GET", 9999L)
         .addTimeoutMs("*.*/greetings.*", 10001L)
@@ -124,6 +124,7 @@ public class TestRequestContextProvider extends ParSeqRestClientIntegrationTest 
   @Test
   public void testTimeoutRequest() {
     try {
+      ParSeqGlobalConfiguration.setD2RequestTimeoutEnabled(true);
       setInboundRequestContext(new InboundRequestContextBuilder()
           .setName("withD2Timeout")
           .build());
@@ -132,6 +133,7 @@ public class TestRequestContextProvider extends ParSeqRestClientIntegrationTest 
       runAndWait(getTestClassName() + ".testTimeoutRequest", task);
       verifyRequestContext(request, 5000L);
     } finally {
+      ParSeqGlobalConfiguration.setD2RequestTimeoutEnabled(false);
       _capturingRestClient.clearCapturedRequestContexts();
     }
   }

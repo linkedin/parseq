@@ -19,6 +19,7 @@ package com.linkedin.restli.client;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import com.linkedin.parseq.ParSeqGlobalConfiguration;
 import org.testng.annotations.Test;
 
 import com.linkedin.parseq.Task;
@@ -29,7 +30,6 @@ public class TestParSeqRestClient extends ParSeqRestClientIntegrationTest {
   @Override
   public ParSeqRestliClientConfig getParSeqRestClientConfig() {
     return new ParSeqRestliClientConfigBuilder()
-        .addD2RequestTimeoutEnabled("withD2Timeout.*/greetings.*", true)
         .addTimeoutMs("withD2Timeout.*/greetings.*", 5000L)
         .addTimeoutMs("*.*/greetings.GET", 9999L)
         .addTimeoutMs("*.*/greetings.*", 10001L)
@@ -70,12 +70,14 @@ public class TestParSeqRestClient extends ParSeqRestClientIntegrationTest {
 
   @Test
   public void testConfiguredD2TimeoutOutboundOverride() {
-    Task<?> task = greetingGet(1L, new RequestConfigOverridesBuilder()
-      .setTimeoutMs(5555L)
-      .setD2RequestTimeoutEnabled(true)
-      .build());
-    runAndWait(getTestClassName() + ".testConfiguredTimeoutOutbound", task);
-    assertFalse(hasTask("withTimeout 5555ms", task.getTrace()));
+    try {
+      ParSeqGlobalConfiguration.setD2RequestTimeoutEnabled(true);
+      Task<?> task = greetingGet(1L, new RequestConfigOverridesBuilder().setTimeoutMs(5555L).build());
+      runAndWait(getTestClassName() + ".testConfiguredTimeoutOutbound", task);
+      assertFalse(hasTask("withTimeout 5555ms", task.getTrace()));
+    } finally {
+      ParSeqGlobalConfiguration.setD2RequestTimeoutEnabled(false);
+    }
   }
 
   @Test
@@ -157,6 +159,7 @@ public class TestParSeqRestClient extends ParSeqRestClientIntegrationTest {
   @Test
   public void testConfiguredD2TimeoutOutboundOp() {
     try {
+      ParSeqGlobalConfiguration.setD2RequestTimeoutEnabled(true);
       setInboundRequestContext(new InboundRequestContextBuilder()
         .setName("withD2Timeout")
         .build());
@@ -164,6 +167,7 @@ public class TestParSeqRestClient extends ParSeqRestClientIntegrationTest {
       runAndWait(getTestClassName() + ".testConfiguredD2TimeoutOutboundOp", task);
       assertFalse(hasTask("withTimeout 10001ms src: withD2Timeout.*/greetings.*", task.getTrace()));
     } finally {
+      ParSeqGlobalConfiguration.setD2RequestTimeoutEnabled(false);
       clearInboundRequestContext();
     }
   }

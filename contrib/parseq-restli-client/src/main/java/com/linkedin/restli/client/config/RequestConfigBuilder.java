@@ -18,7 +18,6 @@ package com.linkedin.restli.client.config;
 
 public class RequestConfigBuilder {
 
-  private ConfigValue<Boolean> _d2RequestTimeoutEnabled;
   private ConfigValue<Long> _timeoutMs;
   private ConfigValue<Boolean>  _batchingEnabled;
   private ConfigValue<Integer> _maxBatchSize;
@@ -27,23 +26,13 @@ public class RequestConfigBuilder {
   }
 
   public RequestConfigBuilder(RequestConfig config) {
-    _d2RequestTimeoutEnabled = config.isD2RequestTimeoutEnabled();
     _timeoutMs = config.getTimeoutMs();
     _batchingEnabled = config.isBatchingEnabled();
     _maxBatchSize = config.getMaxBatchSize();
   }
 
   public RequestConfig build() {
-    return new RequestConfigImpl(_d2RequestTimeoutEnabled, _timeoutMs, _batchingEnabled, _maxBatchSize);
-  }
-
-  public ConfigValue<Boolean> getD2RequestTimeoutEnabled() {
-    return _d2RequestTimeoutEnabled;
-  }
-
-  public RequestConfigBuilder setD2RequestTimeoutEnabled(ConfigValue<Boolean> d2RequestTimeoutEnabled) {
-    _d2RequestTimeoutEnabled = d2RequestTimeoutEnabled;
-    return this;
+    return new RequestConfigImpl(_timeoutMs, _batchingEnabled, _maxBatchSize);
   }
 
   public ConfigValue<Long> getTimeoutMs() {
@@ -74,7 +63,6 @@ public class RequestConfigBuilder {
   }
 
   public RequestConfigBuilder applyOverrides(RequestConfigOverrides configOverrides) {
-    configOverrides.isD2RequestTimeoutEnabled().ifPresent(this::setD2RequestTimeoutEnabled);
     configOverrides.getTimeoutMs().ifPresent(this::setTimeoutMs);
     configOverrides.isBatchingEnabled().ifPresent(this::setBatchingEnabled);
     configOverrides.getMaxBatchSize().ifPresent(this::setMaxBatchSize);

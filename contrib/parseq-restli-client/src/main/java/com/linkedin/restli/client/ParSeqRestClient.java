@@ -17,6 +17,7 @@
 package com.linkedin.restli.client;
 
 import com.linkedin.parseq.Exceptions;
+import com.linkedin.parseq.ParSeqGlobalConfiguration;
 import com.linkedin.parseq.function.Failure;
 import com.linkedin.parseq.function.Success;
 import com.linkedin.parseq.function.Try;
@@ -112,11 +113,13 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
   }
 
   @Override
+  @Deprecated
   public <T> Promise<Response<T>> sendRequest(final Request<T> request) {
     return sendRequest(request, _requestContextProvider.apply(request));
   }
 
   @Override
+  @Deprecated
   public <T> Promise<Response<T>> sendRequest(final Request<T> request, final RequestContext requestContext) {
     final SettablePromise<Response<T>> promise = Promises.settable();
     _client.sendRequest(request, requestContext, new PromiseCallbackAdapter<T>(promise));
@@ -206,14 +209,20 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
     return createTaskWithTimeout(name, request, requestContext, config);
   }
 
+  // reconcile timeout specified in requestContext with the given timeout
+  private void reconcileRequestTimeout(final RequestContext requestContext, Long timeout) {
+    Number contextTimeout = (Number) requestContext.getLocalAttr(R2Constants.REQUEST_TIMEOUT);
+    int timeoutBound = (contextTimeout != null) ? contextTimeout.intValue() : Integer.MAX_VALUE;
+    // d2 request timeout can only accept Integer timeout
+    requestContext.putLocalAttr(R2Constants.REQUEST_TIMEOUT, Math.min(timeout, timeoutBound));
+  }
+
   private <T> Task<Response<T>> createTaskWithTimeout(final String name, final Request<T> request,
       final RequestContext requestContext, RequestConfig config) {
     ConfigValue<Long> timeout = config.getTimeoutMs();
-    Boolean d2RequestTimeoutEnabled = (config.isD2RequestTimeoutEnabled() == null) ? false :
-      config.isD2RequestTimeoutEnabled().getValue();
-    if (timeout.getValue() != null && timeout.getValue() > 0 && d2RequestTimeoutEnabled) {
-      // d2 request timeout can only accept Integer timeout
-      requestContext.putLocalAttr(R2Constants.REQUEST_TIMEOUT, Math.min(timeout.getValue(), Integer.MAX_VALUE));
+    if (timeout.getValue() != null && timeout.getValue() > 0 && ParSeqGlobalConfiguration.isD2RequestTimeoutEnabled()) {
+      // reconcile timeout if request has already set timeout in its request context
+      reconcileRequestTimeout(requestContext, timeout.getValue());
     }
     Task<Response<T>> requestTask;
     if (RequestGroup.isBatchable(request, config)) {
@@ -221,7 +230,7 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
     } else {
       requestTask = Task.async(name, () -> sendRequest(request, requestContext));
     }
-    if (!d2RequestTimeoutEnabled) {
+    if (!ParSeqGlobalConfiguration.isD2RequestTimeoutEnabled()) {
       return withTimeout(requestTask, timeout);
     } else {
       // transform TimeoutException to be compatible with current Task timeout exception message
