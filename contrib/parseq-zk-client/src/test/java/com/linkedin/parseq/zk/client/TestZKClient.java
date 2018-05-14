@@ -16,28 +16,28 @@
 
 package com.linkedin.parseq.zk.client;
 
-
 import com.linkedin.d2.discovery.stores.zk.ZKConnection;
 import com.linkedin.parseq.BaseEngineTest;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.Tasks;
 import com.linkedin.parseq.zk.server.ZKServer;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.Op;
-import org.apache.zookeeper.OpResult;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs;
+import org.apache.zookeeper.data.ACL;
+import org.apache.zookeeper.data.Id;
 import org.apache.zookeeper.data.Stat;
+import org.apache.zookeeper.server.auth.DigestAuthenticationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
@@ -45,7 +45,8 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.fail;
+import static org.apache.zookeeper.ZooDefs.Ids.*;
+import static org.testng.Assert.*;
 
 
 /**
@@ -117,12 +118,6 @@ public class TestZKClient extends BaseEngineTest {
   }
 
   @Test
-  public void testName()
-      throws Exception {
-
-  }
-
-  @Test
   public void testGetData() {
     final String path = "/testGetData";
     final byte[] data = "hello world2".getBytes();
@@ -135,12 +130,14 @@ public class TestZKClient extends BaseEngineTest {
 
     byte[] dataResult = getData.get().getBytes();
     Stat statResult = getData.get().getStat();
+    List<ACL> acl = getData.get().getAclList();
 
     Assert.assertNotNull(dataResult);
     Assert.assertNotNull(statResult);
     Assert.assertEquals(dataResult, data);
     Assert.assertEquals(statResult.getVersion(), 0);
     Assert.assertEquals(statResult.getDataLength(), data.length);
+    Assert.assertEquals(acl, ZooDefs.Ids.OPEN_ACL_UNSAFE);
   }
 
   @Test
@@ -164,6 +161,35 @@ public class TestZKClient extends BaseEngineTest {
     // after #setData
     Assert.assertEquals(getAndSetData.get().getVersion(), 1);
     Assert.assertEquals(getAndSetData.get().getDataLength(), data2.length);
+  }
+
+  @Test
+  public void testAcl() throws NoSuchAlgorithmException {
+    final String path = "/testAcl";
+    final byte[] data = "hello world".getBytes();
+    final String scheme = "digest";
+    final String authString = "test:test";
+    final Id authId = new Id(scheme, DigestAuthenticationProvider.generateDigest(authString));
+    final List<ACL> creatorDelete = new ArrayList<>(Collections.singletonList(new ACL(25, authId)));
+
+    _zkClient.addAuthInfo(scheme, authString.getBytes());
+    Task<String> create = _zkClient.create(path, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+    runAndWait("create", create);
+
+    Task<ZKData> getData = _zkClient.getData(path);
+    Task<Stat> setACL = getData.flatMap(results -> _zkClient.setACL(path, creatorDelete,
+        results.getStat().getVersion()));
+
+    runAndWait("setACL", setACL);
+
+    // before #setACL
+    Assert.assertEquals(getData.get().getAclList(), OPEN_ACL_UNSAFE);
+    // after #setACL: setACL will not change the version number
+    Assert.assertEquals(setACL.get().getVersion(), 0);
+
+    getData = _zkClient.getData(path);
+    runAndWait("getData", getData);
+    Assert.assertEquals(getData.get().getAclList(), creatorDelete);
   }
 
   @Test

@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.apache.zookeeper.data.ACL;
 
 
 /**
@@ -22,10 +23,10 @@ public class MultiLocks implements Synchronizable {
    */
   private final List<ZKLock> _locks;
 
-  public MultiLocks(ZKClient zkClient, String... lockPaths)  {
+  public MultiLocks(ZKClient zkClient, List<ACL> acls, String... lockPaths)  {
     List<ZKLock> locks = Arrays.stream(lockPaths)
         .sorted()
-        .map(lockPath -> new ZKLock(lockPath, zkClient))
+        .map(lockPath -> new ZKLock(lockPath, zkClient, acls))
         .collect(Collectors.toList());
     _locks = Collections.unmodifiableList(locks);
   }
