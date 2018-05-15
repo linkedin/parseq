@@ -49,6 +49,19 @@ public class TestRequestConfigElement {
     assertEquals(el.getValue(), true);
   }
 
+  @Test
+  public void testParsingMultiColoComplexSpec() throws RequestConfigKeyParsingException {
+    RequestConfigElement el = RequestConfigElement.parse("timeoutMs", "profileView-prod-lsg1.ACTION-doIt/profile-prod-lsg1.FINDER-all", 100L);
+    assertEquals(el.getInboundName().get(), "profileView-prod-lsg1");
+    assertEquals(el.getInboundOp().get(), ResourceMethod.ACTION.toString().toUpperCase());
+    assertEquals(el.getInboundOpName().get(), "doIt");
+    assertEquals(el.getOutboundName().get(), "profile-prod-lsg1");
+    assertEquals(el.getOutboundOp().get(), ResourceMethod.FINDER);
+    assertEquals(el.getOutboundOpName().get(), "all");
+    assertEquals(el.getProperty(), "timeoutMs");
+    assertEquals(el.getValue(), 100L);
+  }
+
   @Test(expectedExceptions = {RequestConfigKeyParsingException.class})
   public void testParsingMissingComplexOpName() throws RequestConfigKeyParsingException {
     RequestConfigElement.parse("timeoutMs", "*.*/*.FINDER", 100L);

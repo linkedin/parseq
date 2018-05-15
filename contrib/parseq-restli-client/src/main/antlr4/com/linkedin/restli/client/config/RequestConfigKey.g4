@@ -3,7 +3,7 @@ grammar RequestConfigKey;
 key 			: inbound '/' outbound EOF;
 inbound			: ( restResource | '*' ) '.' ( operationIn | '*' );
 outbound		: ( restResource | '*' ) '.' ( operationOut | '*' );
-restResource 	: Name ( ':' Name )*;
+restResource 	: Name ( '-' Name )* ( ':' Name ( '-' Name )* )*;
 operationIn		: simpleOp | complex | httpExtraOp;
 operationOut    : simpleOp | complex;
 simpleOp   		: 'GET' | 'BATCH_GET' | 'CREATE' | 'BATCH_CREATE' |

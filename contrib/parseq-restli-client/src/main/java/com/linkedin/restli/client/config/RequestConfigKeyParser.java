@@ -31,11 +31,10 @@ public class RequestConfigKeyParser extends Parser {
 	};
 
 	private static final String[] _LITERAL_NAMES = {
-		null, "'/'", "'*'", "'.'", "':'", "'GET'", "'BATCH_GET'", "'CREATE'", 
+		null, "'/'", "'*'", "'.'", "'-'", "':'", "'GET'", "'BATCH_GET'", "'CREATE'", 
 		"'BATCH_CREATE'", "'PARTIAL_UPDATE'", "'UPDATE'", "'BATCH_UPDATE'", "'DELETE'", 
 		"'BATCH_PARTIAL_UPDATE'", "'BATCH_DELETE'", "'GET_ALL'", "'OPTIONS'", 
-		"'HEAD'", "'POST'", "'PUT'", "'TRACE'", "'CONNECT'", "'-'", "'FINDER'", 
-		"'ACTION'"
+		"'HEAD'", "'POST'", "'PUT'", "'TRACE'", "'CONNECT'", "'FINDER'", "'ACTION'"
 	};
 	private static final String[] _SYMBOLIC_NAMES = {
 		null, null, null, null, null, null, null, null, null, null, null, null, 
@@ -188,7 +187,6 @@ public class RequestConfigKeyParser extends Parser {
 			match(T__2);
 			setState(32);
 			switch (_input.LA(1)) {
-			case T__4:
 			case T__5:
 			case T__6:
 			case T__7:
@@ -205,6 +203,7 @@ public class RequestConfigKeyParser extends Parser {
 			case T__18:
 			case T__19:
 			case T__20:
+			case T__21:
 			case T__22:
 			case T__23:
 				{
@@ -282,7 +281,6 @@ public class RequestConfigKeyParser extends Parser {
 			match(T__2);
 			setState(41);
 			switch (_input.LA(1)) {
-			case T__4:
 			case T__5:
 			case T__6:
 			case T__7:
@@ -294,6 +292,7 @@ public class RequestConfigKeyParser extends Parser {
 			case T__13:
 			case T__14:
 			case T__15:
+			case T__16:
 			case T__22:
 			case T__23:
 				{
@@ -367,6 +366,38 @@ public class RequestConfigKeyParser extends Parser {
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
+			setState(62);
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			while (_la==T__4) {
+				{
+				{
+				setState(51);
+				match(T__4);
+				setState(52);
+				match(Name);
+				setState(57);
+				_errHandler.sync(this);
+				_la = _input.LA(1);
+				while (_la==T__3) {
+					{
+					{
+					setState(53);
+					match(T__3);
+					setState(54);
+					match(Name);
+					}
+					}
+					setState(59);
+					_errHandler.sync(this);
+					_la = _input.LA(1);
+				}
+				}
+				}
+				setState(64);
+				_errHandler.sync(this);
+				_la = _input.LA(1);
+			}
 			}
 		}
 		catch (RecognitionException re) {
@@ -408,9 +439,8 @@ public class RequestConfigKeyParser extends Parser {
 		OperationInContext _localctx = new OperationInContext(_ctx, getState());
 		enterRule(_localctx, 8, RULE_operationIn);
 		try {
-			setState(54);
+			setState(68);
 			switch (_input.LA(1)) {
-			case T__4:
 			case T__5:
 			case T__6:
 			case T__7:
@@ -422,9 +452,10 @@ public class RequestConfigKeyParser extends Parser {
 			case T__13:
 			case T__14:
 			case T__15:
+			case T__16:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(51);
+				setState(65);
 				simpleOp();
 				}
 				break;
@@ -432,18 +463,18 @@ public class RequestConfigKeyParser extends Parser {
 			case T__23:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(52);
+				setState(66);
 				complex();
 				}
 				break;
-			case T__16:
 			case T__17:
 			case T__18:
 			case T__19:
 			case T__20:
+			case T__21:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(53);
+				setState(67);
 				httpExtraOp();
 				}
 				break;
@@ -487,9 +518,8 @@ public class RequestConfigKeyParser extends Parser {
 		OperationOutContext _localctx = new OperationOutContext(_ctx, getState());
 		enterRule(_localctx, 10, RULE_operationOut);
 		try {
-			setState(58);
+			setState(72);
 			switch (_input.LA(1)) {
-			case T__4:
 			case T__5:
 			case T__6:
 			case T__7:
@@ -501,9 +531,10 @@ public class RequestConfigKeyParser extends Parser {
 			case T__13:
 			case T__14:
 			case T__15:
+			case T__16:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(56);
+				setState(70);
 				simpleOp();
 				}
 				break;
@@ -511,7 +542,7 @@ public class RequestConfigKeyParser extends Parser {
 			case T__23:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(57);
+				setState(71);
 				complex();
 				}
 				break;
@@ -552,9 +583,9 @@ public class RequestConfigKeyParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(60);
+			setState(74);
 			_la = _input.LA(1);
-			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__4) | (1L << T__5) | (1L << T__6) | (1L << T__7) | (1L << T__8) | (1L << T__9) | (1L << T__10) | (1L << T__11) | (1L << T__12) | (1L << T__13) | (1L << T__14) | (1L << T__15))) != 0)) ) {
+			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__5) | (1L << T__6) | (1L << T__7) | (1L << T__8) | (1L << T__9) | (1L << T__10) | (1L << T__11) | (1L << T__12) | (1L << T__13) | (1L << T__14) | (1L << T__15) | (1L << T__16))) != 0)) ) {
 			_errHandler.recoverInline(this);
 			} else {
 				consume();
@@ -594,9 +625,9 @@ public class RequestConfigKeyParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(62);
+			setState(76);
 			_la = _input.LA(1);
-			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__16) | (1L << T__17) | (1L << T__18) | (1L << T__19) | (1L << T__20))) != 0)) ) {
+			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__17) | (1L << T__18) | (1L << T__19) | (1L << T__20) | (1L << T__21))) != 0)) ) {
 			_errHandler.recoverInline(this);
 			} else {
 				consume();
@@ -640,11 +671,11 @@ public class RequestConfigKeyParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(64);
+			setState(78);
 			complexOp();
-			setState(65);
-			match(T__21);
-			setState(66);
+			setState(79);
+			match(T__3);
+			setState(80);
 			_la = _input.LA(1);
 			if ( !(_la==T__1 || _la==Name) ) {
 			_errHandler.recoverInline(this);
@@ -686,7 +717,7 @@ public class RequestConfigKeyParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(68);
+			setState(82);
 			_la = _input.LA(1);
 			if ( !(_la==T__22 || _la==T__23) ) {
 			_errHandler.recoverInline(this);
@@ -707,25 +738,28 @@ public class RequestConfigKeyParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\33I\4\2\t\2\4\3\t"+
+		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\33W\4\2\t\2\4\3\t"+
 		"\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t\13\3"+
 		"\2\3\2\3\2\3\2\3\2\3\3\3\3\5\3\36\n\3\3\3\3\3\3\3\5\3#\n\3\3\4\3\4\5\4"+
 		"\'\n\4\3\4\3\4\3\4\5\4,\n\4\3\5\3\5\3\5\7\5\61\n\5\f\5\16\5\64\13\5\3"+
-		"\6\3\6\3\6\5\69\n\6\3\7\3\7\5\7=\n\7\3\b\3\b\3\t\3\t\3\n\3\n\3\n\3\n\3"+
-		"\13\3\13\3\13\2\2\f\2\4\6\b\n\f\16\20\22\24\2\6\3\2\7\22\3\2\23\27\4\2"+
-		"\4\4\33\33\3\2\31\32F\2\26\3\2\2\2\4\35\3\2\2\2\6&\3\2\2\2\b-\3\2\2\2"+
-		"\n8\3\2\2\2\f<\3\2\2\2\16>\3\2\2\2\20@\3\2\2\2\22B\3\2\2\2\24F\3\2\2\2"+
-		"\26\27\5\4\3\2\27\30\7\3\2\2\30\31\5\6\4\2\31\32\7\2\2\3\32\3\3\2\2\2"+
-		"\33\36\5\b\5\2\34\36\7\4\2\2\35\33\3\2\2\2\35\34\3\2\2\2\36\37\3\2\2\2"+
-		"\37\"\7\5\2\2 #\5\n\6\2!#\7\4\2\2\" \3\2\2\2\"!\3\2\2\2#\5\3\2\2\2$\'"+
-		"\5\b\5\2%\'\7\4\2\2&$\3\2\2\2&%\3\2\2\2\'(\3\2\2\2(+\7\5\2\2),\5\f\7\2"+
-		"*,\7\4\2\2+)\3\2\2\2+*\3\2\2\2,\7\3\2\2\2-\62\7\33\2\2./\7\6\2\2/\61\7"+
-		"\33\2\2\60.\3\2\2\2\61\64\3\2\2\2\62\60\3\2\2\2\62\63\3\2\2\2\63\t\3\2"+
-		"\2\2\64\62\3\2\2\2\659\5\16\b\2\669\5\22\n\2\679\5\20\t\28\65\3\2\2\2"+
-		"8\66\3\2\2\28\67\3\2\2\29\13\3\2\2\2:=\5\16\b\2;=\5\22\n\2<:\3\2\2\2<"+
-		";\3\2\2\2=\r\3\2\2\2>?\t\2\2\2?\17\3\2\2\2@A\t\3\2\2A\21\3\2\2\2BC\5\24"+
-		"\13\2CD\7\30\2\2DE\t\4\2\2E\23\3\2\2\2FG\t\5\2\2G\25\3\2\2\2\t\35\"&+"+
-		"\628<";
+		"\5\3\5\3\5\3\5\7\5:\n\5\f\5\16\5=\13\5\7\5?\n\5\f\5\16\5B\13\5\3\6\3\6"+
+		"\3\6\5\6G\n\6\3\7\3\7\5\7K\n\7\3\b\3\b\3\t\3\t\3\n\3\n\3\n\3\n\3\13\3"+
+		"\13\3\13\2\2\f\2\4\6\b\n\f\16\20\22\24\2\6\3\2\b\23\3\2\24\30\4\2\4\4"+
+		"\33\33\3\2\31\32V\2\26\3\2\2\2\4\35\3\2\2\2\6&\3\2\2\2\b-\3\2\2\2\nF\3"+
+		"\2\2\2\fJ\3\2\2\2\16L\3\2\2\2\20N\3\2\2\2\22P\3\2\2\2\24T\3\2\2\2\26\27"+
+		"\5\4\3\2\27\30\7\3\2\2\30\31\5\6\4\2\31\32\7\2\2\3\32\3\3\2\2\2\33\36"+
+		"\5\b\5\2\34\36\7\4\2\2\35\33\3\2\2\2\35\34\3\2\2\2\36\37\3\2\2\2\37\""+
+		"\7\5\2\2 #\5\n\6\2!#\7\4\2\2\" \3\2\2\2\"!\3\2\2\2#\5\3\2\2\2$\'\5\b\5"+
+		"\2%\'\7\4\2\2&$\3\2\2\2&%\3\2\2\2\'(\3\2\2\2(+\7\5\2\2),\5\f\7\2*,\7\4"+
+		"\2\2+)\3\2\2\2+*\3\2\2\2,\7\3\2\2\2-\62\7\33\2\2./\7\6\2\2/\61\7\33\2"+
+		"\2\60.\3\2\2\2\61\64\3\2\2\2\62\60\3\2\2\2\62\63\3\2\2\2\63@\3\2\2\2\64"+
+		"\62\3\2\2\2\65\66\7\7\2\2\66;\7\33\2\2\678\7\6\2\28:\7\33\2\29\67\3\2"+
+		"\2\2:=\3\2\2\2;9\3\2\2\2;<\3\2\2\2<?\3\2\2\2=;\3\2\2\2>\65\3\2\2\2?B\3"+
+		"\2\2\2@>\3\2\2\2@A\3\2\2\2A\t\3\2\2\2B@\3\2\2\2CG\5\16\b\2DG\5\22\n\2"+
+		"EG\5\20\t\2FC\3\2\2\2FD\3\2\2\2FE\3\2\2\2G\13\3\2\2\2HK\5\16\b\2IK\5\22"+
+		"\n\2JH\3\2\2\2JI\3\2\2\2K\r\3\2\2\2LM\t\2\2\2M\17\3\2\2\2NO\t\3\2\2O\21"+
+		"\3\2\2\2PQ\5\24\13\2QR\7\6\2\2RS\t\4\2\2S\23\3\2\2\2TU\t\5\2\2U\25\3\2"+
+		"\2\2\13\35\"&+\62;@FJ";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

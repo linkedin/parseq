@@ -155,6 +155,7 @@ public class TestRequestConfigProvider {
     configBuilder.addTimeoutMs("*.GET/greetings.GET", 1000L);
     configBuilder.addTimeoutMs("greetings.GET/*.GET", 1000L);
     configBuilder.addTimeoutMs("greetings.GET/greetings.GET", 100L);
+    configBuilder.addTimeoutMs("greetings.GET/greetings-prod-lsg1.GET", 200L);
     configBuilder.addTimeoutMs("*.*/greetings.DELETE", 1000L);
     configBuilder.addTimeoutMs("greetings.*/greetings.DELETE", 1000L);
     configBuilder.addTimeoutMs("*.GET/greetings.DELETE", 1000L);
@@ -166,6 +167,13 @@ public class TestRequestConfigProvider {
     RequestConfig rc = provider.apply(new GreetingsBuilders().get().id(0L).build());
     assertNotNull(rc);
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(100L));
+    assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
+    assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
+
+    // multi-colo call
+    rc = provider.apply(new GreetingsBuilders("greetings" + "-prod-lsg1").get().id(0L).build());
+    assertNotNull(rc);
+    assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(200L));
     assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
     assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
 
