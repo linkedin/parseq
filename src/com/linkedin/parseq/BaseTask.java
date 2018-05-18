@@ -18,6 +18,7 @@ package com.linkedin.parseq;
 
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -82,6 +83,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
 
   private final Long _id = IdGenerator.getNextId();
   private final AtomicReference<State> _stateRef;
+  private volatile Long _startPlanId = null;
   private final String _name;
   protected final ShallowTraceBuilder _shallowTraceBuilder;
 
@@ -181,7 +183,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
   public final void contextRun(final Context context, final Task<?> parent, final Collection<Task<?>> predecessors) {
     final TaskLogger taskLogger = context.getTaskLogger();
     final TraceBuilder traceBuilder = context.getTraceBuilder();
-    if (transitionRun(traceBuilder)) {
+    if (transitionRun(context)) {
       markTaskStarted();
       final Promise<T> promise;
       try {
@@ -389,18 +391,24 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
     error.setStackTrace(concatenatedStackTrace);
   }
 
-  protected boolean transitionRun(final TraceBuilder traceBuilder) {
+  protected boolean transitionRun(final Context context) {
     State state;
     State newState;
     do {
       state = _stateRef.get();
       if (state.getType() != StateType.INIT) {
+        // prevent cross-plan task sharing if enabled
+        if (!ParSeqGlobalConfiguration.isAllowCrossPlanSharingEnabled() &&
+            _startPlanId != null && !_startPlanId.equals(context.getPlanId())) {
+          throw new IllegalStateException(this.toString() + " should not be shared across plans!!");
+        }
         return false;
       }
       newState = state.transitionRun();
     } while (!_stateRef.compareAndSet(state, newState));
-    _traceBuilder = traceBuilder;
-    traceBuilder.addShallowTrace(_shallowTraceBuilder);
+    _startPlanId = context.getPlanId();
+    _traceBuilder = context.getTraceBuilder();
+    context.getTraceBuilder().addShallowTrace(_shallowTraceBuilder);
     return true;
   }
 

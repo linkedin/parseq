@@ -226,4 +226,21 @@ public class TestTaskReuse extends BaseEngineTest {
     assertEquals(countTasks(plan2.getTrace()), 5);
   }
 
+  @Test
+  public void testTaskSharingByTwoPlans() throws InterruptedException {
+    try {
+      ParSeqGlobalConfiguration.setAllowCrossPlanSharingEnabled(false);
+      final AtomicInteger counter = new AtomicInteger();
+
+      Task<String> task = Task.value("shared", "Shared Constant");
+
+      Task<String> plan1 = task.map(s -> s + " on earth!");
+      Task<String> plan2 = task.map(s -> s + " on moon!");
+
+      runAndWait("TestTaskReuse.testTaskSharingByTwoPlans-plan1", plan1);
+      runAndWaitException("TestTaskReuse.testTaskSharingByTwoPlans-plan2", plan2, IllegalStateException.class);
+    } finally {
+      ParSeqGlobalConfiguration.setAllowCrossPlanSharingEnabled(true);
+    }
+  }
 }

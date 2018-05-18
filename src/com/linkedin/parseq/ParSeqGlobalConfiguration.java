@@ -26,6 +26,8 @@ package com.linkedin.parseq;
 public final class ParSeqGlobalConfiguration {
   private static volatile boolean _crossThreadStackTracesEnabled = false;
   private static volatile boolean _trampolineEnabled = false;
+  // default set to true to keep backward compatibility
+  private static volatile boolean _allowCrossPlanSharing = true;
 
   private ParSeqGlobalConfiguration() {
   }
@@ -86,4 +88,39 @@ public final class ParSeqGlobalConfiguration {
     _trampolineEnabled = enabled;
   }
 
+  /**
+   * Returns true if cross-plan task sharing is enabled.
+   * In general, we should discourage cross-plan task sharing if you have some custom decoration in your task
+   * ExecutorService used due to its unexpected consequences.
+   *
+   * If a task is shared between multiple plans, only one plan will actually run it (every task can be executed at
+   * most once), but all plans will add PromiseListeners to it. It means that the thread from the plan that executed
+   * the shared Task will complete all PromiseListeners and possibly submit Runnables to other Plans' SerialExecutors,
+   * and thus other plan SerialExecutors may inherit execution context of other Plan if your engine ExecutorService
+   * has some custom decoration logic. In practice this means that execution context from one request might leak
+   * to other requests, which is undesired.
+   *
+   * @return true if cross-plan task sharing is enabled, false otherwise
+   */
+  public static boolean isAllowCrossPlanSharingEnabled() {
+    return _allowCrossPlanSharing;
+  }
+
+  /**
+   * Enable or disable cross-plan task sharing.
+   * In general, we should discourage cross-plan task sharing if you have some custom decoration in your task
+   * ExecutorService used due to its unexpected consequences.
+   *
+   * If a task is shared between multiple plans, only one plan will actually run it (every task can be executed at
+   * most once), but all plans will add PromiseListeners to it. It means that the thread from the plan that executed
+   * the shared Task will complete all PromiseListeners and possibly submit Runnables to other Plans' SerialExecutors,
+   * and thus other plan SerialExecutors may inherit execution context of other Plan if your engine ExecutorService
+   * has some custom decoration logic. In practice this means that execution context from one request might leak
+   * to other requests, which is undesired.
+   *
+   * @param enabled true if cross-plan task sharing is enabled, false otherwise
+   */
+  public static void setAllowCrossPlanSharingEnabled(boolean enabled) {
+    _allowCrossPlanSharing = enabled;
+  }
 }

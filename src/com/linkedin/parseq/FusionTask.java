@@ -212,7 +212,7 @@ class FusionTask<S, T> extends BaseTask<T> {
             dest.fail(error);
           }
         });
-      } else if (transitionRun(traceContext.getParent().getTraceBuilder())) {
+      } else if (transitionRun(traceContext.getParent())) {
         markTaskStarted();
         //non-parent task executed for the first time
         traceContext.getParent().getTaskLogger().logTaskStart(this);
