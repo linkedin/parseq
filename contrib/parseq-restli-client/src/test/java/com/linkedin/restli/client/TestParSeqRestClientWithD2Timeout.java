@@ -16,25 +16,18 @@
 
 package com.linkedin.restli.client;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-
-import com.linkedin.parseq.ParSeqGlobalConfiguration;
-import com.linkedin.r2.filter.R2Constants;
-import java.util.Collection;
-
-import org.testng.annotations.Test;
-
 import com.linkedin.parseq.Task;
+import com.linkedin.r2.filter.R2Constants;
 import com.linkedin.r2.message.RequestContext;
 import com.linkedin.restli.client.config.RequestConfigOverridesBuilder;
-import com.linkedin.restli.common.ResourceMethod;
 import com.linkedin.restli.examples.greetings.api.Greeting;
 import com.linkedin.restli.examples.greetings.client.GreetingsBuilders;
+import org.testng.annotations.Test;
 
-public class TestRequestContextProvider extends ParSeqRestClientIntegrationTest {
+import static org.testng.Assert.*;
+
+
+public class TestParSeqRestClientWithD2Timeout extends ParSeqRestClientIntegrationTest {
 
   private CapturingRestClient _capturingRestClient;
 
@@ -69,56 +62,33 @@ public class TestRequestContextProvider extends ParSeqRestClientIntegrationTest 
   @Override
   protected void customizeParSeqRestliClient(ParSeqRestliClientBuilder parSeqRestliClientBuilder) {
     parSeqRestliClientBuilder.setRequestContextProvider(this::createRequestContext);
+    parSeqRestliClientBuilder.setD2RequestTimeoutEnabled(true);
   }
 
   @Test
-  public void testNonBatchableRequest() {
-    try {
-      GetRequest<Greeting> request = new GreetingsBuilders().get().id(1L).build();
-      Task<?> task = _parseqClient.createTask(request);
-      runAndWait(getTestClassName() + ".testNonBatchableRequest", task);
-      verifyRequestContext(request, null);
-    } finally {
-      _capturingRestClient.clearCapturedRequestContexts();
-    }
+  public void testConfiguredD2TimeoutOutboundOverride() {
+    Task<?> task = greetingGet(1L, new RequestConfigOverridesBuilder().setTimeoutMs(5555L).build());
+    runAndWait(getTestClassName() + ".testConfiguredTimeoutOutbound", task);
+    assertTrue(hasTask("withTimeout 5555ms", task.getTrace()));
   }
 
   @Test
-  public void testBatchableRequestNotBatched() {
-    try {
+  public void testConfiguredD2TimeoutOutboundOp() {
+    setInboundRequestContext(new InboundRequestContextBuilder().setName("withD2Timeout").build());
+    Task<?> task = greetingDel(9999L).toTry();
+    runAndWait(getTestClassName() + ".testConfiguredD2TimeoutOutboundOp", task);
+    assertTrue(hasTask("withTimeout 5000ms src: withD2Timeout.*/greetings.*", task.getTrace()));
+  }
+
+  @Test
+  public void testTimeoutRequest() {
       setInboundRequestContext(new InboundRequestContextBuilder()
-          .setName("withBatching")
+          .setName("withD2Timeout")
           .build());
       GetRequest<Greeting> request = new GreetingsBuilders().get().id(1L).build();
       Task<?> task = _parseqClient.createTask(request);
-      runAndWait(getTestClassName() + ".testBatchableRequestNotBatched", task);
-      verifyRequestContext(request, null);
-    } finally {
-      _capturingRestClient.clearCapturedRequestContexts();
-    }
-  }
-
-  @Test
-  public void testBatchableRequestBatched() {
-    try {
-      setInboundRequestContext(new InboundRequestContextBuilder()
-          .setName("withBatching")
-          .build());
-      GetRequest<Greeting> request1 = new GreetingsBuilders().get().id(1L).build();
-      GetRequest<Greeting> request2 = new GreetingsBuilders().get().id(2L).build();
-      Task<?> task = Task.par(_parseqClient.createTask(request1), _parseqClient.createTask(request2));
-
-      runAndWait(getTestClassName() + ".testBatchableRequestBatched", task);
-
-      Collection<RequestContext> contexts = _capturingRestClient.getCapturedRequestContexts().values();
-      assertEquals(contexts.size(), 1);
-      RequestContext context = contexts.iterator().next();
-      assertNotNull(context.getLocalAttr("method"));
-      assertEquals(context.getLocalAttr("method"), ResourceMethod.BATCH_GET);
-
-    } finally {
-      _capturingRestClient.clearCapturedRequestContexts();
-    }
+      runAndWait(getTestClassName() + ".testTimeoutRequest", task);
+      verifyRequestContext(request, 5000L);
   }
 
   private void verifyRequestContext(Request<?> request, Long timeout) {

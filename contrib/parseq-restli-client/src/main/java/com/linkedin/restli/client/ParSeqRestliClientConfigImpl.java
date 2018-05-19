@@ -9,7 +9,7 @@ class ParSeqRestliClientConfigImpl implements ParSeqRestliClientConfig {
   private final Map<String, Integer> _maxBatchSizeConfig;
 
   public ParSeqRestliClientConfigImpl(Map<String, Long> timeoutMsConfig, Map<String, Boolean> batchingEnabledConfig,
-      Map<String, Integer> maxBatchSizeConfig) {
+      Map<String, Integer> maxBatchSizeConfig, boolean d2RequestTimeoutEnabled) {
     _timeoutMsConfig = timeoutMsConfig;
     _batchingEnabledConfig = batchingEnabledConfig;
     _maxBatchSizeConfig = maxBatchSizeConfig;

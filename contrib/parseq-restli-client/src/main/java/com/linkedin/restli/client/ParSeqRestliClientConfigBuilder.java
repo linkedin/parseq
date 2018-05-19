@@ -1,5 +1,6 @@
 package com.linkedin.restli.client;
 
+import com.linkedin.parseq.ParSeqGlobalConfiguration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -8,6 +9,7 @@ public class ParSeqRestliClientConfigBuilder {
   private final Map<String, Long> _timeoutMsConfig = new HashMap<>();
   private final Map<String, Boolean> _batchingEnabledConfig = new HashMap<>();
   private final Map<String, Integer> _maxBatchSizeConfig = new HashMap<>();
+  private boolean _d2RequestTimeoutEnabled = false;
 
   public ParSeqRestliClientConfigBuilder() {
   }
@@ -23,7 +25,7 @@ public class ParSeqRestliClientConfigBuilder {
   }
 
   public ParSeqRestliClientConfig build() {
-    return new ParSeqRestliClientConfigImpl(_timeoutMsConfig, _batchingEnabledConfig, _maxBatchSizeConfig);
+    return new ParSeqRestliClientConfigImpl(_timeoutMsConfig, _batchingEnabledConfig, _maxBatchSizeConfig, _d2RequestTimeoutEnabled);
   }
 
   public ParSeqRestliClientConfigBuilder addTimeoutMs(String key, long value) {
