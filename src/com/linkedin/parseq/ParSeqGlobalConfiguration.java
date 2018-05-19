@@ -85,4 +85,5 @@ public final class ParSeqGlobalConfiguration {
   public static void setTrampolineEnabled(boolean enabled) {
     _trampolineEnabled = enabled;
   }
+
 }
