@@ -22,12 +22,10 @@ package com.linkedin.parseq;
  *
  * @author Oleg Anashkin (oanashkin@linkedin.com)
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
- * @author Min Chen (mnchen@linkedin.com)
  */
 public final class ParSeqGlobalConfiguration {
   private static volatile boolean _crossThreadStackTracesEnabled = false;
   private static volatile boolean _trampolineEnabled = false;
-  private static volatile boolean _d2RequestTimeoutEnabled = false;
 
   private ParSeqGlobalConfiguration() {
   }
@@ -86,38 +84,5 @@ public final class ParSeqGlobalConfiguration {
    */
   public static void setTrampolineEnabled(boolean enabled) {
     _trampolineEnabled = enabled;
-  }
-
-  /**
-   * Returns true if task timeout is handled through d2 per-request timeout.
-   *
-   * Once enabled, the timeout used in Parseq can be passed down into rest.li R2D2 layer
-   * and free up memory sooner than currently possible. For example, if the server defined
-   * requestTimeout is 10s, but the client only wants to wait 250ms, parseq rest client
-   * could tell r2d2 to trigger the user callback after 250 ms instead of 10s, which would
-   * help us handle the case of slow downstream services, which today cause memory problems
-   * for high qps upstream services because more objects are being held longer in memory.
-   *
-   * @return true if d2 per-request timeout is currently enabled
-   */
-  public static boolean isD2RequestTimeoutEnabled() {
-    return _d2RequestTimeoutEnabled;
-  }
-
-  /**
-   * Enables or disables d2 per-request timeout.
-   * This is a dynamic runtime configuration that has immediate effect on all tasks in the current process.
-   *
-   * Once enabled, the timeout used in Parseq can be passed down into rest.li R2D2 layer
-   * and free up memory sooner than currently possible. For example, if the server defined
-   * requestTimeout is 10s, but the client only wants to wait 250ms, parseq rest client
-   * could tell r2d2 to trigger the user callback after 250 ms instead of 10s, which would
-   * help us handle the case of slow downstream services, which today cause memory problems
-   * for high qps upstream services because more objects are being held longer in memory.
-   *
-   * @param enabled
-   */
-  public static void setD2RequestTimeoutEnabled(boolean enabled) {
-    _d2RequestTimeoutEnabled = enabled;
   }
 }

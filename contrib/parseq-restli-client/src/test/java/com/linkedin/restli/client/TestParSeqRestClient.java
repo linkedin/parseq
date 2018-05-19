@@ -19,7 +19,6 @@ package com.linkedin.restli.client;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
-import com.linkedin.parseq.ParSeqGlobalConfiguration;
 import org.testng.annotations.Test;
 
 import com.linkedin.parseq.Task;

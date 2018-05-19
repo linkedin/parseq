@@ -9,7 +9,6 @@ public class ParSeqRestliClientConfigBuilder {
   private final Map<String, Long> _timeoutMsConfig = new HashMap<>();
   private final Map<String, Boolean> _batchingEnabledConfig = new HashMap<>();
   private final Map<String, Integer> _maxBatchSizeConfig = new HashMap<>();
-  private boolean _d2RequestTimeoutEnabled = false;
 
   public ParSeqRestliClientConfigBuilder() {
   }
@@ -25,7 +24,7 @@ public class ParSeqRestliClientConfigBuilder {
   }
 
   public ParSeqRestliClientConfig build() {
-    return new ParSeqRestliClientConfigImpl(_timeoutMsConfig, _batchingEnabledConfig, _maxBatchSizeConfig, _d2RequestTimeoutEnabled);
+    return new ParSeqRestliClientConfigImpl(_timeoutMsConfig, _batchingEnabledConfig, _maxBatchSizeConfig);
   }
 
   public ParSeqRestliClientConfigBuilder addTimeoutMs(String key, long value) {

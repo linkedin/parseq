@@ -27,6 +27,7 @@ import com.linkedin.restli.client.metrics.Metrics;
  * ParSeq rest.li client.
  *
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
+ * @author Min Chen (mnchen@linkedin.com)
  *
  */
 public interface ParSeqRestliClient {

@@ -13,6 +13,13 @@ import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.r2.message.RequestContext;
 import com.linkedin.restli.client.config.RequestConfigProvider;
 
+
+/**
+ * A builder to construct {@link ParSeqRestClient} based on provided configurations.
+ *
+ * @author Jaroslaw Odzga (jodzga@linkedin.com)
+ * @author Min Chen (mnchen@linkedin.com)
+ */
 public class ParSeqRestliClientBuilder {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ParSeqRestliClientBuilder.class);
