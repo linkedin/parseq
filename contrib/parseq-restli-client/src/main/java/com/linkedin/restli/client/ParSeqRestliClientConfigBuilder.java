@@ -1,6 +1,5 @@
 package com.linkedin.restli.client;
 
-import com.linkedin.parseq.ParSeqGlobalConfiguration;
 import java.util.HashMap;
 import java.util.Map;
 
