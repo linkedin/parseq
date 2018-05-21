@@ -1,3 +1,8 @@
+v2.6.33
+------
+
+* Allow - in parent resource name in parseq-restli-client configuration for cross-center calls.
+
 v2.6.32
 ------
 
