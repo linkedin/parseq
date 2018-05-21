@@ -2,6 +2,7 @@ package com.linkedin.restli.client.config;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 import static com.linkedin.restli.client.config.RequestConfigProviderImpl.DEFAULT_TIMEOUT;
 
 import java.util.Optional;
@@ -112,12 +113,32 @@ public class TestRequestConfigProvider {
     configBuilder.addTimeoutMs("*.*/associations:foo.*", 1000L);
     configBuilder.addTimeoutMs("*.*/associations.*", 1001L);
     configBuilder.addTimeoutMs("*.*/associations:associationsSub.*", 1002L);
+    configBuilder.addTimeoutMs("*.*/associations-prod-lsg1:associationsSub.*", 1003L);
     RequestConfigProvider provider = RequestConfigProvider.build(configBuilder.build(), () -> Optional.empty());
     RequestConfig rc = provider.apply(new AssociationsSubBuilders().get().srcKey("a").destKey("b").id("x").build());
     assertNotNull(rc);
     assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(1002L));
     assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
     assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
+
+    // multi-colo call
+    rc = provider.apply(new AssociationsSubBuilders("associations" + "-prod-lsg1").get()
+        .srcKey("a").destKey("b").id("x").build());
+    assertNotNull(rc);
+    assertEquals(rc.getTimeoutMs().getValue(), Long.valueOf(1003L));
+    assertEquals(rc.isBatchingEnabled().getValue(), Boolean.valueOf(false));
+    assertEquals(rc.getMaxBatchSize().getValue(), Integer.valueOf(1024));
+  }
+
+  @Test
+  public void testSubResourceNoMultiColo() {
+    ParSeqRestliClientConfigBuilder configBuilder = new ParSeqRestliClientConfigBuilder();
+    configBuilder.addTimeoutMs("*.*/associations-prod-lsg1:associationsSub-prod-lsg1.*", 1003L);
+    try {
+      RequestConfigProvider.build(configBuilder.build(), () -> Optional.empty());
+    } catch (Throwable e) {
+      assertTrue(e instanceof RuntimeException && e.getCause() instanceof RequestConfigKeyParsingException);
+    }
   }
 
   @Test
