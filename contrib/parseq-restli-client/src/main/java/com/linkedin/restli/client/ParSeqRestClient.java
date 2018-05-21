@@ -74,7 +74,7 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
   private final Client _client;
   private final BatchingMetrics _batchingMetrics = new BatchingMetrics();
   private final RequestConfigProvider _requestConfigProvider;
-  private boolean _d2RequestTimeoutEnabled = false;
+  private final boolean _d2RequestTimeoutEnabled;
   private final Function<Request<?>, RequestContext> _requestContextProvider;
 
   ParSeqRestClient(final Client client, final RequestConfigProvider requestConfigProvider,
@@ -99,6 +99,7 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
     _client = client;
     _requestConfigProvider = RequestConfigProvider.build(new ParSeqRestliClientConfigBuilder().build(), () -> Optional.empty());
     _requestContextProvider = request -> new RequestContext();
+    _d2RequestTimeoutEnabled = false;
   }
 
   /**
@@ -112,6 +113,7 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
     _client = client;
     _requestConfigProvider = RequestConfigProvider.build(new ParSeqRestliClientConfigBuilder().build(), () -> Optional.empty());
     _requestContextProvider = request -> new RequestContext();
+    _d2RequestTimeoutEnabled = false;
   }
 
   @Override
@@ -212,15 +214,11 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
       String timeoutTaskName = "withTimeout " + Math.min(timeout.getValue(), Integer.MAX_VALUE)
           + TimeUnitHelper.toString(TimeUnit.MILLISECONDS) + desc;
       return task.transform(timeoutTaskName, (Try<Response<T>> tryGet) -> {
-        if (tryGet.isFailed()) {
-          if (tryGet.getError() instanceof TimeoutException) {
-            String timeoutExceptionMessage = "task: '" + task.getName() + "' " + timeoutTaskName;
-            return Failure.of(Exceptions.timeoutException(timeoutExceptionMessage));
-          } else {
-            return Failure.of(tryGet.getError());
-          }
+        if (tryGet.isFailed() && tryGet.getError() instanceof TimeoutException) {
+          String timeoutExceptionMessage = "task: '" + task.getName() + "' " + timeoutTaskName;
+          return Failure.of(Exceptions.timeoutException(timeoutExceptionMessage));
         } else {
-          return Success.of(tryGet.get());
+          return tryGet;
         }
       });
     } else {
