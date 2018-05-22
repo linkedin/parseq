@@ -53,15 +53,8 @@ public class TestParSeqRestClientWithD2Timeout extends ParSeqRestClientIntegrati
     return _capturingRestClient;
   }
 
-  private <T> RequestContext createRequestContext(Request<T> request) {
-    RequestContext requestContext = new RequestContext();
-    requestContext.putLocalAttr("method", request.getMethod());
-    return requestContext;
-  }
-
   @Override
   protected void customizeParSeqRestliClient(ParSeqRestliClientBuilder parSeqRestliClientBuilder) {
-    parSeqRestliClientBuilder.setRequestContextProvider(this::createRequestContext);
     parSeqRestliClientBuilder.setD2RequestTimeoutEnabled(true);
   }
 
@@ -88,18 +81,30 @@ public class TestParSeqRestClientWithD2Timeout extends ParSeqRestClientIntegrati
       GetRequest<Greeting> request = new GreetingsBuilders().get().id(1L).build();
       Task<?> task = _parseqClient.createTask(request);
       runAndWait(getTestClassName() + ".testTimeoutRequest", task);
-      verifyRequestContext(request, 5000L);
+      assertTrue(hasTask("withTimeout 5000ms src: withD2Timeout.*/greetings.*", task.getTrace()));
+      verifyRequestContextTimeout(request, 5000);
   }
 
-  private void verifyRequestContext(Request<?> request, Long timeout) {
+  @Test
+  public void testTighterTimeoutFromContext() {
+    setInboundRequestContext(new InboundRequestContextBuilder()
+        .setName("withD2Timeout")
+        .build());
+    GetRequest<Greeting> request = new GreetingsBuilders().get().id(1L).build();
+    RequestContext context = new RequestContext();
+    context.putLocalAttr(R2Constants.REQUEST_TIMEOUT, 4000);
+    Task<?> task = _parseqClient.createTask(request, context);
+    runAndWait(getTestClassName() + ".testTimeoutRequest", task);
+    assertTrue(hasTask("withTimeout 4000ms src: request context", task.getTrace()));
+    verifyRequestContextTimeout(request, 4000);
+  }
+
+  private void verifyRequestContextTimeout(Request<?> request, int timeout) {
     assertTrue(_capturingRestClient.getCapturedRequestContexts().containsKey(request));
-    assertNotNull(_capturingRestClient.getCapturedRequestContexts().get(request).getLocalAttr("method"));
-    assertEquals(_capturingRestClient.getCapturedRequestContexts().get(request).getLocalAttr("method"), request.getMethod());
-    if (timeout != null) {
-      assertNotNull(_capturingRestClient.getCapturedRequestContexts().get(request).getLocalAttr(
-          R2Constants.REQUEST_TIMEOUT));
-      assertEquals(_capturingRestClient.getCapturedRequestContexts().get(request).getLocalAttr(R2Constants.REQUEST_TIMEOUT),
-          Math.min(timeout, Integer.MAX_VALUE));
-    }
+    Number contextTimeout = (Number) _capturingRestClient.getCapturedRequestContexts()
+        .get(request)
+        .getLocalAttr(R2Constants.REQUEST_TIMEOUT);
+    assertNotNull(contextTimeout);
+    assertEquals(contextTimeout.intValue(), timeout);
   }
 }

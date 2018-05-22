@@ -195,35 +195,33 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
         + OperationNameGenerator.generate(request.getMethod(), request.getMethodName());
   }
 
-  private <T> Task<Response<T>> withTimeout(final Task<Response<T>> task, ConfigValue<Long> timeout) {
-    if (timeout.getValue() != null && timeout.getValue() > 0) {
-      if (timeout.getSource().isPresent()) {
-        return task.withTimeout("src: " + timeout.getSource().get(), timeout.getValue(), TimeUnit.MILLISECONDS);
-      } else {
-        return task.withTimeout(timeout.getValue(), TimeUnit.MILLISECONDS);
-      }
+  private String generateTimeoutTaskName(Optional<String> timeoutSource, long timeoutValue, TimeUnit timeoutUnit) {
+    String desc;
+    if (_d2RequestTimeoutEnabled) {
+      desc = " src: D2";
     } else {
-      return task;
+      desc = timeoutSource.map(src -> " src: " + src).orElse("");
+    }
+    return "withTimeout " + timeoutValue + TimeUnitHelper.toString(timeoutUnit) + desc;
+  }
+
+  private <T> Task<Response<T>> withTimeout(final Task<Response<T>> task, ConfigValue<Long> timeout) {
+    if (timeout.getSource().isPresent()) {
+      return task.withTimeout("src: " + timeout.getSource().get(), timeout.getValue(), TimeUnit.MILLISECONDS);
+    } else {
+      return task.withTimeout(timeout.getValue(), TimeUnit.MILLISECONDS);
     }
   }
 
-  private <T> Task<Response<T>> withD2Timeout(final Task<Response<T>> task, ConfigValue<Long> timeout) {
-    if (timeout.getValue() != null && timeout.getValue() > 0) {
-      // transform TimeoutException to be compatible with current Task timeout exception message
-      String desc = timeout.getSource().map(src -> " src: " + src).orElse("");
-      String timeoutTaskName = "withTimeout " + Math.min(timeout.getValue(), Integer.MAX_VALUE)
-          + TimeUnitHelper.toString(TimeUnit.MILLISECONDS) + desc;
-      return task.transform(timeoutTaskName, (Try<Response<T>> tryGet) -> {
-        if (tryGet.isFailed() && tryGet.getError() instanceof TimeoutException) {
-          String timeoutExceptionMessage = "task: '" + task.getName() + "' " + timeoutTaskName;
-          return Failure.of(Exceptions.timeoutException(timeoutExceptionMessage));
-        } else {
-          return tryGet;
-        }
-      });
-    } else {
-      return task;
-    }
+  private <T> Task<Response<T>> withD2Timeout(final Task<Response<T>> task, String timeoutTaskName) {
+    return task.transform(timeoutTaskName, (Try<Response<T>> tryGet) -> {
+      if (tryGet.isFailed() && tryGet.getError() instanceof TimeoutException) {
+        String timeoutExceptionMessage = "task: '" + task.getName() + "' " + timeoutTaskName;
+        return Failure.of(Exceptions.timeoutException(timeoutExceptionMessage));
+      } else {
+        return tryGet;
+      }
+    });
   }
 
   private <T> Task<Response<T>> createTask(final String name, final Request<T> request,
@@ -232,20 +230,26 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
     return createTaskWithTimeout(name, request, requestContext, config);
   }
 
-  // reconcile timeout specified in requestContext with the given timeout
-  private void reconcileRequestTimeout(final RequestContext requestContext, Long timeout) {
-    Number contextTimeout = (Number) requestContext.getLocalAttr(R2Constants.REQUEST_TIMEOUT);
-    int timeoutBound = (contextTimeout != null) ? contextTimeout.intValue() : Integer.MAX_VALUE;
-    // d2 request timeout can only accept Integer timeout
-    requestContext.putLocalAttr(R2Constants.REQUEST_TIMEOUT, Math.min(timeout, timeoutBound));
+  // reconcile timeout specified in requestContext (if there is) with the given timeout to pick a tighter one
+  private int reconcileRequestTimeout(final RequestContext requestContext, Long timeout) {
+    int d2Timeout = timeout.intValue();
+    Object requestTimeout = requestContext.getLocalAttr(R2Constants.REQUEST_TIMEOUT);
+    if (requestTimeout instanceof Number) {
+      d2Timeout = Math.min(((Number)requestTimeout).intValue(), d2Timeout);
+    } else if (requestTimeout != null) {
+      LOGGER.error("Ignore invalid value for REQUEST_TIMEOUT set in request context: " + requestTimeout);
+    }
+    requestContext.putLocalAttr(R2Constants.REQUEST_TIMEOUT, d2Timeout);
+    return d2Timeout;
   }
 
   private <T> Task<Response<T>> createTaskWithTimeout(final String name, final Request<T> request,
       final RequestContext requestContext, RequestConfig config) {
     ConfigValue<Long> timeout = config.getTimeoutMs();
+    int reconciledTimeout = 0;
     if (timeout.getValue() != null && timeout.getValue() > 0 && _d2RequestTimeoutEnabled) {
       // reconcile timeout if request has already set timeout in its request context
-      reconcileRequestTimeout(requestContext, timeout.getValue());
+      reconciledTimeout = reconcileRequestTimeout(requestContext, timeout.getValue());
     }
     Task<Response<T>> requestTask;
     if (RequestGroup.isBatchable(request, config)) {
@@ -253,10 +257,20 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
     } else {
       requestTask = Task.async(name, () -> sendRequest(request, requestContext));
     }
-    if (!_d2RequestTimeoutEnabled) {
-      return withTimeout(requestTask, timeout);
+    if (timeout.getValue() == null || timeout.getValue() <= 0) {
+      // no timeout configured
+      return requestTask;
     } else {
-      return withD2Timeout(requestTask, timeout);
+      if (!_d2RequestTimeoutEnabled) {
+        return withTimeout(requestTask, timeout);
+      } else {
+        assert reconciledTimeout > 0;
+        String srcDesc = (reconciledTimeout < timeout.getValue().intValue()) ? " src: request context" :
+            timeout.getSource().map(src -> " src: " + src).orElse("");
+        String timeoutTaskName = "withTimeout " + reconciledTimeout + TimeUnitHelper.toString(TimeUnit.MILLISECONDS)
+            + srcDesc;
+        return withD2Timeout(requestTask, timeoutTaskName);
+      }
     }
   }
 
