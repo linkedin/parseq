@@ -1,3 +1,8 @@
+v2.6.33
+------
+
+* Add Zookeeper ACL support
+
 v2.6.32
 ------
 
