@@ -195,16 +195,6 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
         + OperationNameGenerator.generate(request.getMethod(), request.getMethodName());
   }
 
-  private String generateTimeoutTaskName(Optional<String> timeoutSource, long timeoutValue, TimeUnit timeoutUnit) {
-    String desc;
-    if (_d2RequestTimeoutEnabled) {
-      desc = " src: D2";
-    } else {
-      desc = timeoutSource.map(src -> " src: " + src).orElse("");
-    }
-    return "withTimeout " + timeoutValue + TimeUnitHelper.toString(timeoutUnit) + desc;
-  }
-
   private <T> Task<Response<T>> withTimeout(final Task<Response<T>> task, ConfigValue<Long> timeout) {
     if (timeout.getSource().isPresent()) {
       return task.withTimeout("src: " + timeout.getSource().get(), timeout.getValue(), TimeUnit.MILLISECONDS);
