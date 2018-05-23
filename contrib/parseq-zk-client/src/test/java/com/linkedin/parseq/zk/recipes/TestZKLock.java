@@ -36,7 +36,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.data.ACL;
-import org.apache.zookeeper.data.Id;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -52,7 +51,7 @@ public class TestZKLock extends BaseEngineTest {
 
   private ZKServer _zkServer;
   private ZKClient _zkClient;
-  private List<ACL> _acls;
+  private List<ACL> _acls = ZooDefs.Ids.OPEN_ACL_UNSAFE;
 
   @BeforeMethod
   public void setUp()
@@ -70,8 +69,6 @@ public class TestZKLock extends BaseEngineTest {
     } catch (IOException e) {
       fail("Failed to setup zkServer or zkClient", e);
     }
-    _acls = ZooDefs.Ids.OPEN_ACL_UNSAFE;
-    _acls.add(new ACL(31, new Id("ip", "172.22.229.33")));
   }
 
   @AfterMethod
