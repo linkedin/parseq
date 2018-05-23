@@ -129,4 +129,23 @@ public interface ZKClient {
    * @param uuid uuid of the znode to delete
    */
   void deleteNodeHasUUID(String path, String uuid);
+
+  /**
+   * Returns task that will set the ACL for the node of the given path if
+   * such a node exists and the given version matches the version of the node
+   * (if the given version is -1, it matches any node's versions).
+   *
+   * @param path  path of the znode.
+   * @param acls  list of ACLs to set
+   * @param version expected matching version.
+   * @return task to set data.
+   */
+  Task<Stat> setACL(String path, List<ACL> acls, int version);
+
+  /**
+   * Add authentication information, eg login with user name and password
+   * @param scheme authentication scheme
+   * @param auth authentication string (eg password)
+   */
+  void addAuthInfo(String scheme, byte[] auth);
 }

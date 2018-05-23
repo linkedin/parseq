@@ -20,9 +20,10 @@ import com.linkedin.parseq.BaseEngineTest;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
-import com.linkedin.parseq.zk.client.ZKClientBuilder;
-import com.linkedin.parseq.zk.server.ZKServer;
 import com.linkedin.parseq.zk.client.ZKClient;
+import com.linkedin.parseq.zk.client.ZKClientBuilder;
+import com.linkedin.parseq.zk.client.ZKData;
+import com.linkedin.parseq.zk.server.ZKServer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +34,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
+import org.apache.zookeeper.ZooDefs;
+import org.apache.zookeeper.data.ACL;
+import org.apache.zookeeper.data.Id;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -48,6 +52,7 @@ public class TestZKLock extends BaseEngineTest {
 
   private ZKServer _zkServer;
   private ZKClient _zkClient;
+  private List<ACL> _acls;
 
   @BeforeMethod
   public void setUp()
@@ -65,6 +70,8 @@ public class TestZKLock extends BaseEngineTest {
     } catch (IOException e) {
       fail("Failed to setup zkServer or zkClient", e);
     }
+    _acls = ZooDefs.Ids.OPEN_ACL_UNSAFE;
+    _acls.add(new ACL(31, new Id("ip", "172.22.229.33")));
   }
 
   @AfterMethod
@@ -137,6 +144,11 @@ public class TestZKLock extends BaseEngineTest {
     runAndWait("getChildren", children);
 
     Assert.assertEquals(children.get().size(), 0);
+
+    Task<ZKData> acls = _zkClient.getData(path);
+    runAndWait("getData", acls);
+
+    Assert.assertEquals(acls.get().getAclList(), _acls);
   }
 
   @Test
@@ -217,8 +229,8 @@ public class TestZKLock extends BaseEngineTest {
       throws InterruptedException {
     int loopCount = 100;
     final long deadline = System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(60, TimeUnit.SECONDS);
-    MultiLocks multiLocks1 = new MultiLocks(_zkClient, "/locks/l1", "/locks/l2", "/locks/l3");
-    MultiLocks multiLocks2 = new MultiLocks(_zkClient, "/locks/l3", "/locks/l1", "/locks/l2");
+    MultiLocks multiLocks1 = new MultiLocks(_zkClient, _acls, "/locks/l1", "/locks/l2", "/locks/l3");
+    MultiLocks multiLocks2 = new MultiLocks(_zkClient, _acls, "/locks/l3", "/locks/l1", "/locks/l2");
 
     final AtomicReference<Integer> sum = new AtomicReference<>(0);
 
@@ -256,7 +268,7 @@ public class TestZKLock extends BaseEngineTest {
     getEngine().run(ensureExists);
     Assert.assertTrue(ensureExists.await(10, TimeUnit.SECONDS));
     ensureExists.get();
-    return new ZKLock(path, _zkClient);
+    return new ZKLock(path, _zkClient, _acls);
   }
 
   private void testZKLock(int concurrency, int loopCount)

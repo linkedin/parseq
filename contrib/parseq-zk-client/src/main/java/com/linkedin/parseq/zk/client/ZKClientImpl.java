@@ -156,12 +156,23 @@ class ZKClientImpl implements ZKClient {
       protected Promise<? extends ZKData> run(Context context)
           throws Throwable {
         SettablePromise<ZKData> promise = Promises.settable();
+
         _zkClient.getData(path, _watcher,
             (int rc, String p, Object ctx, byte[] data, Stat stat) -> {
               KeeperException.Code code = KeeperException.Code.get(rc);
               switch (code) {
                 case OK:
-                  promise.done(new ZKData(p, data, stat));
+                  _zkClient.getACL(path, stat,
+                      (int rc1, String p1, Object ctx1, List<ACL> acls, Stat stat1) -> {
+                        KeeperException.Code code1 = KeeperException.Code.get(rc1);
+                        switch (code1) {
+                          case OK:
+                            promise.done(new ZKData(p, data, stat, acls));
+                            break;
+                          default:
+                            promise.fail(KeeperException.create(code1, p1));
+                        }
+                      }, null);
                   break;
                 default:
                   promise.fail(KeeperException.create(code, p));
@@ -356,6 +367,36 @@ class ZKClientImpl implements ZKClient {
         return Task.value(null);
       }
     }));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void addAuthInfo(String scheme, byte[] auth) {
+    _zkClient.addAuthInfo(scheme, auth);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Task<Stat> setACL(String path, List<ACL> acls, int version) {
+    return Task.async("zkSetACL: " + path, () -> {
+      SettablePromise<Stat> promise = Promises.settable();
+      _zkClient.setACL(path, acls, version,
+          (int rc, String p, Object ctx, Stat stat) -> {
+            KeeperException.Code code = KeeperException.Code.get(rc);
+            switch (code) {
+              case OK:
+                promise.done(stat);
+                break;
+              default:
+                promise.fail(KeeperException.create(code, p));
+            }
+          }, null);
+      return promise;
+    });
   }
 
   private class DefaultWatcher implements Watcher {

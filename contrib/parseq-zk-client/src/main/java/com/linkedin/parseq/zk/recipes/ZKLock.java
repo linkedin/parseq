@@ -32,7 +32,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
-import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
@@ -50,13 +49,13 @@ public class ZKLock implements Synchronizable {
   private static final String LOCK_INTERNAL_KEY = "lockInternal";
 
   private final String _lockPath;
-  //TODO: add ACL control
-  private final List<ACL> _acls = ZooDefs.Ids.OPEN_ACL_UNSAFE;
+  private final List<ACL> _acls;
   private final ZKClient _zkClient;
 
-  public ZKLock(String lockPath, ZKClient zkClient) {
+  public ZKLock(String lockPath, ZKClient zkClient, List<ACL> acls) {
     _lockPath = lockPath;
     _zkClient = zkClient;
+    _acls = acls;
   }
 
   /**

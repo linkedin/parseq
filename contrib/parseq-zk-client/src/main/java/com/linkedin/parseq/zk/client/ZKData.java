@@ -16,6 +16,8 @@
 
 package com.linkedin.parseq.zk.client;
 
+import java.util.List;
+import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Stat;
 
 
@@ -26,11 +28,13 @@ public class ZKData {
   private final String _path;
   private final byte[] _bytes;
   private final Stat _stat;
+  private final List<ACL> _aclList;
 
-  public ZKData(String path, byte[] bytes, Stat stat) {
+  public ZKData(String path, byte[] bytes, Stat stat, List<ACL> acls) {
     _path = path;
     _bytes = bytes;
     _stat = stat;
+    _aclList = acls;
   }
 
   public String getPath() {
@@ -43,5 +47,9 @@ public class ZKData {
 
   public Stat getStat() {
     return _stat;
+  }
+
+  public List<ACL> getAclList() {
+    return _aclList;
   }
 }
