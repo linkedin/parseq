@@ -224,7 +224,7 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
   private int reconcileRequestTimeout(final RequestContext requestContext, Long timeout) {
     int d2Timeout = timeout.intValue();
     Object requestTimeout = requestContext.getLocalAttr(R2Constants.REQUEST_TIMEOUT);
-    if (requestTimeout instanceof Number) {
+    if (requestTimeout instanceof Number && ((Number)requestTimeout).intValue() > 0) {
       d2Timeout = Math.min(((Number)requestTimeout).intValue(), d2Timeout);
     } else if (requestTimeout != null) {
       LOGGER.error("Ignore invalid value for REQUEST_TIMEOUT set in request context: " + requestTimeout);
