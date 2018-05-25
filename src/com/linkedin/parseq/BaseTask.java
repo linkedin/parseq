@@ -18,7 +18,6 @@ package com.linkedin.parseq;
 
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -398,7 +397,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
       state = _stateRef.get();
       if (state.getType() != StateType.INIT) {
         // prevent cross-plan task sharing if enabled
-        if (!ParSeqGlobalConfiguration.isAllowCrossPlanSharingEnabled() &&
+        if (!ParSeqGlobalConfiguration.isAllowCrossPlanTaskSharingEnabled() &&
             _startPlanId != null && !_startPlanId.equals(context.getPlanId())) {
           throw new IllegalStateException(this.toString() + " should not be shared across plans!!");
         }

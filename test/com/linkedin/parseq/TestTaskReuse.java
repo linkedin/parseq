@@ -229,7 +229,7 @@ public class TestTaskReuse extends BaseEngineTest {
   @Test
   public void testTaskSharingByTwoPlans() throws InterruptedException {
     try {
-      ParSeqGlobalConfiguration.setAllowCrossPlanSharingEnabled(false);
+      ParSeqGlobalConfiguration.setAllowCrossPlanTaskSharingEnabled(false);
       final AtomicInteger counter = new AtomicInteger();
 
       Task<String> task = Task.value("shared", "Shared Constant");
@@ -240,7 +240,7 @@ public class TestTaskReuse extends BaseEngineTest {
       runAndWait("TestTaskReuse.testTaskSharingByTwoPlans-plan1", plan1);
       runAndWaitException("TestTaskReuse.testTaskSharingByTwoPlans-plan2", plan2, IllegalStateException.class);
     } finally {
-      ParSeqGlobalConfiguration.setAllowCrossPlanSharingEnabled(true);
+      ParSeqGlobalConfiguration.setAllowCrossPlanTaskSharingEnabled(true);
     }
   }
 }

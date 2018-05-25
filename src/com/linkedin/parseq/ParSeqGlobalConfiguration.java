@@ -27,7 +27,7 @@ public final class ParSeqGlobalConfiguration {
   private static volatile boolean _crossThreadStackTracesEnabled = false;
   private static volatile boolean _trampolineEnabled = false;
   // default set to true to keep backward compatibility
-  private static volatile boolean _allowCrossPlanSharing = true;
+  private static volatile boolean _allowCrossPlanTaskSharing = true;
 
   private ParSeqGlobalConfiguration() {
   }
@@ -102,8 +102,8 @@ public final class ParSeqGlobalConfiguration {
    *
    * @return true if cross-plan task sharing is enabled, false otherwise
    */
-  public static boolean isAllowCrossPlanSharingEnabled() {
-    return _allowCrossPlanSharing;
+  public static boolean isAllowCrossPlanTaskSharingEnabled() {
+    return _allowCrossPlanTaskSharing;
   }
 
   /**
@@ -120,7 +120,7 @@ public final class ParSeqGlobalConfiguration {
    *
    * @param enabled true if cross-plan task sharing is enabled, false otherwise
    */
-  public static void setAllowCrossPlanSharingEnabled(boolean enabled) {
-    _allowCrossPlanSharing = enabled;
+  public static void setAllowCrossPlanTaskSharingEnabled(boolean enabled) {
+    _allowCrossPlanTaskSharing = enabled;
   }
 }
