@@ -13,6 +13,13 @@ import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.r2.message.RequestContext;
 import com.linkedin.restli.client.config.RequestConfigProvider;
 
+
+/**
+ * A builder to construct {@link ParSeqRestClient} based on provided configurations.
+ *
+ * @author Jaroslaw Odzga (jodzga@linkedin.com)
+ * @author Min Chen (mnchen@linkedin.com)
+ */
 public class ParSeqRestliClientBuilder {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ParSeqRestliClientBuilder.class);
@@ -23,6 +30,7 @@ public class ParSeqRestliClientBuilder {
   private ParSeqRestliClientConfig _config;
   Map<String, ParSeqRestliClientConfig> _configs;
   ParSeqRestliClientConfigChooser _configChooser;
+  private boolean _d2RequestTimeoutEnabled = false;
 
   private BatchingSupport _batchingSupport;
   private InboundRequestContextFinder _inboundRequestContextFinder;
@@ -57,7 +65,7 @@ public class ParSeqRestliClientBuilder {
         request -> new RequestContext() :
         _requestContextProvider;
 
-    ParSeqRestClient parseqClient = new ParSeqRestClient(_client, configProvider, requestContextProvider);
+    ParSeqRestClient parseqClient = new ParSeqRestClient(_client, configProvider, requestContextProvider, _d2RequestTimeoutEnabled);
     if (_batchingSupport != null) {
       LOGGER.debug("Found batching support");
       _batchingSupport.registerStrategy(parseqClient);
@@ -133,6 +141,23 @@ public class ParSeqRestliClientBuilder {
   public ParSeqRestliClientBuilder setInboundRequestContextFinder(InboundRequestContextFinder inboundRequestContextFinder) {
     ArgumentUtil.requireNotNull(inboundRequestContextFinder, "inboundRequestContextFinder");
     _inboundRequestContextFinder = inboundRequestContextFinder;
+    return this;
+  }
+
+  /**
+   * Enables or disables d2 per-request timeout.
+   *
+   * Once enabled, the timeout used in Parseq can be passed down into rest.li R2D2 layer
+   * and free up memory sooner than currently possible. For example, if the server defined
+   * requestTimeout is 10s, but the client only wants to wait 250ms, parseq rest client
+   * could tell r2d2 to trigger the user callback after 250 ms instead of 10s, which would
+   * help us handle the case of slow downstream services, which today cause memory problems
+   * for high qps upstream services because more objects are being held longer in memory.
+   *
+   * @param enabled true if this feature is enabled.
+   */
+  public ParSeqRestliClientBuilder setD2RequestTimeoutEnabled(boolean enabled) {
+    _d2RequestTimeoutEnabled = enabled;
     return this;
   }
 }

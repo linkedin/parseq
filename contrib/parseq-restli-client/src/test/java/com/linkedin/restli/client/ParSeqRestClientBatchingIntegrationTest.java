@@ -55,7 +55,7 @@ public abstract class ParSeqRestClientBatchingIntegrationTest extends ParSeqRest
     Tuple2Task<Response<Message>,Response<Message>> task = Task.par(associationsGet("a", "b", "x"), associationsGet("a", "b", "y"));
     if (expectBatching()) {
       runAndWaitException(task, RestLiResponseException.class);
-      assertTrue(task.getError().getCause().getMessage().contains("associationsSub?ids=List(x,y)"));
+      assertTrue(((RestLiResponseException)task.getError()).getServiceErrorMessage().contains("associationsSub?ids=List(x,y)"));
     } else {
       runAndWait(getTestClassName() + ".testGetSubResourceRequests", task);
       assertEquals(task.get()._1().getEntity().getMessage(), "b");
@@ -81,7 +81,7 @@ public abstract class ParSeqRestClientBatchingIntegrationTest extends ParSeqRest
     Tuple2Task<Response<Message>,Response<Message>> task = Task.par(associationsGet("a", "b", "x", overrides()), associationsGet("a", "b", "y", overrides()));
     if (expectBatchingOverrides()) {
       runAndWaitException(task, RestLiResponseException.class);
-      assertTrue(task.getError().getCause().getMessage().contains("associationsSub?ids=List(x,y)"));
+      assertTrue(((RestLiResponseException)task.getError()).getServiceErrorMessage().contains("associationsSub?ids=List(x,y)"));
     } else {
       runAndWait(getTestClassName() + ".testGetSubResourceRequestsOverrides", task);
       assertEquals(task.get()._1().getEntity().getMessage(), "b");

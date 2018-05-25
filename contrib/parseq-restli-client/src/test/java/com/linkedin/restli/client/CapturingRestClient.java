@@ -12,6 +12,12 @@ import com.linkedin.r2.transport.common.Client;
 import com.linkedin.restli.client.multiplexer.MultiplexedRequest;
 import com.linkedin.restli.client.multiplexer.MultiplexedResponse;
 
+
+/**
+ * Decorator Rest.li {@link com.linkedin.restli.client.Client} implementation that can capture {@link RequestContext} for
+ * each {@link Request} sent and also can optionally apply some transformation on the returned response.
+ * The #sendRequest operation is eventually delegated to the decorated Rest.li {@link com.linkedin.restli.client.Client}.
+ */
 class CapturingRestClient extends RestClient {
 
   private final Map<Request<?>, RequestContext> _capturedRequestContexts = new ConcurrentHashMap<>();
