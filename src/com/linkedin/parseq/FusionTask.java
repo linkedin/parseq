@@ -30,6 +30,7 @@ import com.linkedin.parseq.trace.TraceBuilder;
  * It may change or be removed at any time in a backwards incompatible way.
  *
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
+ * @mnchen Min Chen (mnchen@linkedin.com)
  *
  * @param <S> type of source
  * @param <T> type of target
@@ -325,6 +326,9 @@ class FusionTask<S, T> extends BaseTask<T> {
   private void propagate(final FusionTraceContext traceContext, final SettablePromise<T> result) {
     try {
       _propagator.accept(traceContext, _asyncTask, result);
+    } catch (CrossPlanTaskSharingException e) {
+      LOGGER.error("ParSeq detected disabled cross-plan task sharing usage, PLEASE FIX ASAP!", e);
+      result.fail(e);
     } catch (Throwable t) {
       result.fail(t);
     }

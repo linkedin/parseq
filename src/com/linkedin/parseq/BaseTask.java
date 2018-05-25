@@ -45,6 +45,7 @@ import com.linkedin.parseq.trace.TraceBuilder;
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Chi Chan (ckchan@linkedin.com)
+ * @author Min Chen (mnchen@linkedin.com)
  */
 public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T> {
 
@@ -82,7 +83,6 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
 
   private final Long _id = IdGenerator.getNextId();
   private final AtomicReference<State> _stateRef;
-  private volatile Long _startPlanId = null;
   private final String _name;
   protected final ShallowTraceBuilder _shallowTraceBuilder;
 
@@ -182,49 +182,54 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
   public final void contextRun(final Context context, final Task<?> parent, final Collection<Task<?>> predecessors) {
     final TaskLogger taskLogger = context.getTaskLogger();
     final TraceBuilder traceBuilder = context.getTraceBuilder();
-    if (transitionRun(context)) {
-      markTaskStarted();
-      final Promise<T> promise;
-      try {
+    try {
+      if (transitionRun(context)) {
+        markTaskStarted();
+        final Promise<T> promise;
+        try {
+          if (parent != null) {
+            traceBuilder.addRelationship(Relationship.CHILD_OF, getShallowTraceBuilder(),
+                parent.getShallowTraceBuilder());
+          }
+          for (Task<?> predecessor : predecessors) {
+            traceBuilder.addRelationship(Relationship.SUCCESSOR_OF, getShallowTraceBuilder(),
+                predecessor.getShallowTraceBuilder());
+          }
+
+          taskLogger.logTaskStart(this);
+          try {
+            final Context wrapperContext = new WrappedContext(context);
+            promise = doContextRun(wrapperContext);
+          } finally {
+            transitionPending();
+          }
+
+          promise.addListener(resolvedPromise -> {
+            if (resolvedPromise.isFailed()) {
+              fail(resolvedPromise.getError(), taskLogger);
+            } else {
+              done(resolvedPromise.get(), taskLogger);
+            }
+          } );
+        } catch (Throwable t) {
+          fail(t, taskLogger);
+        }
+      } else {
+        //this is possible when task was cancelled or has been executed multiple times
+        //e.g. task has multiple paths it can be executed with or has been completed by
+        //a FusionTask
         if (parent != null) {
-          traceBuilder.addRelationship(Relationship.CHILD_OF, getShallowTraceBuilder(),
+          traceBuilder.addRelationship(Relationship.POTENTIAL_CHILD_OF, getShallowTraceBuilder(),
               parent.getShallowTraceBuilder());
         }
         for (Task<?> predecessor : predecessors) {
-          traceBuilder.addRelationship(Relationship.SUCCESSOR_OF, getShallowTraceBuilder(),
+          traceBuilder.addRelationship(Relationship.POSSIBLE_SUCCESSOR_OF, getShallowTraceBuilder(),
               predecessor.getShallowTraceBuilder());
         }
-
-        taskLogger.logTaskStart(this);
-        try {
-          final Context wrapperContext = new WrappedContext(context);
-          promise = doContextRun(wrapperContext);
-        } finally {
-          transitionPending();
-        }
-
-        promise.addListener(resolvedPromise -> {
-          if (resolvedPromise.isFailed()) {
-            fail(resolvedPromise.getError(), taskLogger);
-          } else {
-            done(resolvedPromise.get(), taskLogger);
-          }
-        } );
-      } catch (Throwable t) {
-        fail(t, taskLogger);
       }
-    } else {
-      //this is possible when task was cancelled or has been executed multiple times
-      //e.g. task has multiple paths it can be executed with or has been completed by
-      //a FusionTask
-      if (parent != null) {
-        traceBuilder.addRelationship(Relationship.POTENTIAL_CHILD_OF, getShallowTraceBuilder(),
-            parent.getShallowTraceBuilder());
-      }
-      for (Task<?> predecessor : predecessors) {
-        traceBuilder.addRelationship(Relationship.POSSIBLE_SUCCESSOR_OF, getShallowTraceBuilder(),
-            predecessor.getShallowTraceBuilder());
-      }
+    } catch (CrossPlanTaskSharingException e) {
+      LOGGER.error("ParSeq detected disabled cross-plan task sharing usage, PLEASE FIX ASAP!", e);
+      fail(e, taskLogger);
     }
   }
 
@@ -390,7 +395,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
     error.setStackTrace(concatenatedStackTrace);
   }
 
-  protected boolean transitionRun(final Context context) {
+  protected boolean transitionRun(final Context context) throws CrossPlanTaskSharingException {
     State state;
     State newState;
     do {
@@ -398,14 +403,13 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
       if (state.getType() != StateType.INIT) {
         // prevent cross-plan task sharing if enabled
         if (!ParSeqGlobalConfiguration.isAllowCrossPlanTaskSharingEnabled() &&
-            _startPlanId != null && !_startPlanId.equals(context.getPlanId())) {
-          throw new IllegalStateException(this.toString() + " should not be shared across plans!!");
+            state.getStartPlanId() != null && !state.getStartPlanId().equals(context.getPlanId())) {
+          throw new CrossPlanTaskSharingException(this.toString() + " should not be shared across two plans!");
         }
         return false;
       }
-      newState = state.transitionRun();
+      newState = state.transitionRun(context.getPlanId());
     } while (!_stateRef.compareAndSet(state, newState));
-    _startPlanId = context.getPlanId();
     _traceBuilder = context.getTraceBuilder();
     context.getTraceBuilder().addShallowTrace(_shallowTraceBuilder);
     return true;
@@ -466,10 +470,18 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
   protected static class State {
     private final StateType _type;
     private final int _priority;
+    private final Long _startPlanId;
 
     private State(final StateType type, final int priority) {
       _type = type;
       _priority = priority;
+      _startPlanId = null;
+    }
+
+    private State(final StateType type, final int priority, final Long startPlanId) {
+      _type = type;
+      _priority = priority;
+      _startPlanId = startPlanId;
     }
 
     public StateType getType() {
@@ -480,85 +492,23 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
       return _priority;
     }
 
-    public State transitionRun() {
-      return new State(StateType.RUN, _priority);
+    public Long getStartPlanId() {
+      return _startPlanId;
+    }
+
+    public State transitionRun(Long planId) {
+      return new State(StateType.RUN, _priority, planId);
     }
 
     public State transitionPending() {
-      return new State(StateType.PENDING, _priority);
+      return new State(StateType.PENDING, _priority, _startPlanId);
     }
 
     public State transitionDone() {
-      return new State(StateType.DONE, _priority);
+      return new State(StateType.DONE, _priority, _startPlanId);
     }
 
-    public static final State INIT = new State(StateType.INIT, Priority.DEFAULT_PRIORITY) {
-      @Override
-      final public State transitionDone() {
-        return DONE;
-      };
-
-      @Override
-      final public State transitionRun() {
-        return RUN;
-      }
-
-      @Override
-      final public State transitionPending() {
-        return PENDING;
-      }
-    };
-
-    public static final State RUN = new State(StateType.RUN, Priority.DEFAULT_PRIORITY) {
-      @Override
-      final public State transitionDone() {
-        return DONE;
-      };
-
-      @Override
-      final public State transitionRun() {
-        return RUN;
-      }
-
-      @Override
-      final public State transitionPending() {
-        return PENDING;
-      }
-    };
-
-    public static final State PENDING = new State(StateType.PENDING, Priority.DEFAULT_PRIORITY) {
-      @Override
-      final public State transitionDone() {
-        return DONE;
-      };
-
-      @Override
-      final public State transitionRun() {
-        return RUN;
-      }
-
-      @Override
-      final public State transitionPending() {
-        return PENDING;
-      }
-    };
-
-    public static final State DONE = new State(StateType.DONE, Priority.DEFAULT_PRIORITY) {
-      @Override
-      final public State transitionDone() {
-        return DONE;
-      };
-
-      @Override
-      final public State transitionRun() {
-        return RUN;
-      }
-
-      @Override
-      final public State transitionPending() {
-        return PENDING;
-      }
-    };
+    public static final State INIT = new State(StateType.INIT, Priority.DEFAULT_PRIORITY);
   }
 
   private class WrappedContext implements Context {

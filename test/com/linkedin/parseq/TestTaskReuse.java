@@ -238,7 +238,7 @@ public class TestTaskReuse extends BaseEngineTest {
       Task<String> plan2 = task.map(s -> s + " on moon!");
 
       runAndWait("TestTaskReuse.testTaskSharingByTwoPlans-plan1", plan1);
-      runAndWaitException("TestTaskReuse.testTaskSharingByTwoPlans-plan2", plan2, IllegalStateException.class);
+      runAndWaitException("TestTaskReuse.testTaskSharingByTwoPlans-plan2", plan2, CrossPlanTaskSharingException.class);
     } finally {
       ParSeqGlobalConfiguration.setAllowCrossPlanTaskSharingEnabled(true);
     }
