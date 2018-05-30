@@ -1,3 +1,8 @@
+v2.6.34
+------
+
+* Use D2 per-request timeout if enabled.
+
 v2.6.33
 ------
 
