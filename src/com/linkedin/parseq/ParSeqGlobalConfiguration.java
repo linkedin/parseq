@@ -102,7 +102,7 @@ public final class ParSeqGlobalConfiguration {
    *
    * @return true if cross-plan task sharing is enabled, false otherwise
    */
-  public static boolean isAllowCrossPlanTaskSharingEnabled() {
+  public static boolean allowCrossPlanTaskSharing() {
     return _allowCrossPlanTaskSharing;
   }
 
@@ -120,7 +120,7 @@ public final class ParSeqGlobalConfiguration {
    *
    * @param enabled true if cross-plan task sharing is enabled, false otherwise
    */
-  public static void setAllowCrossPlanTaskSharingEnabled(boolean enabled) {
+  public static void setAllowCrossPlanTaskSharing(boolean enabled) {
     _allowCrossPlanTaskSharing = enabled;
   }
 }

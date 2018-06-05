@@ -200,7 +200,13 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
           try {
             final Context wrapperContext = new WrappedContext(context);
             promise = doContextRun(wrapperContext);
-          } finally {
+          }
+          catch (CrossPlanTaskSharingException ex) {
+            LOGGER.error("ParSeq detected disabled cross-plan task sharing usage, PLEASE FIX ASAP!", ex);
+            fail(ex, taskLogger);
+            return;
+          }
+          finally {
             transitionPending();
           }
 
@@ -227,7 +233,8 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
               predecessor.getShallowTraceBuilder());
         }
       }
-    } catch (CrossPlanTaskSharingException e) {
+    }
+    catch (CrossPlanTaskSharingException e) {
       LOGGER.error("ParSeq detected disabled cross-plan task sharing usage, PLEASE FIX ASAP!", e);
       fail(e, taskLogger);
     }
@@ -333,6 +340,18 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
     }
   }
 
+//  private void failWithCrossPlanTaskSharing(final CrossPlanTaskSharingException error, final TaskLogger taskLogger) {
+//    if (transitionDone()) {
+//      appendTaskStackTrace(error);
+//      traceFailure(error);
+//      getSettableDelegate().fail(error);
+//      taskLogger.logTaskEnd(BaseTask.this, _traceValueProvider);
+//    } else {
+//      //
+//      getSettableDelegate().fail(error);
+//    }
+//  }
+
   // Concatenate stack traces if kept the original stack trace from the task creation
   private void appendTaskStackTrace(final Throwable error) {
     StackTraceElement[] taskStackTrace = _taskStackTraceHolder != null ? _taskStackTraceHolder.getStackTrace() : null;
@@ -402,7 +421,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
       state = _stateRef.get();
       if (state.getType() != StateType.INIT) {
         // prevent cross-plan task sharing if enabled
-        if (!ParSeqGlobalConfiguration.isAllowCrossPlanTaskSharingEnabled() &&
+        if (!ParSeqGlobalConfiguration.allowCrossPlanTaskSharing() &&
             state.getStartPlanId() != null && !state.getStartPlanId().equals(context.getPlanId())) {
           throw new CrossPlanTaskSharingException(this.toString() + " should not be shared across two plans!");
         }

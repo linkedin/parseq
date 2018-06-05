@@ -16,6 +16,7 @@
 
 package com.linkedin.parseq;
 
+import com.linkedin.parseq.promise.Promises;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -224,23 +225,5 @@ public class TestTaskReuse extends BaseEngineTest {
 
     assertEquals(countTasks(plan1.getTrace()), 5);
     assertEquals(countTasks(plan2.getTrace()), 5);
-  }
-
-  @Test
-  public void testTaskSharingByTwoPlans() throws InterruptedException {
-    try {
-      ParSeqGlobalConfiguration.setAllowCrossPlanTaskSharingEnabled(false);
-      final AtomicInteger counter = new AtomicInteger();
-
-      Task<String> task = Task.value("shared", "Shared Constant");
-
-      Task<String> plan1 = task.map(s -> s + " on earth!");
-      Task<String> plan2 = task.map(s -> s + " on moon!");
-
-      runAndWait("TestTaskReuse.testTaskSharingByTwoPlans-plan1", plan1);
-      runAndWaitException("TestTaskReuse.testTaskSharingByTwoPlans-plan2", plan2, CrossPlanTaskSharingException.class);
-    } finally {
-      ParSeqGlobalConfiguration.setAllowCrossPlanTaskSharingEnabled(true);
-    }
   }
 }

@@ -123,7 +123,7 @@ class FusionTask<S, T> extends BaseTask<T> {
       final Consumer3<FusionTraceContext, Promise<S>, Settable<R>> predecessor,
       final Consumer3<FusionTraceContext, Promise<R>, Settable<T>> propagator) {
 
-    return (traceContext, src, dst) -> {
+    return (FusionTraceContext traceContext, Promise<S> src, Settable<T> dst) -> {
 
       /*
        * At this point we know that transformation chain's length > 1.
@@ -131,7 +131,7 @@ class FusionTask<S, T> extends BaseTask<T> {
        */
       traceContext.createSurrogate();
 
-      predecessor.accept(traceContext, src, new Settable<R>() {
+      Settable<R> next = new Settable<R>() {
 
         @Override
         public void done(R value) throws PromiseResolvedException {
@@ -139,6 +139,9 @@ class FusionTask<S, T> extends BaseTask<T> {
             /* Track start time of the transformation. End time is tracked by closure created by completing() */
             getEffectiveShallowTraceBuilder(traceContext).setStartNanos(System.nanoTime());
             propagator.accept(traceContext, Promises.value(value), dst);
+          } catch (CrossPlanTaskSharingException ex) {
+            LOGGER.error("ParSeq detected disabled cross-plan task sharing usage, PLEASE FIX ASAP!", ex);
+            dst.fail(ex);
           } catch (Exception e) {
             /* This can only happen if there is an internal problem. Propagators should not throw any exceptions. */
             LOGGER.error("ParSeq ingternal error. An exception was thrown by propagator", e);
@@ -156,7 +159,9 @@ class FusionTask<S, T> extends BaseTask<T> {
             LOGGER.error("ParSeq ingternal error. An exception was thrown by propagator.", e);
           }
         }
-      });
+      };
+
+      predecessor.accept(traceContext, src, next);
     };
   }
 
@@ -173,7 +178,7 @@ class FusionTask<S, T> extends BaseTask<T> {
         /* BaseTask's code handles completing the parent task
          * we need to handle tracing of a surrogate task here
          */
-        propagator.accept(traceContext, src, new Settable<T>() {
+        Settable<T> next = new Settable<T>() {
           @Override
           public void done(T value) throws PromiseResolvedException {
             final ShallowTraceBuilder shallowTraceBuilder = traceContext.getSurrogate();
@@ -212,59 +217,79 @@ class FusionTask<S, T> extends BaseTask<T> {
             }
             dest.fail(error);
           }
-        });
-      } else if (transitionRun(traceContext.getParent())) {
-        markTaskStarted();
-        //non-parent task executed for the first time
-        traceContext.getParent().getTaskLogger().logTaskStart(this);
+        };
+        try {
+          propagator.accept(traceContext, src, next);
+        } catch (CrossPlanTaskSharingException ex) {
+          LOGGER.error("ParSeq detected disabled cross-plan task sharing usage, PLEASE FIX ASAP!", ex);
+          next.fail(ex);
+        } catch (Exception e) {
+          /* This can only happen if there is an internal problem. Propagators should not throw any exceptions. */
+          LOGGER.error("ParSeq ingternal error. An exception was thrown by propagator.", e);
+        }
+      } else {
+        try {
+          if (transitionRun(traceContext.getParent())) {
+            markTaskStarted();
+            //non-parent task executed for the first time
+            traceContext.getParent().getTaskLogger().logTaskStart(this);
 
-        Settable<T> next = new Settable<T>() {
-          @Override
-          public void done(final T value) throws PromiseResolvedException {
-            try {
-              transitionDone(traceContext);
-              final Function<T, String> traceValueProvider = _traceValueProvider;
-              _shallowTraceBuilder.setResultType(ResultType.SUCCESS);
-              if (traceValueProvider != null) {
+            Settable<T> next = new Settable<T>() {
+              @Override
+              public void done(final T value) throws PromiseResolvedException {
                 try {
-                  _shallowTraceBuilder.setValue(traceValueProvider.apply(value));
+                  transitionDone(traceContext);
+                  final Function<T, String> traceValueProvider = _traceValueProvider;
+                  _shallowTraceBuilder.setResultType(ResultType.SUCCESS);
+                  if (traceValueProvider != null) {
+                    try {
+                      _shallowTraceBuilder.setValue(traceValueProvider.apply(value));
+                    } catch (Exception e) {
+                      _shallowTraceBuilder.setValue(Exceptions.failureToString(e));
+                    }
+                  }
+                  settable.done(value);
+                  traceContext.getParent().getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);
+                  CONTINUATIONS.submit(() -> dest.done(value));
                 } catch (Exception e) {
-                  _shallowTraceBuilder.setValue(Exceptions.failureToString(e));
+                  CONTINUATIONS.submit(() -> dest.fail(e));
                 }
               }
-              settable.done(value);
-              traceContext.getParent().getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);
-              CONTINUATIONS.submit(() -> dest.done(value));
-            } catch (Exception e) {
-              CONTINUATIONS.submit(() -> dest.fail(e));
-            }
-          }
 
-          @Override
-          public void fail(final Throwable error) throws PromiseResolvedException {
-            try {
-              transitionDone(traceContext);
-              traceFailure(error);
-              settable.fail(error);
-              traceContext.getParent().getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);
-              CONTINUATIONS.submit(() -> dest.fail(error));
-            } catch (Exception e) {
-              CONTINUATIONS.submit(() -> dest.fail(e));
-            }
+              @Override
+              public void fail(final Throwable error) throws PromiseResolvedException {
+                try {
+                  transitionDone(traceContext);
+                  traceFailure(error);
+                  settable.fail(error);
+                  traceContext.getParent().getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);
+                  CONTINUATIONS.submit(() -> dest.fail(error));
+                } catch (Exception e) {
+                  CONTINUATIONS.submit(() -> dest.fail(e));
+                }
+              }
+            };
+            CONTINUATIONS.submit(() -> {
+              try {
+                propagator.accept(traceContext, src, next);
+              } catch (CrossPlanTaskSharingException ex) {
+                LOGGER.error("ParSeq detected disabled cross-plan task sharing usage, PLEASE FIX ASAP!", ex);
+                next.fail(ex);
+              } catch (Exception e) {
+                /* This can only happen if there is an internal problem. Propagators should not throw any exceptions. */
+                LOGGER.error("ParSeq ingternal error. An exception was thrown by propagator.", e);
+              }
+            });
+          } else {
+            //non-parent tasks subsequent executions
+            addPotentialRelationships(traceContext, traceContext.getParent().getTraceBuilder());
+            Promises.propagateResult(settable, dest);
           }
-        };
-        CONTINUATIONS.submit(() -> {
-          try {
-            propagator.accept(traceContext, src, next);
-          } catch (Exception e) {
-            /* This can only happen if there is an internal problem. Propagators should not throw any exceptions. */
-            LOGGER.error("ParSeq ingternal error. An exception was thrown by propagator.", e);
-          }
-        });
-      } else {
-        //non-parent tasks subsequent executions
-        addPotentialRelationships(traceContext, traceContext.getParent().getTraceBuilder());
-        Promises.propagateResult(settable, dest);
+        } catch (CrossPlanTaskSharingException ex) {
+          addPotentialRelationships(traceContext, traceContext.getParent().getTraceBuilder());
+          LOGGER.error("ParSeq detected disabled cross-plan task sharing usage, PLEASE FIX ASAP!", ex);
+          dest.fail(ex);
+        }
       }
     };
   }
