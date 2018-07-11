@@ -1248,7 +1248,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *
    * If any of tasks passed in as a parameter fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks and other
-   * tasks will be cancelled if task has not been completed yet.
+   * tasks will be cancelled if they have not been completed yet. Tasks will be started in an arbitrary order.
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1274,7 +1274,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *
    * If any of tasks passed in as a parameter fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks and other
-   * tasks will be cancelled if task has not been completed yet.
+   * tasks will be cancelled if they have not been completed yet. Tasks will be started in an arbitrary order.
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1302,7 +1302,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *
    * If any of tasks passed in as a parameter fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks and other
-   * tasks will be cancelled if task has not been completed yet.
+   * tasks will be cancelled if they have not been completed yet. Tasks will be started in an arbitrary order.
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1331,7 +1331,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *
    * If any of tasks passed in as a parameter fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks and other
-   * tasks will be cancelled if task has not been completed yet.
+   * tasks will be cancelled if they have not been completed yet. Tasks will be started in an arbitrary order.
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1361,7 +1361,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *
    * If any of tasks passed in as a parameter fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks and other
-   * tasks will be cancelled if task has not been completed yet.
+   * tasks will be cancelled if they have not been completed yet. Tasks will be started in an arbitrary order.
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1392,7 +1392,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *
    * If any of tasks passed in as a parameter fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks and other
-   * tasks will be cancelled if task has not been completed yet.
+   * tasks will be cancelled if they have not been completed yet. Tasks will be started in an arbitrary order.
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1425,7 +1425,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *
    * If any of tasks passed in as a parameter fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks and other
-   * tasks will be cancelled if task has not been completed yet.
+   * tasks will be cancelled if they have not been completed yet. Tasks will be started in an arbitrary order.
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1459,7 +1459,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *
    * If any of tasks passed in as a parameter fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks and other
-   * tasks will be cancelled if task has not been completed yet.
+   * tasks will be cancelled if they have not been completed yet. Tasks will be started in an arbitrary order.
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1495,7 +1495,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *
    * If any of tasks passed in as a parameter fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks and other
-   * tasks will be cancelled if task has not been completed yet.
+   * tasks will be cancelled if they have not been completed yet. Tasks will be started in an arbitrary order.
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1532,7 +1532,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *
    * If any of tasks passed in as a parameter fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks and other
-   * tasks will be cancelled if task has not been completed yet.
+   * tasks will be cancelled if they have not been completed yet. Tasks will be started in an arbitrary order.
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1571,7 +1571,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *
    * If any of tasks passed in as a parameter fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks and other
-   * tasks will be cancelled if task has not been completed yet.
+   * tasks will be cancelled if they have not been completed yet. Tasks will be started in an arbitrary order.
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1611,7 +1611,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *
    * If any of tasks passed in as a parameter fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks and other
-   * tasks will be cancelled if task has not been completed yet.
+   * tasks will be cancelled if they have not been completed yet. Tasks will be started in an arbitrary order.
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1653,7 +1653,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *
    * If any of tasks passed in as a parameter fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks and other
-   * tasks will be cancelled if task has not been completed yet.
+   * tasks will be cancelled if they have not been completed yet. Tasks will be started in an arbitrary order.
    * <p>
    * @return task that will run given tasks in parallel
    */
@@ -1696,7 +1696,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *
    * If any of tasks passed in as a parameter fails then returned task will also fail immediately.
    * In this case returned task will be resolved with error from the first of failing tasks and other
-   * tasks will be cancelled if task has not been completed yet.
+   * tasks will be cancelled if they have not been completed yet. Tasks will be started in an arbitrary order.
    * <p>
    * @return task that will run given tasks in parallel
    */
