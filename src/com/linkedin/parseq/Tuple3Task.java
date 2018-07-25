@@ -27,7 +27,7 @@ public interface Tuple3Task<T1, T2, T3> extends Task<Tuple3<T1, T2, T3>> {
    * // this task will complete with value 11
    * Task{@code <Integer>} length = hello.map("length", s {@code ->} s.length());
    * </pre></blockquote>
-   * <img src="doc-files/map-1.svg" type="image/svg+xml" height="90px"/>
+   * <img src="doc-files/map-1.png" type="image/svg+xml" height="90px"/>
    * <p>
    * If this task is completed with an exception then the new task will also complete
    * with that exception.
@@ -39,7 +39,7 @@ public interface Tuple3Task<T1, T2, T3> extends Task<Tuple3<T1, T2, T3>> {
    *  // this task will fail with java.lang.StringIndexOutOfBoundsException
    *  Task{@code <Integer>} length = failing.map("length", s {@code ->} s.length());
    * </pre></blockquote>
-   * <img src="doc-files/map-2.svg" type="image/svg+xml" height="90px"/>
+   * <img src="doc-files/map-2.png" type="image/svg+xml" height="90px"/>
    *
    * @param <R> return type of function <code>func</code>
    * @param desc description of a mapping function, it will show up in a trace
@@ -69,7 +69,7 @@ public interface Tuple3Task<T1, T2, T3> extends Task<Tuple3<T1, T2, T3>> {
    *  // assuming fetch(u) fetches contents given by a URI
    *  Task{@code <String>} homepage = url.flatMap("fetch", u {@code ->} fetch(u));
    * </pre></blockquote>
-   * <img src="doc-files/flatMap-1.svg" type="image/svg+xml" height="90px"/>
+   * <img src="doc-files/flatMap-1.png" type="image/svg+xml" height="90px"/>
    * <p>
    *
    * If this task is completed with an exception then the new task will also contain
@@ -80,7 +80,7 @@ public interface Tuple3Task<T1, T2, T3> extends Task<Tuple3<T1, T2, T3>> {
    *  // this task will fail with java.lang.IllegalArgumentException
    *  Task{@code <String>} homepage = url.flatMap("fetch", u {@code ->} fetch(u));
    * </pre></blockquote>
-   * <img src="doc-files/flatMap-2.svg" type="image/svg+xml" height="90px"/>
+   * <img src="doc-files/flatMap-2.png" type="image/svg+xml" height="90px"/>
    * @param <R> return type of function <code>func</code>
    * @param desc description of a mapping function, it will show up in a trace
    * @param f function to be applied to successful result of this task which returns new task
@@ -111,7 +111,7 @@ public interface Tuple3Task<T1, T2, T3> extends Task<Tuple3<T1, T2, T3>> {
    *  // this task will print "Hello World"
    *  Task{@code <String>} sayHello = hello.andThen("say", System.out::println);
    * </pre></blockquote>
-   * <img src="doc-files/andThen-1.svg" type="image/svg+xml" height="90px"/>
+   * <img src="doc-files/andThen-1.png" type="image/svg+xml" height="90px"/>
    * <p>
    * If this task fails then consumer will not be called and failure
    * will be propagated to task returned by this method.
@@ -123,7 +123,7 @@ public interface Tuple3Task<T1, T2, T3> extends Task<Tuple3<T1, T2, T3>> {
    *  // this task will fail with java.lang.StringIndexOutOfBoundsException
    *  Task{@code <String>} sayHello = failing.andThen("say", System.out::println);
    * </pre></blockquote>
-   * <img src="doc-files/andThen-2.svg" type="image/svg+xml" height="90px"/>
+   * <img src="doc-files/andThen-2.png" type="image/svg+xml" height="90px"/>
    *
    * @param desc description of a consumer, it will show up in a trace
    * @param consumer consumer of a value returned by this task
@@ -227,7 +227,7 @@ public interface Tuple3Task<T1, T2, T3> extends Task<Tuple3<T1, T2, T3>> {
    *  Task{@code <String>} userName = id.flatMap("fetch", u {@code ->} fetch(u))
    *      .withSideEffect("update memcache", u {@code ->} updateMemcache(u));
    * </pre></blockquote>
-   * <img src="doc-files/withSideEffect-1.svg" type="image/svg+xml" height="120px"/>
+   * <img src="doc-files/withSideEffect-1.png" type="image/svg+xml" height="120px"/>
    *
    * @param desc description of a side effect, it will show up in a trace
    * @param func function to be applied on result of successful completion of this task

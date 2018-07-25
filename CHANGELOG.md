@@ -1,3 +1,9 @@
+v2.6.35
+------
+
+* Remove .DS_Store file and improve javadoc for Task.par.
+* Fix Tuple*Task.java javadoc's image not showing bug 
+
 v2.6.34
 ------
 
@@ -8,7 +14,6 @@ v2.6.33
 
 * Allow - in parent resource name in parseq-restli-client configuration for cross-center calls.
 * Add Zookeeper ACL support
-
 
 v2.6.32
 ------
