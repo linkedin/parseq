@@ -17,6 +17,7 @@
 package com.linkedin.restli.client;
 
 import com.linkedin.data.schema.PathSpec;
+import com.linkedin.r2.filter.FilterChains;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -92,7 +93,7 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
     .setPlanDeactivationListener(_batchingSupport);
     _serverEngine = serverEngineBuilder.build();
     _server = RestLiIntTestServer.createServer(_serverEngine, _port,
-        RestLiIntTestServer.supportedCompression, true, 5000);
+        true, 5000, null, FilterChains.empty(), true, false, false);
     _server.start();
     _clientFactory = new HttpClientFactory();
     _transportClients = new ArrayList<>();

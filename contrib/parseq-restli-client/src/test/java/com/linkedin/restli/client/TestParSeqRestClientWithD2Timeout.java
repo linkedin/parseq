@@ -82,7 +82,7 @@ public class TestParSeqRestClientWithD2Timeout extends ParSeqRestClientIntegrati
       Task<?> task = _parseqClient.createTask(request);
       runAndWait(getTestClassName() + ".testTimeoutRequest", task);
       assertTrue(hasTask("withTimeout 5000ms src: withD2Timeout.*/greetings.*", task.getTrace()));
-      verifyRequestContextTimeout(request, 5000);
+      verifyRequestContextTimeout(request, 5000, Boolean.TRUE);
   }
 
   @Test
@@ -95,16 +95,34 @@ public class TestParSeqRestClientWithD2Timeout extends ParSeqRestClientIntegrati
     context.putLocalAttr(R2Constants.REQUEST_TIMEOUT, 4000);
     Task<?> task = _parseqClient.createTask(request, context);
     runAndWait(getTestClassName() + ".testTimeoutRequest", task);
-    assertTrue(hasTask("withTimeout 4000ms src: request context", task.getTrace()));
-    verifyRequestContextTimeout(request, 4000);
+    assertFalse(hasTask("withTimeout", task.getTrace()));
+    verifyRequestContextTimeout(request, 4000, null);
   }
 
-  private void verifyRequestContextTimeout(Request<?> request, int timeout) {
+  @Test
+  public void testLongerTimeoutFromContext() {
+    setInboundRequestContext(new InboundRequestContextBuilder()
+        .setName("withD2Timeout")
+        .build());
+    GetRequest<Greeting> request = new GreetingsBuilders().get().id(1L).build();
+    RequestContext context = new RequestContext();
+    context.putLocalAttr(R2Constants.REQUEST_TIMEOUT, 12000);
+    Task<?> task = _parseqClient.createTask(request, context);
+    runAndWait(getTestClassName() + ".testTimeoutRequest", task);
+    assertFalse(hasTask("withTimeout", task.getTrace()));
+    verifyRequestContextTimeout(request, 12000, null);
+  }
+
+  private void verifyRequestContextTimeout(Request<?> request, int timeout, Boolean ignoreIfHigher) {
     assertTrue(_capturingRestClient.getCapturedRequestContexts().containsKey(request));
-    Number contextTimeout = (Number) _capturingRestClient.getCapturedRequestContexts()
-        .get(request)
-        .getLocalAttr(R2Constants.REQUEST_TIMEOUT);
+    RequestContext context = _capturingRestClient.getCapturedRequestContexts().get(request);
+    Number contextTimeout = (Number)context.getLocalAttr(R2Constants.REQUEST_TIMEOUT);
     assertNotNull(contextTimeout);
     assertEquals(contextTimeout.intValue(), timeout);
+    if (ignoreIfHigher == null) {
+      assertNull(context.getLocalAttr(R2Constants.REQUEST_TIMEOUT_IGNORE_IF_HIGHER_THAN_DEFAULT));
+    } else {
+      assertEquals(context.getLocalAttr(R2Constants.REQUEST_TIMEOUT_IGNORE_IF_HIGHER_THAN_DEFAULT), ignoreIfHigher);
+    }
   }
 }
