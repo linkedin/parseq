@@ -1,3 +1,8 @@
+v2.6.36
+------
+
+* Make sure that ParSeqRestClient timeout configuration does not impact lower-lever R2D2 timeout logic.
+
 v2.6.35
 ------
 

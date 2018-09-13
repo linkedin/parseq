@@ -203,7 +203,11 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
     }
   }
 
-  private <T> Task<Response<T>> withD2Timeout(final Task<Response<T>> task, String timeoutTaskName) {
+  private <T> Task<Response<T>> withD2Timeout(final Task<Response<T>> task, ConfigValue<Long> timeout) {
+    String srcDesc = timeout.getSource().map(src -> " src: " + src).orElse("");
+    String timeoutTaskName = "withTimeout " + timeout.getValue().intValue() + TimeUnitHelper.toString(TimeUnit.MILLISECONDS)
+        + srcDesc;
+    // make sure that we throw the same exception to maintain backward compatibility with current withTimeout implementation.
     return task.transform(timeoutTaskName, (Try<Response<T>> tryGet) -> {
       if (tryGet.isFailed() && tryGet.getError() instanceof TimeoutException) {
         String timeoutExceptionMessage = "task: '" + task.getName() + "' " + timeoutTaskName;
@@ -217,29 +221,64 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
   private <T> Task<Response<T>> createTask(final String name, final Request<T> request,
       final RequestContext requestContext, RequestConfig config) {
     LOGGER.debug("createTask, name: '{}', config: {}", name, config);
-    return createTaskWithTimeout(name, request, requestContext, config);
-  }
-
-  // reconcile timeout specified in requestContext (if there is) with the given timeout to pick a tighter one
-  private int reconcileRequestTimeout(final RequestContext requestContext, Long timeout) {
-    int d2Timeout = timeout.intValue();
-    Object requestTimeout = requestContext.getLocalAttr(R2Constants.REQUEST_TIMEOUT);
-    if (requestTimeout instanceof Number && ((Number)requestTimeout).intValue() > 0) {
-      d2Timeout = Math.min(((Number)requestTimeout).intValue(), d2Timeout);
-    } else if (requestTimeout != null) {
-      LOGGER.error("Ignore invalid value for REQUEST_TIMEOUT set in request context: " + requestTimeout);
+    if (_d2RequestTimeoutEnabled) {
+      return createTaskWithD2Timeout(name, request, requestContext, config);
+    } else {
+      return createTaskWithTimeout(name, request, requestContext, config);
     }
-    requestContext.putLocalAttr(R2Constants.REQUEST_TIMEOUT, d2Timeout);
-    return d2Timeout;
   }
 
+  // Check whether per-request timeout is specified in the given request context.
+  private boolean hasRequestContextTimeout(RequestContext requestContext) {
+    Object requestTimeout = requestContext.getLocalAttr(R2Constants.REQUEST_TIMEOUT);
+    return (requestTimeout instanceof Number) && (((Number)requestTimeout).intValue() > 0);
+  }
+
+  // check whether we need to apply timeout to a rest.li request task.
+  private boolean needApplyTaskTimeout(RequestContext requestContext, ConfigValue<Long> timeout) {
+    // if no timeout configured or per-request timeout already specified in request context
+    return timeout.getValue() != null && timeout.getValue() > 0 && !hasRequestContextTimeout(requestContext);
+  }
+
+  // Apply timeout to a ParSeq rest.li request task through parseq timer task.
   private <T> Task<Response<T>> createTaskWithTimeout(final String name, final Request<T> request,
       final RequestContext requestContext, RequestConfig config) {
     ConfigValue<Long> timeout = config.getTimeoutMs();
-    int reconciledTimeout = 0;
-    if (timeout.getValue() != null && timeout.getValue() > 0 && _d2RequestTimeoutEnabled) {
-      // reconcile timeout if request has already set timeout in its request context
-      reconciledTimeout = reconcileRequestTimeout(requestContext, timeout.getValue());
+    Task<Response<T>> requestTask;
+    if (RequestGroup.isBatchable(request, config)) {
+      requestTask = createBatchableTask(name, request, requestContext, config);
+    } else {
+      requestTask = Task.async(name, () -> sendRequest(request, requestContext));
+    }
+    if (!needApplyTaskTimeout(requestContext, timeout)) {
+      return requestTask;
+    } else {
+      return withTimeout(requestTask, timeout);
+    }
+  }
+
+  /**
+   * We will distinguish two cases in applying timeout to a ParSeq rest.li request task through D2 request timeout.
+   * Case 1: There is no per request timeout specified in request context of rest.li request, timeout is configured
+   * through ParSeqRestClient configuration. For this case, we will update request context as:
+   *    REQUEST_TIMEOUT = configured timeout value
+   *    REQUEST_TIMEOUT_IGNORE_IF_HIGHER_THAN_DEFAULT = true
+   * since in this case, ParSeqRestClient just wants to timeout this request from client side within configured timeout
+   * without disturbing any lower layer load balancing behaviors.
+   *
+   * Case 2: There is per request timeout specified in rest.li request, and there may or may not have timeout specified
+   * through ParSeqRestClient configuration. For this case, per request timeout specified in rest.li request always
+   * takes precedence, ParSeq will interpret that users would like to use this to impact lower layer LB behavior, and
+   * thus will pass down request context unchanged down.
+   */
+  private <T> Task<Response<T>> createTaskWithD2Timeout(final String name, final Request<T> request,
+      final RequestContext requestContext, RequestConfig config) {
+    ConfigValue<Long> timeout = config.getTimeoutMs();
+    boolean taskNeedTimeout = needApplyTaskTimeout(requestContext, timeout);
+    if (taskNeedTimeout) {
+       // configure request context before creating parseq task from the request
+      requestContext.putLocalAttr(R2Constants.REQUEST_TIMEOUT, timeout.getValue().intValue());
+      requestContext.putLocalAttr(R2Constants.REQUEST_TIMEOUT_IGNORE_IF_HIGHER_THAN_DEFAULT, true);
     }
     Task<Response<T>> requestTask;
     if (RequestGroup.isBatchable(request, config)) {
@@ -247,20 +286,10 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
     } else {
       requestTask = Task.async(name, () -> sendRequest(request, requestContext));
     }
-    if (timeout.getValue() == null || timeout.getValue() <= 0) {
-      // no timeout configured
+    if (!taskNeedTimeout) {
       return requestTask;
     } else {
-      if (!_d2RequestTimeoutEnabled) {
-        return withTimeout(requestTask, timeout);
-      } else {
-        assert reconciledTimeout > 0;
-        String srcDesc = (reconciledTimeout < timeout.getValue().intValue()) ? " src: request context" :
-            timeout.getSource().map(src -> " src: " + src).orElse("");
-        String timeoutTaskName = "withTimeout " + reconciledTimeout + TimeUnitHelper.toString(TimeUnit.MILLISECONDS)
-            + srcDesc;
-        return withD2Timeout(requestTask, timeoutTaskName);
-      }
+      return withD2Timeout(requestTask, timeout);
     }
   }
 

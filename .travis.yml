@@ -3,6 +3,6 @@ script: ant -Dtestng.verbosity=2 test
 jdk:
   - oraclejdk8
 before_install:
-  - nvm install 5
-  - nvm use 5
+  - nvm install 6
+  - nvm use 6
   - node --version
