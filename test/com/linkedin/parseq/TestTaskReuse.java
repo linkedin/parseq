@@ -16,6 +16,7 @@
 
 package com.linkedin.parseq;
 
+import com.linkedin.parseq.promise.Promises;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -225,5 +226,4 @@ public class TestTaskReuse extends BaseEngineTest {
     assertEquals(countTasks(plan1.getTrace()), 5);
     assertEquals(countTasks(plan2.getTrace()), 5);
   }
-
 }
