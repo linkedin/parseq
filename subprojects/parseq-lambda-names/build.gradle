@@ -1,0 +1,49 @@
+apply plugin: 'com.github.johnrengelman.shadow'
+
+
+description = """Finds source code location and infers operation for lambda expressions"""
+
+
+configurations {
+  bootstrap
+}
+
+dependencies {
+  shadow group: 'com.ea.agentloader', name: 'ea-agent-loader', version: '1.0.2'
+  shadow group: 'org.ow2.asm', name: 'asm-all', version: '5.1'
+  testCompile(group: 'org.testng', name: 'testng', version: '6.9.9') {
+    exclude group: 'junit', module: 'junit'
+    exclude group: 'com.beust', module: 'jcommander'
+    exclude group: 'org.apache.ant', module: 'ant'
+    exclude group: 'org.yaml', module: 'snakeyaml'
+    exclude group: 'org.beanshell', module: 'bsh'
+  }
+}
+
+sourceSets.main.compileClasspath += configurations.shadow + sourceSets.main.compileClasspath
+
+javadoc.classpath += configurations.shadow + sourceSets.main.compileClasspath
+
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
+  }
+}
+
+shadowJar {
+  configurations += [project.configurations.shadow]
+  classifier = null
+  relocate 'org.objectweb', 'parseq.org.objectweb'
+}
+
+jar {
+  manifest {
+    attributes 'Agent-Class': 'com.linkedin.parseq.lambda.ASMBasedTaskDescriptor$Agent'
+  }
+}
+
+uploadArchives.dependsOn shadowJar
+assemble.dependsOn shadowJar

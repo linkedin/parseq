@@ -1,0 +1,121 @@
+description = '''ParSeq project core code'''
+
+archivesBaseName = 'parseq'
+
+//TODO avoid buildscript dependency
+buildscript {
+  repositories {
+    maven {
+      url "http://repo1.maven.org/maven2/"
+    }
+  }
+
+  dependencies {
+    classpath group: 'net.sourceforge.fmpp', name: 'fmpp', version: '0.9.14'
+  }
+
+  ant.taskdef(name: 'fmpp', classname:'fmpp.tools.AntTask', classpath: buildscript.configurations.classpath.asPath)
+}
+
+
+configurations {
+  bootstrap {
+    description "bootstrapping dependencies"
+    visible = false
+  }
+
+  testArtifact
+
+  testUtilCompile {
+    description "test utility compile time dependencies"
+  }
+}
+
+dependencies {
+  compile group: 'org.codehaus.jackson', name: 'jackson-core-asl', version: '1.8.8'
+  compile group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.8.8'
+  compile group: "org.slf4j", name: "slf4j-api", version: "1.7.25"
+  bootstrap group: "net.sourceforge.fmpp", name: "fmpp", version: "0.9.15"
+
+  testUtilCompile group: "org.testng", name: "testng", version: "6.9.9"
+  testCompile group: "org.slf4j", name: "slf4j-log4j12", version: "1.7.25"
+}
+
+sourceSets {
+  testUtils {
+    compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.runtimeClasspath + configurations.compile + configurations.testUtilCompile + sourceSets.main.output
+    runtimeClasspath += sourceSets.main.compileClasspath + output
+    java {
+      srcDirs = ['src/test-utils/java']
+    }
+  }
+
+  test {
+    java {
+      srcDirs = ['test']
+      compileClasspath += testUtils.output + compileClasspath + configurations.testRuntime
+      runtimeClasspath += testUtils.output + compileClasspath + configurations.testRuntime
+    }
+  }
+}
+
+javadoc {
+  options.use = false
+}
+
+// package test utility
+task testJar(type: Jar) {
+  from sourceSets.testUtils.output
+  from sourceSets.main.output
+  classifier = 'test'
+}
+
+task packageTestJar(type: Jar) {
+  from sourceSets.testUtils.output
+  classifier = 'test'
+}
+
+task testUtilsJavadoc(type: Javadoc) {
+  source sourceSets.testUtils.allJava
+  classpath = sourceSets.main.output +  sourceSets.main.runtimeClasspath + sourceSets.testUtils.compileClasspath
+  destinationDir = reporting.file("${buildDir}/docs-test")
+}
+task packageTestJavadoc(type: Jar, dependsOn: ['testUtilsJavadoc']) {
+  from testUtilsJavadoc.destinationDir
+  //from sourceSets.testUtils.allJava
+  classifier = 'test-javadoc'
+}
+
+task packageTestSources(type: Jar, dependsOn: 'classes') {
+  from sourceSets.testUtils.allSource
+  classifier = 'test-sources'
+}
+
+artifacts {
+  testArtifact testJar
+  archives packageTestJar
+  archives packageTestJavadoc
+  archives packageTestSources
+}
+
+// publish to maven
+uploadArchives {
+  repositories {
+    mavenDeployer {
+      pom.artifactId = 'parseq'
+    }
+  }
+}
+
+
+// When update the template and data in codegen, need to run this task before gradle build task
+task generateFmppSources {
+  description 'Configure Freemarker to generate TupleNtask, ParNTask code in source folder.'
+  doLast {
+    println "Generating sources...."
+    ant.fmpp configuration: "$projectDir/src/main/codegen/config.fmpp",
+        sourceRoot: "$projectDir/src/main/codegen/templates",
+        outputRoot: "$projectDir/src/main/java"
+  }
+}
+

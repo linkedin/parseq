@@ -1,0 +1,172 @@
+apply from: file("gradle/versioning.gradle")
+
+allprojects { // for all projects including the root project
+  apply plugin: 'idea'
+  apply plugin: 'eclipse'
+  apply plugin: 'maven-publish'
+  apply plugin: 'maven'
+  apply plugin: 'signing'
+
+  version = rootProject.version
+  group = 'com.linkedin.parseq'
+
+  repositories {
+    mavenCentral()
+    mavenLocal()
+  }
+}
+
+
+subprojects {
+  apply plugin: 'java'
+  sourceCompatibility = 1.8
+  targetCompatibility = 1.8
+  archivesBaseName = project.name
+
+  if (it.name.startsWith('parseq-') && !it.name.equals("parseq-lambda-names") && !it.name.equals("parseq-tracevis")) { // all contrib modules
+    dependencies {
+      compile project(":parseq")
+    }
+  }
+
+  // package jar
+  task packageJavadoc(type: Jar, dependsOn: 'javadoc') {
+    from javadoc.destinationDir
+    classifier = 'javadoc'
+  }
+
+  task packageSources(type: Jar, dependsOn: 'classes') {
+    from sourceSets.main.allSource
+    classifier = 'sources'
+  }
+
+  // configure MANIFEST
+  jar {
+    manifest {
+      attributes("Created-By": "Gradle",
+          "Version": version,
+          "Built-By": sonatypeUsername,
+          "Build-JDK": JavaVersion.current())
+    }
+  }
+
+
+  javadoc {
+    options.use = true
+    options.author = true
+    options.bottom = "Copyright &#169; 2018. All rights reserved."
+    options.classpath += file("${project.projectDir.absolutePath}/src/main/java")
+    options.links("https://docs.oracle.com/javase/8/docs/api/")
+    options.addStringOption("charset", "UTF-8")
+  }
+
+  if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+      tasks.withType(Javadoc) {
+        options.addStringOption('Xdoclint:none', '-quiet')
+      }
+    }
+  }
+
+  // Not include parseq-examples and parseq-legacy-examples, since we don't need to publish their jar files
+  afterEvaluate {
+    if (it.name.startsWith('parseq') && !it.name.endsWith('examples') && !it.name.endsWith('tracevis')) {
+      artifacts {
+        archives jar
+        archives packageJavadoc
+        archives packageSources
+      }
+    }
+    if (it.name.equals("parseq-examples") || it.name.equals("parseq-legacy-examples")) {
+      project.tasks.uploadArchives.enabled = false
+    }
+  }
+
+  // sign up
+  if (project.hasProperty('ossRelease')) {
+    signing {
+      required = { gradle.taskGraph.hasTask("uploadArchives") }
+      sign configurations.archives
+    }
+  }
+
+  // publish to maven and local ivy repo
+  uploadArchives {
+    repositories {
+      ivy { url "file:$rootDir/build/ivy-repo" }
+
+      mavenDeployer {
+        if (project.hasProperty('ossRelease')) {
+          // pom signature
+          beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+          repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+            authentication(userName: sonatypeUsername, password: sonatypePassword)
+          }
+
+          snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots") {
+            authentication(userName: sonatypeUsername, password: sonatypePassword)
+          }
+        } else {
+          //Useful for local testing. If not useful, we should delete this line:
+          repository(url: "file:$rootDir/build/mvn-repo")
+        }
+
+        pom.project {
+          name project.name
+          packaging 'jar'
+          url 'http://github.com/linkedin/parseq'
+
+          scm {
+            url 'git@github.com:linkedin/parseq.git'
+            connection 'scm:git:git@github.com:linkedin/parseq.git'
+            developerConnection 'scm:git:git@github.com:linkedin/parseq.git'
+          }
+
+          licenses {
+            license {
+              name 'The Apache Software License, Version 2.0'
+              url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+              distribution 'repo'
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+task runTracevisServer (dependsOn:':parseq-tracevis-server:build') {
+  description 'Start trace visualization server for observing the execution of tasks.'
+
+  doLast {
+    // get dot path in local machine, before running this task, please install graphviz in your machine
+    try {
+      new ByteArrayOutputStream().withStream { os ->
+        def result = exec {
+          executable = 'which'
+          args = ["dot"]
+          standardOutput = os
+        }
+        ext.dotLocation = os.toString().trim()
+      }
+    } catch (Exception e) {
+      throw new Exception("Can not find dot tools, please install it or check the docLocation!")
+    }
+
+    def tracevisJar = "${projectDir}/subprojects/parseq-tracevis-server/build/libs/parseq-tracevis-server-" + version + '-jar-with-dependencies.jar'
+
+    File docFile = new File(dotLocation)
+    if (docFile.exists()) {
+      javaexec {
+        main="-jar"
+        args = [
+            tracevisJar,
+            dotLocation
+        ]
+      }
+    } else {
+      logger.error('Can not find dot tools, please install it or check the docLocation!')
+    }
+  }
+}

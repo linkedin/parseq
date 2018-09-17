@@ -1,0 +1,47 @@
+apply plugin: 'antlr'
+
+description = """Provides convenient API for creating automatically batched tasks"""
+
+
+dependencies {
+    compile project(":parseq-batching")
+    compile group: 'com.linkedin.pegasus', name: 'pegasus-common', version:'24.0.2'
+    compile group: 'com.linkedin.pegasus', name: 'restli-common', version:'24.0.2'
+    compile group: 'com.linkedin.pegasus', name: 'restli-client', version:'24.0.2'
+    compile group: 'com.linkedin.pegasus', name: 'r2-core', version:'24.0.2'
+    compile group: 'org.hdrhistogram', name: 'HdrHistogram', version:'2.1.8'
+    compile group: 'org.antlr', name: 'antlr4-runtime', version:'4.5'
+
+    testCompile group: 'org.testng', name: 'testng', version:'6.9.9'
+    testCompile group: 'org.slf4j', name: 'slf4j-simple', version:'1.7.12'
+    testCompile (group: 'com.linkedin.pegasus', name: 'restli-int-test-server', version:'24.0.2'){
+        //excluding a particular transitive dependency since we want to use the module with 'all' classifier one below
+        exclude group: 'com.linkedin.pegasus', module: 'restli-int-test-api'
+    }
+    testCompile group: 'com.linkedin.pegasus', name: 'restli-int-test-api', version:'24.0.2', classifier:'all'
+    testCompile group: 'com.linkedin.pegasus', name: 'r2-netty', version:'24.0.2'
+    testCompile project(path: ':parseq', configuration: 'testArtifact')
+
+    antlr "org.antlr:antlr4:4.5"
+}
+
+generateGrammarSource {
+  source = fileTree(dir: '${projectDir}/src/main/antlr4')
+  outputDirectory = file("${projectDir}/src/main/java")
+}
+
+uploadArchives {
+  repositories {
+    mavenDeployer {
+      pom.project {
+        developers {
+          developer {
+            id 'jodzga'
+            name 'Jaroslaw Odzga'
+            email 'jodzga@linkedin.com'
+          }
+        }
+      }
+    }
+  }
+}

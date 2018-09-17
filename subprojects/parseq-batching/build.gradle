@@ -1,0 +1,26 @@
+description = """Provides convenient API for creating automatically batched tasks"""
+
+
+dependencies {
+  compile group: 'org.hdrhistogram', name: 'HdrHistogram', version:'2.1.8'
+  testCompile group: 'org.testng', name: 'testng', version:'6.9.9'
+  testCompile group: 'org.slf4j', name: 'slf4j-simple', version:'1.7.12'
+  testCompile project(path: ':parseq', configuration: 'testArtifact')
+}
+
+
+uploadArchives {
+  repositories {
+    mavenDeployer {
+      pom.project {
+        developers {
+          developer {
+            id 'jodzga'
+            name 'Jaroslaw Odzga'
+            email 'jodzga@linkedin.com'
+          }
+        }
+      }
+    }
+  }
+}

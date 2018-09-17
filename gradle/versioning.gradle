@@ -1,0 +1,5 @@
+if (!project.hasProperty('release') && !project.version.endsWith("-SNAPSHOT")) {
+  project.version += "-SNAPSHOT"
+}
+
+logger.lifecycle "Building version $version"

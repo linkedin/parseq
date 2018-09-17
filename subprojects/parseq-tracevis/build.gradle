@@ -1,0 +1,316 @@
+description = '''A trace visualizer for ParSeq traces.'''
+
+apply plugin: 'com.moowork.node'
+
+node {
+  // Version of node to use.
+  version = '6.11.2'
+
+  // Version of npm to use.
+  npmVersion = '3.10.10'
+
+  // Base URL for fetching node distributions (change if you have a mirror).
+  distBaseUrl = 'https://nodejs.org/dist'
+
+  download = true
+
+  // Set the work directory for unpacking node
+  workDir = file("${project.buildDir}/nodejs")
+
+  // Set the work directory for NPM
+  npmWorkDir = file("${project.buildDir}/npm")
+}
+
+buildscript {
+  repositories {
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+  }
+  dependencies {
+    classpath "com.moowork.gradle:gradle-node-plugin:1.2.0"
+  }
+}
+
+ext {
+  // Command
+  BROWSERIFY = './node_modules/browserify/bin/cmd.js'
+  ISTANBUL = './node_modules/istanbul/lib/cli.js'
+  JSHINT = './node_modules/jshint/bin/jshint'
+  MOCHA = './node_modules/mocha/bin/_mocha'
+  PHANTOMJS = './node_modules/phantomjs/bin/phantomjs'
+  UGLIFY = './node_modules/uglify-js/bin/uglifyjs'
+
+  //Module
+  MODULE = 'parseq-tracevis'
+  MODULE_JS = "${MODULE}.js"
+  MODULE_MIN_JS = "${MODULE}.min.js"
+  MODULE_TAR_GZ = "${MODULE}.tar.gz"
+
+  // build directory
+  TEST_UNIT_COV = 'build/coverage/unit'
+  TEST_INT_COV = 'build/coverage/int'
+  TEST_ALL_COV = 'build/coverage/all'
+}
+
+configurations {
+  tracevisArtifacts
+}
+
+
+task node_modules(dependsOn: ['npmSetup', 'npmInstall']) {}// install packages in package.json
+
+
+task makeBuild {
+  dependsOn 'buildModuleJS'
+  dependsOn 'buildModuleMinJS'
+  dependsOn 'buildTracevis'
+}
+
+task buildModuleJS(type: NodeTask, dependsOn: 'node_modules') {
+  doFirst {
+    mkdir 'build'
+  }
+
+  script = file("${BROWSERIFY}")
+  args = ["-x", "${projectDir}/node_modules/d3/index-browserify.js", "browser.js"]
+  execOverrides {
+    it.workingDir = projectDir
+    it.standardOutput = new FileOutputStream("${projectDir}/build/${MODULE_JS}")
+  }
+}
+
+task buildModuleMinJS(type: NodeTask, dependsOn: 'buildModuleJS') {
+  script = file("${UGLIFY}")
+  args = ["${projectDir}/build/${MODULE_JS}"]
+  execOverrides {
+    it.workingDir = projectDir
+    it.standardOutput = new FileOutputStream("${projectDir}/build/${MODULE_MIN_JS}")
+  }
+}
+
+task buildTracevis(type: Exec, dependsOn: 'copyTracevis') {
+  workingDir projectDir
+
+  //on linux
+  commandLine  "/bin/sh", "-c", "sed -e 's|vX.X.X|v${version}|' -e 's|node_modules/d3/d3.js|js/d3.min.js|' -e 's|node_modules/svg-injector/svg-injector.js|js/svg-injector.min.js|' -e 's|node_modules/svg-pan-zoom/dist/svg-pan-zoom.js|js/svg-pan-zoom.min.js|' -e 's|build/${MODULE_JS}|js/${MODULE_MIN_JS}|' trace.html > build/tracevis/trace.html"
+}
+
+task copyTracevis(type: Copy, dependsOn: 'buildTracevisJS') {
+  from('bootstrap') {
+    include '*'
+    include '**/*'
+    include '**/**/*'
+    into 'bootstrap'
+  }
+  from("css") {
+    include '*'
+    into 'css'
+  }
+  from("${projectDir}/img") {
+    include '*'
+    into 'img'
+  }
+
+  from("./") {
+    include 'trace.html'
+  }
+  into 'build/tracevis'
+}
+
+
+task buildTracevisJS(type: Copy, dependsOn: ['buildModuleJS', 'buildModuleMinJS']){
+  doFirst{
+    delete "${projectDir}/build/tracevis/js"
+  }
+
+  from("${projectDir}/build/") {
+    include '*.js'
+  }
+
+  from(".") {
+    include 'node_modules/d3/d3.min.js'
+    include 'js/d3.slider.js'
+    include 'node_modules/svg-injector/dist/svg-injector.min.js'
+    include 'node_modules/svg-injector/dist/svg-injector.map.js'
+    include 'node_modules/svg-pan-zoom/dist/svg-pan-zoom.min.js'
+  }
+
+  into 'build/tracevis/js'
+  eachFile { fileCopyDetails ->
+    fileCopyDetails.path = fileCopyDetails.path.replaceAll("node_modules/(.*)/(.*)", '$2')
+    fileCopyDetails.path = fileCopyDetails.path.replaceAll("js/(.*)", '$1')
+  }
+  includeEmptyDirs = false
+}
+
+
+task makeTest(dependsOn: 'coverage') {}
+
+task coverage(dependsOn: 'testAllCov') {}
+
+task testUnit(dependsOn:['testUnitCov', 'lint']) {}
+
+
+task testAllCov(type: NodeTask, dependsOn: ['testUnitCov', 'testIntCov']) { // test coverage
+  doFirst {
+    delete "${projectDir}/${TEST_ALL_COV}"
+    mkdir "${projectDir}/${TEST_ALL_COV}"
+  }
+
+  script = file("${ISTANBUL}")
+  args = ["report", "--root", "build/coverage", "--dir", "${TEST_ALL_COV}", "lcov"]
+  execOverrides {
+    it.workingDir = projectDir
+  }
+}
+
+task testUnitPrep(type: NodeTask, dependsOn: 'node_modules') {
+  doFirst{
+    delete "${projectDir}/${TEST_UNIT_COV}"
+  }
+
+  script = file("${MOCHA}")
+  args = ["test/unit"]
+  execOverrides {
+    it.workingDir = projectDir
+  }
+}
+
+task testUnitCov(type: NodeTask, dependsOn: 'testUnitPrep') {
+  // Instanbul instrumentation appears to mess up stack traces, so we run it after
+  // ensuring the tests are passing
+  script = file("${ISTANBUL}")
+  args = ["cover", "${MOCHA}", "--dir","${TEST_UNIT_COV}", "-x", "**/lib/render/**", "--report none --", "test/unit"]
+
+  execOverrides {
+    it.workingDir = projectDir
+  }
+}
+
+task testIntCov(type: NodeTask, dependsOn: 'buildInstrumentationModule'){
+  doFirst {
+    mkdir 'build/coverage'
+  }
+
+  script = file("${PHANTOMJS}")
+  args = ["${projectDir}/test/int/int-test.js"]
+  execOverrides {
+    it.workingDir = projectDir
+  }
+
+  doLast {
+    exec {
+      commandLine  "/bin/sh", "-c", "touch ${TEST_INT_COV}"
+    }
+  }
+}
+
+task buildInstrumentationLib(type: NodeTask) {
+  doFirst {
+    delete "${projectDir}/build/instrumentation/lib"
+  }
+
+  script = file("${ISTANBUL}")
+  args = ["instrument", "lib", "--output", "${projectDir}/build/instrumentation/lib" ]
+  execOverrides {
+    it.workingDir = projectDir
+  }
+}
+
+task buildInstrumentationCopyJSFiles(type: Copy) {
+  from(".") {
+    include "*.js"
+  }
+  into "build/instrumentation"
+}
+
+task buildInstrumentationModuleJs(type: NodeTask, dependsOn: ['node_modules', 'buildInstrumentationLib', 'buildInstrumentationCopyJSFiles']) {
+  script = file("${BROWSERIFY}")
+  args = ["-x", "node_modules/d3/index-browserify.js", "build/instrumentation/browser.js"]
+
+  execOverrides {
+    it.workingDir = projectDir
+    it.standardOutput = new FileOutputStream("${projectDir}/build/instrumentation/${MODULE_JS}")
+  }
+}
+
+task buildInstrumentationModule(type: Copy, dependsOn: ['buildTracevis', 'buildInstrumentationModuleJs']) {
+  def folder = "${projectDir}/build/instrumentation/${MODULE}"
+  doFirst {
+    delete folder
+  }
+
+  from("build/tracevis") {
+    include '*'
+    include '**/*'
+    include '**/**/*'
+    include '**/**/**/*'
+  }
+
+  from("build/instrumentation") {
+    include "${MODULE_JS}"
+    into "js/"
+    rename "${MODULE_JS}", "${MODULE_MIN_JS}"
+  }
+
+  into folder
+}
+
+task lint(dependsOn: 'buildLint') {}
+
+task buildLint(type: Exec) {
+  workingDir projectDir
+
+  //on linux
+  commandLine  "/bin/sh", "-c", "${JSHINT} lib/ test/"
+  commandLine  "/bin/sh", "-c", "touch build/lint"
+}
+
+// package the tar.gz for maven publishing
+task makeDist(type: Tar, dependsOn:['makeBuild', 'makeTest']) {
+  extension = 'tar.gz'
+  baseName = 'parseq-tracevis'
+  compression = Compression.GZIP
+  from "${projectDir}/build/tracevis"
+  into "tracevis"
+}
+
+
+build.dependsOn makeDist
+
+artifacts {
+  tracevisArtifacts makeDist
+  archives makeDist
+}
+
+configurations.archives.artifacts.with { archives ->
+  archives.findAll { !(it.file =~ 'tar.gz') }.each {
+    remove(it) }
+}
+
+uploadArchives {
+  repositories {
+    mavenDeployer {
+      pom.project {
+        developers {
+          developer {
+            id 'cpettitt'
+            name 'Chris Pettitt'
+            email 'cpettitt@linkedin.com'
+          }
+          developer {
+            id 'ckchan'
+            name 'Chi Kit Chan'
+            email 'ckchan@linkedin.com<'
+          }
+          developer {
+            id 'jodzga'
+            name 'Jaroslaw Odzga'
+            email 'jodzga@linkedin.com'
+          }
+        }
+      }
+    }
+  }
+}
