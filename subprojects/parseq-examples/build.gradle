@@ -1,0 +1,12 @@
+description = """parseq-examples is for illustrating how to use parseq API"""
+
+
+dependencies {
+  compile project(":parseq-http-client")
+  compile project(":parseq-batching")
+  compile project(":parseq-lambda-names")
+}
+
+
+//Since some classes at times use deprecated apis we are ignoring the deprecation warning here.
+compileJava.options.compilerArgs += '-Xlint:-deprecation'

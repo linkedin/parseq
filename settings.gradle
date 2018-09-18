@@ -1,0 +1,22 @@
+rootProject.name = 'parseq'
+
+def modules = [ /* the name of the modules to use */
+    'parseq-batching',
+    'parseq-benchmark',
+    'parseq-examples',
+    'parseq-exec',
+    'parseq-http-client',
+    'parseq-lambda-names', //shadow jar
+    'parseq-legacy-examples',
+    'parseq-restli-client',
+    'parseq-tracevis-server',
+    'parseq-zk-client',
+    'parseq', // core part code, including test utility
+    'parseq-tracevis' // trace visualization tools
+]
+
+
+modules.each { module ->
+  include "${module}"
+    project(":${module}").projectDir = file("subprojects/${module}")
+}
