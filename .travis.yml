@@ -1,8 +1,11 @@
 language: java
-script: ant -Dtestng.verbosity=2 test
+
+script: ./gradlew build
+
 jdk:
   - oraclejdk8
-before_install:
-  - nvm install 6
-  - nvm use 6
-  - node --version
+
+#Below skips the installation step completely (https://docs.travis-ci.com/user/customizing-the-build/#Skipping-the-Installation-Step)
+#If we don't skip it Travis runs unnecessary Gradle tasks like './gradlew assemble'
+install:
+ - true

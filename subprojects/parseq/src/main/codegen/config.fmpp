@@ -1,0 +1,11 @@
+data: {
+  tdd(../data/fmpp.tdd)
+}
+
+freemarkerLinks: {
+  includes: templates/
+}
+
+modes: [
+  ignore(**/macros/)
+]

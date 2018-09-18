@@ -1,3 +1,12 @@
+v3.0.1
+------
+
+
+v3.0.0
+------
+
+* Migrate to Gradle build automation
+
 v2.6.36
 ------
 
