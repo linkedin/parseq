@@ -29,6 +29,9 @@ configurations {
   testUtilCompile {
     description "test utility compile time dependencies"
   }
+  compile {
+    extendsFrom testUtilCompile
+  }
 }
 
 dependencies {
@@ -37,26 +40,40 @@ dependencies {
   compile group: "org.slf4j", name: "slf4j-api", version: "1.7.25"
   bootstrap group: "net.sourceforge.fmpp", name: "fmpp", version: "0.9.15"
 
-  testUtilCompile group: "org.testng", name: "testng", version: "6.9.9"
+  testCompile group: "org.testng", name: "testng", version: "6.9.9"
   testCompile group: "org.slf4j", name: "slf4j-log4j12", version: "1.7.25"
+}
+
+test {
+  useTestNG()
+}
+
+idea {
+  module {
+    testSourceDirs += file('src/test-utils/java')
+  }
 }
 
 sourceSets {
   testUtils {
-    compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.runtimeClasspath + configurations.compile + configurations.testUtilCompile + sourceSets.main.output
-    runtimeClasspath += sourceSets.main.compileClasspath + output
+    compileClasspath += sourceSets.main.compileClasspath + configurations.compile + configurations.testCompile + sourceSets.main.output
     java {
       srcDirs = ['src/test-utils/java']
     }
   }
 
   test {
-    java {
-      srcDirs = ['test']
-      compileClasspath += testUtils.output + compileClasspath + configurations.testRuntime
-      runtimeClasspath += testUtils.output + compileClasspath + configurations.testRuntime
-    }
+      compileClasspath += sourceSets.testUtils.output
+      runtimeClasspath += sourceSets.testUtils.output
+      java {
+        srcDirs = ['src/test-utils/java']
+      }
   }
+}
+
+compileTestJava {
+  dependsOn compileTestUtilsJava
+  classpath += sourceSets.testUtils.output + configurations.testCompile
 }
 
 javadoc {

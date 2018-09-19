@@ -4,7 +4,7 @@ v3.0.1
 
 v3.0.0
 ------
-
+* Update README file and fix vulnerable dependencies in package.json
 * Migrate to Gradle build automation
 
 v2.6.36
