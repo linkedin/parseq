@@ -9,7 +9,7 @@ Some of the key benefits of ParSeq include:
 * [Code reuse via task composition](https://github.com/linkedin/parseq/wiki/User%27s-Guide#composiing-tasks)
 * [Simple error propagation and recovery](https://github.com/linkedin/parseq/wiki/User%27s-Guide#handling-errors)
 * [Execution tracing and visualization](https://github.com/linkedin/parseq/wiki/Tracing)
-* [Batching of asynchronous operations](https://github.com/linkedin/parseq/tree/master/contrib/parseq-batching)
+* [Batching of asynchronous operations](https://github.com/linkedin/parseq/tree/master/subprojects/parseq-batching)
 * [Tasks with retry policy](https://github.com/linkedin/parseq/wiki/User%27s-Guide#retrying)
 
 [Our Wiki](https://github.com/linkedin/parseq/wiki) includes an introductory example, a User's Guide, javadoc, and more.
@@ -20,9 +20,9 @@ See [CHANGELOG](https://github.com/linkedin/parseq/blob/master/CHANGELOG.md) for
 
 In this example we show how to fetch several pages in parallel and how to combine them once they've all been retrieved.
 
-You can find source code here: [IntroductoryExample](https://github.com/linkedin/parseq/tree/master/contrib/parseq-examples/src/main/java/com/linkedin/parseq/example/introduction/IntroductoryExample.java).
+You can find source code here: [IntroductoryExample](https://github.com/linkedin/parseq/tree/master/subprojects/parseq-examples/src/main/java/com/linkedin/parseq/example/introduction/IntroductoryExample.java).
 
-First we can retrieve a single page using an [asynchronous HTTP client](https://github.com/linkedin/parseq/tree/master/contrib/parseq-http-client) as follows:
+First we can retrieve a single page using an [asynchronous HTTP client](https://github.com/linkedin/parseq/tree/master/subprojects/parseq-http-client) as follows:
 
 ```java
     final Task<Response> google = HttpClient.get("http://www.google.com").task();
@@ -98,7 +98,7 @@ Graphviz diagram best describes relationships between tasks:
 
 For more in-depth description of ParSeq please visit [User's Guide](https://github.com/linkedin/parseq/wiki/User's-Guide).
 
-For many more examples, please see the [parseq-examples](https://github.com/linkedin/parseq/tree/master/contrib/parseq-examples) contrib project in the source code.
+For many more examples, please see the [parseq-examples](https://github.com/linkedin/parseq/tree/master/subprojects/parseq-examples) contrib project in the source code.
 
 ## Build Status
 

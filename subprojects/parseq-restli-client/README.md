@@ -8,13 +8,13 @@ This project provides implementation of ParSeq rest.li client. It provides two f
 Batching
 ========
 
-ParSeq rest.li client is using ParSeq [Batching](https://github.com/linkedin/parseq/tree/master/contrib/parseq-batching) feature to transparently aggregate individual requests into BATCH requests. Currently only GET and BATCH_GET operations are supported. Batching functionality can be selectively enabled for subset of requests made by ParSeq rest.li client.
+ParSeq rest.li client is using ParSeq [Batching](https://github.com/linkedin/parseq/tree/master/subprojects/parseq-batching) feature to transparently aggregate individual requests into BATCH requests. Currently only GET and BATCH_GET operations are supported. Batching functionality can be selectively enabled for subset of requests made by ParSeq rest.li client.
 
 Configuration
 =============
 ParSeq rest.li client implementation allows fine-grained configuration of the following properties:
  * timeoutMs (long) - timeout in milliseconds. Returned Task will complete with TimeoutException if response is not available within specified amount of time. TimeoutException contains information about what configuration has caused it.
- * batchingEnabled (boolean) - is batching enabled. Enables batching functionality for specified subset of requests. See [Batching](https://github.com/linkedin/parseq/tree/master/contrib/parseq-batching) for more information about this feature. Currently only GET and BATCH_GET operations are supported.
+ * batchingEnabled (boolean) - is batching enabled. Enables batching functionality for specified subset of requests. See [Batching](https://github.com/linkedin/parseq/tree/master/subprojects/parseq-batching) for more information about this feature. Currently only GET and BATCH_GET operations are supported.
  * maxBatchSize (int) - Max batch size. Maximum number of keys that will be aggregated together into one BATCH request. If there are more requests that can be batched then they will be grouped into number of BATCH requests, for example, if maxBatchSize is 100 and there are 256 GET requests, then they will be aggregated into 3 BATCH_GET requests containing respectively: 100, 100, 56 elements. However, maxBatchSize does not affect existing rest.li BATCH_GET requests, and it is only used to limit size of batch requests created as a result of aggregation. For example, if maxBatchSize is 100 and there are a BATCH_GET request with 120 elements and 120 GET requests, then they will be aggregated into 3 BATCH_GET requests containing respectively 120, 100, 20 elements. Note that the original 120-element BATCH_GET request will not be splitted into smaller batches.
 
 Each property is defined by a set of Key-Value pairs where Key has the following form:

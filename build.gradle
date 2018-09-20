@@ -16,6 +16,12 @@ allprojects { // for all projects including the root project
   }
 }
 
+idea {
+  project {
+    jdkName = '1.8.0_121'
+    languageLevel = '1.8'
+  }
+}
 
 subprojects {
   apply plugin: 'java'
