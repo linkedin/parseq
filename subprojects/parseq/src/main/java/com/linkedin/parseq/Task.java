@@ -165,7 +165,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * // this task will complete with value 11
    * Task{@code <Integer>} length = hello.map("length", s {@code ->} s.length());
    * </pre></blockquote>
-   * <img src="https://raw.githubusercontent.com/linkedin/parseq/master/src/com/linkedin/parseq/doc-files/map-1.png" height="90" width="296"/>
+   * <img src="doc-files/map-1.png" height="90" width="296"/>
    * <p>
    * If this task is completed with an exception then the new task will also complete
    * with that exception.
@@ -177,7 +177,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *  // this task will fail with java.lang.StringIndexOutOfBoundsException
    *  Task{@code <Integer>} length = failing.map("length", s {@code ->} s.length());
    * </pre></blockquote>
-   * <img src="https://raw.githubusercontent.com/linkedin/parseq/master/src/com/linkedin/parseq/doc-files/map-2.png" height="90" width="296"/>
+   * <img src="doc-files/map-2.png" height="90" width="296"/>
    *
    * @param <R> return type of function <code>func</code>
    * @param desc description of a mapping function, it will show up in a trace
@@ -208,7 +208,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *  // assuming fetch(u) fetches contents given by a URI
    *  Task{@code <String>} homepage = url.flatMap("fetch", u {@code ->} fetch(u));
    * </pre></blockquote>
-   * <img src="https://raw.githubusercontent.com/linkedin/parseq/master/src/com/linkedin/parseq/doc-files/flatMap-1.png" height="90" width="462"/>
+   * <img src="doc-files/flatMap-1.png" height="90" width="462"/>
    * <p>
    *
    * If this task is completed with an exception then the new task will also contain
@@ -219,7 +219,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *  // this task will fail with java.lang.IllegalArgumentException
    *  Task{@code <String>} homepage = url.flatMap("fetch", u {@code ->} fetch(u));
    * </pre></blockquote>
-   * <img src="https://raw.githubusercontent.com/linkedin/parseq/master/src/com/linkedin/parseq/doc-files/flatMap-2.png" height="90" width="296"/>
+   * <img src="doc-files/flatMap-2.png" height="90" width="296"/>
    * @param <R> return type of function <code>func</code>
    * @param desc description of a mapping function, it will show up in a trace
    * @param func function to be applied to successful result of this task which returns new task
@@ -272,7 +272,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *  Task{@code <String>} userName = id.flatMap("fetch", u {@code ->} fetch(u))
    *      .withSideEffect("update memcache", u {@code ->} updateMemcache(u));
    * </pre></blockquote>
-   * <img src="https://raw.githubusercontent.com/linkedin/parseq/master/src/com/linkedin/parseq/doc-files/withSideEffect-1.png" height="120" width="868"/>
+   * <img src="doc-files/withSideEffect-1.png" height="120" width="868"/>
    *
    * @param desc description of a side effect, it will show up in a trace
    * @param func function to be applied on result of successful completion of this task
@@ -338,7 +338,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * // as a consequence bing task will be cancelled
    * final Task<?> both = Task.par(google.withTimeout(10, TimeUnit.MILLISECONDS), bing);
    * </pre></blockquote>
-   * <img src="https://raw.githubusercontent.com/linkedin/parseq/master/src/com/linkedin/parseq/doc-files/shareable-1.png" height="250" width="608"/>
+   * <img src="doc-files/shareable-1.png" height="250" width="608"/>
    * <p>
    * <code>shareable</code> method solves above problem. Task returned by <code>shareable()</code> can be
    * can be cancelled without affecting original task.
@@ -352,7 +352,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *   final Task<?> both =
    *       Task.par(google.shareable().withTimeout(10, TimeUnit.MILLISECONDS), bing.shareable());
    * </pre></blockquote>
-   * <img src="https://raw.githubusercontent.com/linkedin/parseq/master/src/com/linkedin/parseq/doc-files/shareable-2.png" height="290" width="814"/>
+   * <img src="doc-files/shareable-2.png" height="290" width="814"/>
    *
    * @return new task that can be safely shared within a plan or between multiple
    * plans. Cancellation of returned task will not cause cancellation of the original task.
@@ -380,7 +380,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *  // this task will print "Hello World"
    *  Task{@code <String>} sayHello = hello.andThen("say", System.out::println);
    * </pre></blockquote>
-   * <img src="https://raw.githubusercontent.com/linkedin/parseq/master/src/com/linkedin/parseq/doc-files/andThen-1.png" height="90" width="296"/>
+   * <img src="doc-files/andThen-1.png" height="90" width="296"/>
    * <p>
    * If this task fails then consumer will not be called and failure
    * will be propagated to task returned by this method.
@@ -392,7 +392,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *  // this task will fail with java.lang.StringIndexOutOfBoundsException
    *  Task{@code <String>} sayHello = failing.andThen("say", System.out::println);
    * </pre></blockquote>
-   * <img src="https://raw.githubusercontent.com/linkedin/parseq/master/src/com/linkedin/parseq/doc-files/andThen-2.png" height="90" width="296"/>
+   * <img src="doc-files/andThen-2.png" height="90" width="296"/>
    *
    * @param desc description of a consumer, it will show up in a trace
    * @param consumer consumer of a value returned by this task
@@ -430,7 +430,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *  Task{@code <ShipmentInfo>} shipAfterPayment =
    *      processPayment.andThen("shipProductAterPayment", shipProduct);
    * </pre></blockquote>
-   * <img src="https://raw.githubusercontent.com/linkedin/parseq/master/src/com/linkedin/parseq/doc-files/andThen-3.png" height="90" width="462"/>
+   * <img src="doc-files/andThen-3.png" height="90" width="462"/>
    *
    * <p>
    *
@@ -444,7 +444,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *
    * <p>
    *
-   * <img src="https://raw.githubusercontent.com/linkedin/parseq/master/src/com/linkedin/parseq/doc-files/andThen-4.png" height="152" width="462"/>
+   * <img src="doc-files/andThen-4.png" height="152" width="462"/>
    *
    * @param <R> return type of the <code>task</code>
    * @param desc description of a task, it will show up in a trace
@@ -488,7 +488,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *      .map("toSignature", p {@code ->} p.getFirstName() + " " + p.getLastName())
    *      .recover(e {@code ->} "Member " + id);
    * </pre></blockquote>
-   * <img src="https://raw.githubusercontent.com/linkedin/parseq/master/src/com/linkedin/parseq/doc-files/recover-1.png" height="90" width="462"/>
+   * <img src="doc-files/recover-1.png" height="90" width="462"/>
    * <p>
    * Note that task cancellation is not considered to be a failure.
    * If this task has been cancelled then task returned by this method will also
@@ -540,7 +540,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *  // and complete with that exception as a reason for failure
    *  Task{@code <String>} sayHello = failing.onFailure("printFailure", System.out::println);
    * </pre></blockquote>
-   * <img src="https://raw.githubusercontent.com/linkedin/parseq/master/src/com/linkedin/parseq/doc-files/onFailure-1.png" height="90" width="296"/>
+   * <img src="doc-files/onFailure-1.png" height="90" width="296"/>
    * <p>
    * If this task completes successfully then consumer will not be called.
    * <blockquote><pre>
@@ -549,7 +549,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *  // this task will return "Hello World"
    *  Task{@code <String>} sayHello = hello.onFailure(System.out::println);
    * </pre></blockquote>
-   * <img src="https://raw.githubusercontent.com/linkedin/parseq/master/src/com/linkedin/parseq/doc-files/onFailure-2.png" height="90" width="296"/>
+   * <img src="doc-files/onFailure-2.png" height="90" width="296"/>
    * <p>
    * Exceptions thrown by a consumer will be ignored.
    * <p>
@@ -604,7 +604,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *  // this task will complete with Success("Hello World")
    *  Task{@code <Try<String>>} helloTry = hello.toTry("try");
    * </pre></blockquote>
-   * <img src="https://raw.githubusercontent.com/linkedin/parseq/master/src/com/linkedin/parseq/doc-files/toTry-1.png" height="90" width="296"/>
+   * <img src="doc-files/toTry-1.png" height="90" width="296"/>
    * <p>
    * If this task is completed with an exception then the returned task will be
    * completed with an exception wrapped with {@link Failure}.
@@ -616,7 +616,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *  // this task will complete successfully with Failure(java.lang.StringIndexOutOfBoundsException)
    *  Task{@code <Try<String>>} failingTry = failing.toTry("try");
    * </pre></blockquote>
-   * <img src="https://raw.githubusercontent.com/linkedin/parseq/master/src/com/linkedin/parseq/doc-files/toTry-2.png" height="90" width="296"/>
+   * <img src="doc-files/toTry-2.png" height="90" width="296"/>
    * <p>
    * All failures are automatically propagated and it is usually enough to use
    * {@link #recover(String, Function1) recover} or {@link #recoverWith(String, Function1) recoverWith}.
@@ -668,7 +668,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *   }
    * });
    * </pre></blockquote>
-   * <img src="https://raw.githubusercontent.com/linkedin/parseq/master/src/com/linkedin/parseq/doc-files/transform-1.png" height="90" width="296"/>
+   * <img src="doc-files/transform-1.png" height="90" width="296"/>
    * <p>
    * Note that task cancellation is not considered to be a failure.
    * If this task has been cancelled then task returned by this method will also
@@ -729,7 +729,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * // if it fails for any reason it will attempt to fetch from DB
    * Task{@code <Person>} user = fetchFromCache(id).recoverWith(e {@code ->} fetchFromDB(id));
    * </pre></blockquote>
-   * <img src="https://raw.githubusercontent.com/linkedin/parseq/master/src/com/linkedin/parseq/doc-files/recoverWith-1.png" height="90" width="462"/>
+   * <img src="doc-files/recoverWith-1.png" height="90" width="462"/>
    * <p>
    * If recovery task fails then returned task is completed with that failure.
    * <p>
@@ -805,7 +805,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * final Task<Response> google = HttpClient.get("http://google.com").task()
    *     .withTimeout(10, TimeUnit.MILLISECONDS);
    * </pre></blockquote>
-   * <img src="https://raw.githubusercontent.com/linkedin/parseq/master/src/com/linkedin/parseq/doc-files/withTimeout-1.png" height="150" width="318"/>
+   * <img src="doc-files/withTimeout-1.png" height="150" width="318"/>
    *
    * @param desc description of a timeout. There is no need to put timeout value here because it will be automatically
    * included. Full description of a timeout will be: {@code "withTimeout " + time + " " + TimeUnitHelper.toString(unit) +
