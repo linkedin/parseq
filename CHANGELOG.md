@@ -1,6 +1,11 @@
+v3.0.2
+------
+
+
 v3.0.1
 ------
 
+* Use relative path for javadoc images
 
 v3.0.0
 ------
