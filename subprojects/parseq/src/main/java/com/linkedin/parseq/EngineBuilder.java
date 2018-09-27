@@ -16,6 +16,7 @@
 
 package com.linkedin.parseq;
 
+import com.linkedin.parseq.internal.PlanBasedRateLimiter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -40,6 +41,7 @@ import com.linkedin.parseq.internal.PlanDeactivationListener;
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
+ * @author Min Chen (mnchen@linkedin.com)
  */
 public class EngineBuilder {
   private Executor _taskExecutor;
@@ -47,6 +49,7 @@ public class EngineBuilder {
   private ILoggerFactory _loggerFactory;
   private PlanDeactivationListener _planDeactivationListener;
   private PlanCompletionListener _planCompletionListener;
+  private PlanBasedRateLimiter _planClassRateLimiter;
   private TaskQueueFactory _taskQueueFactory;
 
   private Map<String, Object> _properties = new HashMap<String, Object>();
@@ -80,6 +83,12 @@ public class EngineBuilder {
   public EngineBuilder setTaskQueueFactory(TaskQueueFactory taskQueueFactory) {
     ArgumentUtil.requireNotNull(taskQueueFactory, "taskQueueFactory");
     _taskQueueFactory = taskQueueFactory;
+    return this;
+  }
+
+  public EngineBuilder setPlanClassRateLimiter(PlanBasedRateLimiter planClassRateLimiter) {
+    ArgumentUtil.requireNotNull(planClassRateLimiter, "planClassRateLimiter");
+    _planClassRateLimiter = planClassRateLimiter;
     return this;
   }
 
@@ -170,7 +179,7 @@ public class EngineBuilder {
         _loggerFactory != null ? _loggerFactory : new CachedLoggerFactory(LoggerFactory.getILoggerFactory()),
         _properties, _planDeactivationListener != null ? _planDeactivationListener : planContext -> {},
         _planCompletionListener != null ? _planCompletionListener : planContext -> {},
-        _taskQueueFactory);
+        _taskQueueFactory, _planClassRateLimiter);
   }
 
   /**
