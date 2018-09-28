@@ -116,7 +116,7 @@ public class Engine {
 
   private final int _maxConcurrentPlans;
   private final Semaphore _concurrentPlans;
-  private final PlanBasedRateLimiter _planClassRateLimiter;
+  private final PlanBasedRateLimiter _planBasedRateLimiter;
 
   private final boolean _drainSerialExecutorQueue;
 
@@ -142,7 +142,7 @@ public class Engine {
     _loggerFactory = loggerFactory;
     _properties = properties;
     _planDeactivationListener = planActivityListener;
-    _planClassRateLimiter = planClassRateLimiter;
+    _planBasedRateLimiter = planClassRateLimiter;
 
     _taskQueueFactory = createTaskQueueFactory(properties, taskQueueFactory);
 
@@ -181,7 +181,7 @@ public class Engine {
 
       _concurrentPlans.release();
       if (planClassRateLimiter != null) {
-        _planClassRateLimiter.release(resolvedPromise.getPlanClass());
+        _planBasedRateLimiter.release(resolvedPromise.getPlanClass());
       }
 
       if (newState._stateName == StateName.SHUTDOWN && newState._pendingCount == 0) {
@@ -470,20 +470,20 @@ public class Engine {
   // rate limiter and then from plan class level rate limit if specified.
   private boolean tryAcquirePermit(String planClass) {
     return _concurrentPlans.tryAcquire() &&
-        (_planClassRateLimiter == null || _planClassRateLimiter.tryAcquire(planClass));
+        (_planBasedRateLimiter == null || _planBasedRateLimiter.tryAcquire(planClass));
   }
 
   private boolean tryAcquirePermit(String planClass, long timeout, TimeUnit unit)
       throws InterruptedException {
     return _concurrentPlans.tryAcquire(timeout, unit) &&
-        (_planClassRateLimiter == null || _planClassRateLimiter.tryAcquire(planClass, timeout, unit));
+        (_planBasedRateLimiter == null || _planBasedRateLimiter.tryAcquire(planClass, timeout, unit));
   }
 
 
   private void acquirePermit(String planClass) throws InterruptedException {
     _concurrentPlans.acquire();
-    if (_planClassRateLimiter != null) {
-      _planClassRateLimiter.acquire(planClass);
+    if (_planBasedRateLimiter != null) {
+      _planBasedRateLimiter.acquire(planClass);
     }
   }
 
