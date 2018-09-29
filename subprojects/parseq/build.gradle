@@ -44,10 +44,6 @@ dependencies {
   testCompile group: "org.slf4j", name: "slf4j-log4j12", version: "1.7.25"
 }
 
-test {
-  useTestNG()
-}
-
 idea {
   module {
     testSourceDirs += file('src/test-utils/java')
@@ -65,9 +61,6 @@ sourceSets {
   test {
       compileClasspath += sourceSets.testUtils.output
       runtimeClasspath += sourceSets.testUtils.output
-      java {
-        srcDirs = ['src/test-utils/java']
-      }
   }
 }
 

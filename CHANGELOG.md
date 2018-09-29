@@ -1,6 +1,11 @@
+v3.0.3
+------
+
+
 v3.0.2
 ------
 
+* Configure unit test in Gradle
 
 v3.0.1
 ------
