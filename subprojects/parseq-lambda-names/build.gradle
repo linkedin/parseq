@@ -5,19 +5,13 @@ description = """Finds source code location and infers operation for lambda expr
 
 
 configurations {
-  bootstrap
+  testRuntime.extendsFrom shadow
 }
 
 dependencies {
   shadow group: 'com.ea.agentloader', name: 'ea-agent-loader', version: '1.0.2'
   shadow group: 'org.ow2.asm', name: 'asm-all', version: '5.1'
-  testCompile(group: 'org.testng', name: 'testng', version: '6.9.9') {
-    exclude group: 'junit', module: 'junit'
-    exclude group: 'com.beust', module: 'jcommander'
-    exclude group: 'org.apache.ant', module: 'ant'
-    exclude group: 'org.yaml', module: 'snakeyaml'
-    exclude group: 'org.beanshell', module: 'bsh'
-  }
+  testCompile group: 'org.testng', name: 'testng', version: '6.9.9'
 }
 
 sourceSets.main.compileClasspath += configurations.shadow + sourceSets.main.compileClasspath
