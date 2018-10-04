@@ -31,13 +31,13 @@ import com.linkedin.restli.client.config.RequestConfig;
 class RestRequestBatchKey {
   private final Request<?> _request;
   private final RequestContext _requestContext;
-  private final RequestConfig _bathcingConfig;
+  private final RequestConfig _batchingConfig;
   private Set<String> _extractedIds;
 
-  public RestRequestBatchKey(Request<Object> request, RequestContext requestContext, RequestConfig bathcingConfig) {
+  public RestRequestBatchKey(Request<Object> request, RequestContext requestContext, RequestConfig batchingConfig) {
     _request = request;
     _requestContext = requestContext;
-    _bathcingConfig = bathcingConfig;
+    _batchingConfig = batchingConfig;
   }
 
   public Request<?> getRequest() {
@@ -49,7 +49,7 @@ class RestRequestBatchKey {
   }
 
   public RequestConfig getRequestConfig() {
-    return _bathcingConfig;
+    return _batchingConfig;
   }
 
   @Override

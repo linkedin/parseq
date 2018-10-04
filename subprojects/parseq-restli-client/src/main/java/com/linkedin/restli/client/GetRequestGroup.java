@@ -449,6 +449,13 @@ class GetRequestGroup implements RequestGroup {
         return false;
     } else if (!_requestOptions.equals(other._requestOptions))
       return false;
+    if (_resourceSpec == null){
+      if (other._resourceSpec != null) {
+        return false;
+      }
+    } else if (_resourceSpec.getKeyClass() != other._resourceSpec.getKeyClass()) {
+      return false;
+    }
     return true;
   }
 

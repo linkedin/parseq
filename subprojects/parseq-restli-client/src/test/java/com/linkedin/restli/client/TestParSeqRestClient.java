@@ -157,6 +157,22 @@ public class TestParSeqRestClient extends ParSeqRestClientIntegrationTest {
   }
 
   @Test
+  public void testBatchingGetRequestsWithDiffKeyType() {
+    try {
+      setInboundRequestContext(new InboundRequestContextBuilder()
+          .setName("withBatching")
+          .build());
+      Task<?> t1  = greetingGet(1L);
+      Task<?> t2 = greetingGetWithStringKey("1");
+      Task<?> task = Task.par(t1, t2);
+      runAndWait(getTestClassName() + ".testBatchingGetRequestsWithDiffKeyType", task);
+      assertFalse(hasTask("greetings batch_get(reqs: 2, ids: 2)", task.getTrace()));
+    } finally {
+      clearInboundRequestContext();
+    }
+  }
+
+  @Test
   public void testBatchingGetRequestsMaxExceeded() {
     try {
       setInboundRequestContext(new InboundRequestContextBuilder()
