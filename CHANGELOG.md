@@ -1,7 +1,12 @@
-v3.0.3
+v3.0.4
 ------
 
 
+
+v3.0.3
+------
+
+* Make ParSeq batch get requests with exactly the same key type
 
 v3.0.2
 ------

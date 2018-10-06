@@ -18,9 +18,13 @@ package com.linkedin.restli.client;
 
 import com.linkedin.data.schema.PathSpec;
 import com.linkedin.r2.filter.FilterChains;
+import com.linkedin.restli.common.ResourceMethod;
+import com.linkedin.restli.common.ResourceSpec;
+import com.linkedin.restli.common.ResourceSpecImpl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -160,6 +164,13 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
     return _parseqClient.createTask(new GreetingsBuilders().get().id(id).build());
   }
 
+  // This method is for the "testBatchingGetRequestsWithDiffKeyType" test to create a request with String Key type.
+  protected Task<Response<Greeting>> greetingGetWithStringKey(String id) {
+    String _baseUriTemplate = "greetings";
+    ResourceSpec _resourceSpec = new ResourceSpecImpl(EnumSet.allOf(ResourceMethod.class), Collections.emptyMap(), Collections.emptyMap(), String.class, null, null, Greeting.class, Collections.emptyMap());
+    return _parseqClient.createTask(new GetRequestBuilder(_baseUriTemplate, Greeting.class, _resourceSpec, RestliRequestOptions.DEFAULT_OPTIONS).id(id).build());
+  }
+
   protected Task<Response<Greeting>> greetingGetWithProjection(Long id, PathSpec... fields) {
     return _parseqClient.createTask(new GreetingsBuilders().get().id(id).fields(fields).build());
   }
@@ -208,5 +219,4 @@ public abstract class ParSeqRestClientIntegrationTest extends BaseEngineTest {
     Map<String, Object> map = config.computeIfAbsent(property, k -> new HashMap<>());
     map.put(key, value);
   }
-
 }
