@@ -16,6 +16,7 @@
 
 package com.linkedin.parseq;
 
+import com.linkedin.parseq.internal.PlanBasedRateLimiter;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -46,6 +47,7 @@ import com.linkedin.parseq.internal.PlanContext;
  *
  * @author Chris Pettitt (cpettitt@linkedin.com)
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
+ * @author Min Chen (mnchen@linkedin.com)
  */
 public class Engine {
   public static final String LOGGER_BASE = Engine.class.getName();
@@ -114,6 +116,7 @@ public class Engine {
 
   private final int _maxConcurrentPlans;
   private final Semaphore _concurrentPlans;
+  private final PlanBasedRateLimiter _planBasedRateLimiter;
 
   private final boolean _drainSerialExecutorQueue;
 
@@ -132,12 +135,14 @@ public class Engine {
       final ILoggerFactory loggerFactory, final Map<String, Object> properties,
       final PlanDeactivationListener planActivityListener,
       final PlanCompletionListener planCompletionListener,
-      final TaskQueueFactory taskQueueFactory) {
+      final TaskQueueFactory taskQueueFactory,
+      final PlanBasedRateLimiter planClassRateLimiter) {
     _taskExecutor = taskExecutor;
     _timerExecutor = timerExecutor;
     _loggerFactory = loggerFactory;
     _properties = properties;
     _planDeactivationListener = planActivityListener;
+    _planBasedRateLimiter = planClassRateLimiter;
 
     _taskQueueFactory = createTaskQueueFactory(properties, taskQueueFactory);
 
@@ -175,6 +180,9 @@ public class Engine {
       } while (!_stateRef.compareAndSet(currState, newState));
 
       _concurrentPlans.release();
+      if (planClassRateLimiter != null) {
+        _planBasedRateLimiter.release(resolvedPromise.getPlanClass());
+      }
 
       if (newState._stateName == StateName.SHUTDOWN && newState._pendingCount == 0) {
         tryTransitionTerminate();
@@ -344,7 +352,7 @@ public class Engine {
    */
   public void blockingRun(final Task<?> task, final String planClass) {
     try {
-      _concurrentPlans.acquire();
+      acquirePermit(planClass);
       runWithPermit(task, planClass);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
@@ -379,7 +387,7 @@ public class Engine {
    * @return true if Plan was started
    */
   public boolean tryRun(final Task<?> task, final String planClass) {
-    if (_concurrentPlans.tryAcquire()) {
+    if (tryAcquirePermit(planClass)) {
       runWithPermit(task, planClass);
       return true;
     } else {
@@ -425,7 +433,7 @@ public class Engine {
    * been {@linkplain Thread#interrupt interrupted}.
   */
   public boolean tryRun(final Task<?> task, final String planClass, final long timeout, final TimeUnit unit) throws InterruptedException {
-    if (_concurrentPlans.tryAcquire(timeout, unit)) {
+    if (tryAcquirePermit(planClass, timeout, unit)) {
       runWithPermit(task, planClass);
       return true;
     } else {
@@ -456,6 +464,27 @@ public class Engine {
         _rootLogger, planClass, task, _maxRelationshipsPerTrace, _planDeactivationListener, _planCompletionListener,
         _taskQueueFactory.newTaskQueue(), _drainSerialExecutorQueue, _executionMonitor);
     new ContextImpl(planContext, task).runTask();
+  }
+
+  // acquire a permit to run the given task plan. always acquire a permit first from engine level
+  // rate limiter and then from plan class level rate limit if specified.
+  private boolean tryAcquirePermit(String planClass) {
+    return _concurrentPlans.tryAcquire() &&
+        (_planBasedRateLimiter == null || _planBasedRateLimiter.tryAcquire(planClass));
+  }
+
+  private boolean tryAcquirePermit(String planClass, long timeout, TimeUnit unit)
+      throws InterruptedException {
+    return _concurrentPlans.tryAcquire(timeout, unit) &&
+        (_planBasedRateLimiter == null || _planBasedRateLimiter.tryAcquire(planClass, timeout, unit));
+  }
+
+
+  private void acquirePermit(String planClass) throws InterruptedException {
+    _concurrentPlans.acquire();
+    if (_planBasedRateLimiter != null) {
+      _planBasedRateLimiter.acquire(planClass);
+    }
   }
 
   /**
