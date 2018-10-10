@@ -1,7 +1,10 @@
+v3.0.5
+------
+
 v3.0.4
 ------
 
-
+* Support plan based rate limiting
 
 v3.0.3
 ------
