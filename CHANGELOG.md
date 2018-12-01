@@ -1,5 +1,11 @@
+v3.0.6
+------
+
+
 v3.0.5
 ------
+
+* Fix parseq-tracevis.jar configuration bug
 
 v3.0.4
 ------
