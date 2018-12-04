@@ -24,56 +24,59 @@ idea {
 }
 
 subprojects {
-  apply plugin: 'java'
-  sourceCompatibility = 1.8
-  targetCompatibility = 1.8
   archivesBaseName = project.name
 
-  test {
-    useTestNG()
-  }
+  if (!it.name.equals("parseq-tracevis")) {
+    apply plugin: 'java'
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
 
-  if (it.name.startsWith('parseq-') && !it.name.equals("parseq-lambda-names") && !it.name.equals("parseq-tracevis")) { // all contrib modules
-    dependencies {
-      compile project(":parseq")
+    test {
+      useTestNG()
     }
-  }
 
-  // package jar
-  task packageJavadoc(type: Jar, dependsOn: 'javadoc') {
-    from javadoc.destinationDir
-    classifier = 'javadoc'
-  }
-
-  task packageSources(type: Jar, dependsOn: 'classes') {
-    from sourceSets.main.allSource
-    classifier = 'sources'
-  }
-
-  // configure MANIFEST
-  jar {
-    manifest {
-      attributes("Created-By": "Gradle",
-          "Version": version,
-          "Built-By": sonatypeUsername,
-          "Build-JDK": JavaVersion.current())
+    if (it.name.startsWith('parseq-') && !it.name.equals("parseq-lambda-names")) { // all contrib modules
+      dependencies {
+        compile project(":parseq")
+      }
     }
-  }
+
+    // package jar
+    task packageJavadoc(type: Jar, dependsOn: 'javadoc') {
+      from javadoc.destinationDir
+      classifier = 'javadoc'
+    }
+
+    task packageSources(type: Jar, dependsOn: 'classes') {
+      from sourceSets.main.allSource
+      classifier = 'sources'
+    }
+
+    // configure MANIFEST
+    jar {
+      manifest {
+        attributes("Created-By": "Gradle",
+            "Version": version,
+            "Built-By": sonatypeUsername,
+            "Build-JDK": JavaVersion.current())
+      }
+    }
 
 
-  javadoc {
-    options.use = true
-    options.author = true
-    options.bottom = "Copyright &#169; 2018. All rights reserved."
-    options.classpath += file("${project.projectDir.absolutePath}/src/main/java")
-    options.links("https://docs.oracle.com/javase/8/docs/api/")
-    options.addStringOption("charset", "UTF-8")
-  }
+    javadoc {
+      options.use = true
+      options.author = true
+      options.bottom = "Copyright &#169; 2018. All rights reserved."
+      options.classpath += file("${project.projectDir.absolutePath}/src/main/java")
+      options.links("https://docs.oracle.com/javase/8/docs/api/")
+      options.addStringOption("charset", "UTF-8")
+    }
 
-  if (JavaVersion.current().isJava8Compatible()) {
-    allprojects {
-      tasks.withType(Javadoc) {
-        options.addStringOption('Xdoclint:none', '-quiet')
+    if (JavaVersion.current().isJava8Compatible()) {
+      allprojects {
+        tasks.withType(Javadoc) {
+          options.addStringOption('Xdoclint:none', '-quiet')
+        }
       }
     }
   }
