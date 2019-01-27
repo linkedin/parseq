@@ -270,14 +270,14 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
 
     // test cancel, side effect task should not be run
     // add 10 ms delay so that we can reliably cancel it before it's run by the engine
-    Task<String> mainTaks = delayedValue("value", 10, TimeUnit.MILLISECONDS).andThen(cancel);
-    run(mainTaks);
+    Task<String> mainTasks = delayedValue("value", 10, TimeUnit.MILLISECONDS).andThen(cancel);
+    run(mainTasks);
     assertTrue(cancelMain.cancel(new Exception("canceled")));
     cancel.await();
     fastSideEffect.await(10, TimeUnit.MILLISECONDS);
     assertTrue(cancel.isDone());
     assertFalse(fastSideEffect.isDone());
-    logTracingResults("AbstractTaskTest.testWithSideEffectCancel", mainTaks);
+    logTracingResults("AbstractTaskTest.testWithSideEffectCancel", mainTasks);
   }
 
   public void testWithSideEffectFailure(int expectedNumberOfTasks) throws Exception {
@@ -295,6 +295,29 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
       assertFalse(fastSideEffect.isDone());
     }
     assertEquals(countTasks(failure.getTrace()), expectedNumberOfTasks);
+  }
+
+  @Test
+  public void testStaticWithSideEffectFullCompletion() throws Exception {
+    Task<String> slowSideEffect = delayedValue("slow", 50, TimeUnit.MILLISECONDS);
+    Task<String> sideEffect = Task.withSideEffect(() -> slowSideEffect);
+
+    run(sideEffect);
+    assertFalse(sideEffect.isDone());
+    sideEffect.await();
+    assertTrue(sideEffect.isDone());
+    assertNull(sideEffect.get());
+  }
+
+  @Test
+  public void testStaticSideEffectFailureIsIgnored() throws Exception {
+    Task<String> failureTask = getFailureTask();
+    Task<String> sideEffect = Task.withSideEffect(() -> failureTask);
+
+    runAndWait(sideEffect);
+    assertFalse(sideEffect.isFailed());
+    assertNull(sideEffect.get());
+    assertEquals(countTasks(sideEffect.getTrace()), 2);
   }
 
   public void testOnFailure(int expectedNumberOfTasks) {
