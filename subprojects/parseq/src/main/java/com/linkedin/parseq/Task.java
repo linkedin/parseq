@@ -356,7 +356,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @see Task#withSideEffect(String, Callable)
    */
   static <T> Task<T> withSideEffect(final Callable<Task<T>> func) {
-    return Task.withSideEffect("sideEffect", func);
+    return Task.withSideEffect("withSideEffect", func);
   }
 
   /**
