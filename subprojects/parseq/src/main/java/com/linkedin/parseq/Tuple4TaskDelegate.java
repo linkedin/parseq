@@ -12,6 +12,9 @@ import com.linkedin.parseq.trace.ShallowTrace;
 import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.Trace;
 import com.linkedin.parseq.trace.TraceBuilder;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 
 public class Tuple4TaskDelegate<T1, T2, T3, T4> implements Tuple4Task<T1, T2, T3, T4> {
 
@@ -89,7 +92,8 @@ public class Tuple4TaskDelegate<T1, T2, T3, T4> implements Tuple4Task<T1, T2, T3
    * {@inheritDoc}
    */
   @Override
-  public void contextRun(Context context, Task<?> parent, Collection<Task<?>> predecessors) {
+  public void contextRun(@Nonnull Context context, @Nullable Task<?> parent,
+      @Nonnull Collection<Task<?>> predecessors) {
     _task.contextRun(context, parent, predecessors);
   }
 

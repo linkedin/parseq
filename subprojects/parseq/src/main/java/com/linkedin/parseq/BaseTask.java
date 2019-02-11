@@ -22,6 +22,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -178,7 +180,8 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
   }
 
   @Override
-  public final void contextRun(final Context context, final Task<?> parent, final Collection<Task<?>> predecessors) {
+  public final void contextRun(@Nonnull final Context context, @Nullable final Task<?> parent,
+      @Nonnull final Collection<Task<?>> predecessors) {
     final TaskLogger taskLogger = context.getTaskLogger();
     final TraceBuilder traceBuilder = context.getTraceBuilder();
     if (transitionRun(traceBuilder)) {
