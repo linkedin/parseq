@@ -300,7 +300,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
   @Test
   public void testStaticWithSideEffectFullCompletion() throws Exception {
     Task<String> slowSideEffect = delayedValue("slow", 50, TimeUnit.MILLISECONDS);
-    Task<String> sideEffect = Task.withSideEffect(() -> slowSideEffect);
+    Task<Void> sideEffect = Task.withSideEffect(() -> slowSideEffect);
 
     run(sideEffect);
     assertFalse(sideEffect.isDone());
@@ -312,7 +312,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
   @Test
   public void testStaticSideEffectFailureIsIgnored() throws Exception {
     Task<String> failureTask = getFailureTask();
-    Task<String> sideEffect = Task.withSideEffect(() -> failureTask);
+    Task<Void> sideEffect = Task.withSideEffect(() -> failureTask);
 
     runAndWait(sideEffect);
     assertFalse(sideEffect.isFailed());

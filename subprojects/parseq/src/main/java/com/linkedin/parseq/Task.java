@@ -338,9 +338,9 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @param func function to be applied to get side effect task
    * @return a new Task that will run the side effect Task
    */
-  static <T> Task<T> withSideEffect(final String desc, final Callable<Task<T>> func) {
+  static <T> Task<Void> withSideEffect(final String desc, final Callable<Task<T>> func) {
     ArgumentUtil.requireNotNull(func, "function");
-    final Task<T> sideEffectWrapper = async(desc, ctx -> {
+    final Task<Void> sideEffectWrapper = async(desc, ctx -> {
       Task<?> sideEffect = func.call();
       ctx.runSideEffect(sideEffect);
 
@@ -355,7 +355,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * Equivalent to {@code Task.withSideEffect("withSideEffect", func)}.
    * @see Task#withSideEffect(String, Callable)
    */
-  static <T> Task<T> withSideEffect(final Callable<Task<T>> func) {
+  static <T> Task<Void> withSideEffect(final Callable<Task<T>> func) {
     return Task.withSideEffect("withSideEffect", func);
   }
 
