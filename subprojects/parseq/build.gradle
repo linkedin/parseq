@@ -35,7 +35,6 @@ configurations {
 }
 
 dependencies {
-  compile group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.2'
   compile group: 'org.codehaus.jackson', name: 'jackson-core-asl', version: '1.8.8'
   compile group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.8.8'
   compile group: "org.slf4j", name: "slf4j-api", version: "1.7.25"

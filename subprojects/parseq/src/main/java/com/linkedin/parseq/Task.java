@@ -26,8 +26,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,7 +111,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @param serializer serialized used for converting result of this task
    * to String that will be included in this task's trace.
    */
-  void setTraceValueSerializer(@Nullable Function<T, String> serializer);
+  void setTraceValueSerializer(Function<T, String> serializer);
 
   /**
    * Attempts to run the task with the given context. This method is
@@ -123,7 +121,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @param parent the parent of this task
    * @param predecessors that lead to the execution of this task
    */
-  void contextRun(@Nonnull Context context, @Nullable Task<?> parent, @Nonnull Collection<Task<?>> predecessors);
+  void contextRun(Context context, Task<?> parent, Collection<Task<?>> predecessors);
 
   /**
    * Returns the ShallowTrace for this task. The ShallowTrace will be
