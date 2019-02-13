@@ -316,6 +316,50 @@ public interface Task<T> extends Promise<T>, Cancellable {
   }
 
   /**
+   * Creates a new Task that will run another task as a side effect. The side effect task will return immediately with
+   * an empty {@link Task} and the enclosed Task will execute asynchronously. The properties of static side effect task
+   * are:
+   * <ul>
+   *   <li>
+   *     The side effect will complete successfully even though the underlying Task fails
+   *   </li>
+   *   <li>
+   *     The side effect will always complete with a {@code null} value
+   *   </li>
+   * </ul>
+   *
+   * Side effect in static context is useful in situations where control needs to be returned to caller immediately
+   * and the Task can execute in background. In this case, caller should not be concerned with success or failure of
+   * background Task.
+   *
+   * Static side effect can be thought of as a side effect being attached to an empty Task. like:
+   * {@code Task.value(null).withSideEffect(() -> Task.value("hello world")); }
+   * @param desc description of a side effect, it will show up in a trace
+   * @param func function to be applied to get side effect task
+   * @return a new Task that will run the side effect Task
+   */
+  static <T> Task<Void> withSideEffect(final String desc, final Callable<Task<T>> func) {
+    ArgumentUtil.requireNotNull(func, "function");
+    final Task<Void> sideEffectWrapper = async(desc, ctx -> {
+      Task<?> sideEffect = func.call();
+      ctx.runSideEffect(sideEffect);
+
+      return Promises.value(null);
+    });
+
+    sideEffectWrapper.getShallowTraceBuilder().setTaskType(TaskType.WITH_SIDE_EFFECT.getName());
+    return sideEffectWrapper;
+  }
+
+  /**
+   * Equivalent to {@code Task.withSideEffect("withSideEffect", func)}.
+   * @see Task#withSideEffect(String, Callable)
+   */
+  static <T> Task<Void> withSideEffect(final Callable<Task<T>> func) {
+    return Task.withSideEffect("withSideEffect", func);
+  }
+
+  /**
    * Creates a new task that can be safely shared within a plan or between multiple
    * plans. Cancellation of returned task will not cause cancellation of the original task.
    * <p>
