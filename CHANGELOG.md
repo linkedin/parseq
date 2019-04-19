@@ -1,6 +1,11 @@
-v3.0.6
+v3.0.7
 ------
 
+
+v3.0.6
+------
+* In ParSeqRestClient align createTaskWithD2Timeout and createTaskWithTimeout to always run the timeout task with the same approach.
+  We want to guarantee the exact same behavior in the two cases since the restli stack might not timeout properly
 
 v3.0.5
 ------
