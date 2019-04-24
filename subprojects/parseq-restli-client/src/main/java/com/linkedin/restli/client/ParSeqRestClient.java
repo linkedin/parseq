@@ -213,7 +213,7 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
 
   // check whether we need to apply timeout to a rest.li request task.
   private boolean needApplyTaskTimeout(RequestContext requestContext, ConfigValue<Long> timeout) {
-    // **return false** if no timeout configured or per-request timeout already specified in request context
+    // return false if no timeout configured or per-request timeout already specified in request context
     return timeout.getValue() != null && timeout.getValue() > 0 && !hasRequestContextTimeout(requestContext);
   }
 
