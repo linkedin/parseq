@@ -338,6 +338,57 @@ public class TestTasks extends BaseEngineTest {
   }
 
   @Test
+  public void testDelayTaskCompleted() {
+    final Task<Integer> task = Task.callable(() -> 1234);
+    final Task<Integer> taskWithDelay = task.withDelay(200, TimeUnit.MILLISECONDS);
+
+    assertEquals(1234, runAndWait(taskWithDelay).intValue());
+
+    // Both tasks should be completed.
+    assertTrue(task.isDone());
+    assertTrue(taskWithDelay.isDone());
+
+    // Both tasks should not have failed.
+    assertFalse(task.isFailed());
+    assertFalse(taskWithDelay.isFailed());
+
+    // The time at which the task was executed should be after the expected delay.
+    long taskWithDelayStartTimeMillis =
+        TimeUnit.MILLISECONDS.convert(taskWithDelay.getShallowTrace().getStartNanos(), TimeUnit.NANOSECONDS);
+    long taskStartTimeMillis =
+        TimeUnit.MILLISECONDS.convert(task.getShallowTrace().getStartNanos(), TimeUnit.NANOSECONDS);
+    assertTrue(taskStartTimeMillis - taskWithDelayStartTimeMillis >= 200);
+  }
+
+  @Test
+  public void testDelayTaskFailed() {
+    IllegalArgumentException exception = new IllegalArgumentException("Oops!");
+    final Task<Integer> task = Task.callable(() -> {
+      throw exception;
+    });
+    final Task<Integer> taskWithDelay = task.withDelay(200, TimeUnit.MILLISECONDS);
+
+    IllegalArgumentException actualException = runAndWaitException(taskWithDelay, IllegalArgumentException.class);
+
+    assertEquals(exception, actualException);
+
+    // Both tasks should be completed.
+    assertTrue(task.isDone());
+    assertTrue(taskWithDelay.isDone());
+
+    // Both tasks should have failed.
+    assertTrue(task.isFailed());
+    assertTrue(taskWithDelay.isFailed());
+
+    // The time at which the task was executed should be after the expected delay.
+    long taskWithDelayStartTimeMillis =
+        TimeUnit.MILLISECONDS.convert(taskWithDelay.getShallowTrace().getStartNanos(), TimeUnit.NANOSECONDS);
+    long taskStartTimeMillis =
+        TimeUnit.MILLISECONDS.convert(task.getShallowTrace().getStartNanos(), TimeUnit.NANOSECONDS);
+    assertTrue(taskStartTimeMillis - taskWithDelayStartTimeMillis >= 200);
+  }
+
+  @Test
   public void testSetPriorityBelowMinValue() {
     try {
       TestUtil.noop().setPriority(Priority.MIN_PRIORITY - 1);

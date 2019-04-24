@@ -894,6 +894,46 @@ public interface Task<T> extends Promise<T>, Cancellable {
   }
 
   /**
+   * Equivalent to {@code withDelay(null, time, unit)}.
+   * @see #withDelay(String, long, TimeUnit)
+   */
+  default Task<T> withDelay(final long time, final TimeUnit unit) {
+    return withDelay(null, time, unit);
+  }
+
+  /**
+   * Creates a new task whose execution is delayed.
+   * This task will complete with the exact same result as the delayed task, whether it is
+   * a success or failure.
+   * <blockquote><pre>
+   * final Task<Response> delayedRequest = HttpClient.get("http://google.com").task()
+   *     .withDelay(1, TimeUnit.SECONDS);
+   * </pre></blockquote>
+   *
+   * @param desc description of the delayed task. There is no need to put delay value here because it will be automatically
+   *    * included. Full description of a delay will be: {@code "withDelay " + time + " " + TimeUnitHelper.toString(unit) +
+   *    * (desc != null ? " " + desc : "")}. It is a good idea to put information that will help understand why the delay
+   *    * was specified e.g. if delay was specified by a configuration, the configuration parameter name would be a useful
+   *    * information
+   * @param time the time to wait before executing this task
+   * @param unit the unit for the time
+   * @return the new task with a delay
+   */
+  default Task<T> withDelay(final String desc, final long time, final TimeUnit unit) {
+    final Task<T> that = this;
+    final String taskName = "withDelay " + time + TimeUnitHelper.toString(unit) + (desc != null ? " " + desc : "");
+    Task<T> withDelay = async(taskName, context -> {
+      final SettablePromise<T> result = Promises.settable();
+      that.addListener(p -> Promises.propagateResult(that, result));
+      context.createTimer(time, unit, that);
+      return result;
+    });
+    withDelay.setPriority(getPriority());
+    withDelay.getShallowTraceBuilder().setTaskType(TaskType.WITH_DELAY.getName());
+    return withDelay;
+  }
+
+  /**
    * Converts {@code Task<Task<R>>} into {@code Task<R>}.
    * @param <R> return type of nested <code>task</code>
    * @param desc description that will show up in a trace
