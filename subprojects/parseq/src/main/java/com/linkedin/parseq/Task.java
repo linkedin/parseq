@@ -910,11 +910,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *     .withDelay(1, TimeUnit.SECONDS);
    * </pre></blockquote>
    *
-   * @param desc description of the delayed task. There is no need to put delay value here because it will be automatically
-   *    * included. Full description of a delay will be: {@code "withDelay " + time + " " + TimeUnitHelper.toString(unit) +
-   *    * (desc != null ? " " + desc : "")}. It is a good idea to put information that will help understand why the delay
-   *    * was specified e.g. if delay was specified by a configuration, the configuration parameter name would be a useful
-   *    * information
+   * @param desc description of the delayed task. There is no need to put the delay value here because it will be
+   * automatically included, prepended to the description, if it is provided (e.g. withDelay 1s send request to Google).
    * @param time the time to wait before executing this task
    * @param unit the unit for the time
    * @return the new task with a delay
