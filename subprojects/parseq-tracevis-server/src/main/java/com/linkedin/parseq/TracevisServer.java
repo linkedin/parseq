@@ -6,14 +6,13 @@ import java.nio.file.Path;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.ContextHandler;
-import org.eclipse.jetty.server.handler.ContextHandlerCollection;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
-import org.eclipse.jetty.util.resource.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +32,8 @@ public class TracevisServer {
   private final String _dotLocation;
   final GraphvizEngine _graphvizEngine;
 
+  protected Server _server;
+
   public TracevisServer(final String dotLocation, final int port, final Path baseLocation, final Path heapsterLocation,
       final int cacheSize, final long timeoutMs) {
     _dotLocation = dotLocation;
@@ -46,6 +47,7 @@ public class TracevisServer {
         Runtime.getRuntime().availableProcessors(), Constants.DEFAULT_REAPER_DELAY_MS,
         Constants.DEFAULT_PROCESS_QUEUE_SIZE);
   }
+
 
   public void start()
       throws Exception {
@@ -64,8 +66,9 @@ public class TracevisServer {
 
     _graphvizEngine.start();
 
-    Server server = new Server(_port);
-    server.setAttribute("org.eclipse.jetty.server.Request.maxFormContentSize", -1);
+    _server = new Server();
+    _server.setAttribute("org.eclipse.jetty.server.Request.maxFormContentSize", -1);
+    _server.setConnectors(getConnectors(_server));
 
     TracePostHandler tracePostHandler = new TracePostHandler(_staticContentLocation.toString());
 
@@ -85,20 +88,28 @@ public class TracevisServer {
         new JhatHandler(engine),
         tracePostHandler,
         traceHandler,
+        new HealthCheckHandler(),
         heapsterHandler,
         new DefaultHandler()
         });
-    server.setHandler(handlers);
+    _server.setHandler(handlers);
 
     try {
-      server.start();
-      server.join();
+      _server.start();
+      _server.join();
     } finally {
-      server.stop();
+      _server.stop();
       _graphvizEngine.stop();
       engine.shutdown();
       scheduler.shutdownNow();
       HttpClient.close();
     }
+  }
+
+  protected Connector[] getConnectors(Server server)
+  {
+    ServerConnector connector = new ServerConnector(server);
+    connector.setPort(_port);
+    return new Connector[] { connector };
   }
 }
