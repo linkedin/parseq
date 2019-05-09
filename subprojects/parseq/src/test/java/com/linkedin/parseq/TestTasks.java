@@ -338,26 +338,27 @@ public class TestTasks extends BaseEngineTest {
   }
 
   @Test
-  public void testDelayTaskCompleted() {
+  public void testDelayTaskCompleted() throws InterruptedException {
     final Task<Integer> task = Task.callable(() -> 1234);
-    final Task<Integer> taskWithDelay = task.withDelay(200, TimeUnit.MILLISECONDS);
+    final Task<Integer> taskWithDelay = task.withDelay(1, TimeUnit.SECONDS);
 
-    assertEquals(1234, runAndWait(taskWithDelay).intValue());
+    getEngine().run(taskWithDelay);
 
-    // Both tasks should be completed.
-    assertTrue(task.isDone());
+    taskWithDelay.await(200, TimeUnit.MILLISECONDS);
+    // Both tasks should not be completed yet, since the delay is currently still ongoing.
+    assertFalse(taskWithDelay.isDone());
+    assertFalse(task.isDone());
+
+    taskWithDelay.await(3, TimeUnit.SECONDS);
+    // Both tasks should now be completed.
     assertTrue(taskWithDelay.isDone());
-
+    assertTrue(task.isDone());
     // Both tasks should not have failed.
     assertFalse(task.isFailed());
     assertFalse(taskWithDelay.isFailed());
 
-    // The time at which the task was executed should be after the expected delay.
-    long taskWithDelayStartTimeMillis =
-        TimeUnit.MILLISECONDS.convert(taskWithDelay.getShallowTrace().getStartNanos(), TimeUnit.NANOSECONDS);
-    long taskStartTimeMillis =
-        TimeUnit.MILLISECONDS.convert(task.getShallowTrace().getStartNanos(), TimeUnit.NANOSECONDS);
-    assertTrue(taskStartTimeMillis - taskWithDelayStartTimeMillis >= 200);
+    // The promise should be resolved and the underlying task's value should be cascaded to the top level task.
+    assertEquals(1234, taskWithDelay.get().intValue());
   }
 
   @Test
@@ -379,13 +380,6 @@ public class TestTasks extends BaseEngineTest {
     // Both tasks should have failed.
     assertTrue(task.isFailed());
     assertTrue(taskWithDelay.isFailed());
-
-    // The time at which the task was executed should be after the expected delay.
-    long taskWithDelayStartTimeMillis =
-        TimeUnit.MILLISECONDS.convert(taskWithDelay.getShallowTrace().getStartNanos(), TimeUnit.NANOSECONDS);
-    long taskStartTimeMillis =
-        TimeUnit.MILLISECONDS.convert(task.getShallowTrace().getStartNanos(), TimeUnit.NANOSECONDS);
-    assertTrue(taskStartTimeMillis - taskWithDelayStartTimeMillis >= 200);
   }
 
   @Test
