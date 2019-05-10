@@ -338,6 +338,51 @@ public class TestTasks extends BaseEngineTest {
   }
 
   @Test
+  public void testDelayTaskCompleted() throws InterruptedException {
+    final Task<Integer> task = Task.callable(() -> 1234);
+    final Task<Integer> taskWithDelay = task.withDelay(1, TimeUnit.SECONDS);
+
+    getEngine().run(taskWithDelay);
+
+    taskWithDelay.await(200, TimeUnit.MILLISECONDS);
+    // Both tasks should not be completed yet, since the delay is currently still ongoing.
+    assertFalse(taskWithDelay.isDone());
+    assertFalse(task.isDone());
+
+    taskWithDelay.await(3, TimeUnit.SECONDS);
+    // Both tasks should now be completed.
+    assertTrue(taskWithDelay.isDone());
+    assertTrue(task.isDone());
+    // Both tasks should not have failed.
+    assertFalse(task.isFailed());
+    assertFalse(taskWithDelay.isFailed());
+
+    // The promise should be resolved and the underlying task's value should be cascaded to the top level task.
+    assertEquals(1234, taskWithDelay.get().intValue());
+  }
+
+  @Test
+  public void testDelayTaskFailed() {
+    IllegalArgumentException exception = new IllegalArgumentException("Oops!");
+    final Task<Integer> task = Task.callable(() -> {
+      throw exception;
+    });
+    final Task<Integer> taskWithDelay = task.withDelay(200, TimeUnit.MILLISECONDS);
+
+    IllegalArgumentException actualException = runAndWaitException(taskWithDelay, IllegalArgumentException.class);
+
+    assertEquals(exception, actualException);
+
+    // Both tasks should be completed.
+    assertTrue(task.isDone());
+    assertTrue(taskWithDelay.isDone());
+
+    // Both tasks should have failed.
+    assertTrue(task.isFailed());
+    assertTrue(taskWithDelay.isFailed());
+  }
+
+  @Test
   public void testSetPriorityBelowMinValue() {
     try {
       TestUtil.noop().setPriority(Priority.MIN_PRIORITY - 1);

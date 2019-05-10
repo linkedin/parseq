@@ -15,7 +15,8 @@ public enum TaskType {
   TIMEOUT ("timeout"),
   WITH_TIMEOUT ("withTimeout"),
   RECOVER ("recover"),
-  WITH_RECOVER ("withRecover");
+  WITH_RECOVER ("withRecover"),
+  WITH_DELAY ("withDelay");
 
   private final String _name;
 

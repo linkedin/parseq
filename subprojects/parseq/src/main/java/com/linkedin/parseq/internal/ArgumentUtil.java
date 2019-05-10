@@ -38,7 +38,13 @@ public class ArgumentUtil {
 
   public static void requirePositive(final int n, final String name) {
     if (n <= 0) {
-      throw new IllegalArgumentException(name + " must be a positive integer numebr, but is: " + n);
+      throw new IllegalArgumentException(name + " must be a positive integer number, but is: " + n);
+    }
+  }
+
+  public static void requirePositive(final long n, final String name) {
+    if (n <= 0) {
+      throw new IllegalArgumentException(name + " must be a positive long number, but is: " + n);
     }
   }
 }

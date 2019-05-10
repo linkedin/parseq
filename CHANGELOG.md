@@ -1,6 +1,6 @@
 v3.0.7
 ------
-
+* Add support for Task.withDelay to expose an easy-to-use API for delaying task execution. See issue #210 on Github.
 
 v3.0.6
 ------
