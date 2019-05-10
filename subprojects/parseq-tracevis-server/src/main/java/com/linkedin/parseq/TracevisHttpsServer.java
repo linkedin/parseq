@@ -1,6 +1,7 @@
 package com.linkedin.parseq;
 
 import java.nio.file.Path;
+import java.util.Arrays;
 import org.eclipse.jetty.http.HttpScheme;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.Connector;
@@ -32,8 +33,7 @@ public class TracevisHttpsServer extends TracevisServer {
       String keyStorePath,
       String keyStorePassword,
       String trustStorePath,
-      String trustStorePassword)
-  {
+      String trustStorePassword) {
     super(dotLocation, port, baseLocation, heapsterLocation, cacheSize, timeoutMs);
     _sslPort = sslPort;
     _keyStorePath = keyStorePath;
@@ -43,8 +43,7 @@ public class TracevisHttpsServer extends TracevisServer {
   }
 
   @Override
-  protected Connector[] getConnectors(Server server)
-  {
+  protected Connector[] getConnectors(Server server) {
     SslContextFactory sslContextFactory = new SslContextFactory();
     sslContextFactory.setKeyStorePath(_keyStorePath);
     sslContextFactory.setKeyStorePassword(_keyStorePassword);
@@ -57,19 +56,13 @@ public class TracevisHttpsServer extends TracevisServer {
     config.addCustomizer(new SecureRequestCustomizer());
 
     ServerConnector sslConnector =
-        new ServerConnector(_server, new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()), new HttpConnectionFactory(config));
+        new ServerConnector(server, new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()), new HttpConnectionFactory(config));
     sslConnector.setPort(_sslPort);
 
 
     Connector[] httpConnectors = super.getConnectors(server);
-    Connector[] connectors = new Connector[httpConnectors.length + 1];
-
-    int i  = 0;
-    for (Connector c : httpConnectors)
-    {
-      connectors[i++] = c;
-    }
-    connectors[i++] = sslConnector;
+    Connector[] connectors = Arrays.copyOf(httpConnectors, httpConnectors.length + 1);
+    connectors[httpConnectors.length] = sslConnector;
 
     return connectors;
   }

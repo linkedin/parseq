@@ -32,7 +32,6 @@ public class TracevisServer {
   private final String _dotLocation;
   final GraphvizEngine _graphvizEngine;
 
-  protected Server _server;
 
   public TracevisServer(final String dotLocation, final int port, final Path baseLocation, final Path heapsterLocation,
       final int cacheSize, final long timeoutMs) {
@@ -66,9 +65,9 @@ public class TracevisServer {
 
     _graphvizEngine.start();
 
-    _server = new Server();
-    _server.setAttribute("org.eclipse.jetty.server.Request.maxFormContentSize", -1);
-    _server.setConnectors(getConnectors(_server));
+    Server server = new Server();
+    server.setAttribute("org.eclipse.jetty.server.Request.maxFormContentSize", -1);
+    server.setConnectors(getConnectors(server));
 
     TracePostHandler tracePostHandler = new TracePostHandler(_staticContentLocation.toString());
 
@@ -92,13 +91,13 @@ public class TracevisServer {
         heapsterHandler,
         new DefaultHandler()
         });
-    _server.setHandler(handlers);
+    server.setHandler(handlers);
 
     try {
-      _server.start();
-      _server.join();
+      server.start();
+      server.join();
     } finally {
-      _server.stop();
+      server.stop();
       _graphvizEngine.stop();
       engine.shutdown();
       scheduler.shutdownNow();
@@ -106,8 +105,7 @@ public class TracevisServer {
     }
   }
 
-  protected Connector[] getConnectors(Server server)
-  {
+  protected Connector[] getConnectors(Server server) {
     ServerConnector connector = new ServerConnector(server);
     connector.setPort(_port);
     return new Connector[] { connector };

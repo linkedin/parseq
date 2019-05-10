@@ -24,7 +24,7 @@ public class TracevisServerJarMain {
     if (args.length < 1 || args.length > 2) {
       System.out.println("Incorrect arguments, expecting: DOT_LOCATION <PORT>\n"
           + "  DOT_LOCATION - location of graphviz dot executable\n"
-          + "  <PORT>       - optional port number, default is " + Constants.DEFAULT_PORT +
+          + " <PORT>        - optional port number, default is " + Constants.DEFAULT_PORT +
           "OR <CONFIG_FILE> - optional SSL configuration file path for https");
       System.exit(1);
     }
@@ -50,19 +50,17 @@ public class TracevisServerJarMain {
         }
       }
 
-      Pattern pattern = Pattern.compile("[0-9]{4}");
+
+      Pattern pattern = Pattern.compile("6553[0-5]|655[0-2][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[1-5][0-9]{4}|[1-9][0-9]{0,3}");
       if (args.length == 1 || pattern.matcher(args[1]).matches()) { // support http only
         int httpPort = args.length == 2 ? Integer.parseInt(args[1]) : Constants.DEFAULT_PORT;
         new TracevisServer(dotLocation, httpPort, base, base, Constants.DEFAULT_CACHE_SIZE, Constants.DEFAULT_TIMEOUT_MS)
             .start();
       } else { // support both http and https
 
-        String fileName = args[1];
-        File configFile = new File(fileName);
-        if (configFile.exists()) {
+        try (InputStream input = new FileInputStream(args[1])) {
           Properties prop = new Properties();
-          InputStream in = new FileInputStream(fileName);
-          prop.load(in);
+          prop.load(input);
 
           // get properties from specified config file
           int httpPort = Integer.parseInt(prop.getProperty("httpPort", String.valueOf(Constants.DEFAULT_PORT)));
@@ -74,8 +72,8 @@ public class TracevisServerJarMain {
 
           new TracevisHttpsServer(dotLocation, httpPort, base, base, Constants.DEFAULT_CACHE_SIZE, Constants.DEFAULT_TIMEOUT_MS, sslPort,
               keyStorePath, keyStorePassword, trustStorePath, trustStorePassword).start();
-        } else {
-          throw new RuntimeException("Failed to find config profiles!");
+        } catch (IOException ex) {
+          throw new IOException("Failed to find config profiles " + args[1] + "!");
         }
       }
 
