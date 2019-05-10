@@ -22,7 +22,7 @@ public class TracevisServerJarMain {
   public static void main(String[] args) throws Exception {
 
     if (args.length < 1 || args.length > 2) {
-      System.out.println("Incorrect arguments, expecting: DOT_LOCATION <PORT>\n"
+      System.out.println("Incorrect arguments, expecting: DOT_LOCATION <PORT or CONFIG_FILE>\n"
           + "  DOT_LOCATION - location of graphviz dot executable\n"
           + " <PORT>        - optional port number, default is " + Constants.DEFAULT_PORT +
           "OR <CONFIG_FILE> - optional SSL configuration file path for https");
