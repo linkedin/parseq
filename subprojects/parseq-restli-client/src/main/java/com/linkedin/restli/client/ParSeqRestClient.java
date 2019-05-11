@@ -16,20 +16,6 @@
 
 package com.linkedin.restli.client;
 
-import com.linkedin.parseq.Exceptions;
-import com.linkedin.parseq.function.Failure;
-import com.linkedin.parseq.function.Success;
-import com.linkedin.parseq.function.Try;
-import com.linkedin.parseq.internal.TimeUnitHelper;
-import com.linkedin.r2.filter.R2Constants;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.function.Function;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.linkedin.common.callback.Callback;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.batching.Batch;
@@ -38,6 +24,7 @@ import com.linkedin.parseq.internal.ArgumentUtil;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
+import com.linkedin.r2.filter.R2Constants;
 import com.linkedin.r2.message.RequestContext;
 import com.linkedin.restli.client.config.ConfigValue;
 import com.linkedin.restli.client.config.RequestConfig;
@@ -47,6 +34,11 @@ import com.linkedin.restli.client.config.RequestConfigProvider;
 import com.linkedin.restli.client.metrics.BatchingMetrics;
 import com.linkedin.restli.client.metrics.Metrics;
 import com.linkedin.restli.common.OperationNameGenerator;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -203,21 +195,6 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
     }
   }
 
-  private <T> Task<Response<T>> withD2Timeout(final Task<Response<T>> task, ConfigValue<Long> timeout) {
-    String srcDesc = timeout.getSource().map(src -> " src: " + src).orElse("");
-    String timeoutTaskName = "withTimeout " + timeout.getValue().intValue() + TimeUnitHelper.toString(TimeUnit.MILLISECONDS)
-        + srcDesc;
-    // make sure that we throw the same exception to maintain backward compatibility with current withTimeout implementation.
-    return task.transform(timeoutTaskName, (Try<Response<T>> tryGet) -> {
-      if (tryGet.isFailed() && tryGet.getError() instanceof TimeoutException) {
-        String timeoutExceptionMessage = "task: '" + task.getName() + "' " + timeoutTaskName;
-        return Failure.of(Exceptions.timeoutException(timeoutExceptionMessage));
-      } else {
-        return tryGet;
-      }
-    });
-  }
-
   private <T> Task<Response<T>> createTask(final String name, final Request<T> request,
       final RequestContext requestContext, RequestConfig config) {
     LOGGER.debug("createTask, name: '{}', config: {}", name, config);
@@ -236,7 +213,7 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
 
   // check whether we need to apply timeout to a rest.li request task.
   private boolean needApplyTaskTimeout(RequestContext requestContext, ConfigValue<Long> timeout) {
-    // if no timeout configured or per-request timeout already specified in request context
+    // return false if no timeout configured or per-request timeout already specified in request context
     return timeout.getValue() != null && timeout.getValue() > 0 && !hasRequestContextTimeout(requestContext);
   }
 
@@ -289,7 +266,8 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
     if (!taskNeedTimeout) {
       return requestTask;
     } else {
-      return withD2Timeout(requestTask, timeout);
+      // still enforce parseq client timeout if for some reason downstream services are not timed out properly.
+      return withTimeout(requestTask, timeout);
     }
   }
 

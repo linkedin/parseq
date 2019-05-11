@@ -86,6 +86,14 @@ public class TestTaskType extends TestTask {
     assertEquals(task.getShallowTrace().getTaskType(), TaskType.WITH_RECOVER.getName());
   }
 
+  @Test
+  public void testWithDelayTaskType() {
+    Task<?> taskWithDelay = Task.value("test").withDelay(100, TimeUnit.MILLISECONDS);
+
+    runAndWait("taskWithDelayTaskType", taskWithDelay);
+    assertEquals(taskWithDelay.getShallowTrace().getTaskType(), TaskType.WITH_DELAY.getName());
+  }
+
   private boolean doesTaskTypeExistInTrace(Trace trace, String taskType) {
     return trace.getTraceMap().values().stream().anyMatch(shallowTrace -> taskType.equals(shallowTrace.getTaskType()));
   }
