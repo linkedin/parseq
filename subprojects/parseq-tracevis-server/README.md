@@ -31,6 +31,11 @@ Run server passing path to `dot` as an argument e.g. `java -jar parseq-tracevis-
 You can optionally specify port number, by default it will run on port 8080.
 
 
+Configure Https Server
+======================================
+Follow [config.properties](https://github.com/linkedin/parseq/blob/master/subprojects/parseq-tracevis-server/config.properties) to set up SSL properties, then run server by passing this property file
+as an argument, eg. `java -jar parseq-tracevis-server-jar-with-dependencies.jar /usr/bin/dot <path to config.properties file>`
+
 Docker
 ======================================
 

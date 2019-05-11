@@ -1,11 +1,19 @@
+v3.0.8
+------
+
+
 v3.0.7
 ------
+
+* Support HTTPS in parseq-tracevis-server
 * Add support for Task.withDelay to expose an easy-to-use API for delaying task execution. See issue #210 on Github.
 
 v3.0.6
 ------
+
 * In ParSeqRestClient align createTaskWithD2Timeout and createTaskWithTimeout to always run the timeout task with the same approach.
   We want to guarantee the exact same behavior in the two cases since the restli stack might not timeout properly
+* Add support for static withSideEffect
 
 v3.0.5
 ------
