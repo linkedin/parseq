@@ -1,6 +1,9 @@
-v3.0.8
+v3.0.9
 ------
 
+v3.0.8
+------
+* Update maven url to use HTTPS
 
 v3.0.7
 ------
