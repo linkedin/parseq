@@ -1,6 +1,7 @@
 v3.0.8
 ------
 
+* Change maven repository link to https
 
 v3.0.7
 ------
