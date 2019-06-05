@@ -8,15 +8,15 @@ This project includes a trace visualizer for
 Building
 ========
 
-To build the trace visualizer, use `make dist`. This creates a package for the
-trace visualizer at `dist/parseq-tracevis.tar.gz`.
+To build the trace visualizer, use `./gradlew makeDist`. This creates a package for the
+trace visualizer at `build/distributions/parseq-tracevis.tar.gz`.
 
 
 Running the Trace Visualizer
 ============================
 
 To run the trace visualizer, extract `parseq-tracevis.tar.gz` and open
-index.html in a browser. The tool can also be hosted from a web server.
+trace.html in a browser. The tool can also be hosted from a web server.
 
 For coding / debugging, the trace visualizer can also be run from the directory
 that hosts this README.
