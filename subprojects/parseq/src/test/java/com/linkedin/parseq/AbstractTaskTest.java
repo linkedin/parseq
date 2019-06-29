@@ -280,6 +280,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
     logTracingResults("AbstractTaskTest.testWithSideEffectCancel", mainTasks);
   }
 
+  @Test
   public void testWithSideEffectFailure(int expectedNumberOfTasks) throws Exception {
     Task<String> failureMain = getFailureTask();
     Task<String> fastSideEffect = getSuccessTask();
@@ -295,6 +296,23 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
       assertFalse(fastSideEffect.isDone());
     }
     assertEquals(countTasks(failure.getTrace()), expectedNumberOfTasks);
+  }
+
+  @Test
+  public void testSafeSideEffectFailureInTaskProviderFunction() {
+    Task<String> successMain = getSuccessTask();
+    Function1<? super String, Task<?>> func = s -> {
+      throw new RuntimeException();
+    };
+    Task<String> successMap = getSuccessTask();
+
+    runAndWait(successMain
+        .safeSideEffect(func)
+        .flatMap(s -> successMap)
+    );
+    assertTrue(successMap.isDone());
+    assertFalse(successMain.isFailed());
+    assertFalse(successMap.isFailed());
   }
 
   @Test

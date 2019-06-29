@@ -360,6 +360,40 @@ public interface Task<T> extends Promise<T>, Cancellable {
   }
 
   /**
+   * Equivalent to {@code withSideEffect(desc, func)} in how the task will run and how return values are handled.
+   *
+   * Differs in exception handling behavior from {@code withSideEffect(desc, func)}.
+   * If an exception is thrown in {@link Function1}(passed in arguments) then {@code safeSideEffect } will convert it
+   * into a {@code Task.failure } and will ensure that the exception doesn't spread it's impact outside the plan
+   * compared to {@code withSideEffect} in which an exception is thrown in {@link Function1}, the entire plan fails.
+   *
+   * @param desc description of the side Effect. This will show up in trace
+   * @param func function to be applied to get side effect task
+   * @return a new Task that will run the side effect Task
+   */
+  default Task<T> safeSideEffect(final String desc, final Function1<? super T, Task<?>> func) {
+    return withSideEffect(desc, param -> {
+      try {
+        Task<?> task = func.apply(param);
+        if (task == null) {
+          throw new RuntimeException(desc + " returned null");
+        }
+        return task;
+      } catch (Throwable t) {
+        return Task.failure(desc, t);
+      }
+    });
+  }
+
+  /**
+   * Equivalent to {@code safeSideEffect("sideEffect", func)}.
+   * @see #safeSideEffect(String, Function1)
+   */
+  default Task<T> safeSideEffect(final Function1<? super T, Task<?>> func) {
+    return safeSideEffect("safeSideEffect", func);
+  }
+
+  /**
    * Creates a new task that can be safely shared within a plan or between multiple
    * plans. Cancellation of returned task will not cause cancellation of the original task.
    * <p>

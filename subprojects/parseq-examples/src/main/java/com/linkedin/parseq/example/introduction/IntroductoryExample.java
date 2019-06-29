@@ -35,14 +35,15 @@ public class IntroductoryExample extends AbstractExample {
 //        .andThen(System.out::println);
 
     final Task<Integer> sumLengths =
-        Task.par(google.map(String::length),
-                 yahoo.map(String::length),
-                 bing.map(String::length))
-             .map("sum", (g, y, b) -> g + y + b);
+        google.withSideEffect(result -> {
+          //throw new RuntimeException();
+          return Task.failure(new RuntimeException());
+        }).map(String::length);
 
     engine.run(sumLengths);
 
     sumLengths.await();
+    System.out.println(sumLengths.get());
 
     ExampleUtil.printTracingResults(sumLengths);
   }
