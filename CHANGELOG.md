@@ -1,3 +1,8 @@
+v3.0.9
+------
+
+* Added support for safeSideEffect which absorbs any exceptions in lambda to avoid plan failure when lambda is invoked to get sideEffect Task.
+
 v3.0.8
 ------
 
@@ -56,7 +61,7 @@ v2.6.35
 ------
 
 * Remove .DS_Store file and improve javadoc for Task.par.
-* Fix Tuple*Task.java javadoc's image not showing bug 
+* Fix Tuple*Task.java javadoc's image not showing bug
 
 v2.6.34
 ------

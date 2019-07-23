@@ -274,6 +274,18 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * </pre></blockquote>
    * <img src="doc-files/withSideEffect-1.png" height="120" width="868"/>
    *
+   * It's important to note that if an exception is thrown in the Task supplying function then entire plan would fail
+   * with that exception and any subsequent tasks won't run.
+   *
+   * For example in
+   * <blockquote><pre>
+   *   Task{@code <Long>} userName = id.flatMap("fetch", u {@code ->} fetch(u))
+   *       .withSideEffect(param -> throw new RuntimeException("exception"))
+   *       .andThen(param -> updateMemcache(u));
+   * </pre></blockquote>
+   *
+   * Task userName would fail with exception thrown in SideEffect function and the Task in andThen won't run.
+   *
    * @param desc description of a side effect, it will show up in a trace
    * @param func function to be applied on result of successful completion of this task
    * to get side effect task
@@ -334,6 +346,18 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *
    * Static side effect can be thought of as a side effect being attached to an empty Task. like:
    * {@code Task.value(null).withSideEffect(() -> Task.value("hello world")); }
+   *
+   * It's important to note that if an exception is thrown in the Task supplying Callable then entire plan would fail
+   * with that exception and any subsequent tasks won't run.
+   *
+   * For example in
+   * <blockquote><pre>
+   *   Task{@code <Long>} userName = Task.withSideEffect(param -> throw new RuntimeException("exception"))
+   *       .andThen(param -> updateMemcache(u));
+   * </pre></blockquote>
+   *
+   * Task userName would fail with exception thrown in SideEffect function and the Task in andThen won't run.
+   * 
    * @param desc description of a side effect, it will show up in a trace
    * @param func function to be applied to get side effect task
    * @return a new Task that will run the side effect Task
@@ -357,6 +381,74 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   static <T> Task<Void> withSideEffect(final Callable<Task<T>> func) {
     return Task.withSideEffect("withSideEffect", func);
+  }
+
+  /**
+   * Equivalent to {@code withSideEffect(desc, func)} in how the task will run and how return values are handled.
+   *
+   * Differs in exception handling behavior from {@code withSideEffect(desc, func)}.
+   * If an exception is thrown in {@link Function1}(passed in arguments) then {@code safeSideEffect } will convert it
+   * into a {@code Task.failure } and will ensure that the exception doesn't spread its impact outside the plan
+   * compared to {@code withSideEffect} in which an exception is thrown in {@link Function1}, the entire plan fails.
+   *
+   * @param desc description of the side Effect. This will show up in trace
+   * @param func function to be applied to get side effect task
+   * @return a new Task that will run the side effect Task
+   */
+  default Task<T> safeSideEffect(final String desc, final Function1<? super T, Task<?>> func) {
+    return withSideEffect(desc, param -> {
+      try {
+        Task<?> task = func.apply(param);
+        if (task == null) {
+          throw new RuntimeException(desc + " returned null");
+        }
+        return task;
+      } catch (Throwable t) {
+        return Task.failure(desc, t);
+      }
+    });
+  }
+
+  /**
+   * Equivalent to {@code safeSideEffect("sideEffect", func)}.
+   * @see #safeSideEffect(String, Function1)
+   */
+  default Task<T> safeSideEffect(final Function1<? super T, Task<?>> func) {
+    return safeSideEffect("safeSideEffect", func);
+  }
+
+  /**
+   * Equivalent to {@code Task.withSideEffect(desc, callable)} in how the task will run and how return values are handled.
+   *
+   * Differs in exception handling behavior from {@code Task.withSideEffect(desc, callable)}.
+   * If an exception is thrown in {@link Callable}(passed in arguments) then {@code safeSideEffect } will convert it
+   * into a {@code Task.failure } and will ensure that the exception doesn't spread its impact outside the plan
+   * compared to {@code withSideEffect} in which an exception is thrown in {@link Callable}, the entire plan fails.
+   *
+   * @param desc description of the side Effect. This will show up in trace
+   * @param func function to be applied to get side effect task
+   * @return a new Task that will run the side effect Task
+   */
+  static <T> Task<Void> safeSideEffect(final String desc, final Callable<Task<T>> func) {
+    return withSideEffect(desc, () -> {
+      try {
+        Task<?> task = func.call();
+        if (task == null) {
+          throw new RuntimeException(desc + "returned null");
+        }
+        return task;
+      } catch (Throwable t) {
+        return Task.failure(desc, t);
+      }
+    });
+  }
+
+  /**
+   * Equivalent to {@code Task.safeSideEffect("withSideEffect", func)}.
+   * @see #safeSideEffect(String, Callable)
+   */
+  static <T> Task<Void> safeSideEffect(final Callable<Task<T>> func) {
+    return Task.safeSideEffect("safeSideEffect", func);
   }
 
   /**
