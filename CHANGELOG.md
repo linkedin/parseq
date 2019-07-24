@@ -1,12 +1,12 @@
 v3.0.9
 ------
 
-* Added support for safeSideEffect which absorbs any exceptions in lambda to avoid plan failure when lambda is invoked to get sideEffect Task.
 
 v3.0.8
 ------
 
 * Change maven repository link to https
+* Added support for safeSideEffect which absorbs any exceptions in lambda to avoid plan failure when lambda is invoked to get sideEffect Task.
 
 v3.0.7
 ------
