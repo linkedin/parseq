@@ -9,7 +9,7 @@ configurations {
 }
 
 dependencies {
-  shadow group: 'com.ea.agentloader', name: 'ea-agent-loader', version: '1.0.2'
+  shadow group: 'com.linkedin.agentloader', name: 'linkedin-agent-loader', version: '1.0.4'
   shadow group: 'org.ow2.asm', name: 'asm-all', version: '5.1'
   testCompile group: 'org.testng', name: 'testng', version: '6.9.9'
 }
