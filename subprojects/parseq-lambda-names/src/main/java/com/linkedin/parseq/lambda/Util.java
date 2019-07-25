@@ -12,7 +12,7 @@ import org.objectweb.asm.tree.TypeInsnNode;
 
 class Util {
 
-  private static final Pattern LAMBDA_NAME_PATTERN = Pattern.compile("^.*\\$\\$Lambda\\$\\d+$");
+  private static final Pattern LAMBDA_NAME_PATTERN = Pattern.compile("^.*\\$\\$Lambda\\$.*$");
 
   /* package private */
   static boolean isALambdaClassByName(String name) {
