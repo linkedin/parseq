@@ -1,6 +1,12 @@
+v3.0.10
+------
+
+
+
 v3.0.9
 ------
 
+* Change Regex pattern to match the lambda function description in Zing
 
 v3.0.8
 ------
