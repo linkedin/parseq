@@ -7,6 +7,7 @@ import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -280,6 +281,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
     logTracingResults("AbstractTaskTest.testWithSideEffectCancel", mainTasks);
   }
 
+  @Test
   public void testWithSideEffectFailure(int expectedNumberOfTasks) throws Exception {
     Task<String> failureMain = getFailureTask();
     Task<String> fastSideEffect = getSuccessTask();
@@ -295,6 +297,47 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
       assertFalse(fastSideEffect.isDone());
     }
     assertEquals(countTasks(failure.getTrace()), expectedNumberOfTasks);
+  }
+
+  @Test
+  public void testWithSideEffectExceptionInFunction() {
+    Task<String> successMain = getSuccessTask();
+    Function1<? super String, Task<?>> func = s -> {
+      throw new RuntimeException();
+    };
+    Task<String> successMap = getSuccessTask();
+
+    runAndWaitException(successMain.withSideEffect(func).flatMap(s -> successMap), RuntimeException.class);
+    assertFalse(successMap.isDone());
+  }
+
+  @Test
+  public void testSafeSideEffectFailureInTaskProviderFunction() {
+    Task<String> successMain = getSuccessTask();
+    Function1<? super String, Task<?>> func = s -> {
+      throw new RuntimeException();
+    };
+    Task<String> successMap = getSuccessTask();
+
+    runAndWait(successMain
+        .safeSideEffect(func)
+        .flatMap(s -> successMap)
+    );
+    assertTrue(successMap.isDone());
+    assertFalse(successMain.isFailed());
+    assertFalse(successMap.isFailed());
+  }
+
+  @Test
+  public void testStaticSafeSideEffectFailureInTaskProviderFunction() {
+    Callable<Task<String>> func = () -> {
+      throw new RuntimeException();
+    };
+    Task<String> successMap = getSuccessTask();
+
+    runAndWait(Task.safeSideEffect(func).flatMap(s -> successMap));
+    assertTrue(successMap.isDone());
+    assertFalse(successMap.isFailed());
   }
 
   @Test

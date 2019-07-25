@@ -1,7 +1,7 @@
 package com.linkedin.parseq.lambda;
 
-import com.ea.agentloader.AgentLoader;
-import com.ea.agentloader.ClassPathUtils;
+import com.linkedin.agentloader.AgentLoader;
+import com.linkedin.agentloader.ClassPathUtils;
 import com.linkedin.parseq.TaskDescriptor;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;

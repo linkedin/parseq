@@ -1,7 +1,18 @@
+v3.0.10
+------
+
+
+
+v3.0.9
+------
+
+* Change Regex pattern to match the lambda function description in Zing
+
 v3.0.8
 ------
 
 * Change maven repository link to https
+* Added support for safeSideEffect which absorbs any exceptions in lambda to avoid plan failure when lambda is invoked to get sideEffect Task.
 
 v3.0.7
 ------
@@ -56,7 +67,7 @@ v2.6.35
 ------
 
 * Remove .DS_Store file and improve javadoc for Task.par.
-* Fix Tuple*Task.java javadoc's image not showing bug 
+* Fix Tuple*Task.java javadoc's image not showing bug
 
 v2.6.34
 ------
