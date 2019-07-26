@@ -357,7 +357,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * </pre></blockquote>
    *
    * Task userName would fail with exception thrown in SideEffect function and the Task in andThen won't run.
-   * 
+   *
    * @param desc description of a side effect, it will show up in a trace
    * @param func function to be applied to get side effect task
    * @return a new Task that will run the side effect Task
@@ -387,7 +387,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * Equivalent to {@code withSideEffect(desc, func)} in how the task will run and how return values are handled.
    *
    * Differs in exception handling behavior from {@code withSideEffect(desc, func)}.
-   * If an exception is thrown in {@link Function1}(passed in arguments) then {@code safeSideEffect } will convert it
+   * If an exception is thrown in {@link Function1}(passed in arguments) then {@code withSafeSideEffect } will convert it
    * into a {@code Task.failure } and will ensure that the exception doesn't spread its impact outside the plan
    * compared to {@code withSideEffect} in which an exception is thrown in {@link Function1}, the entire plan fails.
    *
@@ -395,7 +395,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @param func function to be applied to get side effect task
    * @return a new Task that will run the side effect Task
    */
-  default Task<T> safeSideEffect(final String desc, final Function1<? super T, Task<?>> func) {
+  default Task<T> withSafeSideEffect(final String desc, final Function1<? super T, Task<?>> func) {
     return withSideEffect(desc, param -> {
       try {
         Task<?> task = func.apply(param);
@@ -410,18 +410,18 @@ public interface Task<T> extends Promise<T>, Cancellable {
   }
 
   /**
-   * Equivalent to {@code safeSideEffect("sideEffect", func)}.
-   * @see #safeSideEffect(String, Function1)
+   * Equivalent to {@code withSafeSideEffect("sideEffect", func)}.
+   * @see #withSafeSideEffect(String, Function1)
    */
-  default Task<T> safeSideEffect(final Function1<? super T, Task<?>> func) {
-    return safeSideEffect("safeSideEffect", func);
+  default Task<T> withSafeSideEffect(final Function1<? super T, Task<?>> func) {
+    return withSafeSideEffect("withSafeSideEffect", func);
   }
 
   /**
    * Equivalent to {@code Task.withSideEffect(desc, callable)} in how the task will run and how return values are handled.
    *
    * Differs in exception handling behavior from {@code Task.withSideEffect(desc, callable)}.
-   * If an exception is thrown in {@link Callable}(passed in arguments) then {@code safeSideEffect } will convert it
+   * If an exception is thrown in {@link Callable}(passed in arguments) then {@code withSafeSideEffect } will convert it
    * into a {@code Task.failure } and will ensure that the exception doesn't spread its impact outside the plan
    * compared to {@code withSideEffect} in which an exception is thrown in {@link Callable}, the entire plan fails.
    *
@@ -429,7 +429,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @param func function to be applied to get side effect task
    * @return a new Task that will run the side effect Task
    */
-  static <T> Task<Void> safeSideEffect(final String desc, final Callable<Task<T>> func) {
+  static <T> Task<Void> withSafeSideEffect(final String desc, final Callable<Task<T>> func) {
     return withSideEffect(desc, () -> {
       try {
         Task<?> task = func.call();
@@ -444,11 +444,11 @@ public interface Task<T> extends Promise<T>, Cancellable {
   }
 
   /**
-   * Equivalent to {@code Task.safeSideEffect("withSideEffect", func)}.
-   * @see #safeSideEffect(String, Callable)
+   * Equivalent to {@code Task.withSafeSideEffect("withSideEffect", func)}.
+   * @see #withSafeSideEffect(String, Callable)
    */
-  static <T> Task<Void> safeSideEffect(final Callable<Task<T>> func) {
-    return Task.safeSideEffect("safeSideEffect", func);
+  static <T> Task<Void> withSafeSideEffect(final Callable<Task<T>> func) {
+    return Task.withSafeSideEffect("withSafeSideEffect", func);
   }
 
   /**

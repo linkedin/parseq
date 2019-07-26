@@ -312,7 +312,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
   }
 
   @Test
-  public void testSafeSideEffectFailureInTaskProviderFunction() {
+  public void testWithSafeSideEffectFailureInTaskProviderFunction() {
     Task<String> successMain = getSuccessTask();
     Function1<? super String, Task<?>> func = s -> {
       throw new RuntimeException();
@@ -320,7 +320,7 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
     Task<String> successMap = getSuccessTask();
 
     runAndWait(successMain
-        .safeSideEffect(func)
+        .withSafeSideEffect(func)
         .flatMap(s -> successMap)
     );
     assertTrue(successMap.isDone());
@@ -329,13 +329,13 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
   }
 
   @Test
-  public void testStaticSafeSideEffectFailureInTaskProviderFunction() {
+  public void testStaticWithSafeSideEffectFailureInTaskProviderFunction() {
     Callable<Task<String>> func = () -> {
       throw new RuntimeException();
     };
     Task<String> successMap = getSuccessTask();
 
-    runAndWait(Task.safeSideEffect(func).flatMap(s -> successMap));
+    runAndWait(Task.withSafeSideEffect(func).flatMap(s -> successMap));
     assertTrue(successMap.isDone());
     assertFalse(successMap.isFailed());
   }

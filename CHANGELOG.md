@@ -1,7 +1,7 @@
 v3.0.10
 ------
 
-
+* Renamed safeSideEffect to withSafeSideEffect
 
 v3.0.9
 ------
