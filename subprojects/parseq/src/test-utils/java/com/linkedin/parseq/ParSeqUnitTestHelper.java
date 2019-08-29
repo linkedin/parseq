@@ -16,10 +16,6 @@
 
 package com.linkedin.parseq;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -167,7 +163,10 @@ public class ParSeqUnitTestHelper {
   public <T> T runAndWait(final String desc, Task<T> task, long time, TimeUnit timeUnit) {
     try {
       _engine.run(task);
-      assertTrue(task.await(time, timeUnit));
+      boolean result = task.await(time, timeUnit);
+      if (!result) {
+        throw new AssertionError("Expected task result to be successful");
+      }
       return task.get();
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
@@ -219,15 +218,22 @@ public class ParSeqUnitTestHelper {
       long time, TimeUnit timeUnit) {
     try {
       runAndWait(desc, task, time, timeUnit);
-      fail("An exception is expected, but the task succeeded");
-      // just to make the compiler happy, we will never get here
-      return null;
+      throw new AssertionError("An exception is expected, but the task succeeded");
     } catch (PromiseException pe) {
       Throwable cause = pe.getCause();
       assertEquals(cause.getClass(), exceptionClass);
       return exceptionClass.cast(cause);
     } finally {
       logTracingResults(desc, task);
+    }
+  }
+
+  //We don't want to use TestNG assertions to make the test utilities
+  // class useful for non TestNG users (for example, JUnit).
+  //Hence, we're writing our own private assertEquals method
+  static void assertEquals(Object o1, Object o2) {
+    if ((o1 == null && o2 != null) || (o1 != null && !o1.equals(o2))) {
+      throw new AssertionError("Object " + o1 + " is expected to be equal to object: " + o2);
     }
   }
 

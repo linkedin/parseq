@@ -41,6 +41,7 @@ dependencies {
   bootstrap group: "net.sourceforge.fmpp", name: "fmpp", version: "0.9.15"
 
   testCompile group: "org.testng", name: "testng", version: "6.9.9"
+  testCompile group: "org.junit.jupiter", name: "junit-jupiter-api", version: "5.5.1"
   testCompile group: "org.slf4j", name: "slf4j-log4j12", version: "1.7.25"
 }
 

@@ -22,6 +22,7 @@ import org.testng.annotations.BeforeMethod;
 
 /**
  * A base class that builds an Engine with default configuration.
+ * For JUnit Jupiter (JUnit5+), see {@link com.linkedin.parseq.junitjupiter.BaseEngineJUnitJupiterTest}
  *
  * This class creates new Engine and shuts it down before and after every test method, so it can't be used
  * to run tests in parallel.
