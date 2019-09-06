@@ -1,7 +1,12 @@
-v3.0.11
+v3.0.12
 ------
 
 
+
+v3.0.11
+------
+
+* Enabled test utility for JUnit5
 
 v3.0.10
 ------
