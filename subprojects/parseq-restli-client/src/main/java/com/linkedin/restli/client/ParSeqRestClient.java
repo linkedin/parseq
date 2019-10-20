@@ -44,8 +44,9 @@ import org.slf4j.LoggerFactory;
 /**
  * A ParSeq client that creates a ParSeq task from a rest.li {@link Request} by sending the request to underlying rest.li
  * {@link Client}. ParSeqRestClient delegates task execution to Rest.li Client {@link Client#sendRequest(Request, Callback)}
- * method that takes a {@link PromiseCallbackAdapter}. ParSeq task created from {@link ParSeqRestClient} may fail when
- * {@link PromiseCallbackAdapter} receives the following error conditions:
+ * method that takes a {@link com.linkedin.restli.client.ParSeqRestClient.PromiseCallbackAdapter}. ParSeq task created
+ * from {@link ParSeqRestClient} may fail when
+ * {@link com.linkedin.restli.client.ParSeqRestClient.PromiseCallbackAdapter} receives the following error conditions:
  * <p>
  * 1. @{link RestLiResponseExcepion}: Request has reached Rest.li server and rest.li server throws RestLiServiceException.
  * 2. @{link RemoteInvocationException}: Request failed before reaching rest.li server, for example, RestException thrown

@@ -24,6 +24,6 @@ public interface Clock {
      * or equal to zero, do not sleep at all.
      * @throws InterruptedException if interrupted while sleeping
    */
-  void sleepNano(long nao) throws InterruptedException;
+  void sleepNano(long nano) throws InterruptedException;
 
 }

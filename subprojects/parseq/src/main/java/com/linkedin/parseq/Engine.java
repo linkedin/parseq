@@ -289,8 +289,8 @@ public class Engine {
    * This method throws {@code IllegalStateException} if Engine does not have capacity to run the task.
    * Engine's capacity is specified by a {@value #MAX_CONCURRENT_PLANS} configuration property. Use
    * {@link EngineBuilder#setEngineProperty(String, Object)} to set this property.
-   * For the sake of backwards compatibility default value for a {@value #MAX_CONCURRENT_PLANS} is
-   * {@value #DEFAULT_MAX_CONCURRENT_PLANS} which essentially means "unbounded capacity".
+   * For the sake of backwards compatibility default value for a {@link #MAX_CONCURRENT_PLANS} is
+   * {@link #DEFAULT_MAX_CONCURRENT_PLANS} which essentially means "unbounded capacity".
    *
    * @param task the task to run
    * @throws IllegalStateException
@@ -307,7 +307,7 @@ public class Engine {
    * Engine's capacity is specified by a {@value #MAX_CONCURRENT_PLANS} configuration property. Use
    * {@link EngineBuilder#setEngineProperty(String, Object)} to set this property.
    * For the sake of backwards compatibility default value for a {@value #MAX_CONCURRENT_PLANS} is
-   * {@value #DEFAULT_MAX_CONCURRENT_PLANS} which essentially means "unbounded capacity".
+   * {@link #DEFAULT_MAX_CONCURRENT_PLANS} which essentially means "unbounded capacity".
    *
    * @param task the task to run
    * @param planClass string that identifies a "class" of the Plan. Plan class ends up in a ParSeq
@@ -328,7 +328,7 @@ public class Engine {
    * specified by a {@value #MAX_CONCURRENT_PLANS} configuration property. Use
    * {@link EngineBuilder#setEngineProperty(String, Object)} to set this property.
    * For the sake of backwards compatibility default value for a {@value #MAX_CONCURRENT_PLANS} is
-   * {@value #DEFAULT_MAX_CONCURRENT_PLANS} which essentially means "unbounded capacity".
+   * {@link #DEFAULT_MAX_CONCURRENT_PLANS} which essentially means "unbounded capacity".
    *
    * @param task the task to run
    */
@@ -344,7 +344,7 @@ public class Engine {
    * specified by a {@value #MAX_CONCURRENT_PLANS} configuration property. Use
    * {@link EngineBuilder#setEngineProperty(String, Object)} to set this property.
    * For the sake of backwards compatibility default value for a {@value #MAX_CONCURRENT_PLANS} is
-   * {@value #DEFAULT_MAX_CONCURRENT_PLANS} which essentially means "unbounded capacity".
+   * {@link #DEFAULT_MAX_CONCURRENT_PLANS} which essentially means "unbounded capacity".
    *
    * @param task the task to run
    * @param planClass string that identifies a "class" of the Plan. Plan class ends up in a ParSeq
@@ -363,7 +363,7 @@ public class Engine {
    * Runs the given task if Engine has a capacity to start new plan as specified by
    * {@value #MAX_CONCURRENT_PLANS} configuration parameter.
    * For the sake of backwards compatibility default value for a {@value #MAX_CONCURRENT_PLANS} is
-   * {@value #DEFAULT_MAX_CONCURRENT_PLANS} which essentially means "unbounded capacity".
+   * {@link #DEFAULT_MAX_CONCURRENT_PLANS} which essentially means "unbounded capacity".
    * Task passed in as a parameter becomes a root on a new Plan.
    * All tasks created and started as a consequence of a root task will belong to that plan and will share a Trace.
    * This method returns immediately and does not block. It returns {@code true} if Plan was successfully started.
@@ -378,7 +378,7 @@ public class Engine {
    * Runs the given task if Engine has a capacity to start new plan as specified by
    * {@value #MAX_CONCURRENT_PLANS} configuration parameter.
    * For the sake of backwards compatibility default value for a {@value #MAX_CONCURRENT_PLANS} is
-   * {@value #DEFAULT_MAX_CONCURRENT_PLANS} which essentially means "unbounded capacity".
+   * {@link #DEFAULT_MAX_CONCURRENT_PLANS} which essentially means "unbounded capacity".
    * Task passed in as a parameter becomes a root on a new Plan.
    * All tasks created and started as a consequence of a root task will belong to that plan and will share a Trace.
    * This method returns immediately and does not block. It returns {@code true} if Plan was successfully started.
@@ -399,7 +399,7 @@ public class Engine {
    * Runs the given task if Engine has a capacity to start new plan as specified by
    * {@value #MAX_CONCURRENT_PLANS} configuration parameter within specified amount of time.
    * For the sake of backwards compatibility default value for a {@value #MAX_CONCURRENT_PLANS} is
-   * {@value #DEFAULT_MAX_CONCURRENT_PLANS} which essentially means "unbounded capacity".
+   * {@link #DEFAULT_MAX_CONCURRENT_PLANS} which essentially means "unbounded capacity".
    * Task passed in as a parameter becomes a root on a new Plan.
    * All tasks created and started as a consequence of a root task will belong to that plan and will share a Trace.
    * If Engine does not have capacity to start the task, this method will block up to specified amount of
@@ -419,7 +419,7 @@ public class Engine {
    * Runs the given task if Engine has a capacity to start new plan as specified by
    * {@value #MAX_CONCURRENT_PLANS} configuration parameter within specified amount of time.
    * For the sake of backwards compatibility default value for a {@value #MAX_CONCURRENT_PLANS} is
-   * {@value #DEFAULT_MAX_CONCURRENT_PLANS} which essentially means "unbounded capacity".
+   * {@link #DEFAULT_MAX_CONCURRENT_PLANS} which essentially means "unbounded capacity".
    * Task passed in as a parameter becomes a root on a new Plan.
    * All tasks created and started as a consequence of a root task will belong to that plan and will share a Trace.
    * If Engine does not have capacity to start the task, this method will block up to specified amount of
