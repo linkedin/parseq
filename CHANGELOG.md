@@ -1,6 +1,8 @@
 v3.0.12
 ------
-
+* Upgraded gradle to v5.6.3
+* Enabled gradle local caching and parallel execution
+* Fixed build time warnings
 
 
 v3.0.11
