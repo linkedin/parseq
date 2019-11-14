@@ -325,6 +325,10 @@ public class ParSeqUnitTestHelper {
     public void onPlanCompleted(PlanContext planContext) {
       CountDownLatch latch = _taskDoneLatch.computeIfAbsent(planContext.getRootTask(), key -> new CountDownLatch(1));
       latch.countDown();
+      
+      if (latch.getCount() == 0L) {
+        _taskDoneLatch.remove(planContext.getRootTask());
+      }
     }
 
     public void await(Task<?> root, long timeout, TimeUnit unit) throws InterruptedException {
