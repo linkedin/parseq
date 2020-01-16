@@ -48,6 +48,13 @@ import com.linkedin.parseq.promise.SettablePromise;
  */
 public class TestTasks extends BaseEngineTest {
 
+  private static class UnloggableException extends Exception {
+    @Override
+    public String toString() {
+      throw new RuntimeException("Cannot log an UnloggableException!");
+    }
+  }
+
   @Test
   public void testTaskThatThrows() throws InterruptedException {
     final Exception error = new Exception();
@@ -61,6 +68,27 @@ public class TestTasks extends BaseEngineTest {
 
     try {
       runAndWait("TestTasks.testTaskThatThrows", task);
+      fail("task should finish with Exception");
+    } catch (Throwable t) {
+      assertEquals(error, task.getError());
+    }
+
+    assertTrue(task.isFailed());
+  }
+
+  @Test
+  public void testTaskThatThrowsUnloggableException() throws InterruptedException {
+    final Exception error = new UnloggableException();
+
+    final Task<Object> task = new BaseTask<Object>() {
+      @Override
+      protected Promise<Object> run(final Context context) throws Exception {
+        throw error;
+      }
+    };
+
+    try {
+      runAndWait("TestTasks.testTaskThatThrowsUnloggableException", task);
       fail("task should finish with Exception");
     } catch (Throwable t) {
       assertEquals(error, task.getError());
