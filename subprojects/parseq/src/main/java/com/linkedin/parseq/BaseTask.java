@@ -252,8 +252,10 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
         traceFailure(reason);
       } catch (Throwable ex) {
         LOGGER.warn("Exception thrown in logging trace for failure!", ex);
+      } finally {
+        // guard any exception that may throw from catch block
+        getSettableDelegate().fail(reason);
       }
-      getSettableDelegate().fail(reason);
       return true;
     }
     return false;
@@ -329,9 +331,11 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
         traceFailure(error);
       } catch (Throwable ex) {
         LOGGER.warn("Exception thrown in logging trace for failure!", ex);
+      } finally {
+        // guard any exception that may throw from catch block
+        getSettableDelegate().fail(error);
+        taskLogger.logTaskEnd(BaseTask.this, _traceValueProvider);
       }
-      getSettableDelegate().fail(error);
-      taskLogger.logTaskEnd(BaseTask.this, _traceValueProvider);
     }
   }
 
