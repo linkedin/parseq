@@ -69,6 +69,63 @@ public class TestTasks extends BaseEngineTest {
     assertTrue(task.isFailed());
   }
 
+  private static class UnloggableException extends Exception {
+    @Override
+    public String toString() {
+      throw new RuntimeException("Cannot log an UnloggableException!");
+    }
+  }
+
+  @Test
+  public void testTaskThatThrowsUnloggableException() throws InterruptedException {
+    final Exception error = new UnloggableException();
+
+    final Task<Object> task = new BaseTask<Object>() {
+      @Override
+      protected Promise<Object> run(final Context context) throws Exception {
+        throw error;
+      }
+    };
+
+    try {
+      runAndWait("TestTasks.testTaskThatThrowsUnloggableException", task);
+      fail("task should finish with Exception");
+    } catch (Throwable t) {
+      assertEquals(error, task.getError());
+    }
+
+    assertTrue(task.isFailed());
+  }
+
+  // mimic an exception that when serialized, may throw exception that cannot be serialized again.
+  private static class ReallyUnloggableException extends RuntimeException {
+    @Override
+    public String toString() {
+      throw new ReallyUnloggableException();
+    }
+  }
+
+  @Test
+  public void testTaskThatThrowsReallyUnloggableException() throws InterruptedException {
+    final Exception error = new ReallyUnloggableException();
+
+    final Task<Object> task = new BaseTask<Object>() {
+      @Override
+      protected Promise<Object> run(final Context context) throws Exception {
+        throw error;
+      }
+    };
+
+    try {
+      runAndWait("TestTasks.testTaskThatThrowsReallyUnloggableException", task);
+      fail("task should finish with Exception");
+    } catch (Throwable t) {
+      assertEquals(error, task.getError());
+    }
+
+    assertTrue(task.isFailed());
+  }
+
   @Test
   public void testAwait() throws InterruptedException {
     final String value = "value";

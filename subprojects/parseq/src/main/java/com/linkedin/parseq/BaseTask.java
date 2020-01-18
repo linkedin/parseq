@@ -248,8 +248,14 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
   public boolean cancel(final Exception rootReason) {
     if (transitionCancel(rootReason)) {
       final Exception reason = new CancellationException(rootReason);
-      traceFailure(reason);
-      getSettableDelegate().fail(reason);
+      try {
+        traceFailure(reason);
+      } catch (Throwable ex) {
+        LOGGER.warn("Exception thrown in logging trace for failure!", ex);
+      } finally {
+        // guard any exception that may throw from catch block
+        getSettableDelegate().fail(reason);
+      }
       return true;
     }
     return false;
@@ -320,10 +326,16 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
 
   private void fail(final Throwable error, final TaskLogger taskLogger) {
     if (transitionDone()) {
-      appendTaskStackTrace(error);
-      traceFailure(error);
-      getSettableDelegate().fail(error);
-      taskLogger.logTaskEnd(BaseTask.this, _traceValueProvider);
+      try {
+        appendTaskStackTrace(error);
+        traceFailure(error);
+      } catch (Throwable ex) {
+        LOGGER.warn("Exception thrown in logging trace for failure!", ex);
+      } finally {
+        // guard any exception that may throw from catch block
+        getSettableDelegate().fail(error);
+        taskLogger.logTaskEnd(BaseTask.this, _traceValueProvider);
+      }
     }
   }
 
