@@ -1,3 +1,6 @@
+v3.0.13
+------
+
 v3.0.12
 ------
 * Guard exception thrown from tracing code to avoid unfinished plan.
