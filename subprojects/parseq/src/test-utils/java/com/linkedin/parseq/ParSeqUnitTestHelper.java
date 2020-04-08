@@ -190,6 +190,7 @@ public class ParSeqUnitTestHelper {
    */
   public <T> T runAndWaitForPlanToComplete(final String desc, Task<T> task, long time, TimeUnit timeUnit) {
     try {
+      _taskDoneListener.setupCountDownLatch(task);
       _engine.run(task);
       _taskDoneListener.await(task, time, timeUnit);
       return task.get();
@@ -325,11 +326,38 @@ public class ParSeqUnitTestHelper {
     public void onPlanCompleted(PlanContext planContext) {
       CountDownLatch latch = _taskDoneLatch.computeIfAbsent(planContext.getRootTask(), key -> new CountDownLatch(1));
       latch.countDown();
+      
+      if (latch.getCount() == 0L) {
+        _taskDoneLatch.remove(planContext.getRootTask());
+      }
     }
 
+    /**
+     * Note that setupCountDownLatch() must have been called before this method and before engine.run(). Else this will
+     * not work correctly. The reason to do this is because when we call engine.run() and then _taskDoneLatch.await(), 
+     * there are two possibilities. One, the task finishes before await(), in which case onPlanCompleted() has been called
+     * and there is no need to wait. So if you do not find the CountDownLatch, you know the task is done. This is because
+     * setupCountDownLatch() inserted that CountDownLatch, which must have been removed via onPlanCompleted(). Second
+     * scenario is that the onPlanCompleted() is called after await(). In this case, since setupCountDownLatch() inserted
+     * that CountDownLatch, this will get it and await on it, until it times out or onPlanCompleted() is called which
+     * counts down the latch.
+     */
     public void await(Task<?> root, long timeout, TimeUnit unit) throws InterruptedException {
-      CountDownLatch latch = _taskDoneLatch.computeIfAbsent(root, key -> new CountDownLatch(1));
-      latch.await(timeout, unit);
+      CountDownLatch latch = _taskDoneLatch.get(root);
+      
+      // If the latch is null, it means that onPlanCompleted was already called which removed the latch.
+      if (latch != null) {
+        latch.await(timeout, unit);
+      }
+    }
+    
+    /**
+     * Note that setupCountDownLatch must be called before engine.run(), if you plan to call await(). Read the javadoc of
+     * await() to know more details.
+     */
+    public void setupCountDownLatch(Task<?> root) {
+      // Insert the latch into the _taskDoneLatch, if not present. This CountDownLatch will be removed by onPlanCompleted.
+      _taskDoneLatch.computeIfAbsent(root, key -> new CountDownLatch(1));
     }
   }
 
