@@ -1,5 +1,9 @@
+v3.0.14
+------
+
 v3.0.13
 ------
+* Make sure _taskDoneLatch doesn't keep growing to avoid memory leak during performance testing.
 
 v3.0.12
 ------
