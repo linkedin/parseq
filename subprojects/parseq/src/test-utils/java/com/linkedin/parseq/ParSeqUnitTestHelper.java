@@ -190,6 +190,7 @@ public class ParSeqUnitTestHelper {
    */
   public <T> T runAndWaitForPlanToComplete(final String desc, Task<T> task, long time, TimeUnit timeUnit) {
     try {
+      _taskDoneListener.setupAwait(task);
       _engine.run(task);
       _taskDoneListener.await(task, time, timeUnit);
       return task.get();
@@ -332,8 +333,17 @@ public class ParSeqUnitTestHelper {
     }
 
     public void await(Task<?> root, long timeout, TimeUnit unit) throws InterruptedException {
-      CountDownLatch latch = _taskDoneLatch.computeIfAbsent(root, key -> new CountDownLatch(1));
-      latch.await(timeout, unit);
+      CountDownLatch latch = _taskDoneLatch.get(root);
+      
+      // If the latch is null, it means that onPlanCompleted was already called which removed the latch.
+      if (latch != null) {
+        latch.await(timeout, unit);
+      }
+    }
+    
+    public void setupAwait(Task<?> root) {
+      // Insert the latch into the _taskDoneLatch, if not present. This CountDownLatch will be removed by onPlanCompleted.
+      _taskDoneLatch.computeIfAbsent(root, key -> new CountDownLatch(1));
     }
   }
 
