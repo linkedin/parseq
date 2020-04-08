@@ -190,7 +190,7 @@ public class ParSeqUnitTestHelper {
    */
   public <T> T runAndWaitForPlanToComplete(final String desc, Task<T> task, long time, TimeUnit timeUnit) {
     try {
-      _taskDoneListener.setupAwait(task);
+      _taskDoneListener.setupCountDownLatch(task);
       _engine.run(task);
       _taskDoneListener.await(task, time, timeUnit);
       return task.get();
@@ -341,7 +341,7 @@ public class ParSeqUnitTestHelper {
       }
     }
     
-    public void setupAwait(Task<?> root) {
+    public void setupCountDownLatch(Task<?> root) {
       // Insert the latch into the _taskDoneLatch, if not present. This CountDownLatch will be removed by onPlanCompleted.
       _taskDoneLatch.computeIfAbsent(root, key -> new CountDownLatch(1));
     }
