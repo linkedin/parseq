@@ -1,4 +1,4 @@
-description = '''ParSeq test API''' // TODO: fix
+description = '''Provides test fixtures for writing ParSeq-based integration/unit tests'''
 
 dependencies {
   compile group: "org.testng", name: "testng", version: "6.9.9"
