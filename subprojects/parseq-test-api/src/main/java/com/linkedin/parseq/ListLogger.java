@@ -16,13 +16,12 @@
 
 package com.linkedin.parseq;
 
-import org.slf4j.helpers.MarkerIgnoringBase;
-import org.slf4j.helpers.MessageFormatter;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import org.slf4j.helpers.MarkerIgnoringBase;
+import org.slf4j.helpers.MessageFormatter;
 
 
 /**

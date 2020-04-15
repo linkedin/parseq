@@ -1,6 +1,7 @@
 rootProject.name = 'parseq'
 
 def modules = [ /* the name of the modules to use */
+    'parseq', // core part code, including test utility
     'parseq-batching',
     'parseq-benchmark',
     'parseq-examples',
@@ -9,10 +10,10 @@ def modules = [ /* the name of the modules to use */
     'parseq-lambda-names', //shadow jar
     'parseq-legacy-examples',
     'parseq-restli-client',
+    'parseq-test-api', // unit/integration test utils
+    'parseq-tracevis', // trace visualization tools
     'parseq-tracevis-server',
-    'parseq-zk-client',
-    'parseq', // core part code, including test utility
-    'parseq-tracevis' // trace visualization tools
+    'parseq-zk-client'
 ]
 
 
