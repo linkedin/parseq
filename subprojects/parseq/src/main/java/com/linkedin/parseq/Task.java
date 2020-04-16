@@ -1160,7 +1160,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
   }
 
   /**
-   * Creates a new task that's value will be set to the value returned
+   * Creates a new task whose value will be set to the value returned
    * from the supplied callable. This task is useful when doing basic
    * computation that does not require asynchrony. It is not appropriate for
    * long running or blocking callables. If callable is long running or blocking
