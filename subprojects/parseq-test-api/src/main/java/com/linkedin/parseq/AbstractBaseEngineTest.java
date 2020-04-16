@@ -16,11 +16,10 @@
 
 package com.linkedin.parseq;
 
+import com.linkedin.parseq.trace.Trace;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
-import com.linkedin.parseq.trace.Trace;
 
 
 /**

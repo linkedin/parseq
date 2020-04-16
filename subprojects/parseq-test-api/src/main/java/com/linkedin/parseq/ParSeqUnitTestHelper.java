@@ -16,6 +16,14 @@
 
 package com.linkedin.parseq;
 
+import com.linkedin.parseq.internal.PlanCompletionListener;
+import com.linkedin.parseq.internal.PlanContext;
+import com.linkedin.parseq.internal.TimeUnitHelper;
+import com.linkedin.parseq.promise.PromiseException;
+import com.linkedin.parseq.promise.Promises;
+import com.linkedin.parseq.promise.SettablePromise;
+import com.linkedin.parseq.trace.Trace;
+import com.linkedin.parseq.trace.TraceUtil;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,18 +34,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.linkedin.parseq.internal.PlanCompletionListener;
-import com.linkedin.parseq.internal.PlanContext;
-import com.linkedin.parseq.internal.TimeUnitHelper;
-import com.linkedin.parseq.promise.PromiseException;
-import com.linkedin.parseq.promise.Promises;
-import com.linkedin.parseq.promise.SettablePromise;
-import com.linkedin.parseq.trace.Trace;
-import com.linkedin.parseq.trace.TraceUtil;
 
 
 /**
@@ -326,7 +324,7 @@ public class ParSeqUnitTestHelper {
     public void onPlanCompleted(PlanContext planContext) {
       CountDownLatch latch = _taskDoneLatch.computeIfAbsent(planContext.getRootTask(), key -> new CountDownLatch(1));
       latch.countDown();
-      
+
       if (latch.getCount() == 0L) {
         _taskDoneLatch.remove(planContext.getRootTask());
       }
@@ -334,7 +332,7 @@ public class ParSeqUnitTestHelper {
 
     /**
      * Note that setupCountDownLatch() must have been called before this method and before engine.run(). Else this will
-     * not work correctly. The reason to do this is because when we call engine.run() and then _taskDoneLatch.await(), 
+     * not work correctly. The reason to do this is because when we call engine.run() and then _taskDoneLatch.await(),
      * there are two possibilities. One, the task finishes before await(), in which case onPlanCompleted() has been called
      * and there is no need to wait. So if you do not find the CountDownLatch, you know the task is done. This is because
      * setupCountDownLatch() inserted that CountDownLatch, which must have been removed via onPlanCompleted(). Second
@@ -344,13 +342,13 @@ public class ParSeqUnitTestHelper {
      */
     public void await(Task<?> root, long timeout, TimeUnit unit) throws InterruptedException {
       CountDownLatch latch = _taskDoneLatch.get(root);
-      
+
       // If the latch is null, it means that onPlanCompleted was already called which removed the latch.
       if (latch != null) {
         latch.await(timeout, unit);
       }
     }
-    
+
     /**
      * Note that setupCountDownLatch must be called before engine.run(), if you plan to call await(). Read the javadoc of
      * await() to know more details.

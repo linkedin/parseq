@@ -12,6 +12,7 @@ dependencies {
     compile group: 'org.hdrhistogram', name: 'HdrHistogram', version:'2.1.8'
     compile group: 'org.antlr', name: 'antlr4-runtime', version:'4.5'
 
+    testCompile project(':parseq-test-api')
     testCompile group: 'org.testng', name: 'testng', version:'6.9.9'
     testCompile group: 'org.slf4j', name: 'slf4j-simple', version:'1.7.12'
     testCompile (group: 'com.linkedin.pegasus', name: 'restli-int-test-server', version:'24.0.2'){
@@ -20,7 +21,6 @@ dependencies {
     }
     testCompile group: 'com.linkedin.pegasus', name: 'restli-int-test-api', version:'24.0.2', classifier:'all'
     testCompile group: 'com.linkedin.pegasus', name: 'r2-netty', version:'24.0.2'
-    testCompile project(path: ':parseq', configuration: 'testArtifact')
 
     antlr "org.antlr:antlr4:4.5"
 }

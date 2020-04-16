@@ -23,15 +23,6 @@ configurations {
     description "bootstrapping dependencies"
     visible = false
   }
-
-  testArtifact
-
-  testUtilCompile {
-    description "test utility compile time dependencies"
-  }
-  compile {
-    extendsFrom testUtilCompile
-  }
 }
 
 dependencies {
@@ -40,73 +31,9 @@ dependencies {
   compile group: "org.slf4j", name: "slf4j-api", version: "1.7.25"
   bootstrap group: "net.sourceforge.fmpp", name: "fmpp", version: "0.9.15"
 
+  testCompile project(':parseq-test-api')
   testCompile group: "org.testng", name: "testng", version: "6.9.9"
-  testCompile group: "org.junit.jupiter", name: "junit-jupiter-api", version: "5.5.1"
   testCompile group: "org.slf4j", name: "slf4j-log4j12", version: "1.7.25"
-}
-
-idea {
-  module {
-    testSourceDirs += file('src/test-utils/java')
-  }
-}
-
-sourceSets {
-  testUtils {
-    compileClasspath += sourceSets.main.compileClasspath + configurations.compile + configurations.testCompile + sourceSets.main.output
-    java {
-      srcDirs = ['src/test-utils/java']
-    }
-  }
-
-  test {
-      compileClasspath += sourceSets.testUtils.output
-      runtimeClasspath += sourceSets.testUtils.output
-  }
-}
-
-compileTestJava {
-  dependsOn compileTestUtilsJava
-  classpath += sourceSets.testUtils.output + configurations.testCompile
-}
-
-javadoc {
-  options.use = false
-}
-
-// package test utility
-task testJar(type: Jar) {
-  from sourceSets.testUtils.output
-  from sourceSets.main.output
-  classifier = 'test'
-}
-
-task packageTestJar(type: Jar) {
-  from sourceSets.testUtils.output
-  classifier = 'test'
-}
-
-task testUtilsJavadoc(type: Javadoc) {
-  source sourceSets.testUtils.allJava
-  classpath = sourceSets.main.output +  sourceSets.main.runtimeClasspath + sourceSets.testUtils.compileClasspath
-  destinationDir = reporting.file("${buildDir}/docs-test")
-}
-task packageTestJavadoc(type: Jar, dependsOn: ['testUtilsJavadoc']) {
-  from testUtilsJavadoc.destinationDir
-  //from sourceSets.testUtils.allJava
-  classifier = 'test-javadoc'
-}
-
-task packageTestSources(type: Jar, dependsOn: 'classes') {
-  from sourceSets.testUtils.allSource
-  classifier = 'test-sources'
-}
-
-artifacts {
-  testArtifact testJar
-  archives packageTestJar
-  archives packageTestJavadoc
-  archives packageTestSources
 }
 
 // publish to maven
