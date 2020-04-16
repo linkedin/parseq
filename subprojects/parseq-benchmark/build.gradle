@@ -1,7 +1,7 @@
 description = """Set of benchmarks for ParSeq"""
 
 dependencies {
-  compile project(":parseq-batching")
+  compile project(':parseq-batching')
   compile group: 'org.hdrhistogram', name: 'HdrHistogram', version:'2.1.8'
   compile group: 'org.slf4j', name: 'slf4j-simple', version:'1.7.12'
 }
