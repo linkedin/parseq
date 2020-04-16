@@ -3,7 +3,7 @@ v4.0.0
 
 * **BACKWARD INCOMPATIBLE**:
     * Discontinue publishing `:parseq` test artifacts (e.g. `parseq-3.0.13-test.jar`),
-      publish instead as `:parseq-test-api` main artifacts (e.g. `parseq-4.0.0.jar`).
+      publish instead as `:parseq-test-api` main artifacts (e.g. `parseq-test-api-4.0.0.jar`).
       The old test artifacts would be referenced via the `testArtifact` configuration,
       whereas the new main artifacts are referenced via standard configurations (e.g. `testCompile`).
 
