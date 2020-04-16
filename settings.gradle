@@ -1,13 +1,13 @@
 rootProject.name = 'parseq'
 
 def modules = [ /* the name of the modules to use */
-    'parseq', // core part code, including test utility
+    'parseq', // core parseq code
     'parseq-batching',
     'parseq-benchmark',
     'parseq-examples',
     'parseq-exec',
     'parseq-http-client',
-    'parseq-lambda-names', //shadow jar
+    'parseq-lambda-names', // shadow jar
     'parseq-legacy-examples',
     'parseq-restli-client',
     'parseq-test-api', // unit/integration test utils
