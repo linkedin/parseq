@@ -4,11 +4,13 @@ v4.0.0
 * **BACKWARD INCOMPATIBLE**:
     * Discontinue publishing `:parseq` test artifacts (e.g. `parseq-3.0.13-test.jar`),
       publish instead as `:parseq-test-api` main artifacts (e.g. `parseq-4.0.0.jar`).
+      The old test artifacts would be referenced via the `testArtifact` configuration,
+      whereas the new main artifacts are referenced via standard configurations (e.g. `testCompile`).
 
 v3.0.13
 ------
 
-* Make sure _taskDoneLatch doesn't keep growing to avoid memory leak during performance testing.
+* Make sure `_taskDoneLatch` doesn't keep growing to avoid memory leak during performance testing.
 
 v3.0.12
 ------
