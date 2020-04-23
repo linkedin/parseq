@@ -1,6 +1,8 @@
 v4.0.1
 ------
 
+* Archives are now uploaded to [LinkedIn's Maven repo on Bintray](https://bintray.com/linkedin/maven)
+  rather than to Maven Central via Sonatype. This involved a major cleanup of the Gradle build scripts.
 * Added the `testArtifact` configuration back for the `:parseq` module as a temporary fix to maintain
   transitive compatibility, though it's now deprecated and should not be used.
 

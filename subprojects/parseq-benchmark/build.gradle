@@ -1,4 +1,6 @@
-description = """Set of benchmarks for ParSeq"""
+ext {
+  description = """Set of benchmarks for ParSeq"""
+}
 
 dependencies {
   compile project(':parseq-batching')
@@ -6,15 +8,15 @@ dependencies {
   compile group: 'org.slf4j', name: 'slf4j-simple', version:'1.7.12'
 }
 
-
 task fatJar(type: Jar) {
+  mustRunAfter ':parseq:jar' // for some reason, gradle can't figure out this transitive dependency
   classifier = 'jar-with-dependencies'
   from { configurations.compile.collect { it.isDirectory()? it : zipTree(it) } }
   with jar
   manifest {
     attributes("Created-By": "Gradle",
         "Version": version,
-        "Built-By": sonatypeUsername,
+        "Built-By": project.rootProject.ext.builtByUser,
         "Build-JDK": JavaVersion.current())
     attributes 'Main-Class': 'com.linkedin.parseq.PerfLarge'
   }
@@ -25,26 +27,6 @@ task executeJava(type: JavaExec) {
   classpath = sourceSets.main.runtimeClasspath
 }
 
-
-
 artifacts {
   archives fatJar
-}
-
-uploadArchives {
-  repositories {
-    mavenDeployer {
-      pom.project {
-        description description
-
-        developers {
-          developer {
-            id 'jodzga'
-            name 'Jaroslaw Odzga'
-            email 'jodzga@linkedin.com'
-          }
-        }
-      }
-    }
-  }
 }

@@ -1,0 +1,102 @@
+/*
+ * Copyright 2020 LinkedIn, Inc
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+/**
+ * The purpose of this script is to configure the following tasks for a given sub-project:
+ * - generatePomFileForReleasePublication: generates the "release" Maven publication (.pom), needed for bintrayUpload
+ * - publishReleasePublicationToMavenLocal: publishes the "release" publication to Maven local
+ *
+ * This script should be applied after sub-projects are evaluated to ensure that sub-project archives have been
+ * configured and extra properties have been set.
+ */
+final boolean isJavaPublication = !project.name.equals('parseq-tracevis')
+
+def pomConfig = {
+  resolveStrategy = Closure.DELEGATE_FIRST // needed for the description to be included for some reason
+  if (isJavaPublication) {
+    packaging 'jar'
+  }
+  name project.name // sub-project name
+  description project.ext.description
+  url 'http://github.com/linkedin/parseq'
+  licenses {
+    license {
+      name 'The Apache Software License, Version 2.0'
+      url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+      distribution 'repo'
+    }
+  }
+  developers {
+    // Add developers common to all sub-projects
+    developer {
+      id 'jodzga'
+      name 'Jaroslaw Odzga'
+      email 'jodzga@linkedin.com'
+    }
+    // Add developers specific to this sub-project
+    if (project.ext.has('developers')) {
+      project.ext.developers.forEach { info ->
+        developer {
+          id info.id
+          name info.name
+          email info.email
+        }
+      }
+    }
+  }
+  scm {
+    connection 'scm:git:git@github.com:linkedin/parseq.git'
+    developerConnection 'scm:git:git@github.com:linkedin/parseq.git'
+    url 'git@github.com:linkedin/parseq.git'
+  }
+}
+
+publishing {
+  publications {
+    release(MavenPublication) {
+      if (isJavaPublication) {
+        from components.java
+        // Add all extra archives (sources, javadoc, any custom archives e.g. jar-with-dependencies)
+        project.configurations.archives.allArtifacts.findAll { it.classifier }.forEach { artifact it }
+      } else {
+        // Add all tracevis artifacts
+        project.configurations.tracevisArtifacts.allArtifacts.forEach { artifact it }
+      }
+      groupId project.group
+      artifactId project.name // sub-project name
+      version project.version
+      pom.withXml {
+        def root = asNode()
+        def children = root.children()
+
+        // Prefer appending POM info before dependencies for readability (helps with debugging)
+        if (children.last().name().toString().endsWith('dependencies')) {
+          children.get(children.size() - 2) + pomConfig
+        } else {
+          children.last() + pomConfig
+        }
+      }
+    }
+  }
+}
+
+// TODO: remove once ivy publications are no longer required
+// Publish to project's local ivy repo
+uploadArchives {
+  repositories {
+    ivy { url "file:$rootDir/build/ivy-repo" }
+  }
+}

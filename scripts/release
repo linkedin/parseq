@@ -1,5 +1,8 @@
 #!/bin/sh
 
+echo 'This script is outdated and should not be used'
+exit 2
+
 if test ! -f version.properties
 then
     echo >&2 Could not find version.properties. Run this command from the root of the project.
