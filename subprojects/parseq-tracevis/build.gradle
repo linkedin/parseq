@@ -1,13 +1,6 @@
-ext {
-  description = '''A trace visualizer for ParSeq traces.'''
-  developers = [
-    [id: 'cpettitt', name: 'Chris Pettitt', email: 'cpettitt@linkedin.com'],
-    [id: 'ckchan', name: 'Chi Kit Chan', email: 'ckchan@linkedin.com']
-  ]
-}
+description = '''A trace visualizer for ParSeq traces.'''
 
-apply plugin: 'com.github.node-gradle.node'
-
+apply plugin: 'com.moowork.node'
 
 node {
   // Version of node to use.
@@ -35,7 +28,7 @@ buildscript {
     }
   }
   dependencies {
-    classpath 'com.github.node-gradle:gradle-node-plugin:2.2.3'
+    classpath "com.moowork.gradle:gradle-node-plugin:1.2.0"
   }
 }
 
@@ -288,4 +281,45 @@ build.dependsOn makeDist
 
 artifacts {
   tracevisArtifacts makeDist
+  //archives makeDist
+  if (project.hasProperty('ossRelease')) {
+    project.afterEvaluate {
+      // gradle is broken for extensions that contain a dot, so we must be explicit about the name of the .asc file
+      project.signArchives.singleSignature.type = 'tar.gz.asc'
+    }
+  }
+}
+
+configurations.archives.artifacts.with { archives ->
+  archives.findAll { !(it.file =~ 'tar.gz' || it.file=~ 'tar.gz.asc') }.each {
+    remove(it) }
+}
+
+
+uploadArchives {
+  repositories {
+    mavenDeployer {
+      pom.project {
+        description description
+
+        developers {
+          developer {
+            id 'cpettitt'
+            name 'Chris Pettitt'
+            email 'cpettitt@linkedin.com'
+          }
+          developer {
+            id 'ckchan'
+            name 'Chi Kit Chan'
+            email 'ckchan@linkedin.com<'
+          }
+          developer {
+            id 'jodzga'
+            name 'Jaroslaw Odzga'
+            email 'jodzga@linkedin.com'
+          }
+        }
+      }
+    }
+  }
 }

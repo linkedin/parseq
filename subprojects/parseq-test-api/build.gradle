@@ -1,6 +1,4 @@
-ext {
-  description = '''Provides test fixtures for writing ParSeq-based integration/unit tests'''
-}
+description = '''Provides test fixtures for writing ParSeq-based integration/unit tests'''
 
 dependencies {
   compile group: "org.testng", name: "testng", version: "6.9.9"
@@ -9,4 +7,21 @@ dependencies {
 
 javadoc {
   options.use = false
+}
+
+uploadArchives {
+  repositories {
+    mavenDeployer {
+      pom.project {
+        description description
+        developers {
+          developer {
+            id 'jodzga'
+            name 'Jaroslaw Odzga'
+            email 'jodzga@linkedin.com'
+          }
+        }
+      }
+    }
+  }
 }

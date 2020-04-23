@@ -1,8 +1,6 @@
-ext {
-    description = """Provides a convenient API for creating automatically batched tasks""" // TODO: is this accurate?
-}
-
 apply plugin: 'antlr'
+
+description = """Provides convenient API for creating automatically batched tasks"""
 
 
 dependencies {
@@ -30,4 +28,22 @@ dependencies {
 generateGrammarSource {
   source = fileTree(dir: '${projectDir}/src/main/antlr4')
   outputDirectory = file("${projectDir}/src/main/java")
+}
+
+uploadArchives {
+  repositories {
+    mavenDeployer {
+      pom.project {
+        description description
+
+        developers {
+          developer {
+            id 'jodzga'
+            name 'Jaroslaw Odzga'
+            email 'jodzga@linkedin.com'
+          }
+        }
+      }
+    }
+  }
 }
