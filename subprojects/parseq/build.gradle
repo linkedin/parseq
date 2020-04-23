@@ -23,6 +23,10 @@ configurations {
     description "bootstrapping dependencies"
     visible = false
   }
+  // Maintains transitive consumer compatibility for consumers of parseq 3. TODO: remove in parseq 5
+  testArtifact {
+    description "this is deprecated and will be removed, please depend on parseq-test-api instead"
+  }
 }
 
 dependencies {
@@ -34,6 +38,9 @@ dependencies {
   testCompile project(':parseq-test-api')
   testCompile group: "org.testng", name: "testng", version: "6.9.9"
   testCompile group: "org.slf4j", name: "slf4j-log4j12", version: "1.7.25"
+
+  // TODO: remove in parseq 5
+  testArtifact project(':parseq-test-api')
 }
 
 // publish to maven

@@ -1,6 +1,9 @@
 v4.0.1
 ------
 
+* Added the `testArtifact` configuration back for the `:parseq` module as a temporary fix to maintain
+  transitive compatibility, though it's now deprecated and should not be used.
+
 v4.0.0
 ------
 
