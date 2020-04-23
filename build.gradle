@@ -1,3 +1,17 @@
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
+    classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
+  }
+}
+
+ext {
+  builtByUser = System.getenv('BINTRAY_USER') ?: System.getenv('user.name') ?: 'unknown'
+}
+
 apply from: file("gradle/versioning.gradle")
 
 allprojects { // for all projects including the root project
@@ -5,10 +19,10 @@ allprojects { // for all projects including the root project
   apply plugin: 'eclipse'
   apply plugin: 'maven-publish'
   apply plugin: 'maven'
+  // TODO: remove this once we no longer need ivy publications (adds the "signatures" .ivy configuration)
   apply plugin: 'signing'
 
   version = rootProject.version
-  group = 'com.linkedin.parseq'
 
   repositories {
     mavenCentral()
@@ -24,10 +38,9 @@ idea {
 }
 
 subprojects {
-  archivesBaseName = project.name
-
   if (!it.name.equals("parseq-tracevis")) {
     apply plugin: 'java'
+    apply plugin: 'java-library'
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
@@ -53,11 +66,12 @@ subprojects {
     }
 
     // configure MANIFEST
+    // TODO: unnecessary and volatile attributes affect caching and should be removed
     jar {
       manifest {
         attributes("Created-By": "Gradle",
             "Version": version,
-            "Built-By": sonatypeUsername,
+            "Built-By": project.rootProject.ext.builtByUser,
             "Build-JDK": JavaVersion.current())
       }
     }
@@ -66,6 +80,7 @@ subprojects {
     javadoc {
       options.use = true
       options.author = true
+      // TODO: update date to be dynamically set
       options.bottom = "Copyright &#169; 2018. All rights reserved."
       options.classpath += file("${project.projectDir.absolutePath}/src/main/java")
       options.links("https://docs.oracle.com/javase/8/docs/api/")
@@ -81,69 +96,13 @@ subprojects {
     }
   }
 
-  // Not include parseq-examples and parseq-legacy-examples, since we don't need to publish their jar files
+  // Don't include parseq-examples and parseq-legacy-examples, since we don't need to publish their jar files
   afterEvaluate {
     if (it.name.startsWith('parseq') && !it.name.endsWith('examples') && !it.name.endsWith('tracevis')) {
       artifacts {
         archives jar
         archives packageJavadoc
         archives packageSources
-      }
-    }
-    if (it.name.equals("parseq-examples") || it.name.equals("parseq-legacy-examples")) {
-      project.tasks.uploadArchives.enabled = false
-    }
-  }
-
-  // sign up
-  if (project.hasProperty('ossRelease')) {
-    signing {
-      required = { gradle.taskGraph.hasTask("uploadArchives") }
-      sign configurations.archives
-    }
-  }
-
-  // publish to maven and local ivy repo
-  uploadArchives {
-    repositories {
-      ivy { url "file:$rootDir/build/ivy-repo" }
-
-      mavenDeployer {
-        if (project.hasProperty('ossRelease')) {
-          // pom signature
-          beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-          repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-            authentication(userName: sonatypeUsername, password: sonatypePassword)
-          }
-
-          snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots") {
-            authentication(userName: sonatypeUsername, password: sonatypePassword)
-          }
-        } else {
-          //Useful for local testing. If not useful, we should delete this line:
-          repository(url: "file:$rootDir/build/mvn-repo")
-        }
-
-        pom.project {
-          name project.name
-          packaging 'jar'
-          url 'http://github.com/linkedin/parseq'
-
-          scm {
-            url 'git@github.com:linkedin/parseq.git'
-            connection 'scm:git:git@github.com:linkedin/parseq.git'
-            developerConnection 'scm:git:git@github.com:linkedin/parseq.git'
-          }
-
-          licenses {
-            license {
-              name 'The Apache Software License, Version 2.0'
-              url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-              distribution 'repo'
-            }
-          }
-        }
       }
     }
   }
@@ -182,4 +141,20 @@ task runTracevisServer (dependsOn:':parseq-tracevis-server:build') {
       logger.error('Can not find dot tools, please install it or check the docLocation!')
     }
   }
+}
+
+subprojects { p ->
+  if (!p.name.endsWith('examples')) {
+    p.afterEvaluate {
+      p.apply from: "$rootDir/gradle/maven.gradle"
+    }
+    p.apply from: "$rootDir/gradle/bintray.gradle"
+  }
+}
+
+// TODO: remove once ivy publications are no longer required
+// Clean the project's local ivy repo before publishing to prevent conflicts
+project.tasks.uploadArchives.doFirst {
+  logger.lifecycle "Cleaning local ivy repo: $rootDir/build/ivy-repo"
+  delete(file("$rootDir/build/ivy-repo"))
 }
