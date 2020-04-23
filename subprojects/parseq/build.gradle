@@ -1,6 +1,7 @@
-description = '''ParSeq project core code'''
+ext {
+  description = '''ParSeq project core code'''
+}
 
-archivesBaseName = 'parseq'
 
 //TODO avoid buildscript dependency
 buildscript {
@@ -42,26 +43,6 @@ dependencies {
   // TODO: remove in parseq 5
   testArtifact project(':parseq-test-api')
 }
-
-// publish to maven
-uploadArchives {
-  repositories {
-    mavenDeployer {
-      pom.artifactId = 'parseq'
-      pom.project {
-        description description
-        developers {
-          developer {
-            id 'jodzga'
-            name 'Jaroslaw Odzga'
-            email 'jodzga@linkedin.com'
-          }
-        }
-      }
-    }
-  }
-}
-
 
 // When update the template and data in codegen, need to run this task before gradle build task
 task generateFmppSources {

@@ -1,6 +1,9 @@
 v4.0.2
 ------
 
+* Archives are now uploaded to [LinkedIn's Maven repo on Bintray](https://bintray.com/linkedin/maven)
+  rather than to Maven Central via Sonatype. This involved a major cleanup of the Gradle build scripts.
+
 v4.0.1
 ------
 
