@@ -1,7 +1,8 @@
+ext {
+  description = """Finds source code locations and infers operations for lambda expressions"""
+}
+
 apply plugin: 'com.github.johnrengelman.shadow'
-
-
-description = """Finds source code location and infers operation for lambda expressions"""
 
 
 configurations {
@@ -18,15 +19,6 @@ sourceSets.main.compileClasspath += configurations.shadow + sourceSets.main.comp
 
 javadoc.classpath += configurations.shadow + sourceSets.main.compileClasspath
 
-buildscript {
-  repositories {
-    jcenter()
-  }
-  dependencies {
-    classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
-  }
-}
-
 shadowJar {
   configurations += [project.configurations.shadow]
   classifier = null
@@ -34,29 +26,9 @@ shadowJar {
 }
 
 jar {
+  finalizedBy shadowJar // The shadowJar task basically overwrites the output of the jar task (kind of hacky)
   manifest {
     attributes 'Agent-Class': 'com.linkedin.parseq.lambda.ASMBasedTaskDescriptor$Agent'
-  }
-}
-
-uploadArchives.dependsOn shadowJar
-assemble.dependsOn shadowJar
-
-uploadArchives {
-  repositories {
-    mavenDeployer {
-      pom.project {
-        description description
-
-        developers {
-          developer {
-            id 'jodzga'
-            name 'Jaroslaw Odzga'
-            email 'jodzga@linkedin.com'
-          }
-        }
-      }
-    }
   }
 }
 

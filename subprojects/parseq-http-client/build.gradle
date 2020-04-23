@@ -1,23 +1,7 @@
-description = """Integrates ParSeq with Async Http Client library"""
+ext {
+    description = """Integrates ParSeq with the Async Http Client library"""
+}
 
 dependencies {
     compile group: 'com.ning', name: 'async-http-client', version:'1.9.21'
-}
-
-uploadArchives {
-  repositories {
-    mavenDeployer {
-      pom.project {
-        description description
-
-        developers {
-          developer {
-            id 'jodzga'
-            name 'Jaroslaw Odzga'
-            email 'jodzga@linkedin.com'
-          }
-        }
-      }
-    }
-  }
 }
