@@ -1,4 +1,7 @@
-v4.0.2
+v4.1.1
+------
+
+v4.1.0
 ------
 
 * Archives are now uploaded to [LinkedIn's Maven repo on Bintray](https://bintray.com/linkedin/maven)
