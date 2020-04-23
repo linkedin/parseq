@@ -1,8 +1,12 @@
+v4.0.2
+------
+
 v4.0.1
 ------
 
 * Added the `testArtifact` configuration back for the `:parseq` module as a temporary fix to maintain
   transitive compatibility, though it's now deprecated and should not be used.
+* Bump to Gradle 5.6.4
 
 v4.0.0
 ------
