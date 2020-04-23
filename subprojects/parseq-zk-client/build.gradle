@@ -1,9 +1,4 @@
-ext {
-  description = """Integrates ParSeq with the Apache ZooKeeper Library"""
-  developers = [
-    [id: 'axu', name: 'Ang Xu', email: 'axu@linkedin.com']
-  ]
-}
+description = """Integrates ParSeq with Apache ZooKeeper Library"""
 
 
 dependencies {
@@ -11,4 +6,22 @@ dependencies {
   testCompile project(':parseq-test-api')
   testCompile group: 'org.testng', name: 'testng', version:'6.9.9'
   testCompile group: 'com.linkedin.pegasus', name: 'd2', version:'2.6.0'
+}
+
+uploadArchives {
+  repositories {
+    mavenDeployer {
+      pom.project {
+        description description
+
+        developers {
+          developer {
+            id 'axu'
+            name 'Ang Xu'
+            email 'axu@linkedin.com'
+          }
+        }
+      }
+    }
+  }
 }

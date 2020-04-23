@@ -1,3 +1,20 @@
-ext {
-  description = """Integrates ParSeq with the Java Process API"""
+description = """Integrates ParSeq with Java Process API"""
+
+
+uploadArchives {
+  repositories {
+    mavenDeployer {
+      pom.project {
+        description description
+
+        developers {
+          developer {
+            id 'jodzga'
+            name 'Jaroslaw Odzga'
+            email 'jodzga@linkedin.com'
+          }
+        }
+      }
+    }
+  }
 }

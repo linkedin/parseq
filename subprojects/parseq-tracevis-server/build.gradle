@@ -1,6 +1,4 @@
-ext {
-  description = """Serves the tracevis tool for rendering graphviz diagrams"""
-}
+description = """Serves tracevis tool capable of rendering graphviz diagrams"""
 
 def jettyVersion = '9.3.0.v20150612'
 
@@ -37,7 +35,7 @@ task fatJar(type: Jar, dependsOn: ':parseq-tracevis:makeDist') {
   manifest {
     attributes("Created-By": "Gradle",
         "Version": version,
-        "Built-By": project.rootProject.ext.builtByUser,
+        "Built-By": sonatypeUsername,
         "Build-JDK": JavaVersion.current())
     attributes 'Main-Class': 'com.linkedin.parseq.TracevisServerJarMain'
   }
@@ -45,4 +43,22 @@ task fatJar(type: Jar, dependsOn: ':parseq-tracevis:makeDist') {
 
 artifacts {
   archives fatJar
+}
+
+uploadArchives {
+  repositories {
+    mavenDeployer {
+      pom.project {
+        description description
+
+        developers {
+          developer {
+            id 'jodzga'
+            name 'Jaroslaw Odzga'
+            email 'jodzga@linkedin.com'
+          }
+        }
+      }
+    }
+  }
 }
