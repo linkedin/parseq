@@ -16,8 +16,8 @@ public class PlatformClock implements Clock {
   }
 
   @Override
-  public void sleepNano(long nao) throws InterruptedException {
-    TimeUnit.NANOSECONDS.sleep(nao);
+  public void sleepNano(long nano) throws InterruptedException {
+    TimeUnit.NANOSECONDS.sleep(nano);
   }
 
 }

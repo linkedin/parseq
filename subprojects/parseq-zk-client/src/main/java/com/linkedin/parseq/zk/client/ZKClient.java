@@ -102,7 +102,7 @@ public interface ZKClient {
   Task<List<OpResult>> multi(List<Op> ops, Executor executor);
 
   /**
-   * Returns task that will wait for the given {@link Watcher.Event.KeeperState} to fulfill.
+   * Returns task that will wait for the given {@link org.apache.zookeeper.Watcher.Event.KeeperState} to fulfill.
    * The task will be failed if the underlying zookeeper session expires.
    *
    * @param state keeper state to wait for.

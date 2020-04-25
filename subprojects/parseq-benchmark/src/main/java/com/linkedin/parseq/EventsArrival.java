@@ -11,8 +11,7 @@ import java.util.concurrent.TimeUnit;
 public interface EventsArrival {
 
   /**
-   * Returns number of nanoseconds until next arrival.
-   * @return
+   * @return The number of nanoseconds until next arrival.
    */
   long nanosToNextEvent();
 

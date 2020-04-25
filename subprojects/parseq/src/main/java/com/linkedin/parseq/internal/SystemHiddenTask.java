@@ -1,6 +1,7 @@
 package com.linkedin.parseq.internal;
 
 import com.linkedin.parseq.BaseTask;
+import com.linkedin.parseq.function.Function1;
 
 
 /**
@@ -9,8 +10,8 @@ import com.linkedin.parseq.BaseTask;
  * <p>
  * Instead of extending this class consider using
  *
- * {@link com.linkedin.parseq.Task#async(String, com.linkedin.parseq.function.Function1, boolean) Task.async}.
- * @see com.linkedin.parseq.Task#async(String, com.linkedin.parseq.function.Function1, boolean) Task.async
+ * {@link com.linkedin.parseq.Task#async(String, Function1)}.
+ * @see com.linkedin.parseq.Task#async(String, Function1)
  */
 public abstract class SystemHiddenTask<T> extends BaseTask<T> {
   protected SystemHiddenTask(String name) {

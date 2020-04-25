@@ -1372,7 +1372,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * parameter <b>must</b> signal execution rejection by throwing an exception.
    * <p>
    * In order to prevent blocking ParSeq threads the Executor passed in as a
-   * parameter <b>must not</b> use {@link ThreadPoolExecutor.CallerRunsPolicy}
+   * parameter <b>must not</b> use {@link java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy}
    * as a rejection policy.
    *
    * @param <T> the type of the return value for this task
