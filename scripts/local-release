@@ -1,27 +1,50 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # The purpose of this script is to publish artifacts to ~/local-repo
 
-if [ ! -f gradle.properties ]; then
-  echo 'Could not find gradle.properties. Run this command from the root of the project.'
-  exit 1
+# Ensure that the script is being run from the root project directory
+PROPERTIES_FILE='gradle.properties'
+if [ ! -f "$PROPERTIES_FILE" ]; then
+  echo "Could not find $PROPERTIES_FILE, please run this script from the root project directory."
+  exit 2
 fi
+
+# Process CLI arguments
+EXTRA_PROPERTY='-Prelease'
+for ARG in "$@"; do
+  if [ "$ARG" = '-h' ] || [ "$ARG" = '--help' ]; then
+    cat ./scripts/help-text/local-release.txt
+    exit 0
+  elif [ "$ARG" = '-s' ] || [ "$ARG" = '--snapshot' ]; then
+    EXTRA_PROPERTY='-Psnapshot'
+  else
+    echo "Unrecognized option: $ARG"
+    echo ''
+    cat ./scripts/help-text/local-release.txt
+    exit 2
+  fi
+done
 
 if [ ! -d "$HOME" ]; then
   echo 'Cannot perform local release, $HOME is not set to a valid directory.'
   exit 1
 fi
 
+# Create ~/local-repo if it doesn't already exist
 LOCAL_REPO="${HOME}/local-repo"
-
 if [ ! -d $LOCAL_REPO ]; then
   mkdir $LOCAL_REPO
 fi
 
-VERSION=$(awk 'BEGIN { FS = "=" }; $1 == "version" { print $2 }' gradle.properties | awk '{ print $1 }')
+# Determine the version to be released, adding the snapshot suffix if appropriate
+VERSION=$(awk 'BEGIN { FS = "=" }; $1 == "version" { print $2 }' $PROPERTIES_FILE | awk '{ print $1 }')
+if [ "$EXTRA_PROPERTY" = '-Psnapshot' ] && [[ "$VERSION" != *-SNAPSHOT ]]; then
+  VERSION="${VERSION}-SNAPSHOT"
+fi
+
 echo "Publishing parseq $VERSION to ${LOCAL_REPO}..."
 
 # Publish artifacts to Maven local, but override the repo path as ~/local-repo
-./gradlew -Dmaven.repo.local=$LOCAL_REPO -Prelease publishReleasePublicationToMavenLocal
+./gradlew -Dmaven.repo.local=$LOCAL_REPO $EXTRA_PROPERTY publishReleasePublicationToMavenLocal
 
 if [ $? -eq 0 ]; then
   echo "Published parseq $VERSION to $LOCAL_REPO"

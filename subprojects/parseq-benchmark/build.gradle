@@ -16,7 +16,6 @@ task fatJar(type: Jar) {
   manifest {
     attributes("Created-By": "Gradle",
         "Version": version,
-        "Built-By": project.rootProject.ext.builtByUser,
         "Build-JDK": JavaVersion.current())
     attributes 'Main-Class': 'com.linkedin.parseq.PerfLarge'
   }
