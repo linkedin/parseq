@@ -9,7 +9,7 @@
     "jshint": "~2.1.11",
     "istanbul": "~0.1.44",
     "mocha": "1.2.x",
-    "phantomjs": "~1.9.2-2",
+    "phantomjs": "^2.1.7",
     "uglify-js": "2.6.0"
   },
   "dependencies": {
