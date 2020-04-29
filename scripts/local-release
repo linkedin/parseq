@@ -9,6 +9,7 @@ if [ ! -f "$PROPERTIES_FILE" ]; then
 fi
 
 # Process CLI arguments
+# TODO: add an argument to override the repo location
 EXTRA_PROPERTY='-Prelease'
 for ARG in "$@"; do
   if [ "$ARG" = '-h' ] || [ "$ARG" = '--help' ]; then
