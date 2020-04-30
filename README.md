@@ -100,9 +100,18 @@ For more in-depth description of ParSeq please visit [User's Guide](https://gith
 
 For many more examples, please see the [parseq-examples](https://github.com/linkedin/parseq/tree/master/subprojects/parseq-examples) contrib project in the source code.
 
-## Build Status
+## Build [![Build Status](https://secure.travis-ci.org/linkedin/parseq.png?branch=master)](http://travis-ci.org/linkedin/parseq)
 
-[![Build Status](https://secure.travis-ci.org/linkedin/parseq.png?branch=master)](http://travis-ci.org/linkedin/parseq)
+Build and test whole parseq code `./gradlew clean build`
+
+Build ParSeq subproject(modules) instead of the whole project:
+`./gradlew :<module_name>:build`
+
+Building on MacOS Catalina (>=10.15): Follow [this guide](https://github.com/nodejs/node-gyp/blob/master/macOS_Catalina.md) to install the required Xcode Command Line Tools and add below environment variables
+```shell script
+export LDFLAGS="-mmacosx-version-min=10.13"
+export CXXFLAGS="-mmacosx-version-min=10.13"
+```
 
 ## License
 

@@ -1,5 +1,6 @@
 v4.1.1
 ------
+* Update README file and fix vulnerable dependencies in tracevis package.json
 
 v4.1.0
 ------
