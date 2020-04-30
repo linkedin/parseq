@@ -51,7 +51,7 @@ fi
 
 # Build and publish to Bintray
 echo "All checks passed, attempting to publish ParSeq $VERSION to Bintray..."
-./gradlew -Prelease build -x test && ./gradlew -Prelease bintrayUpload
+./gradlew -Prelease bintrayUpload
 
 if [ $? == 0 ]; then
   echo "Successfully published ParSeq $VERSION to Bintray."
