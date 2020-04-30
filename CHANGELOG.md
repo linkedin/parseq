@@ -1,6 +1,11 @@
+v4.1.2
+------
+
 v4.1.1
 ------
-* Update README file and fix vulnerable dependencies in tracevis package.json
+
+* Set up automated Bintray releases on tag creation, which can be locally triggered using `./scripts/release`.
+* Update README file and fix vulnerable dependencies in tracevis `package.json`.
 
 v4.1.0
 ------
