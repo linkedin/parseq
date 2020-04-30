@@ -9,11 +9,18 @@ dist: trusty
 # If we don't skip it Travis runs unnecessary Gradle tasks like './gradlew assemble'
 install: true
 
-# Build and test each commit on master and each PR to master
+# Build and test commits to master, PRs to master, and release tags
 script: ./gradlew build
 branches:
   only:
   - master
+  - /^v\d+\.\d+\.\d+$/
+
+# Set environment variables
+env:
+  global:
+    - secure: wFoTPsGqw71NOYpElIE/57QlZez6hSKunfrGadDpmFwoI1KU0VAzDulyui60UebenKgWOINzi/lvnj1A+js2DBe3ILyHSsXWlDQuFMiKKXyK83e5D0AENQvddrfwrGQ7lmfB3/7kOwhFZhVjda2NcYvehPt2i4ANsgSwljZdrtY=
+    - secure: pGiCJ57NNj+kQzZk5RxkFsW7n6IbO/0e86igeKGiRIPMnfpVRIBqpgfO0ifv88LlBUAjaunsODCAOmc0DKKjp686KbA4Df2z10jiNqAQXJfgDu9Q1TprGK5n6TgnPv0Pygn9sE+Q2nOGZCLJEXHNAkS3POiRo5ifgCpzh3iB8og=
 
 # Publish a new version on tag push
 deploy:
