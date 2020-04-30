@@ -1,54 +1,77 @@
-#!/bin/sh
+#!/usr/bin/env bash
+# The purpose of this script is to release the current version by creating and pushing a tag
 
-echo 'This script is outdated and should not be used'
-exit 2
+REMOTE='origin'
 
-if test ! -f version.properties
-then
-    echo >&2 Could not find version.properties. Run this command from the root of the project.
-    exit 1
-fi
-VERSION=`sed -n 's|version=||p' version.properties`
-
-echo Attempting to publish: $VERSION
-echo
-
-JAVA_VERSION=`java -version 2>&1 | head -1`
-echo $JAVA_VERSION | grep -q '1\.6\.'
-if test $? -ne 0
-then
-    echo "ParSeq releases can only be built using a Java 1.6 JDK."
-    echo "Java reports its version to be: $JAVA_VERSION"
-    exit 1
+# Ensure that the script is being run from the root project directory
+PROPERTIES_FILE='gradle.properties'
+if [ ! -f "$PROPERTIES_FILE" ]; then
+  echo "Could not find $PROPERTIES_FILE, please run this script from the root project directory."
+  exit 2
 fi
 
-DIRTY="`git status --porcelain || echo FAIL`"
-if test -n "$DIRTY"
-then
-    echo "Dirty index or working tree. Use git status to check." 2>&1
-    echo "After resolution, run this command again." 2>&1
-    exit 1
+# Process CLI arguments
+TARGET="HEAD"
+for ARG in "$@"; do
+  if [ "$ARG" = '-h' ] || [ "$ARG" = '--help' ]; then
+    cat ./scripts/help-text/release.txt
+    exit 0
+  else
+    TARGET="$1"
+  fi
+done
+
+# Determine and verify the target commit
+TARGET_COMMIT=`git rev-parse --verify $TARGET`
+if [ $? != 0 ]; then
+  echo "Invalid target: $TARGET"
+  echo ''
+  cat ./scripts/help-text/release.txt
+  exit 2
 fi
 
-INCONSISTENT="`git diff origin/master || echo FAIL`"
-if test -n "$INCONSISTENT"
-then
-    echo "origin/master and current branch are inconsistent." 2>&1
-    echo "Use git diff origin/master to see changes." 2>&1
-    echo "Rebase or push, as appropriate, and run this command again." 2>&1
-    exit 1
+# Ensure that the target commit is an ancestor of master
+git merge-base --is-ancestor $TARGET_COMMIT master
+if [ $? != 0 ]; then
+  echo "Invalid target: $TARGET"
+  echo 'Please select a target commit which is an ancestor of master.'
+  exit 1
 fi
 
-CHANGELOG=`grep v$VERSION CHANGELOG`
-if test $? -ne 0
-then
-    echo "No entry in the CHANGELOG for version $VERSION." 2>&1
-    echo "To get a list of changes, use git log previous_tag.." 2>&1
-    echo "Add an entry to the CHANGELOG and run this command again." 2>&1
-    exit 1
+# Determine version to be released
+VERSION=`awk 'BEGIN { FS = "=" }; $1 == "version" { print $2 }' $PROPERTIES_FILE | awk '{ print $1 }'`
+if [ -z "$VERSION" ]; then
+  echo "Could not read the version from $PROPERTIES_FILE, please fix it and try again."
+  exit 1
 fi
 
-ant clean build test dist && \
-git tag v$VERSION && \
-git push origin v$VERSION && \
-echo "Publish completed successfully"
+# Ensure that release tag name wouldn't conflict with a local branch
+TAG_NAME="v$VERSION"
+git show-ref --verify refs/heads/$TAG_NAME >/dev/null 2>&1
+if [ $? = 0 ]; then
+  echo "Cannot create tag $TAG_NAME, as it would conflict with a local branch of the same name."
+  echo 'Please delete this branch and avoid naming branches like this in the future.'
+  echo "Hint: 'git branch -D $TAG_NAME' (WARNING: you will lose all local changes on this branch)"
+  exit 1
+fi
+
+# Create release tag
+git tag -a $TAG_NAME $TARGET_COMMIT -m "$TAG_NAME"
+if [ $? != 0 ]; then
+  echo "Could not create tag $TAG_NAME"
+  exit 1
+else
+  echo "Created tag $TAG_NAME at commit $TARGET_COMMIT ($TARGET)"
+fi
+
+# Push release tag
+echo "Pushing tag $TAG_NAME..."
+git push $REMOTE $TAG_NAME
+
+if [ $? != 0 ]; then
+  echo 'Push failed, clearing tag from local repo...'
+  git tag -d $TAG_NAME
+  exit 1
+fi
+
+echo "Tag push complete. Please check the deployment status on GitHub."

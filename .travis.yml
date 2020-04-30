@@ -1,19 +1,30 @@
 language: java
-
-script: ./gradlew build
-
 jdk:
   - oraclejdk8
 
+# Anything after trusty doesn't have Java 8
 dist: trusty
 
-#Below skips the installation step completely (https://docs.travis-ci.com/user/customizing-the-build/#Skipping-the-Installation-Step)
-#If we don't skip it Travis runs unnecessary Gradle tasks like './gradlew assemble'
-install:
- - true
+# Below skips the installation step completely (https://docs.travis-ci.com/user/customizing-the-build/#Skipping-the-Installation-Step)
+# If we don't skip it Travis runs unnecessary Gradle tasks like './gradlew assemble'
+install: true
 
-# Only build on master and release tags
+# Build and test each commit on master and each PR to master
+script: ./gradlew build
 branches:
   only:
   - master
-  - /^v\d+\.\d+\.\d+$/
+
+# Publish a new version on tag push
+deploy:
+  provider: script
+  script: scripts/travis/publish-tag.sh
+  on:
+    tags: true
+
+# Send email notifications to the user associated with a tag deployment
+notifications:
+  email:
+    if: tag IS present
+    on_failure: always
+    on_success: always

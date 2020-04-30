@@ -37,7 +37,6 @@ task fatJar(type: Jar, dependsOn: ':parseq-tracevis:makeDist') {
   manifest {
     attributes("Created-By": "Gradle",
         "Version": version,
-        "Built-By": project.rootProject.ext.builtByUser,
         "Build-JDK": JavaVersion.current())
     attributes 'Main-Class': 'com.linkedin.parseq.TracevisServerJarMain'
   }

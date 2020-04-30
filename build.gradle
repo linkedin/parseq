@@ -8,10 +8,6 @@ buildscript {
   }
 }
 
-ext {
-  builtByUser = System.getenv('BINTRAY_USER') ?: System.getenv('user.name') ?: 'unknown'
-}
-
 apply from: file("gradle/versioning.gradle")
 
 allprojects { // for all projects including the root project
@@ -71,7 +67,6 @@ subprojects {
       manifest {
         attributes("Created-By": "Gradle",
             "Version": version,
-            "Built-By": project.rootProject.ext.builtByUser,
             "Build-JDK": JavaVersion.current())
       }
     }
