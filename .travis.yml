@@ -10,7 +10,7 @@ dist: trusty
 install: true
 
 # Build and test commits to master, PRs to master, and release tags
-script: ./gradlew build
+script: ./gradlew -Prelease build
 branches:
   only:
   - master
