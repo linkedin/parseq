@@ -42,6 +42,7 @@ if [ -z "$TRAVIS_COMMIT" ]; then
 fi
 
 # Ensure that the tag commit is an ancestor of master
+git fetch origin master:master
 git merge-base --is-ancestor $TRAVIS_COMMIT master
 if [ $? -ne 0 ]; then
   echo "Tag $TRAVIS_TAG is NOT an ancestor of master!"
