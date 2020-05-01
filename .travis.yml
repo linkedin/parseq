@@ -28,6 +28,8 @@ deploy:
   script: scripts/travis/publish-tag.sh
   on:
     tags: true
+  # Without this, build artifacts will be cleaned up before deployment
+  skip_cleanup: true
 
 # Send email notifications to the user associated with a tag deployment
 notifications:
