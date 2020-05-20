@@ -1,5 +1,7 @@
 # ParSeq
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Build Status](https://secure.travis-ci.org/linkedin/parseq.png?branch=master)](http://travis-ci.org/linkedin/parseq) [![Download](https://api.bintray.com/packages/linkedin/maven/parseq/images/download.svg)](https://bintray.com/linkedin/maven/parseq/_latestVersion)
+
 ParSeq is a framework that makes it easier to write asynchronous code in Java.
 
 Some of the key benefits of ParSeq include:
@@ -100,7 +102,7 @@ For more in-depth description of ParSeq please visit [User's Guide](https://gith
 
 For many more examples, please see the [parseq-examples](https://github.com/linkedin/parseq/tree/master/subprojects/parseq-examples) contrib project in the source code.
 
-## Build [![Build Status](https://secure.travis-ci.org/linkedin/parseq.png?branch=master)](http://travis-ci.org/linkedin/parseq)
+## Build
 
 Build and test whole parseq code `./gradlew clean build`
 
@@ -113,6 +115,3 @@ export LDFLAGS="-mmacosx-version-min=10.13"
 export CXXFLAGS="-mmacosx-version-min=10.13"
 ```
 
-## License
-
-ParSeq is licensed under the terms of the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
