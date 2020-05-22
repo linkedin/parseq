@@ -16,11 +16,11 @@ public class TraceRelationship {
   }
 
   public Long getFrom() {
-    return _from.getId();
+    return _from.getNativeId();
   }
 
   public Long getTo() {
-    return _to.getId();
+    return _to.getNativeId();
   }
 
   public Relationship getRelationhsip() {
@@ -31,9 +31,9 @@ public class TraceRelationship {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((_from.getId() == null) ? 0 : _from.getId().hashCode());
+    result = prime * result + Long.hashCode(_from.getNativeId());
     result = prime * result + ((_relationship == null) ? 0 : _relationship.hashCode());
-    result = prime * result + ((_to.getId() == null) ? 0 : _to.getId().hashCode());
+    result = prime * result + Long.hashCode(_to.getNativeId());
     return result;
   }
 
@@ -46,17 +46,11 @@ public class TraceRelationship {
     if (getClass() != obj.getClass())
       return false;
     TraceRelationship other = (TraceRelationship) obj;
-    if (_from.getId() == null) {
-      if (other._from.getId() != null)
-        return false;
-    } else if (!_from.getId().equals(other._from.getId()))
+    if (_from.getNativeId() != other._from.getNativeId())
       return false;
     if (_relationship != other._relationship)
       return false;
-    if (_to.getId() == null) {
-      if (other._to.getId() != null)
-        return false;
-    } else if (!_to.getId().equals(other._to.getId()))
+    if (_to.getNativeId() != other._to.getNativeId())
       return false;
     return true;
   }

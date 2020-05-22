@@ -268,8 +268,8 @@ public class TestTaskStates {
   private void assertInitOrScheduled(final Task<?> task) {
     assertFalse(task.isDone());
     assertFalse(task.isFailed());
-    assertNull(task.getShallowTrace().getStartNanos());
-    assertNull(task.getShallowTrace().getEndNanos());
+    assertEquals(task.getShallowTrace().getNativeStartNanos(), -1);
+    assertEquals(task.getShallowTrace().getNativeEndNanos(), -1);
 
     try {
       task.get();
@@ -289,8 +289,8 @@ public class TestTaskStates {
   private void assertRunOrPending(final Task<?> task) {
     assertFalse(task.isDone());
     assertFalse(task.isFailed());
-    assertTrue(task.getShallowTrace().getStartNanos() > 0);
-    assertNotNull(task.getShallowTrace().getEndNanos());
+    assertTrue(task.getShallowTrace().getNativeStartNanos() > 0);
+    assertTrue(task.getShallowTrace().getNativeEndNanos() >= 0);
 
     try {
       task.get();
@@ -312,8 +312,8 @@ public class TestTaskStates {
     assertFalse(task.isFailed());
     assertEquals(expectedValue, task.get());
     assertNull(task.getError());
-    assertTrue(task.getShallowTrace().getStartNanos() > 0);
-    assertTrue(task.getShallowTrace().getStartNanos() <= task.getShallowTrace().getEndNanos());
+    assertTrue(task.getShallowTrace().getNativeStartNanos() > 0);
+    assertTrue(task.getShallowTrace().getNativeStartNanos() <= task.getShallowTrace().getNativeEndNanos());
   }
 
   private void assertFailed(final Task<?> task, Exception exception) {
@@ -321,8 +321,8 @@ public class TestTaskStates {
     assertTrue(task.isDone());
     assertTrue(task.isFailed());
     assertEquals(exception, task.getError());
-    assertTrue(task.getShallowTrace().getStartNanos() > 0);
-    assertTrue(task.getShallowTrace().getStartNanos() <= task.getShallowTrace().getEndNanos());
+    assertTrue(task.getShallowTrace().getNativeStartNanos() > 0);
+    assertTrue(task.getShallowTrace().getNativeStartNanos() <= task.getShallowTrace().getNativeEndNanos());
 
     try {
       task.get();
@@ -338,8 +338,8 @@ public class TestTaskStates {
     assertTrue(task.isFailed());
     assertTrue(Exceptions.isCancellation(task.getError()));
     assertEquals(exception, task.getError().getCause());
-    assertTrue(task.getShallowTrace().getStartNanos() > 0);
-    assertTrue(task.getShallowTrace().getStartNanos() <= task.getShallowTrace().getEndNanos());
+    assertTrue(task.getShallowTrace().getNativeStartNanos() > 0);
+    assertTrue(task.getShallowTrace().getNativeStartNanos() <= task.getShallowTrace().getNativeEndNanos());
 
     try {
       task.get();

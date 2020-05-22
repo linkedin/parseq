@@ -66,9 +66,9 @@ public class TestShallowTraceBuilder {
     builder.setName("test");
     builder.setResultType(ResultType.SUCCESS);
     builder.setValue("value");
-    builder.setStartNanos(123L);
-    builder.setPendingNanos(234L);
-    builder.setEndNanos(345L);
+    builder.setNativeStartNanos(123L);
+    builder.setNativePendingNanos(234L);
+    builder.setNativeEndNanos(345L);
     builder.addAttribute("test", "value");
     final ShallowTraceBuilder copied = new ShallowTraceBuilder(builder.build());
     assertEquals(builder.build(), copied.build());
@@ -80,43 +80,43 @@ public class TestShallowTraceBuilder {
     builder.setName("test");
     builder.setResultType(ResultType.SUCCESS);
     builder.setValue("value");
-    builder.setStartNanos(123L);
-    builder.setPendingNanos(234L);
-    builder.setEndNanos(345L);
+    builder.setNativeStartNanos(123L);
+    builder.setNativePendingNanos(234L);
+    builder.setNativeEndNanos(345L);
 
     ShallowTraceBuilder builderCopy = new ShallowTraceBuilder(100L);
     builderCopy.setName("test");
     builderCopy.setResultType(ResultType.SUCCESS);
     builderCopy.setValue("value");
-    builderCopy.setStartNanos(123L);
-    builderCopy.setPendingNanos(234L);
-    builderCopy.setEndNanos(345L);
+    builderCopy.setNativeStartNanos(123L);
+    builderCopy.setNativePendingNanos(234L);
+    builderCopy.setNativeEndNanos(345L);
     assertEquals(builder.build(), builderCopy.build());
 
     builderCopy = new ShallowTraceBuilder(100L);
     builderCopy.setName("no-test");
     builderCopy.setResultType(ResultType.SUCCESS);
     builderCopy.setValue("value");
-    builderCopy.setStartNanos(123L);
-    builderCopy.setPendingNanos(234L);
-    builderCopy.setEndNanos(345L);
+    builderCopy.setNativeStartNanos(123L);
+    builderCopy.setNativePendingNanos(234L);
+    builderCopy.setNativeEndNanos(345L);
     assertFalse(builder.build().equals(builderCopy.build()));
 
     builderCopy = new ShallowTraceBuilder(100L);
     builderCopy.setName("test");
     builderCopy.setResultType(ResultType.SUCCESS);
-    builderCopy.setStartNanos(123L);
-    builderCopy.setPendingNanos(234L);
-    builderCopy.setEndNanos(345L);
+    builderCopy.setNativeStartNanos(123L);
+    builderCopy.setNativePendingNanos(234L);
+    builderCopy.setNativeEndNanos(345L);
     assertFalse(builder.build().equals(builderCopy.build()));
 
     builderCopy = new ShallowTraceBuilder(100L);
     builderCopy.setName("no-test");
     builderCopy.setResultType(ResultType.SUCCESS);
     builderCopy.setValue("value");
-    builderCopy.setStartNanos(123L);
-    builderCopy.setPendingNanos(234L);
-    builderCopy.setEndNanos(345L);
+    builderCopy.setNativeStartNanos(123L);
+    builderCopy.setNativePendingNanos(234L);
+    builderCopy.setNativeEndNanos(345L);
     builderCopy.setResultType(ResultType.ERROR);
     assertFalse(builder.build().equals(builderCopy.build()));
   }

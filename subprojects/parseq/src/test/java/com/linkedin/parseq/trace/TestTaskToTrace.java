@@ -461,7 +461,7 @@ public class TestTaskToTrace extends BaseEngineTest {
     if (main.getName().equals("fused")) {
       final Trace trace = task.getTrace();
       Optional<Long> child = trace.getRelationships().stream()
-                               .map(rel -> getChild(rel, main.getId()))
+                               .map(rel -> getChild(rel, main.getNativeId()))
                                .filter(id-> id != null)
                                .findFirst();
       if (child.isPresent()) {
@@ -481,15 +481,15 @@ public class TestTaskToTrace extends BaseEngineTest {
     // to the time that the trace was taken. If the task was finished then the
     // task end time and trace end time should match.
     if (trace.getResultType().equals(ResultType.UNFINISHED)) {
-      if (trace.getStartNanos() == null) {
-        assertNull(trace.getEndNanos());
+      if (trace.getNativeStartNanos() == -1) {
+        assertEquals(trace.getNativeEndNanos(), -1);
       } else {
         // Trace will have the end time set to the time the trace was taken
-        assertTrue(trace.getEndNanos() <= System.nanoTime());
+        assertTrue(trace.getNativeEndNanos() <= System.nanoTime());
 
         // We assume that the end time will always be at least one nanosecond
         // greater than the start time.
-        assertTrue(trace.getEndNanos() > trace.getStartNanos());
+        assertTrue(trace.getNativeEndNanos() > trace.getNativeStartNanos());
       }
     }
     if (task.isDone()) {

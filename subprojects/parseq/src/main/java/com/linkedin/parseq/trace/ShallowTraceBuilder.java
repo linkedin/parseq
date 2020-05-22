@@ -34,30 +34,39 @@ import com.linkedin.parseq.internal.ArgumentUtil;
  */
 public class ShallowTraceBuilder {
 
-  private final Long _id;
+  private final long _id;
   private volatile String _name;
   private volatile boolean _hidden;
   private volatile String _value;
   private volatile ResultType _resultType;
-  private volatile Long _startNanos;
-  private volatile Long _pendingNanos;
-  private volatile Long _endNanos;
+  private volatile long _startNanos = -1;
+  private volatile long _pendingNanos = -1;
+  private volatile long _endNanos = -1;
   private volatile boolean _systemHidden;
   private Map<String, String> _attributes;
   private volatile String _taskType;
 
+  @Deprecated
   public ShallowTraceBuilder(Long id) {
+    if (id == null) {
+      _id = -1;
+    } else {
+      _id = id;
+    }
+  }
+
+  public ShallowTraceBuilder(long id) {
     _id = id;
   }
 
   public ShallowTraceBuilder(final ShallowTrace shallowTrace) {
-    this(shallowTrace.getId());
+    this(shallowTrace.getNativeId());
     setResultType(shallowTrace.getResultType());
     setName(shallowTrace.getName());
     setValue(shallowTrace.getValue());
-    setStartNanos(shallowTrace.getStartNanos());
-    setPendingNanos(shallowTrace.getPendingNanos());
-    setEndNanos(shallowTrace.getEndNanos());
+    setNativeStartNanos(shallowTrace.getNativeStartNanos());
+    setNativePendingNanos(shallowTrace.getNativePendingNanos());
+    setNativeEndNanos(shallowTrace.getNativeEndNanos());
     setHidden(shallowTrace.getHidden());
     setSystemHidden(shallowTrace.getSystemHidden());
     Map<String, String> attributes = shallowTrace.getAttributes();
@@ -101,13 +110,13 @@ public class ShallowTraceBuilder {
     ArgumentUtil.requireNotNull(resultType, "resultType");
     if (resultType != ResultType.UNFINISHED) {
       long nanoTime = System.nanoTime();
-      if (_startNanos == null) {
+      if (_startNanos == -1) {
         _startNanos = nanoTime;
       }
-      if (_pendingNanos == null) {
+      if (_pendingNanos == -1) {
         _pendingNanos = nanoTime;
       }
-      if (_endNanos == null) {
+      if (_endNanos == -1) {
         _endNanos = nanoTime;
       }
     }
@@ -115,17 +124,44 @@ public class ShallowTraceBuilder {
     return this;
   }
 
+  @Deprecated
   public ShallowTraceBuilder setStartNanos(Long startNanos) {
+    if (startNanos == null) {
+      return this;
+    }
     _startNanos = startNanos;
     return this;
   }
 
+  @Deprecated
   public ShallowTraceBuilder setPendingNanos(Long pendingNanos) {
+    if (pendingNanos == null) {
+      return this;
+    }
     _pendingNanos = pendingNanos;
     return this;
   }
 
+  @Deprecated
   public ShallowTraceBuilder setEndNanos(Long endNanos) {
+    if (endNanos == null) {
+      return this;
+    }
+    _endNanos = endNanos;
+    return this;
+  }
+
+  public ShallowTraceBuilder setNativeStartNanos(long startNanos) {
+    _startNanos = startNanos;
+    return this;
+  }
+
+  public ShallowTraceBuilder setNativePendingNanos(long pendingNanos) {
+    _pendingNanos = pendingNanos;
+    return this;
+  }
+
+  public ShallowTraceBuilder setNativeEndNanos(long endNanos) {
     _endNanos = endNanos;
     return this;
   }
@@ -135,7 +171,15 @@ public class ShallowTraceBuilder {
     return this;
   }
 
+  @Deprecated
   public Long getId() {
+    if (_id == -1) {
+      return null;
+    }
+    return _id;
+  }
+
+  public long getNativeId() {
     return _id;
   }
 
@@ -151,15 +195,39 @@ public class ShallowTraceBuilder {
     return _resultType;
   }
 
+  @Deprecated
   public Long getStartNanos() {
+    if (_startNanos == -1) {
+      return null;
+    }
     return _startNanos;
   }
 
+  @Deprecated
   public Long getPendingNanos() {
+    if (_pendingNanos == -1) {
+      return null;
+    }
     return _pendingNanos;
   }
 
+  @Deprecated
   public Long getEndNanos() {
+    if (_endNanos == -1) {
+      return null;
+    }
+    return _endNanos;
+  }
+
+  public long getNativeStartNanos() {
+    return _startNanos;
+  }
+
+  public long getNativePendingNanos() {
+    return _pendingNanos;
+  }
+
+  public long getNativeEndNanos() {
     return _endNanos;
   }
 
@@ -205,10 +273,10 @@ public class ShallowTraceBuilder {
      */
     final String value = _value;
     final ResultType resultType = _resultType;
-    Long endNanos = _endNanos;
-    final Long pendingNanos = _pendingNanos;
-    final Long startNanos = _startNanos;
-    if (resultType == ResultType.UNFINISHED && startNanos != null && endNanos == null) {
+    long endNanos = _endNanos;
+    final long pendingNanos = _pendingNanos;
+    final long startNanos = _startNanos;
+    if (resultType == ResultType.UNFINISHED && startNanos != -1 && endNanos == -1) {
       endNanos = System.nanoTime();
     }
     return new ShallowTraceImp(_id, _name, _hidden, _systemHidden, resultType, value, startNanos, pendingNanos,

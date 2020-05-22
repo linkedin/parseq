@@ -41,7 +41,8 @@ public class Trace {
   }
 
   public static Trace single(ShallowTrace shallowTrace, String planClass, Long planId) {
-    return new Trace(Collections.singletonMap(shallowTrace.getId(), shallowTrace), Collections.emptySet(), planClass, planId);
+    return new Trace(Collections.singletonMap(shallowTrace.getNativeId(), shallowTrace), Collections.emptySet(),
+        planClass, planId);
   }
 
   public Long getPlanId() {

@@ -50,29 +50,46 @@ public interface ShallowTrace {
   ResultType getResultType();
 
   /**
-   * Returns the time at which the task was started in nanoseconds. If
-   * the task had not yet started, this method will return {@code null}.
-   *
-   * @return the time at which this task was started or {@code null}
+   * Deprecated. Use {@link #getNativeStartNanos()} instead
    */
+  @Deprecated
   Long getStartNanos();
 
   /**
-   * Returns the time at which the task finished its run method in nanoseconds.
-   * If the task has not finished its run method yet this method will return
-   * {@code null}.
-   *
-   * @return the time at which this task finished its run method or {@code null}.
+   * Deprecated. Use {@link #getNativePendingNanos()} instead
    */
+  @Deprecated
   Long getPendingNanos();
 
   /**
-   * Returns the time at which the task was finished in nanoseconds. If the
-   * task had not yet finished, this method will return {@code null}.
-   *
-   * @return the time at which this task was finished or {@code null}
+   * Deprecated. Use {@link #getNativeEndNanos()} instead
    */
+  @Deprecated
   Long getEndNanos();
+
+  /**
+   * Returns the time at which the task was started in nanoseconds. If
+   * the task had not yet started, this method will return -1.
+   *
+   * @return the time at which this task was started or -1
+   */
+  long getNativeStartNanos();
+
+  /**
+   * Returns the time at which the task finished its run method in nanoseconds.
+   * If the task has not finished its run method yet this method will return -1.
+   *
+   * @return the time at which this task finished its run method or -1.
+   */
+  long getNativePendingNanos();
+
+  /**
+   * Returns the time at which the task was finished in nanoseconds. If the
+   * task had not yet finished, this method will return -1.
+   *
+   * @return the time at which this task was finished or -1
+   */
+  long getNativeEndNanos();
 
   /**
    * Get the set of attributes related to this trace.
@@ -81,10 +98,16 @@ public interface ShallowTrace {
   Map<String, String> getAttributes();
 
   /**
+   * Deprecated. Use {@link #getNativeId()} instead
+   */
+  @Deprecated
+  Long getId();
+
+  /**
    * Id of this trace.
    * @return Id of this trace.
    */
-  Long getId();
+  long getNativeId();
 
   /**
    * Returns type (sideEffect, seq, par, timer etc) of the task

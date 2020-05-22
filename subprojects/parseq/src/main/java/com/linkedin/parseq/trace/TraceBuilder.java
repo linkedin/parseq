@@ -76,13 +76,13 @@ public class TraceBuilder {
     final Set<TraceRelationship> relationships = new HashSet<>();
 
     for (ShallowTraceBuilder builder : _traceBuilders) {
-      traceMap.put(builder.getId(), builder.build());
+      traceMap.put(builder.getNativeId(), builder.build());
     }
 
     for (TraceRelationship rel : _relationships) {
 
-      traceMap.computeIfAbsent(rel._from.getId(), key -> rel._from.build());
-      traceMap.computeIfAbsent(rel._to.getId(), key -> rel._to.build());
+      traceMap.computeIfAbsent(rel._from.getNativeId(), key -> rel._from.build());
+      traceMap.computeIfAbsent(rel._to.getNativeId(), key -> rel._to.build());
 
       switch (rel.getRelationhsip()) {
         case SUCCESSOR_OF:

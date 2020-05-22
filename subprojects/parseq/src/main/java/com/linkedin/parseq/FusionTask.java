@@ -83,7 +83,7 @@ class FusionTask<S, T> extends BaseTask<T> {
    * Has current task initiated propagation?
    */
   private boolean isPropagationInitiator(final FusionTraceContext traceContext) {
-    return traceContext.getPropagationInitiator().getId().equals(getId());
+    return traceContext.getPropagationInitiator().getNativeId() == getId();
   }
 
   /**
@@ -136,7 +136,7 @@ class FusionTask<S, T> extends BaseTask<T> {
         public void done(R value) throws PromiseResolvedException {
           try {
             /* Track start time of the transformation. End time is tracked by closure created by completing() */
-            getEffectiveShallowTraceBuilder(traceContext).setStartNanos(System.nanoTime());
+            getEffectiveShallowTraceBuilder(traceContext).setNativeStartNanos(System.nanoTime());
             propagator.accept(traceContext, Promises.value(value), dst);
           } catch (Exception e) {
             /* This can only happen if there is an internal problem. Propagators should not throw any exceptions. */
@@ -148,7 +148,7 @@ class FusionTask<S, T> extends BaseTask<T> {
         public void fail(Throwable error) throws PromiseResolvedException {
           try {
             /* Track start time of the transformation. End time is tracked by closure created by completing() */
-            getEffectiveShallowTraceBuilder(traceContext).setStartNanos(System.nanoTime());
+            getEffectiveShallowTraceBuilder(traceContext).setNativeStartNanos(System.nanoTime());
             propagator.accept(traceContext, Promises.error(error), dst);
           } catch (Exception e) {
             /* This can only happen if there is an internal problem. Propagators should not throw any exceptions. */
@@ -179,8 +179,8 @@ class FusionTask<S, T> extends BaseTask<T> {
             if (shallowTraceBuilder != null) {
               addRelationships(traceContext);
               final long endNanos = System.nanoTime();
-              shallowTraceBuilder.setPendingNanos(endNanos);
-              shallowTraceBuilder.setEndNanos(endNanos);
+              shallowTraceBuilder.setNativePendingNanos(endNanos);
+              shallowTraceBuilder.setNativeEndNanos(endNanos);
               final Function<T, String> traceValueProvider = _traceValueProvider;
               shallowTraceBuilder.setResultType(ResultType.SUCCESS);
               if (traceValueProvider != null) {
@@ -200,8 +200,8 @@ class FusionTask<S, T> extends BaseTask<T> {
             if (shallowTraceBuilder != null) {
               addRelationships(traceContext);
               final long endNanos = System.nanoTime();
-              shallowTraceBuilder.setPendingNanos(endNanos);
-              shallowTraceBuilder.setEndNanos(endNanos);
+              shallowTraceBuilder.setNativePendingNanos(endNanos);
+              shallowTraceBuilder.setNativeEndNanos(endNanos);
               if (Exceptions.isEarlyFinish(error)) {
                 shallowTraceBuilder.setResultType(ResultType.EARLY_FINISH);
               } else {

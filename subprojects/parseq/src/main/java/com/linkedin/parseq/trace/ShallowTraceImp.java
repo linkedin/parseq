@@ -32,22 +32,22 @@ import com.linkedin.parseq.internal.ArgumentUtil;
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
 public class ShallowTraceImp implements ShallowTrace {
-  private final Long _id;
+  private final long _id;
   private final String _name;
   private final boolean _hidden;
   private final boolean _systemHidden;
   private final ResultType _resultType;
   private final String _value;
-  private final Long _startNanos;
-  private final Long _pendingNanos;
-  private final Long _endNanos;
+  private final long _startNanos;
+  private final long _pendingNanos;
+  private final long _endNanos;
   private final Map<String, String> _attributes;
   private final String _taskType;
 
-  /* package private */ ShallowTraceImp(final Long id, final String name, final boolean hidden,
-      final boolean systemHidden, final ResultType resultType, final String value, final Long startNanos,
-      final Long pendingNanos, final Long endNanos, final Map<String, String> attributes, String taskType) {
-    ArgumentUtil.requireNotNull(id, "id");
+  /* package private */ ShallowTraceImp(final long id, final String name, final boolean hidden,
+      final boolean systemHidden, final ResultType resultType, final String value, final long startNanos,
+      final long pendingNanos, final long endNanos, final Map<String, String> attributes, String taskType) {
+    assert id >= 0 : "Bad argument: id must be >= 0";
     ArgumentUtil.requireNotNull(name, "name");
     ArgumentUtil.requireNotNull(resultType, "resultType");
 
@@ -68,15 +68,15 @@ public class ShallowTraceImp implements ShallowTrace {
         if (value != null) {
           throw new IllegalArgumentException("value cannot be set if the task is finished early");
         }
-        ArgumentUtil.requireNotNull(startNanos, "startNanos");
-        ArgumentUtil.requireNotNull(pendingNanos, "pendingNanos");
-        ArgumentUtil.requireNotNull(endNanos, "endNanos");
+        assert startNanos >= 0 : "Bad argument: startNanos must be >= 0";
+        assert pendingNanos >= 0 : "Bad argument: pendingNanos must be >= 0";
+        assert endNanos >= 0 : "Bad argument: endNanos must be >= 0";
         break;
       case ERROR:
       case SUCCESS:
-        ArgumentUtil.requireNotNull(startNanos, "startNanos");
-        ArgumentUtil.requireNotNull(pendingNanos, "pendingNanos");
-        ArgumentUtil.requireNotNull(endNanos, "endNanos");
+        assert startNanos >= 0 : "Bad argument: startNanos must be >= 0";
+        assert pendingNanos >= 0 : "Bad argument: pendingNanos must be >= 0";
+        assert endNanos >= 0 : "Bad argument: endNanos must be >= 0";
         break;
       case UNFINISHED:
         if (value != null) {
@@ -87,9 +87,9 @@ public class ShallowTraceImp implements ShallowTrace {
         throw new IllegalArgumentException("Unexpected result type: " + resultType);
     }
 
-    if (startNanos != null && resultType != ResultType.UNFINISHED) {
-      ArgumentUtil.requireNotNull(pendingNanos, "pendingNanos");
-      ArgumentUtil.requireNotNull(endNanos, "endNanos");
+    if (startNanos != -1 && resultType != ResultType.UNFINISHED) {
+      assert pendingNanos >= 0 : "Bad argument: pendingNanos must be >= 0";
+      assert endNanos >= 0 : "Bad argument: endNanos must be >= 0";
     }
   }
 
@@ -137,7 +137,11 @@ public class ShallowTraceImp implements ShallowTrace {
    * @see com.linkedin.parseq.trace.ShallowTraceI#getStartNanos()
    */
   @Override
+  @Deprecated
   public Long getStartNanos() {
+    if (_startNanos == -1) {
+      return null;
+    }
     return _startNanos;
   }
 
@@ -145,7 +149,11 @@ public class ShallowTraceImp implements ShallowTrace {
    * @see com.linkedin.parseq.trace.ShallowTraceI#getPendingNanos()
    */
   @Override
+  @Deprecated
   public Long getPendingNanos() {
+    if (_pendingNanos == -1) {
+      return null;
+    }
     return _pendingNanos;
   }
 
@@ -153,7 +161,35 @@ public class ShallowTraceImp implements ShallowTrace {
    * @see com.linkedin.parseq.trace.ShallowTraceI#getEndNanos()
    */
   @Override
+  @Deprecated
   public Long getEndNanos() {
+    if (_endNanos == -1) {
+      return null;
+    }
+    return _endNanos;
+  }
+
+  /* (non-Javadoc)
+   * @see com.linkedin.parseq.trace.ShallowTraceI#getNativeStartNanos()
+   */
+  @Override
+  public long getNativeStartNanos() {
+    return _startNanos;
+  }
+
+  /* (non-Javadoc)
+   * @see com.linkedin.parseq.trace.ShallowTraceI#getNativePendingNanos()
+   */
+  @Override
+  public long getNativePendingNanos() {
+    return _pendingNanos;
+  }
+
+  /* (non-Javadoc)
+   * @see com.linkedin.parseq.trace.ShallowTraceI#getNativeEndNanos()
+   */
+  @Override
+  public long getNativeEndNanos() {
     return _endNanos;
   }
 
@@ -169,7 +205,16 @@ public class ShallowTraceImp implements ShallowTrace {
    * @see com.linkedin.parseq.trace.ShallowTraceI#getId()
    */
   @Override
+  @Deprecated
   public Long getId() {
+    return _id;
+  }
+
+  /* (non-Javadoc)
+   * @see com.linkedin.parseq.trace.ShallowTraceI#getNativeId()
+   */
+  @Override
+  public long getNativeId() {
     return _id;
   }
 
@@ -186,13 +231,13 @@ public class ShallowTraceImp implements ShallowTrace {
     final int prime = 31;
     int result = 1;
     result = prime * result + ((_attributes == null) ? 0 : _attributes.hashCode());
-    result = prime * result + ((_endNanos == null) ? 0 : _endNanos.hashCode());
+    result = prime * result + ((_endNanos == -1) ? 0 : Long.hashCode(_endNanos));
     result = prime * result + (_hidden ? 1231 : 1237);
-    result = prime * result + ((_id == null) ? 0 : _id.hashCode());
+    result = prime * result + Long.hashCode(_id);
     result = prime * result + ((_name == null) ? 0 : _name.hashCode());
-    result = prime * result + ((_pendingNanos == null) ? 0 : _pendingNanos.hashCode());
+    result = prime * result + ((_pendingNanos == -1) ? 0 : Long.hashCode(_pendingNanos));
     result = prime * result + ((_resultType == null) ? 0 : _resultType.hashCode());
-    result = prime * result + ((_startNanos == null) ? 0 : _startNanos.hashCode());
+    result = prime * result + ((_startNanos == -1) ? 0 : Long.hashCode(_startNanos));
     result = prime * result + (_systemHidden ? 1231 : 1237);
     result = prime * result + ((_value == null) ? 0 : _value.hashCode());
     result = prime * result + ((_taskType == null) ? 0 : _taskType.hashCode());
@@ -213,34 +258,22 @@ public class ShallowTraceImp implements ShallowTrace {
         return false;
     } else if (!_attributes.equals(other._attributes))
       return false;
-    if (_endNanos == null) {
-      if (other._endNanos != null)
-        return false;
-    } else if (!_endNanos.equals(other._endNanos))
+    if (_endNanos != other._endNanos)
       return false;
     if (_hidden != other._hidden)
       return false;
-    if (_id == null) {
-      if (other._id != null)
-        return false;
-    } else if (!_id.equals(other._id))
+    if (_id != other._id)
       return false;
     if (_name == null) {
       if (other._name != null)
         return false;
     } else if (!_name.equals(other._name))
       return false;
-    if (_pendingNanos == null) {
-      if (other._pendingNanos != null)
-        return false;
-    } else if (!_pendingNanos.equals(other._pendingNanos))
+    if (_pendingNanos != other._pendingNanos)
       return false;
     if (_resultType != other._resultType)
       return false;
-    if (_startNanos == null) {
-      if (other._startNanos != null)
-        return false;
-    } else if (!_startNanos.equals(other._startNanos))
+    if (_startNanos != other._startNanos)
       return false;
     if (_systemHidden != other._systemHidden)
       return false;
