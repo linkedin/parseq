@@ -50,19 +50,19 @@ public interface ShallowTrace {
   ResultType getResultType();
 
   /**
-   * Deprecated. Use {@link #getNativeStartNanos()} instead
+   * @deprecated Use {@link #getNativeStartNanos()} instead
    */
   @Deprecated
   Long getStartNanos();
 
   /**
-   * Deprecated. Use {@link #getNativePendingNanos()} instead
+   * @deprecated Use {@link #getNativePendingNanos()} instead
    */
   @Deprecated
   Long getPendingNanos();
 
   /**
-   * Deprecated. Use {@link #getNativeEndNanos()} instead
+   * @deprecated Use {@link #getNativeEndNanos()} instead
    */
   @Deprecated
   Long getEndNanos();
@@ -98,7 +98,7 @@ public interface ShallowTrace {
   Map<String, String> getAttributes();
 
   /**
-   * Deprecated. Use {@link #getNativeId()} instead
+   * @deprecated Use {@link #getNativeId()} instead
    */
   @Deprecated
   Long getId();
