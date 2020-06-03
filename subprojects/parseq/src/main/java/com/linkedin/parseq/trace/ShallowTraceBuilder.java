@@ -124,6 +124,9 @@ public class ShallowTraceBuilder {
     return this;
   }
 
+  /**
+   * Deprecated. Use {@link #setNativeStartNanos(long)} instead
+   */
   @Deprecated
   public ShallowTraceBuilder setStartNanos(Long startNanos) {
     if (startNanos == null) {
@@ -133,6 +136,9 @@ public class ShallowTraceBuilder {
     return this;
   }
 
+  /**
+   * Deprecated. Use {@link #setNativePendingNanos(long)} instead
+   */
   @Deprecated
   public ShallowTraceBuilder setPendingNanos(Long pendingNanos) {
     if (pendingNanos == null) {
@@ -142,6 +148,9 @@ public class ShallowTraceBuilder {
     return this;
   }
 
+  /**
+   * Deprecated. Use {@link #setNativeEndNanos(long)} instead
+   */
   @Deprecated
   public ShallowTraceBuilder setEndNanos(Long endNanos) {
     if (endNanos == null) {
@@ -171,6 +180,9 @@ public class ShallowTraceBuilder {
     return this;
   }
 
+  /**
+   * Deprecated. Use {@link #getNativeId()} instead
+   */
   @Deprecated
   public Long getId() {
     if (_id == -1) {
@@ -195,6 +207,9 @@ public class ShallowTraceBuilder {
     return _resultType;
   }
 
+  /**
+   * Deprecated. Use {@link #getNativeStartNanos()} instead
+   */
   @Deprecated
   public Long getStartNanos() {
     if (_startNanos == -1) {
@@ -203,6 +218,9 @@ public class ShallowTraceBuilder {
     return _startNanos;
   }
 
+  /**
+   * Deprecated. Use {@link #getNativePendingNanos()} instead
+   */
   @Deprecated
   public Long getPendingNanos() {
     if (_pendingNanos == -1) {
@@ -211,6 +229,9 @@ public class ShallowTraceBuilder {
     return _pendingNanos;
   }
 
+  /**
+   * Deprecated. Use {@link #getNativeEndNanos()} instead
+   */
   @Deprecated
   public Long getEndNanos() {
     if (_endNanos == -1) {
