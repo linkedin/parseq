@@ -1,5 +1,10 @@
+v4.1.3
+------
+
 v4.1.2
 ------
+
+* use Java native `long` instead of `java.lang.Long` for storing Id and time metrics in `ShallowTrace`
 
 v4.1.1
 ------

@@ -41,8 +41,8 @@ public class TestTraceBuilder {
     final TraceBuilder builder = new TraceBuilder(1024, "test", 0L);
     builder.addRelationship(Relationship.SUCCESSOR_OF, trace1, trace2);
     Trace trace = builder.build();
-    assertEquals(trace1.build(), trace.getTraceMap().get(trace1.getId()));
-    assertEquals(trace2.build(), trace.getTraceMap().get(trace2.getId()));
+    assertEquals(trace1.build(), trace.getTraceMap().get(trace1.getNativeId()));
+    assertEquals(trace2.build(), trace.getTraceMap().get(trace2.getNativeId()));
     assertEquals(1, trace.getRelationships().size());
     assertTrue(trace.getRelationships()
         .contains(new TraceRelationship(trace1, trace2, Relationship.SUCCESSOR_OF)));
@@ -58,8 +58,8 @@ public class TestTraceBuilder {
     builder.addRelationship(Relationship.SUCCESSOR_OF, trace1, trace2);
     builder.addRelationship(Relationship.SUCCESSOR_OF, trace1, trace2);
     Trace trace = builder.build();
-    assertEquals(trace1.build(), trace.getTraceMap().get(trace1.getId()));
-    assertEquals(trace2.build(), trace.getTraceMap().get(trace2.getId()));
+    assertEquals(trace1.build(), trace.getTraceMap().get(trace1.getNativeId()));
+    assertEquals(trace2.build(), trace.getTraceMap().get(trace2.getNativeId()));
     assertEquals(1, trace.getRelationships().size());
     assertTrue(trace.getRelationships()
         .contains(new TraceRelationship(trace1, trace2, Relationship.SUCCESSOR_OF)));

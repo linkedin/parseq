@@ -55,7 +55,7 @@ class JsonTraceSerializer {
 
   private static void writeTrace(final ShallowTrace trace, final JsonGenerator generator) throws IOException {
     generator.writeStartObject();
-    generator.writeNumberField(JsonTraceCodec.TRACE_ID, trace.getId());
+    generator.writeNumberField(JsonTraceCodec.TRACE_ID, trace.getNativeId());
     generator.writeStringField(JsonTraceCodec.TRACE_NAME, trace.getName());
     generator.writeStringField(JsonTraceCodec.TRACE_RESULT_TYPE, trace.getResultType().toString());
     generator.writeBooleanField(JsonTraceCodec.TRACE_HIDDEN, trace.getHidden());
@@ -65,16 +65,16 @@ class JsonTraceSerializer {
       generator.writeStringField(JsonTraceCodec.TRACE_VALUE, trace.getValue());
     }
 
-    if (trace.getStartNanos() != null) {
-      generator.writeNumberField(JsonTraceCodec.TRACE_START_NANOS, trace.getStartNanos());
+    if (trace.getNativeStartNanos() != -1) {
+      generator.writeNumberField(JsonTraceCodec.TRACE_START_NANOS, trace.getNativeStartNanos());
     }
 
-    if (trace.getPendingNanos() != null) {
-      generator.writeNumberField(JsonTraceCodec.TRACE_PENDING_NANOS, trace.getPendingNanos());
+    if (trace.getNativePendingNanos() != -1) {
+      generator.writeNumberField(JsonTraceCodec.TRACE_PENDING_NANOS, trace.getNativePendingNanos());
     }
 
-    if (trace.getEndNanos() != null) {
-      generator.writeNumberField(JsonTraceCodec.TRACE_END_NANOS, trace.getEndNanos());
+    if (trace.getNativeEndNanos() != -1) {
+      generator.writeNumberField(JsonTraceCodec.TRACE_END_NANOS, trace.getNativeEndNanos());
     }
 
     if (trace.getAttributes() != null && trace.getAttributes().size() > 0) {

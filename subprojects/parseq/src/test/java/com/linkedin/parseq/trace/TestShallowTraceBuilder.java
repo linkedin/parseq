@@ -20,9 +20,7 @@ import org.testng.annotations.Test;
 
 import com.linkedin.parseq.internal.IdGenerator;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
 
 /**
@@ -66,9 +64,9 @@ public class TestShallowTraceBuilder {
     builder.setName("test");
     builder.setResultType(ResultType.SUCCESS);
     builder.setValue("value");
-    builder.setStartNanos(123L);
-    builder.setPendingNanos(234L);
-    builder.setEndNanos(345L);
+    builder.setNativeStartNanos(123L);
+    builder.setNativePendingNanos(234L);
+    builder.setNativeEndNanos(345L);
     builder.addAttribute("test", "value");
     final ShallowTraceBuilder copied = new ShallowTraceBuilder(builder.build());
     assertEquals(builder.build(), copied.build());
@@ -80,11 +78,20 @@ public class TestShallowTraceBuilder {
     builder.setName("test");
     builder.setResultType(ResultType.SUCCESS);
     builder.setValue("value");
-    builder.setStartNanos(123L);
-    builder.setPendingNanos(234L);
-    builder.setEndNanos(345L);
+    builder.setNativeStartNanos(123L);
+    builder.setNativePendingNanos(234L);
+    builder.setNativeEndNanos(345L);
 
     ShallowTraceBuilder builderCopy = new ShallowTraceBuilder(100L);
+    builderCopy.setName("test");
+    builderCopy.setResultType(ResultType.SUCCESS);
+    builderCopy.setValue("value");
+    builderCopy.setNativeStartNanos(123L);
+    builderCopy.setNativePendingNanos(234L);
+    builderCopy.setNativeEndNanos(345L);
+    assertEquals(builder.build(), builderCopy.build());
+
+    builderCopy = new ShallowTraceBuilder(100L);
     builderCopy.setName("test");
     builderCopy.setResultType(ResultType.SUCCESS);
     builderCopy.setValue("value");
@@ -97,27 +104,62 @@ public class TestShallowTraceBuilder {
     builderCopy.setName("no-test");
     builderCopy.setResultType(ResultType.SUCCESS);
     builderCopy.setValue("value");
-    builderCopy.setStartNanos(123L);
-    builderCopy.setPendingNanos(234L);
-    builderCopy.setEndNanos(345L);
+    builderCopy.setNativeStartNanos(123L);
+    builderCopy.setNativePendingNanos(234L);
+    builderCopy.setNativeEndNanos(345L);
     assertFalse(builder.build().equals(builderCopy.build()));
 
     builderCopy = new ShallowTraceBuilder(100L);
     builderCopy.setName("test");
     builderCopy.setResultType(ResultType.SUCCESS);
-    builderCopy.setStartNanos(123L);
-    builderCopy.setPendingNanos(234L);
-    builderCopy.setEndNanos(345L);
+    builderCopy.setNativeStartNanos(123L);
+    builderCopy.setNativePendingNanos(234L);
+    builderCopy.setNativeEndNanos(345L);
     assertFalse(builder.build().equals(builderCopy.build()));
 
     builderCopy = new ShallowTraceBuilder(100L);
     builderCopy.setName("no-test");
     builderCopy.setResultType(ResultType.SUCCESS);
     builderCopy.setValue("value");
-    builderCopy.setStartNanos(123L);
-    builderCopy.setPendingNanos(234L);
-    builderCopy.setEndNanos(345L);
+    builderCopy.setNativeStartNanos(123L);
+    builderCopy.setNativePendingNanos(234L);
+    builderCopy.setNativeEndNanos(345L);
     builderCopy.setResultType(ResultType.ERROR);
     assertFalse(builder.build().equals(builderCopy.build()));
+  }
+
+  @Test
+  public void testDeprecatedTimeMethods() {
+    ShallowTraceBuilder builder = new ShallowTraceBuilder((Long) null);
+    assertNull(builder.getId());
+    assertNull(builder.getStartNanos());
+    assertNull(builder.getEndNanos());
+    assertNull(builder.getPendingNanos());
+
+    builder = new ShallowTraceBuilder(new Long(1L));
+    assertEquals(builder.getId(), new Long(1L));
+    builder.setStartNanos(null);
+    assertEquals(builder.getNativeStartNanos(), -1L);
+    builder.setEndNanos(null);
+    assertEquals(builder.getNativeEndNanos(), -1L);
+    builder.setPendingNanos(null);
+    assertEquals(builder.getNativePendingNanos(), -1L);
+
+    builder.setNativeStartNanos(1L);
+    assertEquals(builder.getStartNanos(), new Long(1L));
+    builder.setNativeEndNanos(1L);
+    assertEquals(builder.getEndNanos(), new Long(1L));
+    builder.setNativePendingNanos(1L);
+    assertEquals(builder.getPendingNanos(), new Long(1L));
+
+    builder.setStartNanos(new Long(1L));
+    assertEquals(builder.getStartNanos(), new Long(1L));
+    assertEquals(builder.getNativeStartNanos(), 1L);
+    builder.setEndNanos(new Long(1L));
+    assertEquals(builder.getEndNanos(), new Long(1L));
+    assertEquals(builder.getNativeEndNanos(), 1L);
+    builder.setPendingNanos(new Long(1L));
+    assertEquals(builder.getPendingNanos(), new Long(1L));
+    assertEquals(builder.getNativePendingNanos(), 1L);
   }
 }

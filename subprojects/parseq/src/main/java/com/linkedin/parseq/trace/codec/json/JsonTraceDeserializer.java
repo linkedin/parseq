@@ -71,13 +71,13 @@ class JsonTraceDeserializer {
         shallowBuilder.setValue(getTextField(traceNode, JsonTraceCodec.TRACE_VALUE));
 
       if (traceNode.get(JsonTraceCodec.TRACE_START_NANOS) != null)
-        shallowBuilder.setStartNanos(getLongField(traceNode, JsonTraceCodec.TRACE_START_NANOS));
+        shallowBuilder.setNativeStartNanos(getLongField(traceNode, JsonTraceCodec.TRACE_START_NANOS));
 
       if (traceNode.get(JsonTraceCodec.TRACE_PENDING_NANOS) != null)
-        shallowBuilder.setPendingNanos(getLongField(traceNode, JsonTraceCodec.TRACE_PENDING_NANOS));
+        shallowBuilder.setNativePendingNanos(getLongField(traceNode, JsonTraceCodec.TRACE_PENDING_NANOS));
 
       if (traceNode.get(JsonTraceCodec.TRACE_END_NANOS) != null)
-        shallowBuilder.setEndNanos(getLongField(traceNode, JsonTraceCodec.TRACE_END_NANOS));
+        shallowBuilder.setNativeEndNanos(getLongField(traceNode, JsonTraceCodec.TRACE_END_NANOS));
 
       if (traceNode.get(JsonTraceCodec.TRACE_ATTRIBUTES) != null) {
         for (JsonNode node : getField(traceNode, JsonTraceCodec.TRACE_ATTRIBUTES)) {

@@ -121,6 +121,6 @@ public class TaskLogger {
 
   private long elapsedMillis(final Task<?> task) {
     final ShallowTrace trace = task.getShallowTrace();
-    return (trace.getEndNanos() - trace.getStartNanos()) / 1000000;
+    return (trace.getNativeEndNanos() - trace.getNativeStartNanos()) / 1000000;
   }
 }

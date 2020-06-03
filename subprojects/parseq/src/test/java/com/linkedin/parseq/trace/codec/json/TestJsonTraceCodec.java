@@ -56,7 +56,7 @@ public class TestJsonTraceCodec {
   public void testReversibleSuccessfulTrace() throws IOException {
     final ShallowTraceBuilder test =
         new ShallowTraceBuilder(IdGenerator.getNextId()).setName("test").setResultType(ResultType.SUCCESS)
-            .setValue("test value").setStartNanos(0L).setPendingNanos(50L).setEndNanos(100L);
+            .setValue("test value").setNativeStartNanos(0L).setNativePendingNanos(50L).setNativeEndNanos(100L);
 
     final Trace trace = Trace.single(test.build(), "test", 0L);
     assertReversible(trace);
@@ -65,7 +65,7 @@ public class TestJsonTraceCodec {
   @Test
   public void testReversibleSuccessfulTraceWithNullValue() throws IOException {
     final ShallowTraceBuilder test = new ShallowTraceBuilder(IdGenerator.getNextId()).setName("test")
-        .setResultType(ResultType.SUCCESS).setStartNanos(0L).setPendingNanos(50L).setEndNanos(100L);
+        .setResultType(ResultType.SUCCESS).setNativeStartNanos(0L).setNativePendingNanos(50L).setNativeEndNanos(100L);
 
     final Trace trace = Trace.single(test.build(), "test", 0L);
     assertReversible(trace);
@@ -75,7 +75,7 @@ public class TestJsonTraceCodec {
   public void testReversibleWithSingleAttributes() throws IOException {
     final ShallowTraceBuilder test =
         new ShallowTraceBuilder(IdGenerator.getNextId()).setName("test").setResultType(ResultType.SUCCESS)
-            .setStartNanos(0L).setPendingNanos(50L).addAttribute("key1", "value1").setEndNanos(100L);
+            .setNativeStartNanos(0L).setNativePendingNanos(50L).addAttribute("key1", "value1").setNativeEndNanos(100L);
 
     final Trace trace = Trace.single(test.build(), "test", 0L);
     assertReversible(trace);
@@ -84,8 +84,8 @@ public class TestJsonTraceCodec {
   @Test
   public void testReversibleWithMultipleAttributes() throws IOException {
     final ShallowTraceBuilder test = new ShallowTraceBuilder(IdGenerator.getNextId()).setName("test")
-        .setResultType(ResultType.SUCCESS).setStartNanos(0L).setPendingNanos(50L).addAttribute("key1", "value1")
-        .addAttribute("key2", "value2").addAttribute("key3", "value3").setEndNanos(100L);
+        .setResultType(ResultType.SUCCESS).setNativeStartNanos(0L).setNativePendingNanos(50L).addAttribute("key1", "value1")
+        .addAttribute("key2", "value2").addAttribute("key3", "value3").setNativeEndNanos(100L);
 
     final Trace trace = Trace.single(test.build(), "test", 0L);
     assertReversible(trace);
@@ -94,9 +94,9 @@ public class TestJsonTraceCodec {
   @Test
   public void testReversibleWithRemoveAttributes() throws IOException {
     final ShallowTraceBuilder test = new ShallowTraceBuilder(IdGenerator.getNextId()).setName("test")
-        .setResultType(ResultType.SUCCESS).setStartNanos(0L).setPendingNanos(50L).addAttribute("key1", "value1")
+        .setResultType(ResultType.SUCCESS).setNativeStartNanos(0L).setNativePendingNanos(50L).addAttribute("key1", "value1")
         .addAttribute("key2", "value2").addAttribute("key3", "value3").removeAttribute("key1").removeAttribute("key2")
-        .removeAttribute("key3").setEndNanos(100L);
+        .removeAttribute("key3").setNativeEndNanos(100L);
 
     final Trace trace = Trace.single(test.build(), "test", 0L);
     assertReversible(trace);
@@ -105,8 +105,8 @@ public class TestJsonTraceCodec {
   @Test
   public void testWithDupAttributes() throws IOException {
     final ShallowTraceBuilder test = new ShallowTraceBuilder(IdGenerator.getNextId()).setName("test")
-        .setResultType(ResultType.SUCCESS).setStartNanos(0L).setPendingNanos(50L).addAttribute("key1", "value1")
-        .addAttribute("key2", "value2").addAttribute("key2", "value3").setEndNanos(100L);
+        .setResultType(ResultType.SUCCESS).setNativeStartNanos(0L).setNativePendingNanos(50L).addAttribute("key1", "value1")
+        .addAttribute("key2", "value2").addAttribute("key2", "value3").setNativeEndNanos(100L);
 
     final Trace trace = Trace.single(test.build(), "test", 0L);
     assertReversible(trace);
@@ -115,8 +115,8 @@ public class TestJsonTraceCodec {
   @Test
   public void testWithNonExistingRemoveAttributes() throws IOException {
     final ShallowTraceBuilder test = new ShallowTraceBuilder(IdGenerator.getNextId()).setName("test")
-        .setResultType(ResultType.SUCCESS).setStartNanos(0L).setPendingNanos(50L).removeAttribute("key1")
-        .removeAttribute("key2").removeAttribute("key3").setEndNanos(100L);
+        .setResultType(ResultType.SUCCESS).setNativeStartNanos(0L).setNativePendingNanos(50L).removeAttribute("key1")
+        .removeAttribute("key2").removeAttribute("key3").setNativeEndNanos(100L);
 
     final Trace trace = Trace.single(test.build(), "test", 0L);
     assertReversible(trace);
@@ -127,7 +127,7 @@ public class TestJsonTraceCodec {
     // If we have started a task we also must set the end time
     final ShallowTraceBuilder test =
         new ShallowTraceBuilder(IdGenerator.getNextId()).setName("test").setResultType(ResultType.ERROR)
-            .setValue("error value").setStartNanos(0L).setPendingNanos(50L).setEndNanos(100L);
+            .setValue("error value").setNativeStartNanos(0L).setNativePendingNanos(50L).setNativeEndNanos(100L);
 
     final Trace trace = Trace.single(test.build(), "test", 0L);
     assertReversible(trace);
@@ -137,7 +137,7 @@ public class TestJsonTraceCodec {
   public void testReversibleUnfinishedTrace() throws IOException {
     // If we have started a task we also must set the end time
     final ShallowTraceBuilder test = new ShallowTraceBuilder(IdGenerator.getNextId()).setName("test")
-        .setResultType(ResultType.UNFINISHED).setStartNanos(0L).setPendingNanos(50L).setEndNanos(100L);
+        .setResultType(ResultType.UNFINISHED).setNativeStartNanos(0L).setNativePendingNanos(50L).setNativeEndNanos(100L);
 
     final Trace trace = Trace.single(test.build(), "test", 0L);
     assertReversible(trace);
@@ -147,7 +147,7 @@ public class TestJsonTraceCodec {
   public void testReversibleWithHiddenTrace() throws IOException {
     final ShallowTraceBuilder test =
         new ShallowTraceBuilder(IdGenerator.getNextId()).setName("test").setResultType(ResultType.SUCCESS)
-            .setValue("test value").setStartNanos(0L).setPendingNanos(50L).setHidden(true).setEndNanos(100L);
+            .setValue("test value").setNativeStartNanos(0L).setNativePendingNanos(50L).setHidden(true).setNativeEndNanos(100L);
 
     final Trace trace = Trace.single(test.build(), "test", 0L);
     assertReversible(trace);
@@ -157,11 +157,11 @@ public class TestJsonTraceCodec {
   public void testReversibleTraceWithChild() throws IOException {
     final ShallowTraceBuilder parent =
         new ShallowTraceBuilder(IdGenerator.getNextId()).setName("parent").setResultType(ResultType.SUCCESS)
-            .setValue("parent value").setStartNanos(0L).setPendingNanos(100L).setEndNanos(200L);
+            .setValue("parent value").setNativeStartNanos(0L).setNativePendingNanos(100L).setNativeEndNanos(200L);
 
     final ShallowTraceBuilder child =
         new ShallowTraceBuilder(IdGenerator.getNextId()).setName("child").setResultType(ResultType.SUCCESS)
-            .setValue("child value").setStartNanos(50L).setPendingNanos(75L).setEndNanos(100L);
+            .setValue("child value").setNativeStartNanos(50L).setNativePendingNanos(75L).setNativeEndNanos(100L);
 
     final TraceBuilder builder = new TraceBuilder(1024, "test", 0L);
     builder.addRelationship(Relationship.PARENT_OF, parent, child);
@@ -173,11 +173,11 @@ public class TestJsonTraceCodec {
   public void testReversibleTraceWithPredecessor() throws IOException {
     final ShallowTraceBuilder predecessor =
         new ShallowTraceBuilder(IdGenerator.getNextId()).setName("predecessor").setResultType(ResultType.SUCCESS)
-            .setValue("predecessor value").setStartNanos(0L).setPendingNanos(100L).setEndNanos(200L);
+            .setValue("predecessor value").setNativeStartNanos(0L).setNativePendingNanos(100L).setNativeEndNanos(200L);
 
     final ShallowTraceBuilder successor =
         new ShallowTraceBuilder(IdGenerator.getNextId()).setName("successor").setResultType(ResultType.SUCCESS)
-            .setValue("successor value").setStartNanos(50L).setPendingNanos(75L).setEndNanos(100L);
+            .setValue("successor value").setNativeStartNanos(50L).setNativePendingNanos(75L).setNativeEndNanos(100L);
 
     final TraceBuilder builder = new TraceBuilder(1024, "test", 0L);
     builder.addRelationship(Relationship.SUCCESSOR_OF, successor, predecessor);
@@ -189,19 +189,19 @@ public class TestJsonTraceCodec {
   public void testReversibleTraceWithDiamond() throws IOException {
     final ShallowTraceBuilder source =
         new ShallowTraceBuilder(IdGenerator.getNextId()).setName("source").setResultType(ResultType.SUCCESS)
-            .setValue("source value").setStartNanos(0L).setPendingNanos(25L).setEndNanos(50L);
+            .setValue("source value").setNativeStartNanos(0L).setNativePendingNanos(25L).setNativeEndNanos(50L);
 
     final ShallowTraceBuilder left =
         new ShallowTraceBuilder(IdGenerator.getNextId()).setName("left").setResultType(ResultType.SUCCESS)
-            .setValue("left value").setStartNanos(50L).setPendingNanos(75L).setEndNanos(100L);
+            .setValue("left value").setNativeStartNanos(50L).setNativePendingNanos(75L).setNativeEndNanos(100L);
 
     final ShallowTraceBuilder right =
         new ShallowTraceBuilder(IdGenerator.getNextId()).setName("right").setResultType(ResultType.SUCCESS)
-            .setValue("right value").setStartNanos(50L).setPendingNanos(75L).setEndNanos(100L);
+            .setValue("right value").setNativeStartNanos(50L).setNativePendingNanos(75L).setNativeEndNanos(100L);
 
     final ShallowTraceBuilder sink =
         new ShallowTraceBuilder(IdGenerator.getNextId()).setName("sink").setResultType(ResultType.SUCCESS)
-            .setValue("sink value").setStartNanos(100L).setPendingNanos(125L).setEndNanos(150L);
+            .setValue("sink value").setNativeStartNanos(100L).setNativePendingNanos(125L).setNativeEndNanos(150L);
 
     final TraceBuilder builder = new TraceBuilder(1024, "test", 0L);
     builder.addRelationship(Relationship.SUCCESSOR_OF, left, source);

@@ -417,7 +417,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
   }
 
   protected void markTaskStarted() {
-    _shallowTraceBuilder.setStartNanos(System.nanoTime());
+    _shallowTraceBuilder.setNativeStartNanos(System.nanoTime());
   }
 
   protected void transitionPending() {
@@ -434,7 +434,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
   }
 
   protected void markTaskPending() {
-    _shallowTraceBuilder.setPendingNanos(System.nanoTime());
+    _shallowTraceBuilder.setNativePendingNanos(System.nanoTime());
   }
 
   protected boolean transitionCancel(final Exception reason) {

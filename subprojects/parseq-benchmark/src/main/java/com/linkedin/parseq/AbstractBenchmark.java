@@ -276,9 +276,9 @@ public abstract class AbstractBenchmark {
 
   private void recordCompletionTimes(final Histogram planHistogram, Histogram taskHistogram, Task<?> task) {
     ShallowTrace st = task.getShallowTrace();
-    planHistogram.recordValue(st.getEndNanos() - st.getStartNanos());
+    planHistogram.recordValue(st.getNativeEndNanos() - st.getNativeStartNanos());
     task.getTrace().getTraceMap().values().forEach(shallowTrace -> {
-      taskHistogram.recordValue(shallowTrace.getPendingNanos() - shallowTrace.getStartNanos());
+      taskHistogram.recordValue(shallowTrace.getNativePendingNanos() - shallowTrace.getNativeStartNanos());
     });
   }
 
