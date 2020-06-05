@@ -132,7 +132,7 @@ public class ParSeqUnitTestHelper {
   }
 
   /**
-   * Equivalent to {@code runAndWait(this.getClass().getName(), task, 5, TimeUnit.SECONDS)}.
+   * Equivalent to {@code runAndWait(this.getClass().getName(), task, time, timeUnit)}.
    * @see #runAndWait(String, Task, long, TimeUnit)
    */
   public <T> T runAndWait(Task<T> task, long time, TimeUnit timeUnit) {
@@ -199,8 +199,28 @@ public class ParSeqUnitTestHelper {
     }
   }
 
+  /**
+   * Equivalent to {@code runAndWaitForPlanToComplete(this.getClass().getName(), task, time, timeUnit)}.
+   * @see #runAndWaitForPlanToComplete(String, Task, long, TimeUnit)
+   */
   public <T> T runAndWaitForPlanToComplete(Task<T> task, long time, TimeUnit timeUnit) {
     return runAndWaitForPlanToComplete("runAndWaitForPlanToComplete", task, time, timeUnit);
+  }
+
+  /**
+   * Equivalent to {@code runAndWaitForPlanToComplete(desc, task, 5, TimeUnit.SECONDS)}.
+   * @see #runAndWaitForPlanToComplete(String, Task, long, TimeUnit)
+   */
+  public <T> T runAndWaitForPlanToComplete(final String desc, Task<T> task) {
+    return runAndWaitForPlanToComplete(desc, task, 5, TimeUnit.SECONDS);
+  }
+
+  /**
+   * Equivalent to {@code runAndWaitForPlanToComplete(this.getClass().getName(), task)}.
+   * @see #runAndWaitForPlanToComplete(String, Task, long, TimeUnit)
+   */
+  public <T> T runAndWaitForPlanToComplete(Task<T> task) {
+    return runAndWaitForPlanToComplete("runAndWaitForPlanToComplete", task);
   }
 
   /**

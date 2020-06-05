@@ -111,6 +111,18 @@ public abstract class AbstractBaseEngineTest {
     return _parSeqUnitTestHelper.runAndWaitForPlanToComplete(this.getClass().getName(), task, time, timeUnit);
   }
 
+  protected <T> T runAndWaitForPlanToComplete(Task<T> task) {
+    return _parSeqUnitTestHelper.runAndWaitForPlanToComplete(this.getClass().getName(), task);
+  }
+
+  /**
+   * Equivalent to {@code runAndWaitForPlanToComplete(desc, task, 5, TimeUnit.SECONDS)}.
+   * @see #runAndWaitForPlanToComplete(String, Task, long, TimeUnit)
+   */
+  protected <T> T runAndWaitForPlanToComplete(final String desc, Task<T> task) {
+    return _parSeqUnitTestHelper.runAndWaitForPlanToComplete(desc, task);
+  }
+
   /**
    * Runs a task and verifies that it finishes with an error.
    * @param desc description of a test

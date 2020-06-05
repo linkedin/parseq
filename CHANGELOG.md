@@ -1,6 +1,8 @@
 v4.1.3
 ------
 
+* Add override for `runAndWaitForPlanToComplete()` with default timeout, just like `runAndWait()` in the test api.
+
 v4.1.2
 ------
 
