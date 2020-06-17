@@ -1,5 +1,10 @@
-v4.1.4
+v4.1.5
 ------
+
+v4.1.4
+------  
+
+* Catching exceptions thrown by Rest.li client impl and failing the Task.
 
 v4.1.3
 ------
