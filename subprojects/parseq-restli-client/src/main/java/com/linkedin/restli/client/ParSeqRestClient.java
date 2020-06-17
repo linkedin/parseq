@@ -119,7 +119,11 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
   @Deprecated
   public <T> Promise<Response<T>> sendRequest(final Request<T> request, final RequestContext requestContext) {
     final SettablePromise<Response<T>> promise = Promises.settable();
-    _client.sendRequest(request, requestContext, new PromiseCallbackAdapter<T>(promise));
+    try {
+      _client.sendRequest(request, requestContext, new PromiseCallbackAdapter<T>(promise));
+    } catch (Throwable e) {
+      promise.fail(e);
+    }
     return promise;
   }
 
