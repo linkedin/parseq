@@ -1241,6 +1241,24 @@ public interface Task<T> extends Promise<T>, Cancellable {
   }
 
   /**
+   * Creates a new task from a {@code Try}, mapping its success and failure
+   * semantics accordingly.
+   * 
+   * If the {@code Try} is successful then the resulting task will contain the
+   * value. If the {@code Try} is a failure then the resulting task will also be
+   * failed and contain the {@code Throwable}.
+   */
+  public static <T> Task<T> fromTry(final Try<? extends T> tried) {
+    ArgumentUtil.requireNotNull(tried, "tried");
+
+    if (tried.isFailed()) {
+      return failure(tried.getError());
+    } else {
+      return value(tried.get());
+    }
+  }
+
+  /**
    * Creates a new task from a callable that returns a {@link Promise}.
    * This method is mainly used to integrate ParSeq with 3rd party
    * asynchronous libraries. It should not be used in order to compose

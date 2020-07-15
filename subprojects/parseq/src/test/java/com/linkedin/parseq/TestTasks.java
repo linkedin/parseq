@@ -36,6 +36,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import org.testng.annotations.Test;
 
+import com.linkedin.parseq.function.Failure;
+import com.linkedin.parseq.function.Success;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
 import com.linkedin.parseq.promise.Promises;
@@ -212,6 +214,20 @@ public class TestTasks extends BaseEngineTest {
       throw new RuntimeException();
     });
     runAndWaitException("testFromCompletionStageWithCallableException", task, RuntimeException.class);
+  }
+
+  @Test
+  public void testFromTryWithSuccess() {
+    String result = "FromTryWithSuccessResult";
+    Task<String> task = Task.fromTry(Success.of(result));
+    runAndWait("testFromTryWithSuccess", task);
+    assertEquals(result, task.get());
+  }
+
+  @Test
+  public void testFromTryWithFailure() {
+    Task<String> task = Task.fromTry(Failure.of(new RuntimeException()));
+    runAndWaitException("testFromTryWithFailure", task, RuntimeException.class);
   }
 
   @Test
