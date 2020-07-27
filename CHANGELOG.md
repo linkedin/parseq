@@ -1,5 +1,10 @@
+v4.1.6
+------
+
 v4.1.5
 ------
+
+* Introduce `parseq-all` meta-project, which is useful for computing ParSeq's entire dependency tree.
 
 v4.1.4
 ------  

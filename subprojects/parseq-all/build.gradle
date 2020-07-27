@@ -1,7 +1,7 @@
 /*
-    This is a meta-project that programmatically depends on all other consumer-facing modules
-    so that the entire dependency tree of parseq may be pulled in easily. Be warned that this
-    module is not intended to be directly consumed, since it'll bloat the consumer's dependencies.
+    This is a meta-project that programmatically depends on all other consumer-facing modules.
+    The purpose of this module is to act as an entry point for systems to compute the entire dependency tree of ParSeq.
+    It is not intended to be directly consumed like a normal module, since it'll bloat the consumer's dependencies.
  */
 ext {
     description = '''Meta-project containing the entire dependency tree of parseq; should not be consumed directly.'''
