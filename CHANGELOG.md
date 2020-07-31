@@ -1,5 +1,10 @@
+v4.1.7
+------
+
 v4.1.6
 ------
+
+* Added runAndWaitExceptionOnPlanCompletion in ParSeqUnitTestHelper to wait for plan to complete even when plan is expected to fail with an exception
 
 v4.1.5
 ------
@@ -7,7 +12,7 @@ v4.1.5
 * Introduce `parseq-all` meta-project, which is useful for computing ParSeq's entire dependency tree.
 
 v4.1.4
-------  
+------
 
 * Catching exceptions thrown by Rest.li client impl and failing the Task.
 

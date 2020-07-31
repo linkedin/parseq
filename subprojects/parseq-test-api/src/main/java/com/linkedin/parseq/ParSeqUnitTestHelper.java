@@ -247,6 +247,59 @@ public class ParSeqUnitTestHelper {
     }
   }
 
+  /**
+   * Runs a task and verifies that it finishes with an error after waiting (for the provided duration) for entire plan
+   * to complete (including all side-effects)
+   *
+   * @param desc description of a test
+   * @param task task to run
+   * @param exceptionClass expected exception class
+   * @param time amount of time to wait for task completion
+   * @param timeUnit unit of time
+   * @param <T> expected exception type
+   * @return error returned by the task
+   */
+  public <T extends Throwable> T runAndWaitExceptionOnPlanCompletion(final String desc, Task<?> task,
+    Class<T> exceptionClass, long time, TimeUnit timeUnit) {
+    try {
+      runAndWaitForPlanToComplete(desc, task, time, timeUnit);
+      throw new AssertionError("An exception is expected, but the task succeeded");
+    } catch (PromiseException pe) {
+      Throwable cause = pe.getCause();
+      assertEquals(cause.getClass(), exceptionClass);
+      return exceptionClass.cast(cause);
+    } finally {
+      logTracingResults(desc, task);
+    }
+  }
+
+  /**
+   * Equivalent to {@code runAndWaitExceptionOnPlanCompletion(desc, task, exceptionClass, 5, TimeUnit.SECONDS)}.
+   * @see #runAndWaitExceptionOnPlanCompletion(String, Task, Class, long, TimeUnit)
+   */
+  public <T extends Throwable> T runAndWaitExceptionOnPlanCompletion(final String desc, Task<?> task,
+    Class<T> exceptionClass) {
+    return runAndWaitExceptionOnPlanCompletion(desc, task, exceptionClass, 5, TimeUnit.SECONDS);
+  }
+
+  /**
+   * Equivalent to {@code runAndWaitExceptionOnPlanCompletion(desc, task, exceptionClass, 5, TimeUnit.SECONDS)}.
+   * @see #runAndWaitExceptionOnPlanCompletion(String, Task, Class, long, TimeUnit)
+   */
+  public <T extends Throwable> T runAndWaitExceptionOnPlanCompletion(Task<?> task, Class<T> exceptionClass) {
+    return runAndWaitExceptionOnPlanCompletion("runAndWaitForPlanToCompleteException", task, exceptionClass);
+  }
+
+  /**
+   * Equivalent to {@code runAndWaitExceptionOnPlanCompletion(desc, task, exceptionClass, 5, TimeUnit.SECONDS)}.
+   * @see #runAndWaitExceptionOnPlanCompletion(String, Task, Class, long, TimeUnit)
+   */
+  public <T extends Throwable> T runAndWaitExceptionOnPlanCompletion(Task<?> task, Class<T> exceptionClass,
+    long time, TimeUnit timeUnit) {
+    return runAndWaitExceptionOnPlanCompletion("runAndWaitForPlanToCompleteException", task, exceptionClass, time,
+      timeUnit);
+  }
+
   //We don't want to use TestNG assertions to make the test utilities
   // class useful for non TestNG users (for example, JUnit).
   //Hence, we're writing our own private assertEquals method
