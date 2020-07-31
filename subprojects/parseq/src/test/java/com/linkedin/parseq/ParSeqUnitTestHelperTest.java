@@ -17,7 +17,7 @@ public class ParSeqUnitTestHelperTest {
         assertThrows(AssertionError.class, () -> ParSeqUnitTestHelper.assertEquals("x", "y"));
     }
 
-  @Test(description = "Proves that runAndWaitForPlanToCompleteException verifies the expected exception is thrown "
+  @Test(description = "Proves that runAndWaitExceptionOnPlanCompletion verifies the expected exception is thrown "
     + "while also waiting for entire plan to complete")
   public void testRunAndWaitExceptionOnPlanCompletion() throws Exception {
     ParSeqUnitTestHelper parSeqUnitTestHelper = new ParSeqUnitTestHelper();
