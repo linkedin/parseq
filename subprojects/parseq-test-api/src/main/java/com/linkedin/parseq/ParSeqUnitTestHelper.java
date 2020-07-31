@@ -259,7 +259,7 @@ public class ParSeqUnitTestHelper {
    * @param <T> expected exception type
    * @return error returned by the task
    */
-  public <T extends Throwable> T runAndWaitForPlanToCompleteException(final String desc, Task<?> task,
+  public <T extends Throwable> T runAndWaitExceptionOnPlanCompletion(final String desc, Task<?> task,
     Class<T> exceptionClass, long time, TimeUnit timeUnit) {
     try {
       runAndWaitForPlanToComplete(desc, task, time, timeUnit);
@@ -274,29 +274,29 @@ public class ParSeqUnitTestHelper {
   }
 
   /**
-   * Equivalent to {@code runAndWaitForPlanToCompleteException(desc, task, exceptionClass, 5, TimeUnit.SECONDS)}.
-   * @see #runAndWaitForPlanToCompleteException(String, Task, Class, long, TimeUnit)
+   * Equivalent to {@code runAndWaitExceptionOnPlanCompletion(desc, task, exceptionClass, 5, TimeUnit.SECONDS)}.
+   * @see #runAndWaitExceptionOnPlanCompletion(String, Task, Class, long, TimeUnit)
    */
-  public <T extends Throwable> T runAndWaitForPlanToCompleteException(final String desc, Task<?> task,
+  public <T extends Throwable> T runAndWaitExceptionOnPlanCompletion(final String desc, Task<?> task,
     Class<T> exceptionClass) {
-    return runAndWaitForPlanToCompleteException(desc, task, exceptionClass, 5, TimeUnit.SECONDS);
+    return runAndWaitExceptionOnPlanCompletion(desc, task, exceptionClass, 5, TimeUnit.SECONDS);
   }
 
   /**
-   * Equivalent to {@code runAndWaitForPlanToCompleteException(desc, task, exceptionClass, 5, TimeUnit.SECONDS)}.
-   * @see #runAndWaitForPlanToCompleteException(String, Task, Class, long, TimeUnit)
+   * Equivalent to {@code runAndWaitExceptionOnPlanCompletion(desc, task, exceptionClass, 5, TimeUnit.SECONDS)}.
+   * @see #runAndWaitExceptionOnPlanCompletion(String, Task, Class, long, TimeUnit)
    */
-  public <T extends Throwable> T runAndWaitForPlanToCompleteException(Task<?> task, Class<T> exceptionClass) {
-    return runAndWaitForPlanToCompleteException("runAndWaitForPlanToCompleteException", task, exceptionClass);
+  public <T extends Throwable> T runAndWaitExceptionOnPlanCompletion(Task<?> task, Class<T> exceptionClass) {
+    return runAndWaitExceptionOnPlanCompletion("runAndWaitForPlanToCompleteException", task, exceptionClass);
   }
 
   /**
-   * Equivalent to {@code runAndWaitForPlanToCompleteException(desc, task, exceptionClass, 5, TimeUnit.SECONDS)}.
-   * @see #runAndWaitForPlanToCompleteException(String, Task, Class, long, TimeUnit)
+   * Equivalent to {@code runAndWaitExceptionOnPlanCompletion(desc, task, exceptionClass, 5, TimeUnit.SECONDS)}.
+   * @see #runAndWaitExceptionOnPlanCompletion(String, Task, Class, long, TimeUnit)
    */
-  public <T extends Throwable> T runAndWaitForPlanToCompleteException(Task<?> task, Class<T> exceptionClass,
+  public <T extends Throwable> T runAndWaitExceptionOnPlanCompletion(Task<?> task, Class<T> exceptionClass,
     long time, TimeUnit timeUnit) {
-    return runAndWaitForPlanToCompleteException("runAndWaitForPlanToCompleteException", task, exceptionClass, time,
+    return runAndWaitExceptionOnPlanCompletion("runAndWaitForPlanToCompleteException", task, exceptionClass, time,
       timeUnit);
   }
 

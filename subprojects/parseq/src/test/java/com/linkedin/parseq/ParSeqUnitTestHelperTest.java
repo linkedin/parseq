@@ -1,7 +1,6 @@
 package com.linkedin.parseq;
 
 import java.util.concurrent.TimeUnit;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertThrows;
@@ -20,12 +19,12 @@ public class ParSeqUnitTestHelperTest {
 
   @Test(description = "Proves that runAndWaitForPlanToCompleteException verifies the expected exception is thrown "
     + "while also waiting for entire plan to complete")
-  public void testRunAndWaitForPlanToCompleteException() throws Exception {
+  public void testRunAndWaitExceptionOnPlanCompletion() throws Exception {
     ParSeqUnitTestHelper parSeqUnitTestHelper = new ParSeqUnitTestHelper();
     parSeqUnitTestHelper.setUp();
 
     Task<String> delayedSideEffect = parSeqUnitTestHelper.delayedValue("delayed", 1, TimeUnit.SECONDS);
-    parSeqUnitTestHelper.runAndWaitForPlanToCompleteException(
+    parSeqUnitTestHelper.runAndWaitExceptionOnPlanCompletion(
       Task.par(
         Task.value("a").withSideEffect(a -> delayedSideEffect),
         parSeqUnitTestHelper.delayedFailure(new Exception(), 100, TimeUnit.MILLISECONDS)
