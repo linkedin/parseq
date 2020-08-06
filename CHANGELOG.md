@@ -1,5 +1,14 @@
-v4.1.7
+v5.0.1
 ------
+
+v5.0.0
+------
+
+* **BACKWARD INCOMPATIBLE**:
+    * Added cookies to the generated request in `GetRequestGroup`.
+      This is a bug fix, as cookies should've been respected in the first place.
+    * This may cause changed behavior for batched requests at runtime,
+      since we are attaching cookies when previously they were not present.
 
 v4.1.6
 ------
