@@ -16,10 +16,13 @@
 
 package com.linkedin.restli.client;
 
+import java.net.HttpCookie;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -62,6 +65,7 @@ class GetRequestGroup implements RequestGroup {
   private final String _baseUriTemplate; //taken from first request, used to differentiate between groups
   private final ResourceSpec _resourceSpec;  //taken from first request
   private final Map<String, String> _headers; //taken from first request, used to differentiate between groups
+  private final List<HttpCookie> _cookies; //taken from first request, used to differentiate between groups
   private final RestliRequestOptions _requestOptions; //taken from first request, used to differentiate between groups
   private final Map<String, Object> _queryParams; //taken from first request, used to differentiate between groups
   private final Map<String, Object> _pathKeys; //taken from first request, used to differentiate between groups
@@ -71,6 +75,7 @@ class GetRequestGroup implements RequestGroup {
   public GetRequestGroup(Request<?> request, int maxBatchSize) {
     _baseUriTemplate = request.getBaseUriTemplate();
     _headers = request.getHeaders();
+    _cookies = request.getCookies();
     _queryParams = getQueryParamsForBatchingKey(request);
     _resourceSpec = request.getResourceSpec();
     _requestOptions = request.getRequestOptions();
@@ -198,6 +203,7 @@ class GetRequestGroup implements RequestGroup {
     Function<Request<?>, RequestContext> requestContextProvider) {
     final BatchGetEntityRequestBuilder<K, RT> builder = new BatchGetEntityRequestBuilder<>(_baseUriTemplate, _resourceSpec, _requestOptions);
     builder.setHeaders(_headers);
+    builder.setCookies(_cookies);
     _queryParams.forEach((key, value) -> builder.setParam(key, value));
     _pathKeys.forEach((key, value) -> builder.pathKey(key, value));
 
@@ -308,6 +314,7 @@ class GetRequestGroup implements RequestGroup {
     final GetRequestBuilder<K, RT> builder = (GetRequestBuilder<K, RT>) new GetRequestBuilder<>(_baseUriTemplate,
         _resourceSpec.getValueClass(), _resourceSpec, _requestOptions);
     builder.setHeaders(_headers);
+    builder.setCookies(_cookies);
     _queryParams.forEach((key, value) -> builder.setParam(key, value));
     _pathKeys.forEach((key, value) -> builder.pathKey(key, value));
 
@@ -386,6 +393,10 @@ class GetRequestGroup implements RequestGroup {
     return _headers;
   }
 
+  public List<HttpCookie> getCookies() {
+    return _cookies;
+  }
+
   public Map<String, Object> getQueryParams() {
     return _queryParams;
   }
@@ -407,11 +418,12 @@ class GetRequestGroup implements RequestGroup {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((_baseUriTemplate == null) ? 0 : _baseUriTemplate.hashCode());
-    result = prime * result + ((_headers == null) ? 0 : _headers.hashCode());
-    result = prime * result + ((_queryParams == null) ? 0 : _queryParams.hashCode());
-    result = prime * result + ((_pathKeys == null) ? 0 : _pathKeys.hashCode());
-    result = prime * result + ((_requestOptions == null) ? 0 : _requestOptions.hashCode());
+    result = prime * result + Objects.hashCode(_baseUriTemplate);
+    result = prime * result + Objects.hashCode(_headers);
+    result = prime * result + Objects.hashCode(_cookies);
+    result = prime * result + Objects.hashCode(_queryParams);
+    result = prime * result + Objects.hashCode(_pathKeys);
+    result = prime * result + Objects.hashCode(_requestOptions);
     return result;
   }
 
@@ -424,31 +436,7 @@ class GetRequestGroup implements RequestGroup {
     if (getClass() != obj.getClass())
       return false;
     GetRequestGroup other = (GetRequestGroup) obj;
-    if (_baseUriTemplate == null) {
-      if (other._baseUriTemplate != null)
-        return false;
-    } else if (!_baseUriTemplate.equals(other._baseUriTemplate))
-      return false;
-    if (_headers == null) {
-      if (other._headers != null)
-        return false;
-    } else if (!_headers.equals(other._headers))
-      return false;
-    if (_queryParams == null) {
-      if (other._queryParams != null)
-        return false;
-    } else if (!_queryParams.equals(other._queryParams))
-      return false;
-    if (_pathKeys == null) {
-      if (other._pathKeys != null)
-        return false;
-    } else if (!_pathKeys.equals(other._pathKeys))
-      return false;
-    if (_requestOptions == null) {
-      if (other._requestOptions != null)
-        return false;
-    } else if (!_requestOptions.equals(other._requestOptions))
-      return false;
+
     if (_resourceSpec == null){
       if (other._resourceSpec != null) {
         return false;
@@ -456,13 +444,20 @@ class GetRequestGroup implements RequestGroup {
     } else if (_resourceSpec.getKeyClass() != other._resourceSpec.getKeyClass()) {
       return false;
     }
-    return true;
+
+    return Objects.equals(_baseUriTemplate, other._baseUriTemplate)
+        && Objects.equals(_headers, other._headers)
+        && Objects.equals(_cookies, other._cookies)
+        && Objects.equals(_queryParams, other._queryParams)
+        && Objects.equals(_pathKeys, other._pathKeys)
+        && Objects.equals(_requestOptions, other._requestOptions);
   }
 
   @Override
   public String toString() {
     return "GetRequestGroup [_baseUriTemplate=" + _baseUriTemplate + ", _queryParams=" + _queryParams + ", _pathKeys=" + _pathKeys
-        + ", _requestOptions=" + _requestOptions + ", _headers=" + _headers + ", _maxBatchSize=" + _maxBatchSize + "]";
+        + ", _requestOptions=" + _requestOptions + ", _headers=" + _headers + ", _cookies=" + _cookies
+        + ", _maxBatchSize=" + _maxBatchSize + "]";
   }
 
   @Override

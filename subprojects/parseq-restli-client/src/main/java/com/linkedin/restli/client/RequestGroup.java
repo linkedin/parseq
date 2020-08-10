@@ -29,7 +29,6 @@ interface RequestGroup {
   public static RequestGroup fromRequest(final Request<?> request, int maxBatchSize) {
     switch (request.getMethod()) {
       case GET:
-        return new GetRequestGroup(request, maxBatchSize);
       case BATCH_GET:
         return new GetRequestGroup(request, maxBatchSize);
       default:
