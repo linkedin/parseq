@@ -609,7 +609,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
 
   /**
    * Creates a new task that will handle failure of this task.
-   * Early completion due to cancellation is not considered to be a failure so it will not be recovered..
+   * Early completion due to cancellation is not considered to be a failure and the recovery function is not called.
    * If this task completes successfully, then recovery function is not called.
    * <blockquote><pre>
    *
