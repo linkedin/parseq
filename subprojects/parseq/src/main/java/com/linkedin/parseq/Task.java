@@ -609,7 +609,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
 
   /**
    * Creates a new task that will handle failure of this task.
-   * Early completion due to cancellation is not considered to be a failure.
+   * Early completion due to cancellation is not considered to be a failure and the recovery function is not called.
    * If this task completes successfully, then recovery function is not called.
    * <blockquote><pre>
    *
@@ -626,7 +626,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * </pre></blockquote>
    * <img src="doc-files/recover-1.png" height="90" width="462"/>
    * <p>
-   * Note that task cancellation is not considered to be a failure.
+   * Note that task cancellation is not considered to be a failure to this method.
    * If this task has been cancelled then task returned by this method will also
    * be cancelled and recovery function will not be applied.
    *
@@ -689,7 +689,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * <p>
    * Exceptions thrown by a consumer will be ignored.
    * <p>
-   * Note that task cancellation is not considered to be a failure.
+   * Note that task cancellation is not considered to be a failure to this method.
    * If this task has been cancelled then task returned by this method will also
    * be cancelled and consumer will not be called.
    *
@@ -757,7 +757,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * All failures are automatically propagated and it is usually enough to use
    * {@link #recover(String, Function1) recover} or {@link #recoverWith(String, Function1) recoverWith}.
    * <p>
-   * Note that task cancellation is not considered to be a failure.
+   * Note that task cancellation is not considered to be a failure to this method.
    * If this task has been cancelled then task returned by this method will also
    * be cancelled.
    *
@@ -806,7 +806,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * </pre></blockquote>
    * <img src="doc-files/transform-1.png" height="90" width="296"/>
    * <p>
-   * Note that task cancellation is not considered to be a failure.
+   * Note that task cancellation is not considered to be a failure to this method.
    * If this task has been cancelled then task returned by this method will also
    * be cancelled and transformation will not be applied.
    *
@@ -847,7 +847,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
 
   /**
    * Creates a new task that will handle failure of this task.
-   * Early completion due to cancellation is not considered to be a failure.
+   * Early completion due to cancellation is not considered to be a failure so it will not be recovered.
    * If this task completes successfully, then recovery function is not called.
    * <blockquote><pre>
    *
@@ -869,7 +869,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * <p>
    * If recovery task fails then returned task is completed with that failure.
    * <p>
-   * Note that task cancellation is not considered to be a failure.
+   * Note that task cancellation is not considered to be a failure to this method.
    * If this task has been cancelled then task returned by this method will also
    * be cancelled and recovery function will not be applied.
    *
@@ -935,13 +935,16 @@ public interface Task<T> extends Promise<T>, Cancellable {
   /**
    * Creates a new task that has a timeout associated with it. If this task finishes
    * before the timeout occurs then returned task will be completed with the value of this task.
-   * If this task does not complete in the given time then returned task will
-   * fail with a {@link TimeoutException} as a reason of failure and this task will be cancelled.
+   * If this task does not complete in the given time then the task returned by this method will
+   * fail with a {@link TimeoutException} as a reason of failure, and this original task will be cancelled.
    * <blockquote><pre>
-   * final Task<Response> google = HttpClient.get("http://google.com").task()
-   *     .withTimeout(10, TimeUnit.MILLISECONDS);
+   * Task<Response> fetchContent = HttpClient.get("http://google.com").task();
+   * final Task<Response> fetchWithTimeout = fetchContent.withTimeout(10, TimeUnit.MILLISECONDS);
    * </pre></blockquote>
    * <img src="doc-files/withTimeout-1.png" height="150" width="318"/>
+   * When the timeout happens, "fetchWithTimeout" task will fail with "TimeoutException".
+   * Note the original "fetchContent" task will be cancelled (fail with "EarlyFinishException"),
+   * but this does not mean "fetchWithTimeout" is cancelled. "fetchWithTimeout" can be handled using failure handling methods.
    *
    * @param desc description of a timeout. There is no need to put timeout value here because it will be automatically
    * included. Full description of a timeout will be: {@code "withTimeout " + time + " " + TimeUnitHelper.toString(unit) +
@@ -1243,7 +1246,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
   /**
    * Creates a new task from a {@code Try}, mapping its success and failure
    * semantics accordingly.
-   * 
+   *
    * If the {@code Try} is successful then the resulting task will contain the
    * value. If the {@code Try} is a failure then the resulting task will also be
    * failed and contain the {@code Throwable}.
