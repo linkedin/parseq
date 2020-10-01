@@ -1434,6 +1434,9 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * will be resolved with results of all tasks as soon as all of them has
    * been completed successfully.
    *
+   * Tasks created using Task.blocking only run in parallel, tasks created using Task.callable are executed
+   * sequentially, although the visualization tools may show the task composition as parallel
+   *
    * <blockquote><pre>
    *  // this task will asynchronously fetch user and company in parallel
    *  // and create signature in a form {@code "<first name> <last name> working for <company>"}
