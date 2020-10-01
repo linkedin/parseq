@@ -11,13 +11,15 @@ configurations {
 
 dependencies {
   shadow group: 'com.linkedin.agentloader', name: 'linkedin-agent-loader', version: '1.0.4'
-  shadow group: 'org.ow2.asm', name: 'asm-all', version: '5.1'
+  shadow group: 'org.ow2.asm', name: 'asm-tree', version: '7.0'
+  shadow group: 'org.ow2.asm', name: 'asm', version: '7.0'
+  shadow group: 'org.ow2.asm', name: 'asm-analysis', version: '7.0'
   testCompile group: 'org.testng', name: 'testng', version: '6.9.9'
 }
 
 sourceSets.main.compileClasspath += configurations.shadow + sourceSets.main.compileClasspath
 
-javadoc.classpath += configurations.shadow + sourceSets.main.compileClasspath
+javadoc.classpath += sourceSets.main.compileClasspath
 
 shadowJar {
   configurations += [project.configurations.shadow]
@@ -25,10 +27,28 @@ shadowJar {
   relocate 'org.objectweb', 'parseq.org.objectweb'
 }
 
+java {
+  sourceCompatibility = JavaVersion.VERSION_1_8
+  targetCompatibility = JavaVersion.VERSION_1_8
+}
+
 jar {
   finalizedBy shadowJar // The shadowJar task basically overwrites the output of the jar task (kind of hacky)
   manifest {
     attributes 'Agent-Class': 'com.linkedin.parseq.lambda.ASMBasedTaskDescriptor$Agent'
+  }
+}
+
+def classesOutput = classes.outputs.files
+
+test {
+  dependsOn jar
+  doFirst {
+    classpath += jar.outputs.files
+  }
+  useTestNG()
+  afterEvaluate {
+    classpath = classpath.filter { f -> !f.getPath().contains('/build/classes/java/main') }
   }
 }
 
