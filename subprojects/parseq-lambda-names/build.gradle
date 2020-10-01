@@ -19,17 +19,12 @@ dependencies {
 
 sourceSets.main.compileClasspath += configurations.shadow + sourceSets.main.compileClasspath
 
-javadoc.classpath += sourceSets.main.compileClasspath
+javadoc.classpath += configurations.shadow + sourceSets.main.compileClasspath
 
 shadowJar {
   configurations += [project.configurations.shadow]
   classifier = null
   relocate 'org.objectweb', 'parseq.org.objectweb'
-}
-
-java {
-  sourceCompatibility = JavaVersion.VERSION_1_8
-  targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 jar {
@@ -39,17 +34,5 @@ jar {
   }
 }
 
-def classesOutput = classes.outputs.files
-
-test {
-  dependsOn jar
-  doFirst {
-    classpath += jar.outputs.files
-  }
-  useTestNG()
-  afterEvaluate {
-    classpath = classpath.filter { f -> !f.getPath().contains('/build/classes/java/main') }
-  }
-}
 
 compileJava.options.compilerArgs += '-Xlint:-unchecked'
