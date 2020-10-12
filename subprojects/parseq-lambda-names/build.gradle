@@ -14,6 +14,7 @@ dependencies {
   shadow group: 'org.ow2.asm', name: 'asm-tree', version: '7.0'
   shadow group: 'org.ow2.asm', name: 'asm', version: '7.0'
   shadow group: 'org.ow2.asm', name: 'asm-analysis', version: '7.0'
+  shadow group: 'net.bytebuddy', name: 'byte-buddy-dep', version: '1.9.16'
   testCompile group: 'org.testng', name: 'testng', version: '6.9.9'
 }
 
@@ -25,14 +26,24 @@ shadowJar {
   configurations += [project.configurations.shadow]
   classifier = null
   relocate 'org.objectweb', 'parseq.org.objectweb'
+  relocate 'net.bytebuddy', 'parseq.net.bytebuddy'
 }
 
 jar {
   finalizedBy shadowJar // The shadowJar task basically overwrites the output of the jar task (kind of hacky)
   manifest {
+    attributes 'Premain-Class': 'com.linkedin.parseq.lambda.ASMBasedTaskDescriptor$Agent'
     attributes 'Agent-Class': 'com.linkedin.parseq.lambda.ASMBasedTaskDescriptor$Agent'
+    attributes 'Can-Retransform-Classes': 'true'
   }
 }
 
+test {
+  dependsOn jar
+  if (JavaVersion.current() > JavaVersion.VERSION_1_8) {
+    jvmArgs += ['-javaagent:' + jar.outputs.files.getSingleFile()]
+  }
+  classpath += jar.outputs.files
+}
 
 compileJava.options.compilerArgs += '-Xlint:-unchecked'

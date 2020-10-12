@@ -8,5 +8,8 @@ while read jvm
 do
     echo "Testing with $jvm"
     setjdk $jvm
-    ../../gradlew clean test
+    ../../gradlew clean test --rerun-tasks --info
 done < supported_jvms
+
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk11.0.7-zulu.jdk/Contents/Home/
+../../gradlew clean test --info --rerun-tasks

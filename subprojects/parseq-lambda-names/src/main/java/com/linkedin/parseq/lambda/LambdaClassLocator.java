@@ -1,5 +1,6 @@
 package com.linkedin.parseq.lambda;
 
+import java.util.concurrent.ConcurrentMap;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 
@@ -17,10 +18,12 @@ class LambdaClassLocator extends ClassVisitor {
   private InferredOperation _inferredOperation;
 
   private ClassLoader _loader;
+  private ConcurrentMap<String, String> _names;
 
-  LambdaClassLocator(int api, ClassLoader loader) {
+  LambdaClassLocator(int api, ClassLoader loader, ConcurrentMap<String, String> names) {
     super(api);
     _loader = loader;
+    _names = names;
   }
 
   @Override
@@ -61,5 +64,14 @@ class LambdaClassLocator extends ClassVisitor {
 
   LambdaClassDescription getLambdaClassDescription() {
     return new LambdaClassDescription(_className, _sourcePointer, _inferredOperation);
+  }
+
+  @Override
+  public void visitEnd() {
+    super.visitEnd();
+    if (isLambdaClass()) {
+      LambdaClassDescription lambdaClassDescription = getLambdaClassDescription();
+      _names.put(lambdaClassDescription.getClassName(), lambdaClassDescription.getDescription());
+    }
   }
 }
