@@ -15,9 +15,9 @@ class SourcePointer {
     _lineNumber = lineNumber;
   }
 
-  /* package private */ static Optional<SourcePointer> get() {
+  /* package private */ static Optional<SourcePointer> get(Exception exception) {
     //create an exception, discard known elements from stack trace and find first element with suspect
-    return Arrays.stream(new Exception().getStackTrace())
+    return Arrays.stream(exception.getStackTrace())
         .filter(SourcePointer::notLambdaStuff)
         .findFirst()
         .map(SourcePointer::sourcePointer);
@@ -27,6 +27,7 @@ class SourcePointer {
     return !(element.getClassName().startsWith("java.")
         || element.getClassName().startsWith("sun.")
         || element.getClassName().startsWith("org.objectweb.asm.")
+        || element.getClassName().startsWith("jdk.")
         || element.getClassName().startsWith(ASMBasedTaskDescriptor.class.getName())
         || element.getClassName().startsWith(ASMBasedTaskDescriptor.Agent.class.getName())
         || element.getClassName().startsWith(FindMethodCallAnalyzer.class.getName())

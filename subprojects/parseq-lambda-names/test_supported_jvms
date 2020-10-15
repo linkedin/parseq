@@ -8,5 +8,5 @@ while read jvm
 do
     echo "Testing with $jvm"
     setjdk $jvm
-    mvn clean test
+    ../../gradlew clean test --info --rerun-tasks
 done < supported_jvms

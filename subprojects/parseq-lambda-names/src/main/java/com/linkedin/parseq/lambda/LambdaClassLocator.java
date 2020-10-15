@@ -17,10 +17,12 @@ class LambdaClassLocator extends ClassVisitor {
   private InferredOperation _inferredOperation;
 
   private ClassLoader _loader;
+  private Exception _exception;
 
-  LambdaClassLocator(int api, ClassLoader loader) {
+  LambdaClassLocator(int api, ClassLoader loader, Exception exception) {
     super(api);
     _loader = loader;
+    _exception = exception;
   }
 
   @Override
@@ -29,7 +31,7 @@ class LambdaClassLocator extends ClassVisitor {
     _className = name.replace('/', '.');
     _isLambdaClass = Util.isALambdaClassByName(name);
     if (_isLambdaClass) {
-      _sourcePointer = SourcePointer.get().orElse(null);
+      _sourcePointer = SourcePointer.get(_exception).orElse(null);
     }
   }
 
