@@ -28,16 +28,9 @@ class SourcePointer {
         || element.getClassName().startsWith("sun.")
         || element.getClassName().startsWith("org.objectweb.asm.")
         || element.getClassName().startsWith("jdk.")
-        || element.getClassName().startsWith(ASMBasedTaskDescriptor.class.getName())
-        || element.getClassName().startsWith(ASMBasedTaskDescriptor.Agent.class.getName())
-        || element.getClassName().startsWith(FindMethodCallAnalyzer.class.getName())
-        || element.getClassName().startsWith(LambdaClassLocator.class.getName())
-        || element.getClassName().startsWith(LambdaMethodVisitor.class.getName())
-        || element.getClassName().startsWith(SourcePointer.class.getName())
-        || element.getClassName().startsWith(SyntheticLambdaAnalyzer.class.getName())
-        || element.getClassName().startsWith(SyntheticLambdaAnalyzer.SyntheticLambdaMethodVisitor.class.getName())
         || element.getMethodName().startsWith("lambda$")
-        || element.getClassName().contains("$$Lambda$"));
+        || element.getClassName().contains("$$Lambda$")
+        || element.getClassName().startsWith(ASMBasedTaskDescriptor.class.getName()));
   }
 
   private static SourcePointer sourcePointer(StackTraceElement stackTraceElement) {

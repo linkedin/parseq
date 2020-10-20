@@ -1,21 +1,22 @@
 package com.linkedin.parseq.lambda;
 
-import static java.util.Map.entry;
 import static net.bytebuddy.matcher.ElementMatchers.is;
 import static net.bytebuddy.matcher.ElementMatchers.noneOf;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.ProtectionDomain;
-import java.util.Map;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
@@ -39,40 +40,31 @@ import net.bytebuddy.utility.JavaModule;
  */
 public class ASMBasedTaskDescriptor implements TaskDescriptor {
 
-  private static class QueueEntry {
-	  private final byte[] _bytes;
-	  private final ClassLoader _classLoader;
-	  private final Exception _exception;
-	public QueueEntry(byte[] bytes, ClassLoader classLoader, Exception exception) {
-		this._bytes = bytes;
-		this._classLoader = classLoader;
-		this._exception = exception;
-	}
-  }
-
-  private static ConcurrentMap<String, String> _names = new ConcurrentHashMap<>();
-  private static ConcurrentLinkedQueue<QueueEntry> _entries = new ConcurrentLinkedQueue<>();
-
-
-  public static void analyzeAll() {
-	  while (!_entries.isEmpty()) {
-		  QueueEntry e = _entries.poll();
-		  Agent.Analyzer.doAnalyze(e._bytes, e._classLoader, e._exception);
-	  }
-  }
-
+  private static final ConcurrentMap<String, String> _names = new ConcurrentHashMap<>();
+  private static final AtomicReference<CountDownLatch> _latchRef = new AtomicReference<CountDownLatch>();
+  private static final AtomicInteger _count = new AtomicInteger();
 
   public static class AnalyzerAdvice {
 
+    /*
+     * We invoke the analyze(byte[] byteCode, ClassLoader loader) method through reflection
+     * so that it can be executed in the context of the Analyzer class's ClassLoader.
+     * Without it the Platform ClassLoader would have to have all dependencies such as
+     * asm injected to it.
+     */
     public static Method _method;
 
     @Advice.OnMethodExit
     static void onExit(@Advice.Argument(0) Class<?> hostClass, @Advice.Argument(1) byte[] bytecode,
         @Advice.Return Class<?> definedClass) {
       try {
-        _method.invoke(null, bytecode, definedClass.getClassLoader());
-      } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-        e.printStackTrace();
+        _method.invoke(null, bytecode, hostClass.getClassLoader());
+      } catch (Throwable t) {
+        t.printStackTrace();
+        /*
+         * We want to continue. We can't afford to throw an exception in such a critical point.
+         * The application should still execute correctly even though lambda names are not improved.
+         */
       }
     }
   }
@@ -82,120 +74,69 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
 	  try {
 			Instrumentation inst = ByteBuddyAgent.install();
 
-			// Inject AnalyzerAdvice and other classes to boot classloader
-			Map<TypeDescription, Class<?>> injected = ClassInjector.UsingUnsafe.ofBootLoader()
-					.inject(Map.ofEntries(
-							entry(
-									new TypeDescription.ForLoadedType(AnalyzerAdvice.class),
-									ClassFileLocator.ForClassLoader.read(AnalyzerAdvice.class)
-								)
-							)
-					);
+			/*
+			 * If we can get the instance of jdk.internal.misc.Unsafe then we will
+			 * attempt to instrument Unsafe.defineAnonymousClass(...) to capture classes
+			 * generated for lambdas.
+			 * This approach does not work for Oracle Java 8 because
+			 * sun.misc.Unsafe.defineAnonymousClass(...) is a native method and we can
+			 * at most replace it but there is no reasonably easy way to replace it and
+			 * still invoke the original method.
+			 */
+			boolean isJdkUnsafe = false;
+      Class<?> unsafe = null;
+      try {
+        unsafe = Class.forName("jdk.internal.misc.Unsafe");
+        isJdkUnsafe = true;
+      } catch (ClassNotFoundException e) {
+      }
 
-			Class<?> injectedInt = ClassLoader.getPlatformClassLoader().loadClass(AnalyzerAdvice.class.getName());
-			injectedInt.getField("_method").set(null, Agent.Analyzer.class.getDeclaredMethod("analyze", byte[].class, ClassLoader.class));
+			if (isJdkUnsafe) {
+			  // Code path that supports OpenJDK Java 11 and up
 
-			JavaModule module = JavaModule.ofType(injectedInt);
+	      /*
+	       * Inject AnalyzerAdvice to boot ClassLoader.
+	       * It has to be reachable from jdk.internal.misc.Unsafe.
+	       */
+	      ClassInjector.UsingUnsafe.ofBootLoader()
+	          .inject(Collections.singletonMap(
+	                  new TypeDescription.ForLoadedType(AnalyzerAdvice.class),
+	                  ClassFileLocator.ForClassLoader.read(AnalyzerAdvice.class)
+	              )
+	          );
 
-			Class<?> unsafe = Class.forName("jdk.internal.misc.Unsafe");
+	      /*
+	       * Inject the analyze(byte[] byteCode, ClassLoader loader) method from this ClassLoader
+	       * to the AnalyzerAdvice class from boot ClassLoader.
+	       */
+	      Class<?> injectedInt = ClassLoader.getSystemClassLoader().getParent().loadClass(AnalyzerAdvice.class.getName());
+	      injectedInt.getField("_method").set(null, Analyzer.class.getDeclaredMethod("analyze", byte[].class, ClassLoader.class));
 
-			// Redefine File.exists
-			new AgentBuilder.Default().disableClassFormatChanges()
-				.ignore(noneOf(unsafe))
-				.with(AgentBuilder.InitializationStrategy.NoOp.INSTANCE)
-				.with(AgentBuilder.RedefinitionStrategy.REDEFINITION)
-				.with(AgentBuilder.TypeStrategy.Default.REDEFINE)
-				.with(AgentBuilder.InjectionStrategy.UsingUnsafe.INSTANCE)
-				.assureReadEdgeTo(inst, module)
-				.type(is(unsafe))
-				.transform(new AgentBuilder.Transformer() {
-					@Override
-					public Builder<?> transform(Builder<?> builder, TypeDescription typeDescription,
-							ClassLoader classLoader, JavaModule module) {
-						return builder.visit(Advice.to(AnalyzerAdvice.class).on(ElementMatchers.named("defineAnonymousClass")));
-					}
-				}).installOnByteBuddyAgent();
+	      JavaModule module = JavaModule.ofType(injectedInt);
+
+	      new AgentBuilder.Default()
+	        .disableClassFormatChanges()
+	        .ignore(noneOf(unsafe))
+	        .with(AgentBuilder.InitializationStrategy.NoOp.INSTANCE)
+	        .with(AgentBuilder.RedefinitionStrategy.REDEFINITION)
+	        .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
+	        .with(AgentBuilder.InjectionStrategy.UsingUnsafe.INSTANCE)
+	        .assureReadEdgeTo(inst, module)
+	        .type(is(unsafe))
+	        .transform(new AgentBuilder.Transformer() {
+	          @Override
+	          public Builder<?> transform(Builder<?> builder, TypeDescription typeDescription,
+	              ClassLoader classLoader, JavaModule module) {
+	            return builder.visit(Advice.to(AnalyzerAdvice.class).on(ElementMatchers.named("defineAnonymousClass")));
+	          }
+	        }).installOnByteBuddyAgent();
+			} else {
+			  // Code path that supports Oracle Java 8 and 9
+        inst.addTransformer(new Analyzer());
+			}
 	  } catch(Exception e) {
 		  e.printStackTrace();
 	  }
-
-
-//		new ByteBuddy()
-//			.redefine(jdk.internal.misc.Unsafe.class)
-//			.visit(Advice.to(AnalyzerAdvice.class).on(named("defineAnonymousClass")))
-//			.make()
-//			.load(jdk.internal.misc.Unsafe.class.getClassLoader(), ClassLoadingStrategy.Default.INJECTION);
-
-//	Blah.init();
-
-//	Instrumentation instrumentation = ByteBuddyAgent.install();
-//	final Agent.Analyzer analyzer = new Agent.Analyzer();
-//
-//	AgentBuilder.Default.LambdaInstrumentationStrategy.ENABLED.apply(new ByteBuddy(), instrumentation, analyzer);
-
-//    if (LambdaFactory.register(classFileTransformer, new LambdaInstanceFactory(byteBuddy))) {
-//        Class<?> lambdaMetaFactory;
-//        try {
-//            lambdaMetaFactory = Class.forName("java.lang.invoke.LambdaMetafactory");
-//        } catch (ClassNotFoundException ignored) {
-//            return;
-//        }
-//        byteBuddy.with(Implementation.Context.Disabled.Factory.INSTANCE)
-//                .redefine(lambdaMetaFactory)
-//                .visit(new AsmVisitorWrapper.ForDeclaredMethods()
-//                        .method(named("metafactory"), MetaFactoryRedirection.INSTANCE)
-//                        .method(named("altMetafactory"), AlternativeMetaFactoryRedirection.INSTANCE))
-//                .make()
-//                .load(lambdaMetaFactory.getClassLoader(), ClassReloadingStrategy.of(instrumentation));
-//    }
-
-
-//	new AgentBuilder.Default()
-//	  .with(LambdaInstrumentationStrategy.ENABLED)
-//	  .type(ElementMatchers.any())
-//	  .transform((builder, type, classLoader, module) -> {
-////		  analyzer.analyze(builder., loader);
-//		  System.out.println(type);
-//		  return builder;
-//	  })
-//	  .installOn(instrumentation);
-
-
-
-//	ASMBasedTaskDescriptor.Agent.agentmain(null, instrumentation);
-
-
-//    if (ASMBasedTaskDescriptor.Agent.class.getClassLoader() != ClassLoader.getSystemClassLoader()) {
-//      try {
-//        // Agent needs to be loaded through system class loader
-//        // This piece of code adds Agent to system class path and then loads the Agent
-//        ClassPathUtils.appendToSystemPath(ClassPathUtils.getClassPathFor(ASMBasedTaskDescriptor.Agent.class));
-//        AgentLoader.loadAgentClass(ASMBasedTaskDescriptor.Agent.class.getName(), null, null, true, true, false);
-//
-//        // Reference the names field to names field of instance loaded through system class loader
-//        // Its the system class loaded instance names field which is populated with lambda descriptions
-//        // because agent is loaded through system class loader
-//        Class<?> systemClazz = ClassLoader.getSystemClassLoader().loadClass(ASMBasedTaskDescriptor.class.getName());
-//        Object _systemClassDescriptor = systemClazz.newInstance();
-//
-//        Field field = systemClazz.getDeclaredField("_names");
-//        field.setAccessible(true);
-//
-//        ConcurrentMap<String, String> systemsNamesMap = (ConcurrentMap<String, String>) field.get(_systemClassDescriptor);
-//        _names = systemsNamesMap;
-//      } catch (Throwable e) {
-//        System.err.println("Unable to refer to names map of ASMBasedTaskDescriptor loaded from system classpath");
-//      }
-//    } else {
-//      try {
-//        //for cases such as test executions which have only one class loader.
-//        AgentLoader.loadAgentClass(ASMBasedTaskDescriptor.Agent.class.getName(), null);
-//      } catch (Throwable e) {
-//        // ignore this
-//        // in case of multiple class loaders, this can throw an error as SystemClassLoaded loaded it already
-//        // look above (ClassLoader.getSystemClassLoader().loadClass(ASMBasedTaskDescriptor.class.getName());)
-//      }
-//    }
   }
 
   @Override
@@ -208,8 +149,20 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
     }
   }
 
-  /*package private */ Optional<String> getLambdaClassDescription(String className) {
-	analyzeAll();
+  Optional<String> getLambdaClassDescription(String className) {
+    CountDownLatch latch = _latchRef.get();
+    if (latch != null) {
+      try {
+        /*
+         * We wait up to one minute - an arbitrary, sufficiently large amount of time.
+         * The wait period must be bounded to avoid locking out JVM.
+         */
+        latch.await(1, TimeUnit.MINUTES);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+        Thread.currentThread().interrupt();
+      }
+    }
     int slashIndex = className.lastIndexOf('/');
     if (slashIndex > 0) {
       String name = className.substring(0, slashIndex);
@@ -228,45 +181,59 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
     _names.put(lambdaClassName, description);
   }
 
-  public static class Agent {
+  public static class Analyzer implements ClassFileTransformer {
 
-    private static final AtomicBoolean _initialized = new AtomicBoolean(false);
-
-    public static void agentmain(String agentArgs, Instrumentation instrumentation) {
-      if (_initialized.compareAndSet(false, true)) {
-        instrumentation.addTransformer(new Analyzer());
+    @Override
+    public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
+        ProtectionDomain protectionDomain, byte[] classfileBuffer)
+        throws IllegalClassFormatException {
+      if (className == null && loader != null) {
+        analyze(classfileBuffer, loader);
       }
+      return classfileBuffer;
     }
 
-    public static class Analyzer implements ClassFileTransformer {
-
-      @Override
-      public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
-          ProtectionDomain protectionDomain, byte[] classfileBuffer)
-          throws IllegalClassFormatException {
-        if (className == null && loader != null) {
-          analyze(classfileBuffer, loader);
+    public static void analyze(byte[] byteCode, ClassLoader loader) {
+      if (_count.getAndIncrement() == 0) {
+        CountDownLatch latch = new CountDownLatch(1);
+        while (!_latchRef.compareAndSet(null, latch)) {
+          /*
+           * Busy spin. If we got here it means that other thread just
+           * decremented _count to 0 and is about to null out _latchRef.
+           * We need to wait for it to happen in order to avoid our
+           * newly created CountDownLatch to be overwritten.
+           */
         }
-        return classfileBuffer;
       }
-
-      public static void analyze(byte[] byteCode, ClassLoader loader) {
-        _entries.add(new QueueEntry(byteCode, loader, new Exception()));
-      }
-
-      public static void doAnalyze(byte[] byteCode, ClassLoader loader, Exception exception) {
-          ClassReader reader = new ClassReader(byteCode);
-          LambdaClassLocator cv = new LambdaClassLocator(Opcodes.ASM7, loader, exception);
-
-          reader.accept(cv, 0);
-
-          if (cv.isLambdaClass()) {
-            LambdaClassDescription lambdaClassDescription = cv.getLambdaClassDescription();
-            add(lambdaClassDescription.getClassName(), lambdaClassDescription.getDescription());
+      final Exception e = new Exception();
+      ForkJoinPool.commonPool().execute(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            doAnalyze(byteCode, loader, e);
+          } catch (Throwable t) {
+            /*
+             * We need to catch  everything because other
+             * threads may be blocked on CountDownLatch.
+             */
+            t.printStackTrace();
+          }
+          if (_count.decrementAndGet() == 0) {
+            CountDownLatch latch = _latchRef.getAndSet(null);
+            latch.countDown();
           }
         }
+      });
+    }
 
-
+    public static void doAnalyze(byte[] byteCode, ClassLoader loader, Exception exception) {
+      ClassReader reader = new ClassReader(byteCode);
+      LambdaClassLocator cv = new LambdaClassLocator(Opcodes.ASM7, loader, exception);
+      reader.accept(cv, 0);
+      if (cv.isLambdaClass()) {
+        LambdaClassDescription lambdaClassDescription = cv.getLambdaClassDescription();
+        add(lambdaClassDescription.getClassName(), lambdaClassDescription.getDescription());
+      }
     }
   }
 }
