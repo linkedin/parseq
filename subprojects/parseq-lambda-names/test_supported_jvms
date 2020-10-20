@@ -4,9 +4,9 @@ set -e
 
 source setjdk_osx
 
-while read jvm
+while IFS= read -r jvm
 do
     echo "Testing with $jvm"
     setjdk $jvm
-    ../../gradlew clean test --info --rerun-tasks
+    ../../gradlew clean test --info --rerun-tasks --warning-mode all </dev/null
 done < supported_jvms
