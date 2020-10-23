@@ -7,6 +7,11 @@ source setjdk_osx
 while IFS= read -r jvm
 do
     echo "Testing with $jvm"
-    setjdk $jvm
+    if [ "$(uname)" == "Darwin" ]; then
+      setjdk $jvm
+    elif  [ "$(uname)" == "Linux" ]; then
+      export JAVA_HOME=$(readlink -f $(which javac) | sed "s:JDK-.*:JDK-$jvm:")
+      echo "Setting JAVA_HOME to $JAVA_HOME"
+    fi
     ../../gradlew clean test --info --rerun-tasks --warning-mode all </dev/null
 done < supported_jvms
