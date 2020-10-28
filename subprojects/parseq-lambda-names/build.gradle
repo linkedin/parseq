@@ -10,9 +10,12 @@ configurations {
 }
 
 dependencies {
-  shadow group: 'com.linkedin.agentloader', name: 'linkedin-agent-loader', version: '1.0.4'
-  shadow group: 'org.ow2.asm', name: 'asm-all', version: '5.1'
-  testCompile group: 'org.testng', name: 'testng', version: '6.9.9'
+  shadow group: 'net.bytebuddy', name: 'byte-buddy-agent', version: '1.10.17'
+  shadow group: 'net.bytebuddy', name: 'byte-buddy-dep', version: '1.10.17'
+  shadow group: 'org.ow2.asm', name: 'asm-tree', version: '9.0'
+  shadow group: 'org.ow2.asm', name: 'asm', version: '9.0'
+  shadow group: 'org.ow2.asm', name: 'asm-analysis', version: '9.0'
+  testCompile group: 'org.testng', name: 'testng', version: '7.3.0'
 }
 
 sourceSets.main.compileClasspath += configurations.shadow + sourceSets.main.compileClasspath
@@ -23,13 +26,11 @@ shadowJar {
   configurations += [project.configurations.shadow]
   classifier = null
   relocate 'org.objectweb', 'parseq.org.objectweb'
+  relocate 'net.bytebuddy', 'parseq.net.bytebuddy'
 }
 
 jar {
   finalizedBy shadowJar // The shadowJar task basically overwrites the output of the jar task (kind of hacky)
-  manifest {
-    attributes 'Agent-Class': 'com.linkedin.parseq.lambda.ASMBasedTaskDescriptor$Agent'
-  }
 }
 
 compileJava.options.compilerArgs += '-Xlint:-unchecked'

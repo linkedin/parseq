@@ -73,6 +73,7 @@ subprojects {
 
 
     javadoc {
+      options.source = "8"
       options.use = true
       options.author = true
       // TODO: update date to be dynamically set

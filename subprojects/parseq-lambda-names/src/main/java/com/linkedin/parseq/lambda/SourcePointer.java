@@ -15,9 +15,9 @@ class SourcePointer {
     _lineNumber = lineNumber;
   }
 
-  /* package private */ static Optional<SourcePointer> get() {
+  /* package private */ static Optional<SourcePointer> get(Exception exception) {
     //create an exception, discard known elements from stack trace and find first element with suspect
-    return Arrays.stream(new Exception().getStackTrace())
+    return Arrays.stream(exception.getStackTrace())
         .filter(SourcePointer::notLambdaStuff)
         .findFirst()
         .map(SourcePointer::sourcePointer);
@@ -27,16 +27,10 @@ class SourcePointer {
     return !(element.getClassName().startsWith("java.")
         || element.getClassName().startsWith("sun.")
         || element.getClassName().startsWith("org.objectweb.asm.")
-        || element.getClassName().startsWith(ASMBasedTaskDescriptor.class.getName())
-        || element.getClassName().startsWith(ASMBasedTaskDescriptor.Agent.class.getName())
-        || element.getClassName().startsWith(FindMethodCallAnalyzer.class.getName())
-        || element.getClassName().startsWith(LambdaClassLocator.class.getName())
-        || element.getClassName().startsWith(LambdaMethodVisitor.class.getName())
-        || element.getClassName().startsWith(SourcePointer.class.getName())
-        || element.getClassName().startsWith(SyntheticLambdaAnalyzer.class.getName())
-        || element.getClassName().startsWith(SyntheticLambdaAnalyzer.SyntheticLambdaMethodVisitor.class.getName())
+        || element.getClassName().startsWith("jdk.")
         || element.getMethodName().startsWith("lambda$")
-        || element.getClassName().contains("$$Lambda$"));
+        || element.getClassName().contains("$$Lambda$")
+        || element.getClassName().startsWith(ASMBasedTaskDescriptor.class.getName()));
   }
 
   private static SourcePointer sourcePointer(StackTraceElement stackTraceElement) {

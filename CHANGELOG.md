@@ -1,5 +1,9 @@
-v5.0.1
+v5.1.1
 ------
+
+v5.1.0
+------
+* Update implemention in parseq-lambda-names module so it will work for both Java 8 and Java 11.
 
 v5.0.0
 ------
