@@ -362,6 +362,11 @@ public class TestTaskStates {
     }
 
     @Override
+    public void scheduleAndRun(Task<?>... tasks) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public After after(final Promise<?>... promises) {
       throw new UnsupportedOperationException();
     }

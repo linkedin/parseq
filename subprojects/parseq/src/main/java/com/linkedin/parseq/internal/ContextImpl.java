@@ -121,6 +121,35 @@ public class ContextImpl implements Context, Cancellable {
     }
   }
 
+  private void submitTaskToExecutor(Task<?> task) {
+    _planContext.submitToPlanAsync(new PrioritizableRunnable() {
+      @Override
+      public void run() {
+//        _inTask.set(_task);
+        try {
+          task.contextRun(ContextImpl.this, _parent, _predecessorTasks);
+        } finally {
+//          _inTask.remove();
+        }
+      }
+
+      @Override
+      public int getPriority() {
+        return _task.getPriority();
+      }
+    });
+
+  }
+
+  @Override
+  public void scheduleAndRun(Task<?>... tasks) {
+    // TODO: how to deal with inTask?
+    // TODO: how to deal with Cancellation?
+    for (final Task<?> task: tasks) {
+      submitTaskToExecutor(task);
+    }
+  }
+
   @Override
   public void runSideEffect(final Task<?>... tasks) {
     checkInTask();

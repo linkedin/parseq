@@ -65,6 +65,8 @@ import com.linkedin.parseq.trace.TraceBuilder;
 public interface Task<T> extends Promise<T>, Cancellable {
   static final Logger LOGGER = LoggerFactory.getLogger(Task.class);
 
+  static ThreadLocal<Context> _executionContext = new ThreadLocal<>(); //ThreadLocal.withInitial(null);
+
   static final TaskDescriptor _taskDescriptor = TaskDescriptorFactory.getTaskDescriptor();
 
   //------------------- interface definition -------------------
@@ -122,6 +124,45 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @param predecessors that lead to the execution of this task
    */
   void contextRun(Context context, Task<?> parent, Collection<Task<?>> predecessors);
+
+  /**
+   * The method will attempt to schedule calling method to a running plan.
+   *
+   * This method should be called inside a lambda function,
+   *   so that when it was called, there are already plans started running:
+   *
+   * <pre>
+   *     Task{@code <Void>} logging(String str) {
+   *         return Task.blocking("Logging", () -> {
+   *          sendToLoggingServer(str);
+   *         });
+   *     }
+   *
+   *     Task{@code <String>} fetchUrl = fetchUrl(url);
+   *     fetchUrl.andThen((result) -> {
+   *      logging(result).scheduleAndRun();
+   *      AnalyzeResult(result);
+   *     });
+   *
+   * </pre>
+   *
+   * This method attempt to schedule the calling task to current plan's scheduler
+   *    and it can be executed asynchronously
+   *
+   * If the method was called when no plans are running,  the calling cannot be scheduled
+   *   to any plans, and it will throws Exception in this case.
+   *
+   * @throws UnsupportedOperationException
+   */
+  default void scheduleAndRun() throws UnsupportedOperationException {
+    Context ctx = _executionContext.get();
+
+    if (ctx == null) {
+      throw new UnsupportedOperationException();
+    }
+
+    ctx.scheduleAndRun(this);
+  }
 
   /**
    * Returns the ShallowTrace for this task. The ShallowTrace will be
@@ -1327,8 +1368,11 @@ public interface Task<T> extends Promise<T>, Cancellable {
   public static <T> Task<T> async(final String name, final Callable<Promise<? extends T>> callable) {
     ArgumentUtil.requireNotNull(callable, "callable");
     return async(name, context -> {
+      _executionContext.set(context);
       try {
-        return callable.call();
+        Promise<? extends T> resultPromise = callable.call();
+        _executionContext.remove();
+        return resultPromise;
       } catch (Throwable e) {
         return Promises.error(e);
       }

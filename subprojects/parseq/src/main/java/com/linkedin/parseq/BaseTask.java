@@ -582,6 +582,11 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
     }
 
     @Override
+    public void scheduleAndRun(Task<?>... tasks) {
+      _context.scheduleAndRun(tasks);
+    }
+
+    @Override
     public void run(final Task<?>... tasks) {
       _context.run(tasks);
       for (Task<?> task : tasks) {

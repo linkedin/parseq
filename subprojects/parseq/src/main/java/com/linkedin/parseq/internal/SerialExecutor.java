@@ -104,6 +104,11 @@ public class SerialExecutor {
     }
   }
 
+  public void submitToQueue(final PrioritizableRunnable runnable) {
+    _queue.add(runnable);
+    _pendingCount.incrementAndGet();
+  }
+
   /*
    * This method acts as a happen-before relation between current thread and next Runnable that will
    * be executed by this executor because of properties of underlying _executor.execute().

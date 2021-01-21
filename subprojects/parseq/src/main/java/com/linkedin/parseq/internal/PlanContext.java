@@ -107,6 +107,10 @@ public class PlanContext {
     _taskExecutor.execute(runnable);
   }
 
+  public void submitToPlanAsync(PrioritizableRunnable runnable) {
+    _taskExecutor.submitToQueue(runnable);
+  }
+
   public Cancellable schedule(long time, TimeUnit unit, Runnable runnable) {
     return _timerScheduler.schedule(time, unit, runnable);
   }
