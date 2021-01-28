@@ -64,7 +64,7 @@ import com.linkedin.parseq.trace.TraceBuilder;
 public interface Task<T> extends Promise<T>, Cancellable {
   static final Logger LOGGER = LoggerFactory.getLogger(Task.class);
 
-  static ThreadLocal<Context> _executionContext = new ThreadLocal<>(); //ThreadLocal.withInitial(null);
+  static ThreadLocal<Context> _executionContext = new ThreadLocal<>(); // null initialized
 
   static final TaskDescriptor _taskDescriptor = TaskDescriptorFactory.getTaskDescriptor();
 
@@ -140,11 +140,14 @@ public interface Task<T> extends Promise<T>, Cancellable {
   void contextRun(Context context, Task<?> parent, Collection<Task<?>> predecessors);
 
   /**
-   * The method will attempt to schedule calling method to a running plan.
+   * This method will attempt to schedule calling task to the currently running plan
+   * so it can be executed asynchronously.
    *
-   * This method should be called inside a lambda function,
-   *   so that when it was called, there are already plans started running:
+   * The method should be called inside a lambda function to take effect,
+   *   so that when it was called, there are already plans started running.
+   *   otherwise use {@link #scheduleOrEngineRun(Engine)}
    *
+   * E.g.
    * <pre>
    *     Task{@code <Void>} logging(String str) {
    *         return Task.blocking("Logging", () -> {
@@ -160,13 +163,10 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *
    * </pre>
    *
-   * This method attempt to schedule the calling task to current plan's scheduler
-   *    and it can be executed asynchronously.
+   * If the method was called when no plans are running, the calling cannot be scheduled
+   *   to any plans, and it will throws {@link UnsupportedOperationException}
    *
-   * If the method was called when no plans are running,  the calling cannot be scheduled
-   *   to any plans, and it will throws Exception in this case.
-   *
-   * Note the task calling {@link#scheduleAndRun} would be running as a sibling task of the
+   * Note: the task scheduled by {@link#scheduleToRun} would be running as a sibling task of the
    *  enclosing task. In above example, the "Logging" Task was triggered as if triggered by
    *  "fetchUrl" task.
    *
