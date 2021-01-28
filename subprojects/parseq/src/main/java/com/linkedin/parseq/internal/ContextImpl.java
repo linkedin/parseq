@@ -25,7 +25,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import com.linkedin.parseq.promise.Promise;
-import com.linkedin.parseq.promise.PromiseListener;
 import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.TraceBuilder;
 import com.linkedin.parseq.After;
@@ -121,32 +120,37 @@ public class ContextImpl implements Context, Cancellable {
     }
   }
 
-  private void submitTaskToExecutor(Task<?> task) {
-    _planContext.submitToPlanAsync(new PrioritizableRunnable() {
-      @Override
-      public void run() {
-//        _inTask.set(_task);
-        try {
-          task.contextRun(ContextImpl.this, _parent, _predecessorTasks);
-        } finally {
-//          _inTask.remove();
+  /**
+   * This method submits the given task to the running queue and return.
+   * The tasks will be executed asynchronously.
+   *
+   * @param task the task to be submitted
+   */
+  public void submitToExecutorAsync(Task<?> task) {
+    // Spawn a subContext to drive the running of submitted task later
+    final ContextImpl subContext = new ContextImpl(_planContext, task, _parent, _predecessorTasks);
+    // Note:
+    // (1) We allow task async submission even current task is considered done(promise resolved),
+    //  so no Early Finish check during submission.
+
+    // (2) Also since we don't assume when the async-submitted task will be run
+    // which means it could run even after the task which initiated it was resolved.
+    // Therefore we also do not add to _cancellable so it won't get cancelled if the task initiates it got resolved
+      _planContext.submitToPlanAsync(new PrioritizableRunnable() {
+        @Override
+        public void run() {
+          subContext.runTask();
         }
-      }
-
-      @Override
-      public int getPriority() {
-        return _task.getPriority();
-      }
-    });
-
+        @Override
+        public int getPriority() {
+          return task.getPriority();
+        }
+      });
   }
 
-  @Override
-  public void scheduleAndRun(Task<?>... tasks) {
-    // TODO: how to deal with inTask?
-    // TODO: how to deal with Cancellation?
+  public void scheduleToRun(Task<?>... tasks) {
     for (final Task<?> task: tasks) {
-      submitTaskToExecutor(task);
+      submitToExecutorAsync(task);
     }
   }
 
@@ -266,3 +270,4 @@ public class ContextImpl implements Context, Cancellable {
   }
 
 }
+

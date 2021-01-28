@@ -20,7 +20,6 @@ import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -116,6 +115,21 @@ public interface Task<T> extends Promise<T>, Cancellable {
   void setTraceValueSerializer(Function<T, String> serializer);
 
   /**
+   * Set a threadlocal {@link Context}
+   * @param context The context to be set as the threadLocal context
+   */
+  default void setThreadLocalContext(Context context) {
+    _executionContext.set(context);
+  }
+
+  /**
+   * Remove the current threadlocal {@link Context}
+   */
+  default void removeThreadLocalContext() {
+    _executionContext.remove();
+  }
+
+  /**
    * Attempts to run the task with the given context. This method is
    * reserved for use by {@link Engine} and {@link Context}.
    *
@@ -147,21 +161,46 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * </pre>
    *
    * This method attempt to schedule the calling task to current plan's scheduler
-   *    and it can be executed asynchronously
+   *    and it can be executed asynchronously.
    *
    * If the method was called when no plans are running,  the calling cannot be scheduled
    *   to any plans, and it will throws Exception in this case.
    *
+   * Note the task calling {@link#scheduleAndRun} would be running as a sibling task of the
+   *  enclosing task. In above example, the "Logging" Task was triggered as if triggered by
+   *  "fetchUrl" task.
+   *
+   *
    * @throws UnsupportedOperationException
    */
-  default void scheduleAndRun() throws UnsupportedOperationException {
+  default void scheduleToRun() throws UnsupportedOperationException {
     Context ctx = _executionContext.get();
 
     if (ctx == null) {
-      throw new UnsupportedOperationException();
+      throw new UnsupportedOperationException("Cannot schedule current Task without a running Context");
     }
 
-    ctx.scheduleAndRun(this);
+    ctx.scheduleToRun(this);
+  }
+
+  /**
+   * This method is similar to {@link #scheduleToRun()} and it takes an engine as parameter
+   *
+   * The behavior is as followed:
+   *  - If the method is called during a running plan, the task will be scheduled to run.
+   *  - Otherwise the task will be run by the specified engine when no running context can be found.
+   *
+   * @param engine the engine to run this task in case no running context found
+   */
+  default void scheduleOrEngineRun(Engine engine) {
+    Context ctx = _executionContext.get();
+
+    if (ctx == null) {
+      engine.run(this);
+      return;
+    }
+
+    ctx.scheduleToRun(this);
   }
 
   /**
@@ -1368,11 +1407,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
   public static <T> Task<T> async(final String name, final Callable<Promise<? extends T>> callable) {
     ArgumentUtil.requireNotNull(callable, "callable");
     return async(name, context -> {
-      _executionContext.set(context);
       try {
-        Promise<? extends T> resultPromise = callable.call();
-        _executionContext.remove();
-        return resultPromise;
+        return callable.call();
       } catch (Throwable e) {
         return Promises.error(e);
       }
@@ -1409,7 +1445,10 @@ public interface Task<T> extends Promise<T>, Cancellable {
     Task<T> task = new BaseTask<T>(name) {
       @Override
       protected Promise<? extends T> run(Context context) throws Throwable {
-        return func.apply(context);
+        setThreadLocalContext(context); //Set the threadlocal context so the lambda function can capture the context
+        Promise<? extends T> resultPromise = func.apply(context);
+        removeThreadLocalContext();
+        return resultPromise;
       }
     };
 

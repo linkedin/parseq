@@ -362,7 +362,7 @@ public class TestTaskStates {
     }
 
     @Override
-    public void scheduleAndRun(Task<?>... tasks) {
+    public void scheduleToRun(Task<?>... tasks) {
         throw new UnsupportedOperationException();
     }
 
