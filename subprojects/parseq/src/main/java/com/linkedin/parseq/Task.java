@@ -167,13 +167,14 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *   to any plans, and it will throws {@link UnsupportedOperationException}
    *
    * Note: the task scheduled by {@link#scheduleToRun} would be running as a sibling task of the
-   *  enclosing task. In above example, the "Logging" Task was triggered as if triggered by
+   *  task created by the enclosing lambda function.
+   *  In above example, the "Logging" Task was triggered as if triggered by
    *  "fetchUrl" task.
    *
    *
    * @throws UnsupportedOperationException
    */
-  default void scheduleToRun() throws UnsupportedOperationException {
+  default Task<?> scheduleToRun() throws UnsupportedOperationException {
     Context ctx = _executionContext.get();
 
     if (ctx == null) {
@@ -181,6 +182,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
     }
 
     ctx.scheduleToRun(this);
+    return this;
   }
 
   /**
@@ -192,15 +194,16 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *
    * @param engine the engine to run this task in case no running context found
    */
-  default void scheduleOrEngineRun(Engine engine) {
+  default Task<?> scheduleOrEngineRun(Engine engine) {
     Context ctx = _executionContext.get();
 
     if (ctx == null) {
       engine.run(this);
-      return;
+      return this;
     }
 
     ctx.scheduleToRun(this);
+    return this;
   }
 
   /**
