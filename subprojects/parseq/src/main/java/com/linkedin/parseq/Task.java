@@ -551,6 +551,45 @@ public interface Task<T> extends Promise<T>, Cancellable {
   }
 
   /**
+   * Create a new task which applies a function to the result of "calling task". The function will have to return another task.
+   * If {@param triggerReturnTask} is enabled, the task returned by the function will be run as part of the plan as well.
+   * If {@param triggerReturnTask} is not enabled, the result of the new task will be that function output, similar to {@link #flatMap(Function1)}
+   *
+   * @param desc description to the returned task
+   * @param func the function that takes the result of calling task as a parameter and returns another task
+   * @param triggerReturnTask whether want to execute the task returned by the function
+   * @return a new task
+   */
+  default <R> Task<R> andThen(final String desc, final Function1<? super T, Task<R>> func, boolean triggerReturnTask) {
+    if (!triggerReturnTask) {
+      return flatMap(func);
+    }
+    ArgumentUtil.requireNotNull(func, "func");
+    final Task<T> that = this;
+    return async("andThenRun", context -> {
+      SettablePromise<R> promise = Promises.settable();
+      Task<R> asyncWrapperTask = async("",  ctx-> {
+        SettablePromise<R> asyncWrapperTaskPromise = Promises.settable();
+        Task<R> taskToRun = null;
+        if (!that.isFailed()) {
+          taskToRun = func.apply(that.get());
+          if (taskToRun == null) {
+            throw new RuntimeException(desc + " returned null");
+          } else {
+            ctx.run(taskToRun);
+          }
+        }
+        Promises.propagateResult(taskToRun, asyncWrapperTaskPromise);
+        return asyncWrapperTaskPromise;
+      });
+      context.after(that).run(asyncWrapperTask);
+      context.run(that);
+      Promises.propagateResult(asyncWrapperTask, promise);
+      return promise;
+    });
+  }
+
+  /**
    * Creates a new task which runs given task after
    * completion of this task and completes with a result of
    * that task. Task passed in as a parameter will run even if
