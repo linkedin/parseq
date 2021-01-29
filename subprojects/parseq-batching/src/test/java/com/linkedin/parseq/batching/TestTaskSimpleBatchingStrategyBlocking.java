@@ -36,7 +36,7 @@ public class TestTaskSimpleBatchingStrategyBlocking extends BaseEngineTest {
 
     @Override
     public Task<Map<Integer, Try<String>>> taskForBatch(Set<Integer> keys) {
-      return Task.runInExecutor(() -> {
+      return Task.callableInExecutor(() -> {
         try {
           // make this batching task long-running
           Thread.sleep(_sleepMs);

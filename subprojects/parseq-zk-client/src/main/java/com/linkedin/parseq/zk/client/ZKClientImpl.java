@@ -280,7 +280,7 @@ class ZKClientImpl implements ZKClient {
    */
   @Override
   public Task<List<OpResult>> multi(List<Op> ops, Executor executor) {
-    return Task.runInExecutor(() -> _zkClient.multi(ops), executor);
+    return Task.callableInExecutor(() -> _zkClient.multi(ops), executor);
   }
 
   /**

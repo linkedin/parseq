@@ -36,7 +36,7 @@ import java.util.concurrent.Executor;
  * To use this class with an engine, register an executor with engine using
  * {@link #register(EngineBuilder, java.util.concurrent.Executor)}
  *
- * @deprecated  As of 2.0.0, replaced by {@link Task#runInExecutor(String, Callable, Executor) Task.blocking}.
+ * @deprecated  As of 2.0.0, replaced by {@link Task#callableInExecutor(String, Callable, Executor)}.
  * @author Walter Fender (wfender@linkedin.com)
  */
 @Deprecated
@@ -50,7 +50,7 @@ public class AsyncCallableTask<R> extends BaseTask<R> {
   }
 
   /**
-   * @deprecated  As of 2.0.0, replaced by {@link Task#runInExecutor(String, Callable, Executor) Task.blocking}.
+   * @deprecated  As of 2.0.0, replaced by {@link Task#callableInExecutor(String, Callable, Executor)}.
    */
   @Deprecated
   public AsyncCallableTask(final Callable<R> syncJob) {
@@ -58,7 +58,7 @@ public class AsyncCallableTask<R> extends BaseTask<R> {
   }
 
   /**
-   * @deprecated  As of 2.0.0, replaced by {@link Task#runInExecutor(String, Callable, Executor) Task.blocking}.
+   * @deprecated  As of 2.0.0, replaced by {@link Task#callableInExecutor(String, Callable, Executor)}.
    */
   @Deprecated
   public AsyncCallableTask(final String name, final Callable<R> syncJob) {
