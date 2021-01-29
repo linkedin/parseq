@@ -265,7 +265,7 @@ public class Engine {
             }
           };
         } catch (ClassNotFoundException e) {
-          LOG.error("Failed to load TasQueue implementation: " + className + ", will use default implementation", e);
+          LOG.error("Failed to load TaskQueue implementation: " + className + ", will use default implementation", e);
         }
       }
       return LIFOBiPriorityQueue::new;
