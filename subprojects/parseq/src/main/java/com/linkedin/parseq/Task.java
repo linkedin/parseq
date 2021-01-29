@@ -1428,12 +1428,18 @@ public interface Task<T> extends Promise<T>, Cancellable {
     return runInExecutor("runInExecutor: " + _taskDescriptor.getDescription(callable.getClass().getName()), callable, executor);
   }
 
+  /**
+   * @deprecated please use {@link Task#runInExecutor(Callable, Executor)}
+   */
   @Deprecated
   public static <T> Task<T> blocking(final Callable<? extends T> callable, final Executor executor) {
     return runInExecutor("runInExecutor: " + _taskDescriptor.getDescription(callable.getClass().getName()), callable, executor);
   }
 
 
+  /**
+   * @deprecated please use {@link Task#runInExecutor(String, Callable, Executor)}
+   */
   @Deprecated
   public static <T> Task<T> blocking(final String name, final Callable<? extends T> callable, final Executor executor) {
     return runInExecutor(name, callable, executor);
