@@ -552,7 +552,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
 
   /**
    * Create a new task which applies a function to the result of "calling task". The function will have to return another task.
-   * If {@param triggerReturnTask} is enabled, the task returned by the function will be run as part of the plan as well.
+   * If {@param triggerReturnTask} is enabled, the task returned by the function will be run as part of the same plan as the "calling task".
    * If {@param triggerReturnTask} is not enabled, the result of the new task will be that function output, similar to {@link #flatMap(Function1)}
    *
    * @param desc description to the returned task
@@ -566,9 +566,9 @@ public interface Task<T> extends Promise<T>, Cancellable {
     }
     ArgumentUtil.requireNotNull(func, "func");
     final Task<T> that = this;
-    return async("andThenRun", context -> {
+    return async("andThen", context -> {
       SettablePromise<R> promise = Promises.settable();
-      Task<R> asyncWrapperTask = async("",  ctx-> {
+      Task<R> asyncWrapperTask = async(desc,  ctx-> {
         SettablePromise<R> asyncWrapperTaskPromise = Promises.settable();
         Task<R> taskToRun = null;
         if (!that.isFailed()) {
