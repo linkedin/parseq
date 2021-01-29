@@ -28,7 +28,7 @@ public class TestTaskType extends TestTask {
   public void testBlockingTaskType() {
     TestingExecutorService es = new TestingExecutorService(Executors.newSingleThreadExecutor());
     try {
-      Task<String> task = Task.blocking(() -> "blocking task", es);
+      Task<String> task = Task.runInExecutor(() -> "blocking task", es);
       runAndWait("blockingTaskType", task);
       assertEquals(task.getShallowTrace().getTaskType(), TaskType.BLOCKING.getName());
     } finally {

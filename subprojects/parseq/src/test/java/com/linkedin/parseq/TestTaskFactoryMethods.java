@@ -94,7 +94,7 @@ public class TestTaskFactoryMethods extends BaseEngineTest {
   public void testBlocking() {
     TestingExecutorService es = new TestingExecutorService(Executors.newSingleThreadExecutor());
     try {
-      Task<String> task = Task.blocking(() -> "from blocking", es);
+      Task<String> task = Task.runInExecutor(() -> "from blocking", es);
       runAndWait("TestTaskFactoryMethods.testBlocking", task);
       assertEquals(task.get(), "from blocking");
       assertEquals(es.getCount(), 1);

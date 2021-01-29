@@ -18,14 +18,12 @@ package com.linkedin.parseq.zk.client;
 
 import com.linkedin.parseq.Context;
 import com.linkedin.parseq.Engine;
-import com.linkedin.parseq.MultiException;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.PromiseListener;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -282,7 +280,7 @@ class ZKClientImpl implements ZKClient {
    */
   @Override
   public Task<List<OpResult>> multi(List<Op> ops, Executor executor) {
-    return Task.blocking(() -> _zkClient.multi(ops), executor);
+    return Task.runInExecutor(() -> _zkClient.multi(ops), executor);
   }
 
   /**
