@@ -30,7 +30,7 @@ public class TestTaskType extends TestTask {
     try {
       Task<String> task = Task.callableInExecutor(() -> "blocking task", es);
       runAndWait("blockingTaskType", task);
-      assertEquals(task.getShallowTrace().getTaskType(), TaskType.BLOCKING.getName());
+      assertEquals(task.getShallowTrace().getTaskType(), TaskType.CALLABLE_IN_EXECUTOR.getName());
     } finally {
       es.shutdown();
     }

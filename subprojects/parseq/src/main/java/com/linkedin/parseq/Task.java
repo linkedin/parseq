@@ -1405,7 +1405,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
   public static <T> Task<T> callableInExecutor(final String name, final Callable<? extends T> callable, final Executor executor) {
     ArgumentUtil.requireNotNull(callable, "callable");
     ArgumentUtil.requireNotNull(callable, "executor");
-    Task<T> blockingTask = async(name, () -> {
+    Task<T> asyncCallableTask = async(name, () -> {
       final SettablePromise<T> promise = Promises.settable();
       executor.execute(() -> {
         try {
@@ -1416,8 +1416,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
       } );
       return promise;
     });
-    blockingTask.getShallowTraceBuilder().setTaskType(TaskType.BLOCKING.getName());
-    return blockingTask;
+     asyncCallableTask.getShallowTraceBuilder().setTaskType(TaskType.CALLABLE_IN_EXECUTOR.getName());
+    return  asyncCallableTask;
   }
 
   /**
