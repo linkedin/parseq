@@ -551,6 +551,45 @@ public interface Task<T> extends Promise<T>, Cancellable {
   }
 
   /**
+   * Create a new task which applies a function to the result of "calling task". The function will have to return another task.
+   * If {@param triggerReturnTask} is enabled, the task returned by the function will be run as part of the plan as well.
+   * If {@param triggerReturnTask} is not enabled, the result of the new task will be that function output, similar to {@link #flatMap(Function1)}
+   *
+   * @param desc description to the returned task
+   * @param func the function that takes the result of calling task as a parameter and returns another task
+   * @param triggerReturnTask whether want to execute the task returned by the function
+   * @return a new task
+   */
+  default <R> Task<R> andThen(final String desc, final Function1<? super T, Task<R>> func, boolean triggerReturnTask) {
+    if (!triggerReturnTask) {
+      return flatMap(func);
+    }
+    ArgumentUtil.requireNotNull(func, "func");
+    final Task<T> that = this;
+    return async("andThenRun", context -> {
+      SettablePromise<R> promise = Promises.settable();
+      Task<R> asyncWrapperTask = async("",  ctx-> {
+        SettablePromise<R> asyncWrapperTaskPromise = Promises.settable();
+        Task<R> taskToRun = null;
+        if (!that.isFailed()) {
+          taskToRun = func.apply(that.get());
+          if (taskToRun == null) {
+            throw new RuntimeException(desc + " returned null");
+          } else {
+            ctx.run(taskToRun);
+          }
+        }
+        Promises.propagateResult(taskToRun, asyncWrapperTaskPromise);
+        return asyncWrapperTaskPromise;
+      });
+      context.after(that).run(asyncWrapperTask);
+      context.run(that);
+      Promises.propagateResult(asyncWrapperTask, promise);
+      return promise;
+    });
+  }
+
+  /**
    * Creates a new task which runs given task after
    * completion of this task and completes with a result of
    * that task. Task passed in as a parameter will run even if
@@ -844,6 +883,66 @@ public interface Task<T> extends Promise<T>, Cancellable {
   default <R> Task<R> transform(final Function1<Try<T>, Try<R>> func) {
     return transform("transform: " + _taskDescriptor.getDescription(func.getClass().getName()), func);
   }
+
+  /**
+   * Create a new task that will transform the result of this task.
+   * Returned task will complete with value calculated by a task returned by the function.
+   *
+   * This is similar to {@link #transform(String, Function1)} except the transformation is done by executing the task returned
+   * by the function.
+   *
+   * @param desc description
+   * @param func function to be applied to the result of this task which returns new task
+   *    to be executed
+   * @param <R> value type of the returned task returned by function <code>func<</code>
+   * @return a new task which will apply given function on result of either successful and failed completion of this task
+   *     to get instance of a task which will be executed next
+   */
+  default <R> Task<R> transformWith(final String desc, final Function1<Try<T>, Task<R>> func) {
+    ArgumentUtil.requireNotNull(func, "function");
+    final Task<T> that = this;
+    Task<R> transformWithTask = async(desc, context -> {
+      final SettablePromise<R> result = Promises.settable();
+      final Task<R> transform = async("transform", ctx -> {
+        final SettablePromise<R> transformResult = Promises.settable();
+        if (that.isFailed() && (Exceptions.isCancellation(that.getError()))) { //not treating cancellations as errors
+          transformResult.fail(that.getError());
+        }
+        else {
+          final Try<T> tryT = Promises.toTry(that);
+          try {
+            Task<R> r = func.apply(tryT);
+            if (r == null) {
+              throw new RuntimeException(desc + " returned null");
+            }
+            Promises.propagateResult(r, transformResult);
+            ctx.run(r);
+          } catch (Throwable t) {
+            transformResult.fail(t);
+          }
+        }
+        return transformResult;
+      });
+      transform.getShallowTraceBuilder().setSystemHidden(true);
+      transform.getShallowTraceBuilder().setTaskType(TaskType.TRANSFORM.getName());
+      Promises.propagateResult(transform, result);
+      context.after(that).run(transform);
+      context.run(that);
+      return result;
+    });
+    transformWithTask.getShallowTraceBuilder().setTaskType(TaskType.WITH_TRANSFORM.getName());
+    return transformWithTask;
+
+  }
+
+  /**
+   * Equivalent to {@code transformWith("transformWith", func)}.
+   * @see #transformWith(String, Function1)
+   */
+  default <R> Task<R> transformWith(final Function1<Try<T>, Task<R>> func) {
+    return transformWith("transform: " + _taskDescriptor.getDescription(func.getClass().getName()), func);
+  }
+
 
   /**
    * Creates a new task that will handle failure of this task.
