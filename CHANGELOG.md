@@ -1,5 +1,9 @@
+v5.1.2
+------
+
 v5.1.1
 ------
+* Add "transformWith" to Task API which performs transformation by executing a task
 
 v5.1.0
 ------
