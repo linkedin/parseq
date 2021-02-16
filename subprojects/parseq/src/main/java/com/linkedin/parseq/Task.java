@@ -852,6 +852,21 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * This is similar to {@link #transform(String, Function1)} except the transformation is done by executing the task returned
    * by the function.
    *
+   * <blockquote><pre>
+   * boolean writeToDB(String content) {...}
+   *
+   * Task{@code <String>} pictureBase64= ...
+   *
+   * // this task will complete with either complete successfully
+   * // with uploadResult either true or false, or fail with  MyLibException
+   * Task{@code <Boolean>} uploadResult = pictureBase64.transformWith("transformUsingATask", t {@code ->} {
+   *   if (!t.isFailed()) {
+   *     return Task.blocking(() -> writeToDB(t.get()), executor));
+   *   }
+   *   return Task.failure(new MyLibException(t.getError());
+   * });
+   * <img src="doc-files/transformWith-1.png" height="90" width="296"/>
+   *
    * @param desc description
    * @param func function to be applied to the result of this task which returns new task
    *    to be executed
