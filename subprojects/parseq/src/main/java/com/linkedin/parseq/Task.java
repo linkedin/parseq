@@ -846,6 +846,82 @@ public interface Task<T> extends Promise<T>, Cancellable {
   }
 
   /**
+   * Create a new task that will transform the result of this task.
+   * Returned task will complete with value calculated by a task returned by the function.
+   *
+   * This is similar to {@link #transform(String, Function1)} except the transformation is done by executing the task returned
+   * by the function.
+   *
+   * <blockquote><pre>
+   * boolean writeToDB(String content) {...}
+   *
+   * Task{@code <String>} pictureBase64= ...
+   *
+   * // this task will complete with either complete successfully
+   * // with uploadResult being true or false, or fail with  MyLibException
+   * Task{@code <Boolean>} uploadResult = pictureBase64.transformWith("transformUsingATask", t {@code ->} {
+   *   if (!t.isFailed()) {
+   *     return Task.blocking(() -> writeToDB(t.get()), executor));
+   *   }
+   *   return Task.failure(new MyLibException(t.getError());
+   * });
+   * <img src="doc-files/transformWith-1.png" height="90" width="296"/>
+   *
+   * @param desc description
+   * @param func function to be applied to the result of this task which returns new task
+   *    to be executed
+   * @param <R> value type of the returned task returned by function <code>func<</code>
+   * @return a new task which will apply given function on result of either successful and failed completion of this task
+   *     to get instance of a task which will be executed next
+   */
+  default <R> Task<R> transformWith(final String desc, final Function1<Try<T>, Task<R>> func) {
+    ArgumentUtil.requireNotNull(func, "function");
+    final Task<T> that = this;
+    Task<R> transformWithTask = async(desc, context -> {
+      final SettablePromise<R> result = Promises.settable();
+      final Task<R> transform = async("transform", ctx -> {
+        final SettablePromise<R> transformResult = Promises.settable();
+        if (that.isFailed() && (Exceptions.isCancellation(that.getError()))) {
+          //cancellations will not be propagated as other errors to the function to get the task to execute.
+          transformResult.fail(that.getError());
+        }
+        else {
+          final Try<T> tryT = Promises.toTry(that);
+          try {
+            Task<R> r = func.apply(tryT);
+            if (r == null) {
+              throw new RuntimeException(desc + " returned null");
+            }
+            Promises.propagateResult(r, transformResult);
+            ctx.run(r);
+          } catch (Throwable t) {
+            transformResult.fail(t);
+          }
+        }
+        return transformResult;
+      });
+      transform.getShallowTraceBuilder().setSystemHidden(true);
+      transform.getShallowTraceBuilder().setTaskType(TaskType.TRANSFORM.getName());
+      Promises.propagateResult(transform, result);
+      context.after(that).run(transform);
+      context.run(that);
+      return result;
+    });
+    transformWithTask.getShallowTraceBuilder().setTaskType(TaskType.WITH_TRANSFORM.getName());
+    return transformWithTask;
+
+  }
+
+  /**
+   * Equivalent to {@code transformWith("transformWith", func)}.
+   * @see #transformWith(String, Function1)
+   */
+  default <R> Task<R> transformWith(final Function1<Try<T>, Task<R>> func) {
+    return transformWith("transform: " + _taskDescriptor.getDescription(func.getClass().getName()), func);
+  }
+
+
+  /**
    * Creates a new task that will handle failure of this task.
    * Early completion due to cancellation is not considered to be a failure so it will not be recovered.
    * If this task completes successfully, then recovery function is not called.

@@ -440,6 +440,62 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
   }
 
   @Test
+  public void testTransformWith_SuccessToFailure() {
+    String msg = "transform failed";
+    Task<String> success = getSuccessTask();
+    Task<Integer> transformed = success.transformWith(tryT ->
+      Task.callable(() -> {throw new RuntimeException(msg);}));
+    try {
+      runAndWait("AbstractTaskTest.testTransformWith_SuccessToFailure", transformed);
+    } catch (Exception ex) {
+      assertEquals(ex.getCause().getMessage(), msg);
+    }
+  }
+
+  @Test
+  public void testTransformWith_SuccessToSuccess() {
+    Task<String> success = getSuccessTask();
+    Task<Integer> transformed = success.transformWith(tryT ->
+        Task.callable(() -> tryT.get().length()));
+    runAndWait("AbstractTaskTest.testTransformWith_SuccessToSuccess", transformed);
+    assertEquals(transformed.get().intValue(), success.get().length());
+  }
+
+  @Test
+  public void testTransformWith_FailureToSuccess() {
+    int returnValue = 100;
+    Task<String> failed = getFailureTask();
+    Task<Integer> transformed = failed.transformWith(tryT ->
+        Task.callable(() -> returnValue));
+    runAndWait("AbstractTaskTest.testTransformWith_FailureToSuccess", transformed);
+  }
+
+  @Test
+  public void testTransformWith_FailureToFailure() {
+    String msg = "transform failed";
+    Task<String> failed = getFailureTask();
+    Task<Integer> transformed = failed.transformWith(tryT ->
+        Task.callable(() -> {throw new RuntimeException(msg);}));
+    try {
+      runAndWait("AbstractTaskTest.testTransformWith_FailureToFailure", transformed);
+    } catch (Exception ex) {
+      assertEquals(ex.getCause().getMessage(), msg);
+    }
+  }
+
+  @Test
+  public void testTransformWith_Cancelled() {
+    Task<String> cancelled = getCancelledTask().recoverWith(e -> Task.callable("recover success", () -> "recovered"));
+    try {
+      runAndWait("AbstractTaskTest.testTransformWith_Cancelled", cancelled);
+      fail("should have failed");
+    } catch (Exception ex) {
+      assertTrue(cancelled.isFailed());
+      assertTrue(Exceptions.isCancellation(cancelled.getError()));
+    }
+  }
+
+  @Test
   public void testFlatten() {
     Task<Task<String>> nested = Task.callable(() -> getSuccessTask());
     Task<String> flat = Task.flatten(nested);
