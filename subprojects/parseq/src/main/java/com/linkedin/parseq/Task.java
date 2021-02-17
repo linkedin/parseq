@@ -858,7 +858,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * Task{@code <String>} pictureBase64= ...
    *
    * // this task will complete with either complete successfully
-   * // with uploadResult either true or false, or fail with  MyLibException
+   * // with uploadResult being true or false, or fail with  MyLibException
    * Task{@code <Boolean>} uploadResult = pictureBase64.transformWith("transformUsingATask", t {@code ->} {
    *   if (!t.isFailed()) {
    *     return Task.blocking(() -> writeToDB(t.get()), executor));
@@ -881,7 +881,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
       final SettablePromise<R> result = Promises.settable();
       final Task<R> transform = async("transform", ctx -> {
         final SettablePromise<R> transformResult = Promises.settable();
-        if (that.isFailed() && (Exceptions.isCancellation(that.getError()))) { //not treating cancellations as errors
+        if (that.isFailed() && (Exceptions.isCancellation(that.getError()))) {
+          //cancellations will not be propagated as other errors to the function to get the task to execute.
           transformResult.fail(that.getError());
         }
         else {
