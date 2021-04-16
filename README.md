@@ -1,6 +1,6 @@
 # ParSeq
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Build Status](https://secure.travis-ci.org/linkedin/parseq.png?branch=master)](http://travis-ci.org/linkedin/parseq) [![Download](https://api.bintray.com/packages/linkedin/maven/parseq/images/download.svg)](https://bintray.com/linkedin/maven/parseq/_latestVersion)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Build Status](https://secure.travis-ci.org/linkedin/parseq.png?branch=master)](http://travis-ci.org/linkedin/parseq)
 
 ParSeq is a framework that makes it easier to write asynchronous code in Java.
 

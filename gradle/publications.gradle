@@ -15,9 +15,11 @@
  */
 
 /**
- * The purpose of this script is to configure the following tasks for a given sub-project:
- * - generatePomFileForReleasePublication: generates the "release" Maven publication (.pom), needed for bintrayUpload
+ * The purpose of this script is to configure the publications (and create the associated tasks) for a sub-project.
+ * Configures the following tasks:
+ * - generatePomFileForReleasePublication: generates the "release" Maven publication (.pom), needed for publish
  * - publishReleasePublicationToMavenLocal: publishes the "release" publication to Maven local
+ * - assertArtifactsExist: asserts that the required JAR artifacts are present
  *
  * This script should be applied after sub-projects are evaluated to ensure that sub-project archives have been
  * configured and extra properties have been set.
@@ -89,6 +91,16 @@ publishing {
           children.last() + pomConfig
         }
       }
+    }
+  }
+}
+
+// Utility task to assert that all to-be-published artifacts exist (allows us to safely decouple build and publish tasks)
+task assertArtifactsExist() {
+  doLast {
+    final Set<File> missingArtifacts = configurations.archives.allArtifacts.file.findAll { !it.exists() }
+    if (missingArtifacts) {
+      throw new GradleException("Cannot perform publish. The project likely hasn't been built. Missing artifacts ${missingArtifacts}")
     }
   }
 }

@@ -1,5 +1,11 @@
+v5.1.3
+------
+
 v5.1.2
 ------
+- Migrate the ParSeq release process from Bintray to JFrog Artifactory.
+    - As of this version, Bintray will no longer host ParSeq releases.
+    - Releases can be found on [LinkedIn's JFrog Artifactory instance](https://linkedin.jfrog.io/).
 
 v5.1.1
 ------

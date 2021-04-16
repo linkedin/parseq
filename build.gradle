@@ -3,7 +3,7 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
+    classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.21.0'
     classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
   }
 }
@@ -142,9 +142,9 @@ task runTracevisServer (dependsOn:':parseq-tracevis-server:build') {
 subprojects { p ->
   if (!p.name.endsWith('examples')) {
     p.afterEvaluate {
-      p.apply from: "$rootDir/gradle/maven.gradle"
+      p.apply from: "$rootDir/gradle/publications.gradle"
     }
-    p.apply from: "$rootDir/gradle/bintray.gradle"
+    p.apply from: "$rootDir/gradle/jfrog.gradle"
   }
 }
 
