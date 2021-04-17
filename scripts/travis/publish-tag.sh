@@ -50,26 +50,20 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# Build and publish to Bintray
-echo "All checks passed, attempting to publish ParSeq $VERSION to Bintray..."
-./gradlew -Prelease bintrayUpload
+# Publish to JFrog Artifactory
+echo "All checks passed, attempting to publish ParSeq $VERSION to JFrog Artifactory..."
+./gradlew -Prelease artifactoryPublish
 
 if [ $? = 0 ]; then
-  echo "Successfully published ParSeq $VERSION to Bintray."
+  echo "Successfully published ParSeq $VERSION to JFrog Artifactory."
 else
-  # Publish failed, so roll back the upload to ensure this version is completely wiped from the repo
-  echo "Publish failed, wiping $VERSION from Bintray..."
-  DELETE_VERSION_URL="https://api.bintray.com/packages/linkedin/maven/parseq/versions/${VERSION}"
-  curl -X DELETE --user ${BINTRAY_USER}:${BINTRAY_KEY} --fail $DELETE_VERSION_URL
+  # We used to roll back Bintray uploads on failure to publish, but it's not clear if this is needed for JFrog.
+  # TODO: If "partial uploads" can occur for JFrog, then here we would roll back the upload via the JFrog REST API.
+  # We did this before using: curl -X DELETE --user ${BINTRAY_USER}:${BINTRAY_KEY} --fail $DELETE_VERSION_URL
 
-  if [ $? = 0 ]; then
-    echo "Successfully rolled $VERSION back."
-    echo 'Please retry the upload by restarting this Travis job.'
-  else
-    echo "Failed to roll back $VERSION, please manually delete this version from Bintray."
-    echo "See: https://bintray.com/linkedin/maven/parseq/$VERSION"
-    echo 'Once this version is deleted, please retry the upload by restarting this Travis job.'
-  fi
+  echo 'Failed to publish to JFrog Artifactory.'
+  echo "You can check https://linkedin.jfrog.io/ui/repos/tree/General/parseq to ensure that $VERSION is not present."
+  echo 'Please retry the upload by restarting this Travis job.'
 
   exit 1
 fi
