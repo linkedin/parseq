@@ -1,5 +1,6 @@
 v5.1.3
 ------
+* Fix for multiple javadoc warnings coming from Task.java 
 
 v5.1.2
 ------
