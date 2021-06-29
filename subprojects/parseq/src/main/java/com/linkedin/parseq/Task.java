@@ -280,8 +280,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * For example in
    * <blockquote><pre>
    *   Task{@code <Long>} userName = id.flatMap("fetch", u {@code ->} fetch(u))
-   *       .withSideEffect(param -> throw new RuntimeException("exception"))
-   *       .andThen(param -> updateMemcache(u));
+   *       .withSideEffect(param -&gt; throw new RuntimeException("exception"))
+   *       .andThen(param -&gt; updateMemcache(u));
    * </pre></blockquote>
    *
    * Task userName would fail with exception thrown in SideEffect function and the Task in andThen won't run.
@@ -352,8 +352,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *
    * For example in
    * <blockquote><pre>
-   *   Task{@code <Long>} userName = Task.withSideEffect(param -> throw new RuntimeException("exception"))
-   *       .andThen(param -> updateMemcache(u));
+   *   Task{@code <Long>} userName = Task.withSideEffect(param -&gt; throw new RuntimeException("exception"))
+   *       .andThen(param -&gt; updateMemcache(u));
    * </pre></blockquote>
    *
    * Task userName would fail with exception thrown in SideEffect function and the Task in andThen won't run.
@@ -472,7 +472,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *
    * // this task will fail because google task will timeout after 10ms
    * // as a consequence bing task will be cancelled
-   * final Task<?> both = Task.par(google.withTimeout(10, TimeUnit.MILLISECONDS), bing);
+   * final Task&lt;?&gt; both = Task.par(google.withTimeout(10, TimeUnit.MILLISECONDS), bing);
    * </pre></blockquote>
    * <img src="doc-files/shareable-1.png" height="250" width="608"/>
    * <p>
@@ -485,7 +485,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *
    * // this task will fail because wrapped google task will timeout after 10ms
    * // notice however that original googel and bing tasks were not cancelled
-   *   final Task<?> both =
+   *   final Task&lt;?&gt; both =
    *       Task.par(google.shareable().withTimeout(10, TimeUnit.MILLISECONDS), bing.shareable());
    * </pre></blockquote>
    * <img src="doc-files/shareable-2.png" height="290" width="814"/>
@@ -861,7 +861,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * // with uploadResult being true or false, or fail with  MyLibException
    * Task{@code <Boolean>} uploadResult = pictureBase64.transformWith("transformUsingATask", t {@code ->} {
    *   if (!t.isFailed()) {
-   *     return Task.blocking(() -> writeToDB(t.get()), executor));
+   *     return Task.blocking(() -&gt; writeToDB(t.get()), executor));
    *   }
    *   return Task.failure(new MyLibException(t.getError());
    * });
@@ -870,7 +870,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @param desc description
    * @param func function to be applied to the result of this task which returns new task
    *    to be executed
-   * @param <R> value type of the returned task returned by function <code>func<</code>
+   * @param <R> value type of the returned task returned by function <code>func</code>
    * @return a new task which will apply given function on result of either successful and failed completion of this task
    *     to get instance of a task which will be executed next
    */
