@@ -20,7 +20,6 @@ import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -64,6 +63,8 @@ import com.linkedin.parseq.trace.TraceBuilder;
  */
 public interface Task<T> extends Promise<T>, Cancellable {
   static final Logger LOGGER = LoggerFactory.getLogger(Task.class);
+
+  static ThreadLocal<Context> _executionContext = new ThreadLocal<>(); // null initialized
 
   static final TaskDescriptor _taskDescriptor = TaskDescriptorFactory.getTaskDescriptor();
 
@@ -114,6 +115,21 @@ public interface Task<T> extends Promise<T>, Cancellable {
   void setTraceValueSerializer(Function<T, String> serializer);
 
   /**
+   * Set a threadlocal {@link Context}
+   * @param context The context to be set as the threadLocal context
+   */
+  default void setThreadLocalContext(Context context) {
+    _executionContext.set(context);
+  }
+
+  /**
+   * Remove the current threadlocal {@link Context}
+   */
+  default void removeThreadLocalContext() {
+    _executionContext.remove();
+  }
+
+  /**
    * Attempts to run the task with the given context. This method is
    * reserved for use by {@link Engine} and {@link Context}.
    *
@@ -122,6 +138,73 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @param predecessors that lead to the execution of this task
    */
   void contextRun(Context context, Task<?> parent, Collection<Task<?>> predecessors);
+
+  /**
+   * This method will attempt to schedule calling task to the currently running plan
+   * so it can be executed asynchronously.
+   *
+   * The method should be called inside a lambda function to take effect,
+   *   so that when it was called, there are already plans started running.
+   *   otherwise use {@link #scheduleOrEngineRun(Engine)}
+   *
+   * E.g.
+   * <pre>
+   *     Task{@code <Void>} logging(String str) {
+   *         return Task.blocking("Logging", () -> {
+   *          sendToLoggingServer(str);
+   *         });
+   *     }
+   *
+   *     Task{@code <String>} fetchUrl = fetchUrl(url);
+   *     fetchUrl.andThen((result) -> {
+   *      logging(result).scheduleAndRun();
+   *      AnalyzeResult(result);
+   *     });
+   *
+   * </pre>
+   *
+   * If the method was called when no plans are running, the calling cannot be scheduled
+   *   to any plans, and it will throws {@link UnsupportedOperationException}
+   *
+   * Note: the task scheduled by {@link#scheduleToRun} would be running as a sibling task of the
+   *  task created by the enclosing lambda function.
+   *  In above example, the "Logging" Task was triggered as if triggered by
+   *  "fetchUrl" task.
+   *
+   *
+   * @throws UnsupportedOperationException
+   */
+  default Task<?> scheduleToRun() throws UnsupportedOperationException {
+    Context ctx = _executionContext.get();
+
+    if (ctx == null) {
+      throw new UnsupportedOperationException("Cannot schedule current Task without a running Context");
+    }
+
+    ctx.scheduleToRun(this);
+    return this;
+  }
+
+  /**
+   * This method is similar to {@link #scheduleToRun()} and it takes an engine as parameter
+   *
+   * The behavior is as followed:
+   *  - If the method is called during a running plan, the task will be scheduled to run.
+   *  - Otherwise the task will be run by the specified engine when no running context can be found.
+   *
+   * @param engine the engine to run this task in case no running context found
+   */
+  default Task<?> scheduleOrEngineRun(Engine engine) {
+    Context ctx = _executionContext.get();
+
+    if (ctx == null) {
+      engine.run(this);
+      return this;
+    }
+
+    ctx.scheduleToRun(this);
+    return this;
+  }
 
   /**
    * Returns the ShallowTrace for this task. The ShallowTrace will be
@@ -1441,7 +1524,10 @@ public interface Task<T> extends Promise<T>, Cancellable {
     Task<T> task = new BaseTask<T>(name) {
       @Override
       protected Promise<? extends T> run(Context context) throws Throwable {
-        return func.apply(context);
+        setThreadLocalContext(context); //Set the threadlocal context so the lambda function can capture the context
+        Promise<? extends T> resultPromise = func.apply(context);
+        removeThreadLocalContext();
+        return resultPromise;
       }
     };
 

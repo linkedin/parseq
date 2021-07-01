@@ -338,7 +338,9 @@ class FusionTask<S, T> extends BaseTask<T> {
       /* There is no async predecessor, run propagation immediately */
       FusionTraceContext traceContext = new FusionTraceContext(context,
           FusionTask.this.getShallowTraceBuilder(), baseName);
+      setThreadLocalContext(context);
       propagate(traceContext, result);
+      removeThreadLocalContext();
     } else {
       /* There is async predecessor, need to run it first
          PropagationTask will actually run propagation */

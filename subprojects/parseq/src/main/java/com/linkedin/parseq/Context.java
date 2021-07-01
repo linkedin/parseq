@@ -54,6 +54,13 @@ public interface Context {
    */
   void run(Task<?>... tasks);
 
+  /**
+   * Schedule the tasks so they are queued for future async execution
+   *
+   * @param tasks the tasks to be scheduled and run asynchronously
+   */
+  void scheduleToRun(Task<?>... tasks);
+
   void runSideEffect(Task<?>... tasks);
 
   /**
