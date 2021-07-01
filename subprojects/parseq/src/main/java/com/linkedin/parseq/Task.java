@@ -26,6 +26,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
+import javax.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -184,7 +185,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @param func function to be applied to successful result of this task.
    * @return a new task which will apply given function on result of successful completion of this task
    */
-  default <R> Task<R> map(final String desc, final Function1<? super T, ? extends R> func) {
+  @Nonnull
+  default <R> Task<R> map(@Nonnull final String desc, @Nonnull final Function1<? super T, ? extends R> func) {
     ArgumentUtil.requireNotNull(func, "function");
     return apply(desc, new PromiseTransformer<T, R>(func));
   }
@@ -193,7 +195,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * Equivalent to {@code map("map", func)}.
    * @see #map(String, Function1)
    */
-  default <R> Task<R> map(final Function1<? super T, ? extends R> func) {
+  @Nonnull
+  default <R> Task<R> map(@Nonnull final Function1<? super T, ? extends R> func) {
     return map("map: " + _taskDescriptor.getDescription(func.getClass().getName()), func);
   }
 
