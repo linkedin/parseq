@@ -11,6 +11,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.linkedin.parseq.trace.Trace;
 import org.testng.annotations.Test;
 
 import com.linkedin.parseq.function.Failure;
@@ -96,6 +97,50 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
     runAndWait("AbstractTaskTest.testRecoverFailure", failure);
     assertEquals((int) failure.get(), -1);
     assertEquals(countTasks(failure.getTrace()), expectedNumberOfTasks);
+  }
+
+  public void testRecoverWithExceptionFilter(int expectedNumberOfTasks) {
+    Task<Integer> recoverd = getFailureTask()
+            .map("strlen", String::length)
+            .recover("", RuntimeException.class, e -> -1);
+    runAndWait("AbstractTaskTest.recoverd", recoverd);
+    assertEquals((int) recoverd.get(), -1);
+    assertEquals(countTasks(recoverd.getTrace()), expectedNumberOfTasks);
+
+    Task<Integer> notRecovered = getFailureTask()
+            .map("strlen", String::length)
+            .recover("", ArithmeticException.class, e -> -1);
+    runAndWaitException("AbstractTaskTest.testRecoverWithExceptionFilterFailure", notRecovered, RuntimeException.class);
+    assertTrue(notRecovered.isFailed());
+    assertEquals(countTasks(notRecovered.getTrace()), expectedNumberOfTasks);
+
+    Task<String> recoveredExceptionSubclassesForward = getFailureTask() // Failed with RuntimeError
+            .recover("", Throwable.class, e -> "expected-value") // expected to recover, as RuntimeError is subclass of Throwable
+            .recover("", RuntimeException.class, e -> "unexpected-value"); // no action, as already recovered at previous step
+    runAndWait("AbstractTaskTest.recoveredExceptionSubclassesForward", recoveredExceptionSubclassesForward);
+    assertEquals(recoveredExceptionSubclassesForward.get(), "expected-value");
+    assertEquals(countTasks(recoveredExceptionSubclassesForward.getTrace()), expectedNumberOfTasks);
+
+    Task<String> recoveredExceptionSubclassesBackwards = getFailureTask() // Failed with RuntimeError
+            .recover("", RuntimeException.class, e -> "expected-value") // expected to recover, as exception class matches
+            .recover("", Throwable.class, e -> "unexpected-value"); // no action, as already recovered at previous step
+    runAndWait("AbstractTaskTest.recoveredExceptionSubclassesBackwards", recoveredExceptionSubclassesBackwards);
+    assertEquals(recoveredExceptionSubclassesBackwards.get(), "expected-value");  // recovered with expected value
+    assertEquals(countTasks(recoveredExceptionSubclassesBackwards.getTrace()), expectedNumberOfTasks);
+
+    Task<String> recoveredUnrelatedExceptionFirst = getFailureTask() // Failed with RuntimeError
+            .recover("", Error.class, e -> "unexpected-value") // no action, as the failed state is not of type Error
+            .recover("", Throwable.class, e -> "expected-value"); // expected to recover, as exception class matches
+    runAndWait("AbstractTaskTest.recoveredUnrelatedExceptionFirst", recoveredUnrelatedExceptionFirst);
+    assertEquals(recoveredUnrelatedExceptionFirst.get(), "expected-value");  // recovered with expected value
+    assertEquals(countTasks(recoveredUnrelatedExceptionFirst.getTrace()), expectedNumberOfTasks);
+
+    Task<String> recoveredRecoveryThrows = getFailureTask() // Failed with RuntimeError
+            .recover("", RuntimeException.class, e -> {throw new IllegalArgumentException();}) // exception class matches, but recovery throws another exception
+            .recover("", IllegalArgumentException.class, e -> "expected-value"); // expected to recover, as exception class matches (see above)
+    runAndWait("AbstractTaskTest.recoveredRecoveryThrows", recoveredRecoveryThrows);
+    assertEquals(recoveredRecoveryThrows.get(), "expected-value");  // recovered with expected value
+    assertEquals(countTasks(recoveredRecoveryThrows.getTrace()), expectedNumberOfTasks);
   }
 
   public void testCancelledRecover(int expectedNumberOfTasks) {

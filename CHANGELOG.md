@@ -1,7 +1,8 @@
 v5.1.3
 ------
-* Fix for multiple javadoc warnings coming from Task.java 
-
+* Fix for multiple javadoc warnings coming from Task.java
+* Add recover() method with exception filter
+ 
 v5.1.2
 ------
 - Migrate the ParSeq release process from Bintray to JFrog Artifactory.

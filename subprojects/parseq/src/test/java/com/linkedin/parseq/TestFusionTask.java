@@ -66,6 +66,11 @@ public class TestFusionTask extends AbstractTaskTest {
   }
 
   @Test
+  public void testRecoverWithExceptionFilter() {
+    testRecoverWithExceptionFilter(4);
+  }
+
+  @Test
   public void testCancelledRecover() {
     testCancelledRecover(4);
   }

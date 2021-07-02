@@ -55,6 +55,11 @@ public class TestTask extends AbstractTaskTest {
   }
 
   @Test
+  public void testRecoverWithExceptionFilter() {
+    testRecoverWithExceptionFilter(5);
+  }
+
+  @Test
   public void testCancelledRecover() {
     testCancelledRecover(5);
   }
