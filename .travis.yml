@@ -19,8 +19,8 @@ branches:
 # Set environment variables (includes JFrog credentials)
 env:
   global:
-    - secure: "d+lrCN170W8sITYE8wHeYy6woWFsHGC241d7649je7ymdhE1c+tcqJkiwvD5hYfiUAS5d5i9BT4m2bzKtcXgvRkRrg7jzeSJlsE+wvwzwlR0w5DSIKF+Tb4V+mJv5z5yTziVrj59RsNdHG/s9iyts21C7zmhSOkhoDhRUiOOWzM="
-    - secure: "Gl81MqeP72mJKf3n9BfC59DnisiRSXoUGqwrLD3wPqZch6uBcGat1pvJbysTA25Y5H7T+QOBibqDm4QPaii83HXtKb0VDGgSEltqsJT1MftohH04gQB7zMjGKQWJw/sdNsixkDii8KxUdxKc+sY0oSTZdUfsHLF3nuQieO8JdSQ="
+    - secure: "o+02b88gneYawLI5TTd+lDkP+VYsIYnpW8ZlT1reavbW2tUy9BIo1JOS+UUOmYnrQsAO3DZcZGUSHBoOgtemNbFS7DgvIpFbWFb9qBQajwFY4OLxybjLv6obMYZ/ocQppvS+we8B1GNoMQvyKAbowJUq4nk0UNQ6MHs2Iq3fgwk="
+    - secure: "damyxnq9pd13VpXuANCHO3zr5DuArove8LHVeB0enD+mVbJEUOtP/iCIaKPz6tIgT1RXB1ysBlG6as5zLOqWFBpCdRmvPp6ifZJdgugJWBngABiaj4vwqAIWTC5NHvrgEGgmF8COS4mYiGQJXczqM7EyZ5s2GXeJpSd/2QNz2PA="
 
 # Publish a new version on tag push
 deploy:
