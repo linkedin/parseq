@@ -637,11 +637,46 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   default Task<T> recover(final String desc, final Function1<Throwable, T> func) {
     ArgumentUtil.requireNotNull(func, "function");
+    return recover(desc, Throwable.class, func);
+  }
+
+  /**
+   * Equivalent to {@code recover("recover", func)}.
+   * @see #recover(String, Function1)
+   */
+  default Task<T> recover(final Function1<Throwable, T> func) {
+    return recover("recover: " + _taskDescriptor.getDescription(func.getClass().getName()), Throwable.class, func);
+  }
+
+  /**
+   * Creates a new task that will handle failure of this task.
+   *
+   * Early completion due to cancellation is not considered to be a failure and the recovery function is not called.
+   * If this task competed with failure, and failure type matches the exception class the provided, that failure recovery
+   * function is called.
+   *
+   * If this task completes successfully, then recovery function is not called.
+   *
+   * Note that the first call to <code>recover()</code> with matching exception class provided would result in a recovered Task.
+   * For example, observe the code below:
+   * <pre><code>
+   * Task&lt;String&gt; task = Task.failure(new RuntimeException())
+   *     .recover("try recovering RuntimeException", RuntimeException.class, e -&gt; "recovered") // results in recovery, as exception class matches
+   *     .recover("try recovering Throwable", Throwable.class, e -&gt; "no action"); // no action, as already recovered at previous step
+   * </code></pre>
+   * @param desc description of a recovery function, it will show up in a trace
+   * @param exceptionClass exception class, defines which types of failures would be attempted to recover with {@code func}
+   * @param func recovery function which can complete task with a value depending on failure of this task
+   * @return a new task which can recover from failure of this task
+   */
+  default <X extends Throwable> Task<T> recover(final String desc, final Class<X> exceptionClass, final Function1<? super X, ? extends T> func) {
+    ArgumentUtil.requireNotNull(func, "function");
+    ArgumentUtil.requireNotNull(exceptionClass, "exception class");
     return apply(desc, (src, dst) -> {
       if (src.isFailed()) {
-        if (!(Exceptions.isCancellation(src.getError()))) {
+        if (!(Exceptions.isCancellation(src.getError())) && exceptionClass.isInstance(src.getError())) {
           try {
-            dst.done(func.apply(src.getError()));
+            dst.done(func.apply(exceptionClass.cast(src.getError())));
           } catch (Throwable t) {
             dst.fail(t);
           }
@@ -655,13 +690,14 @@ public interface Task<T> extends Promise<T>, Cancellable {
   }
 
   /**
-   * Equivalent to {@code recover("recover", func)}.
-   * @see #recover(String, Function1)
+   * Equivalent to {@code recover("recover", exceptionClass, func)}.
+   * @see #recover(String, Class, Function1)
    */
-  default Task<T> recover(final Function1<Throwable, T> func) {
-    return recover("recover: " + _taskDescriptor.getDescription(func.getClass().getName()), func);
+  default <X extends Throwable> Task<T> recover(Class<X> exceptionClass, final Function1<? super X, ? extends T> func) {
+    String description = "recover: " + _taskDescriptor.getDescription(func.getClass().getName());
+    return recover(description, exceptionClass, func);
   }
-
+  
   /**
    * Creates a new task which applies a consumer to the exception this
    * task may fail with. It is used in situations where consumer needs
