@@ -72,8 +72,8 @@ public class TracevisServerJarMain {
 
           new TracevisHttpsServer(dotLocation, httpPort, base, base, Constants.DEFAULT_CACHE_SIZE, Constants.DEFAULT_TIMEOUT_MS, sslPort,
               keyStorePath, keyStorePassword, trustStorePath, trustStorePassword).start();
-        } catch (IOException ex) {
-          throw new IOException("Failed to find config profiles " + args[1] + "!");
+        } catch (Exception ex) {
+            throw new IOException("Failed to find config profiles " + args[1] + "!", ex);
         }
       }
 
