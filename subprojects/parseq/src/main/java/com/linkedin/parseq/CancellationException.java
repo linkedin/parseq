@@ -1,6 +1,6 @@
 package com.linkedin.parseq;
 
-class CancellationException extends Exception {
+public class CancellationException extends Exception {
 
   private static final long serialVersionUID = 1L;
 
