@@ -1,0 +1,10 @@
+ext {
+  description = """Interop with Guava's ListenableFuture"""
+}
+
+dependencies {
+  compile project(":parseq")
+  compile "com.google.guava:guava:30.1.1-jre"
+
+  testCompile "org.testng:testng:6.9.9"
+}

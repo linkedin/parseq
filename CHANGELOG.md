@@ -1,3 +1,7 @@
+v5.1.4
+------
+* Add interop between Guava's ListenableFuture and Parseq Task
+
 v5.1.3
 ------
 * Fix for multiple javadoc warnings coming from Task.java
