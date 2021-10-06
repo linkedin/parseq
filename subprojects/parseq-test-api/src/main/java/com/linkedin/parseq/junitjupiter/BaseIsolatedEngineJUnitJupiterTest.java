@@ -30,13 +30,13 @@ import org.junit.jupiter.api.BeforeEach;
  * This class creates new Engine and shuts it down before and after every test method, so it can't be used
  * to run tests in parallel.
  *
- * The difference between this class and {@link BaseEngineParJunitJupiterTest} is that {@code BaseEngineParJunitJupiterTest} creates new
+ * The difference between this class and {@link BaseEngineJunitJupiterTest} is that the latter creates a new
  * {@code Engine} instance only once for all tests in the class and thus can be used to run test methods in parallel.
  *
  * @see ParSeqUnitTestHelper
- * @see BaseEngineParJunitJupiterTest
+ * @see BaseEngineJunitJupiterTest
  */
-public class BaseEngineJUnitJupiterTest extends AbstractBaseEngineTest {
+public class BaseIsolatedEngineJUnitJupiterTest extends AbstractBaseEngineTest {
 
   private volatile boolean _setUpCalled = false;
   private volatile boolean _tearDownCalled = false;
@@ -60,7 +60,7 @@ public class BaseEngineJUnitJupiterTest extends AbstractBaseEngineTest {
       }  else {
         throw new RuntimeException("Tried to shut down Engine but it either has not even been created or has "
             + "already been shut down. Please make sure you are not running unit tests in parallel. If you need to "
-            + "run unit tests in parallel, then use BaseEngineParJunitJupiterTest instead, in "  + this.getClass().getName());
+            + "run unit tests in parallel, then use BaseEngineJunitJupiterTest instead, in "  + this.getClass().getName());
       }
     }
   }
