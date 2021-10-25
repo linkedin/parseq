@@ -103,7 +103,7 @@ class LambdaMethodVisitor extends MethodVisitor {
       try {
         cr = new ClassReader(_loader.getResourceAsStream(classToVisit.replace(".", "/") + ".class"));
       } catch (Throwable e1) {
-        System.out.println("Unable to read class: " + classToVisit);
+        System.out.println("WARNING: ParSeq lambda names might not be displayed as expected in the ParSeq trace. Unable to read class: " + classToVisit);
       }
     }
 
