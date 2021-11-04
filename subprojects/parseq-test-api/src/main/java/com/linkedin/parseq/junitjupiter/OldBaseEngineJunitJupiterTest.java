@@ -16,12 +16,22 @@
 
 package com.linkedin.parseq.junitjupiter;
 
+import com.linkedin.parseq.AbstractBaseEngineTest;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInstance;
 
-/**
- * An alias for {@link BaseEngineJunitJupiterTest}, only kept for backwards compatibility. Please use the latter.
- * @author Anmol Singh Jaggi (ajaggi@linkedin.com)
- */
-@Deprecated
-public class BaseEngineParJunitJupiterTest extends BaseEngineJunitJupiterTest {
-  // Empty
+
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+abstract class OldBaseEngineJunitJupiterTest extends AbstractBaseEngineTest {
+
+  @Deprecated
+  @BeforeEach
+  public void setUpBaseEngineTest() throws Exception {
+  }
+
+  @Deprecated
+  @AfterEach
+  public void tearDownBaseEngineTest() throws Exception {
+  }
 }

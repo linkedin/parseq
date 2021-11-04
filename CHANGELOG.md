@@ -1,3 +1,7 @@
+v5.1.5
+------
+* Rename BaseEngineParTest to BaseEngineTest
+
 v5.1.4
 ------
 * Add interop between Guava's ListenableFuture and Parseq Task

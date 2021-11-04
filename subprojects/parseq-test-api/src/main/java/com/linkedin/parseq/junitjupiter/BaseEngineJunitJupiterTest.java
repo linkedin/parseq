@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 LinkedIn, Inc
+ * Copyright 2019 LinkedIn, Inc
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,32 +14,34 @@
  * the License.
  */
 
-package com.linkedin.parseq;
+package com.linkedin.parseq.junitjupiter;
 
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
+import com.linkedin.parseq.AbstractBaseEngineTest;
+import com.linkedin.parseq.EngineBuilder;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.TestInstance;
 
 
 /**
  * A base class that builds an Engine with default configuration.
- * For JUnit Jupiter (JUnit5+), see {@link com.linkedin.parseq.junitjupiter.BaseEngineJunitJupiterTest}.
+ * Requires JUnit Jupiter (JUnit5+)
  *
- * This class creates new Engine before any test method is run and shuts it down after all tests are finished.
+ * This class creates a new Engine before any test method is run and shuts it down after all tests are finished.
  * It can be used to run tests in parallel.
  *
- * The difference between this class and {@link BaseIsolatedEngineTest} is that the latter creates a new
+ * The difference between this class and {@link BaseIsolatedEngineJUnitJupiterTest} is that the latter creates a new
  * {@code Engine} instance for every test and thus provides higher level of isolation between the tests.
- *
- * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
-public class BaseEngineTest extends OldBaseEngineTest {
-  
-  @BeforeClass
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+public class BaseEngineJunitJupiterTest extends OldBaseEngineJunitJupiterTest {
+
+  @BeforeAll
   public void setUpBaseEngineParTest() throws Exception {
     getParSeqUnitTestHelper().setUp();
   }
 
-  @AfterClass
+  @AfterAll
   public void tearDownBaseEngineParTest() throws Exception {
     if (getEngine() != null) {
       getParSeqUnitTestHelper().tearDown();
@@ -49,8 +51,6 @@ public class BaseEngineTest extends OldBaseEngineTest {
     }
   }
 
-  @Override
   protected void customizeEngine(EngineBuilder engineBuilder) {
-    
   }
 }
