@@ -34,6 +34,24 @@ public interface TerminationPolicy {
   }
 
   /**
+   * A termination policy that limits the rate of retries (qps).
+   *
+   * @param rateLimiter The rate limiter that's used to terminate after we run out of quotas.
+   */
+  static TerminationPolicy limitRate(RateLimiter rateLimiter) {
+    return new LimitRate(rateLimiter);
+  }
+
+  /**
+   * A termination policy that signals for termination after any of the specified policies terminate.
+   *
+   * @param policies The list of policies that may signal for termination.
+   */
+  static TerminationPolicy requireAny(TerminationPolicy... policies) {
+    return new RequireAny(policies);
+  }
+
+  /**
    * A termination policy that signals for termination after both of the specified policies terminate.
    *
    * @param first The first of the two policies that must signal for termination.

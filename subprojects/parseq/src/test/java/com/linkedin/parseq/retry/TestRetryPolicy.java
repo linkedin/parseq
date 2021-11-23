@@ -2,6 +2,8 @@ package com.linkedin.parseq.retry;
 
 import com.linkedin.parseq.BaseEngineTest;
 import com.linkedin.parseq.Task;
+import com.linkedin.parseq.retry.termination.GuavaRateLimiter;
+import com.linkedin.parseq.retry.termination.RateLimiter;
 import com.linkedin.parseq.retry.termination.TerminationPolicy;
 
 import java.util.concurrent.TimeoutException;
@@ -33,6 +35,20 @@ public class TestRetryPolicy extends BaseEngineTest {
     runAndWaitException(task, RuntimeException.class);
     assertTrue(task.isDone());
     assertEquals(task.getError().getMessage(), "current attempt: 2");
+  }
+
+  @Test
+  public void testRateLimitedRetryPolicy() throws InterruptedException
+  {
+    RateLimiter rateLimiter = new GuavaRateLimiter(4.0);
+    // wait for the rate limiter to be ready
+    Thread.sleep(500);
+    Task<Void> task = withRetryPolicy("testRateLimitedRetryPolicy", RetryPolicy.attemptsAndDurationAndRate(10, 1000, rateLimiter, 0),
+        attempt -> Task.failure(new RuntimeException("current attempt: " + attempt)));
+    runAndWaitException(task, RuntimeException.class);
+    assertTrue(task.isDone());
+    assertTrue(task.isFailed());
+    assertEquals(task.getError().getMessage(), "current attempt: 3");
   }
 
   @Test

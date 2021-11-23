@@ -31,6 +31,7 @@ configurations {
 }
 
 dependencies {
+  compile group: "com.google.guava", name:"guava", version: "30.1.1-jre"
   compile group: 'org.codehaus.jackson', name: 'jackson-core-asl', version: '1.8.8'
   compile group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.8.8'
   compile group: "org.slf4j", name: "slf4j-api", version: "1.7.25"
