@@ -9,6 +9,7 @@ public interface RateLimiter {
 
   /**
    * Acquires a permit to process a retry request if it can be acquired immediately without delay.
+   * It needs ot be thread safe and nonblocking.
    */
   boolean tryAcquire();
 }

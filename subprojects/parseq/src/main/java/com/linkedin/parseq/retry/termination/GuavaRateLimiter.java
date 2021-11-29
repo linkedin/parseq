@@ -2,6 +2,8 @@ package com.linkedin.parseq.retry.termination;
 
 /**
  * A RateLimiter implementation based on the guava RateLimiter.
+ * Guava RateLimiter uses the token bucket algorithm and this
+ * rate limiter allows bursts.
  *
  * @author Mohamed Isoukrane (isoukrane.mohamed@gmail.com)
  */
