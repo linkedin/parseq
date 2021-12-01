@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-# Ensure that this is being run by Travis
-if [ "$TRAVIS" != "true" ] || [ "$USER" != "travis" ]; then
-  echo "This script should only be run by Travis CI."
+# Ensure that this is being run in CI by GitHub Actions
+if [ "$CI" != "true" ] || [ "$GITHUB_ACTIONS" != "true" ]; then
+  echo "This script should only be run in CI by GitHub Actions."
   exit 2
 fi
 
@@ -29,24 +29,27 @@ fi
 
 # Ensure the tag corresponds to the current version
 EXPECTED_TAG="v$VERSION"
-if [ "$TRAVIS_TAG" != "$EXPECTED_TAG" ]; then
-  echo "Attempting to publish ParSeq version $VERSION from tag $TRAVIS_TAG is illegal."
+if [ "$GITHUB_REF" != "refs/tags/$EXPECTED_TAG" ]; then
+  echo "Attempting to publish ParSeq version $VERSION from tag $GITHUB_REF is illegal."
   echo "Please delete this tag and publish instead from tag $EXPECTED_TAG"
-  exit 1
-fi
-
-# Ensure the commit environment variable exists
-if [ -z "$TRAVIS_COMMIT" ]; then
-  echo 'Cannot find environment variable named TRAVIS_COMMIT, did the Travis API change?'
   exit 1
 fi
 
 # Ensure that the tag commit is an ancestor of master
 git fetch origin master:master
-git merge-base --is-ancestor $TRAVIS_COMMIT master
+git merge-base --is-ancestor $GITHUB_REF master
 if [ $? -ne 0 ]; then
-  echo "Tag $TRAVIS_TAG is NOT an ancestor of master!"
+  echo "Tag $GITHUB_REF is NOT an ancestor of master!"
   echo 'Please delete this tag and instead create a tag off a master commit.'
+  exit 1
+fi
+
+# Build the artifacts (skip testing to prevent flaky releases)
+echo 'All checks passed, building artifacts for release...'
+./gradlew build -x check
+if [ $? != 0 ]; then
+  echo 'Failed to build before publishing.'
+  echo 'Please either address the problem or retry by restarting this GitHub Actions job.'
   exit 1
 fi
 
