@@ -1,6 +1,8 @@
 package com.linkedin.parseq.retry;
 
 import com.linkedin.parseq.retry.backoff.BackoffPolicy;
+import com.linkedin.parseq.retry.termination.RateLimiter;
+import com.linkedin.parseq.retry.termination.RequireAny;
 import com.linkedin.parseq.retry.termination.RequireEither;
 import com.linkedin.parseq.retry.termination.TerminationPolicy;
 
@@ -70,6 +72,29 @@ public interface RetryPolicy {
     TerminationPolicy terminationPolicy = new RequireEither(TerminationPolicy.limitAttempts(attempts), TerminationPolicy.limitDuration(duration));
     return new RetryPolicyBuilder().
         setName("RetryPolicy.LimitAttemptsAndDuration").
+        setTerminationPolicy(terminationPolicy).
+        setBackoffPolicy(BackoffPolicy.constant(backoff)).
+        build();
+  }
+
+  /**
+   * Retry policy with configurable number of retries, limited total duration, and limited rate of the encompassing task.
+   *
+   * @param attempts Total number of attempts (the number of retries will be that minus 1).
+   * @param duration Total duration of the task. This includes both the original request and all potential retries.
+   * @param rateLimiter The limiter to control the rate of retries per second.
+   * @param backoff The constant delay (in milliseconds) between retry attempts.
+   */
+  static RetryPolicy attemptsAndDurationAndRate(int attempts, long duration, RateLimiter rateLimiter, long backoff) {
+
+    TerminationPolicy terminationPolicy = new RequireAny(
+      TerminationPolicy.limitAttempts(attempts),
+      TerminationPolicy.limitDuration(duration),
+      TerminationPolicy.limitRate(rateLimiter)
+    );
+
+    return new RetryPolicyBuilder().
+        setName("RetryPolicy.LimitAttemptsAndDurationAndRate").
         setTerminationPolicy(terminationPolicy).
         setBackoffPolicy(BackoffPolicy.constant(backoff)).
         build();
