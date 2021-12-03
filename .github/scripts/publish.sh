@@ -7,8 +7,8 @@ if [ "$CI" != "true" ] || [ "$GITHUB_ACTIONS" != "true" ]; then
 fi
 
 # Ensure that the tag is named properly as a semver tag
-if [[ ! "$TRAVIS_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-  echo "Tag $TRAVIS_TAG is NOT a valid semver tag (vX.Y.Z), please delete this tag."
+if [[ ! "$GITHUB_REF" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "Tag $GITHUB_REF is NOT a valid semver tag (vX.Y.Z), please delete this tag."
   exit 1
 fi
 
@@ -36,11 +36,15 @@ if [ "$GITHUB_REF" != "refs/tags/$EXPECTED_TAG" ]; then
 fi
 
 # Ensure that the tag commit is an ancestor of master
-git fetch origin master:master
+git fetch origin master:master 2>&1 | head -n 10 # Truncate excessive fetch output
 git merge-base --is-ancestor $GITHUB_REF master
 if [ $? -ne 0 ]; then
   echo "Tag $GITHUB_REF is NOT an ancestor of master!"
-  echo 'Please delete this tag and instead create a tag off a master commit.'
+  echo 'Cannot publish ParSeq using a non-master commit, please delete this tag.'
+  echo 'If you still want to publish, please run the release script using a master commit.'
+  echo 'See below for guidance on how to properly use the release script:'
+  echo ''
+  cat ./scripts/help-text/release.txt
   exit 1
 fi
 
@@ -66,7 +70,7 @@ else
 
   echo 'Failed to publish to JFrog Artifactory.'
   echo "You can check https://linkedin.jfrog.io/ui/repos/tree/General/parseq to ensure that $VERSION is not present."
-  echo 'Please retry the upload by restarting this Travis job.'
+  echo 'Please retry the upload by restarting this GitHub Actions job.'
 
   exit 1
 fi
