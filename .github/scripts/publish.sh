@@ -50,7 +50,7 @@ fi
 
 # Build the artifacts (skip testing to prevent flaky releases)
 echo 'All checks passed, building artifacts for release...'
-./gradlew build -x check
+./gradlew -Prelease build -x check
 if [ $? != 0 ]; then
   echo 'Failed to build before publishing.'
   echo 'Please either address the problem or retry by restarting this GitHub Actions job.'
