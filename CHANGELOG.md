@@ -1,3 +1,7 @@
+v5.1.6
+------
+* To prevent ListenableFutureUtil throw PromiseAlreadyResolved exception, also added log to see why it happened
+
 v5.1.5
 ------
 * Add rate limit retry policy

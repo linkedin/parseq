@@ -1,5 +1,7 @@
 package com.linkedin.parseq.guava;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.AbstractFuture;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -17,6 +19,8 @@ import java.util.concurrent.ExecutionException;
  * Utility methods to convert between Parseq {@link Task} and Guava's {@link ListenableFuture}.
  */
 public class ListenableFutureUtil {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(ListenableFutureUtil.class);
 
   private ListenableFutureUtil() {
     // Prevent instantiation.
@@ -40,6 +44,20 @@ public class ListenableFutureUtil {
 
     // Setup forward event propagation ListenableFuture -> Task.
     Runnable callbackRunnable = () -> {
+      if (promise.isDone()) {
+        boolean isPromiseFailed = promise.isFailed();
+        LOGGER.warn("ListenableFuture callback triggered but ParSeq already done. "
+                + "Future is done: {}, "
+                + "Future is cancelled: {}"
+                + "Promise is failed:{}"
+            + (isPromiseFailed? " Promise hold error: {}" : "Promise hold data:{}"),
+            future.isDone(),
+            future.isCancelled(),
+            isPromiseFailed,
+            isPromiseFailed ? promise.getError(): promise.get()
+            );
+        return;
+      }
       try {
         final T value = future.get();
         promise.done(value);
