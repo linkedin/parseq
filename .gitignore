@@ -13,3 +13,5 @@ target
 .DS_Store
 .gradle
 /.gradle
+.settings
+subprojects/parseq-lambda-names/bin/
