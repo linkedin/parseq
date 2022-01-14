@@ -1,5 +1,6 @@
 package com.linkedin.parseq.guava;
 
+import com.linkedin.parseq.promise.Promises;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.annotations.VisibleForTesting;
@@ -133,6 +134,7 @@ public class ListenableFutureUtil {
    */
   @VisibleForTesting
   static class SettableTask<T> extends BaseTask<T> {
+    private final SettablePromise _promise = Promises.settable();
 
     public SettableTask(String name) {
       super(name);
@@ -140,7 +142,7 @@ public class ListenableFutureUtil {
 
     @Override
     protected Promise<? extends T> run(Context context) throws Throwable {
-      return getDelegate();
+      return _promise;
     }
 
     @Override
