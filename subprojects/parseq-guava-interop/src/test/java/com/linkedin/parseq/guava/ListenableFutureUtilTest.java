@@ -5,6 +5,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.linkedin.parseq.Task;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -16,7 +17,7 @@ public class ListenableFutureUtilTest extends BaseEngineTest {
 
   private void runUntilComplete(Task task) throws Exception {
     this.getEngine().run(task);
-    task.await();
+    task.await(5, TimeUnit.SECONDS);
   }
 
   @Test
@@ -26,6 +27,7 @@ public class ListenableFutureUtilTest extends BaseEngineTest {
 
     // Test cancel propagation from Task to ListenableFuture
     task.cancel(new RuntimeException());
+    runUntilComplete(task);
     Assert.assertTrue(listenableFuture.isCancelled());
 
     listenableFuture = new ListenableFutureUtil.SettableFuture<>();
