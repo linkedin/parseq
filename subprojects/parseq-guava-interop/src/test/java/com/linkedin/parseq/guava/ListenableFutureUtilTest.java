@@ -1,5 +1,6 @@
 package com.linkedin.parseq.guava;
 
+import com.linkedin.parseq.BaseEngineTest;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.linkedin.parseq.Task;
 import java.util.concurrent.CancellationException;
@@ -11,10 +12,15 @@ import org.testng.annotations.Test;
 /**
  * Unit tests for {@link ListenableFutureUtil}
  */
-public class ListenableFutureUtilTest {
+public class ListenableFutureUtilTest extends BaseEngineTest {
+
+  private void runUntilComplete(Task task) throws Exception {
+    this.getEngine().run(task);
+    task.await();
+  }
 
   @Test
-  public void testFromListenableFuture() {
+  public void testFromListenableFuture() throws Exception {
     ListenableFutureUtil.SettableFuture<String> listenableFuture = new ListenableFutureUtil.SettableFuture<>();
     Task<String> task = ListenableFutureUtil.fromListenableFuture(listenableFuture);
 
@@ -27,6 +33,7 @@ public class ListenableFutureUtilTest {
 
     // Test successful completion of ListenableFuture.
     listenableFuture.set("COMPLETED");
+    runUntilComplete(task);
     Assert.assertTrue(task.isDone());
     Assert.assertFalse(task.isFailed());
     Assert.assertEquals(task.get(), "COMPLETED");
@@ -36,6 +43,7 @@ public class ListenableFutureUtilTest {
 
     // Test exceptional completion of ListenableFuture.
     listenableFuture.setException(new RuntimeException("Test"));
+    runUntilComplete(task);
     Assert.assertTrue(task.isDone());
     Assert.assertTrue(task.isFailed());
     Assert.assertEquals(task.getError().getClass(), RuntimeException.class);
@@ -46,6 +54,7 @@ public class ListenableFutureUtilTest {
 
     // Test cancellation of ListenableFuture.
     listenableFuture.cancel(true);
+    runUntilComplete(task);
     Assert.assertTrue(task.isDone());
     Assert.assertTrue(task.isFailed());
     Assert.assertEquals(task.getError().getCause().getClass(), CancellationException.class);
@@ -66,7 +75,8 @@ public class ListenableFutureUtilTest {
     future = ListenableFutureUtil.toListenableFuture(task);
 
     // Test successful completion of task.
-    task.getSettableDelegate().done("COMPLETED");
+    task.getSettablePromise().done("COMPLETED");
+    runUntilComplete(task);
     Assert.assertTrue(future.isDone());
     Assert.assertEquals(future.get(), "COMPLETED");
 
@@ -74,7 +84,9 @@ public class ListenableFutureUtilTest {
     future = ListenableFutureUtil.toListenableFuture(task);
 
     // Test exceptional completion of task.
-    task.getSettableDelegate().fail(new RuntimeException("Test"));
+    task.getSettablePromise().fail(new RuntimeException("Test"));
+    runUntilComplete(task);
+    Assert.assertTrue(future.isDone());
     Assert.assertTrue(future.isDone());
     try {
       future.get();

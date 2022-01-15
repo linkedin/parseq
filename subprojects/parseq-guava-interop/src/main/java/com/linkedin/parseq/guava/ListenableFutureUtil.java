@@ -41,7 +41,7 @@ public class ListenableFutureUtil {
           }
         };
 
-    final SettablePromise<T> promise = task.getSettableDelegate();
+    final SettablePromise<T> promise = task.getSettablePromise();
 
     // Setup forward event propagation ListenableFuture -> Task.
     Runnable callbackRunnable = () -> {
@@ -145,9 +145,8 @@ public class ListenableFutureUtil {
       return _promise;
     }
 
-    @Override
-    public SettablePromise<T> getSettableDelegate() {
-      return super.getSettableDelegate();
+    public SettablePromise<T> getSettablePromise() {
+      return _promise;
     }
   }
 }
