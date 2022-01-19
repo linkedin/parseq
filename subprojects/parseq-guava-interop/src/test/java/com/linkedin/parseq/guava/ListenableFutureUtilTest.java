@@ -3,6 +3,8 @@ package com.linkedin.parseq.guava;
 import com.linkedin.parseq.BaseEngineTest;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.linkedin.parseq.Task;
+import com.linkedin.parseq.promise.Promises;
+import com.linkedin.parseq.promise.SettablePromise;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -64,29 +66,36 @@ public class ListenableFutureUtilTest extends BaseEngineTest {
 
   @Test
   public void testToListenableFuture() throws Exception {
-    ListenableFutureUtil.SettableTask<String> task = new ListenableFutureUtil.SettableTask<>("test");
+    Task<String> task;
+
+    final SettablePromise<String> p = Promises.settable();
+    task = Task.async("test", () -> p);
+
     ListenableFuture<String> future = ListenableFutureUtil.toListenableFuture(task);
 
     // Test cancel propagation from ListenableFuture to task
     future.cancel(true);
+    runUntilComplete(task);
     Assert.assertTrue(task.isDone());
     Assert.assertTrue(task.isFailed());
     Assert.assertEquals(task.getError().getCause().getClass(), CancellationException.class);
 
-    task = new ListenableFutureUtil.SettableTask<>("test");
+    final SettablePromise<String>  p1 = Promises.settable();
+    task = Task.async("test", () -> p1);
+
     future = ListenableFutureUtil.toListenableFuture(task);
 
     // Test successful completion of task.
-    task.getSettablePromise().done("COMPLETED");
+    p1.done("COMPLETED");
     runUntilComplete(task);
     Assert.assertTrue(future.isDone());
     Assert.assertEquals(future.get(), "COMPLETED");
 
-    task = new ListenableFutureUtil.SettableTask<>("test");
+    final SettablePromise<String> p2 = Promises.settable();
+    task = Task.async("test", () -> p2);
     future = ListenableFutureUtil.toListenableFuture(task);
 
-    // Test exceptional completion of task.
-    task.getSettablePromise().fail(new RuntimeException("Test"));
+    p2.fail(new RuntimeException("Test"));
     runUntilComplete(task);
     Assert.assertTrue(future.isDone());
     Assert.assertTrue(future.isDone());
@@ -98,7 +107,8 @@ public class ListenableFutureUtilTest extends BaseEngineTest {
       Assert.assertEquals(e.getCause().getMessage(), "Test");
     }
 
-    task = new ListenableFutureUtil.SettableTask<>("test");
+    final SettablePromise<String> p3 = Promises.settable();
+    task = Task.async("test", () -> p3);
     future = ListenableFutureUtil.toListenableFuture(task);
 
     // Test cancellation of task.
