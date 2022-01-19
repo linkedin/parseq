@@ -17,10 +17,16 @@ class SourcePointer {
 
   /* package private */ static Optional<SourcePointer> get(Exception exception) {
     //create an exception, discard known elements from stack trace and find first element with suspect
-    return Arrays.stream(exception.getStackTrace())
+    Optional ret = Arrays.stream(exception.getStackTrace())
         .filter(SourcePointer::notLambdaStuff)
         .findFirst()
         .map(SourcePointer::sourcePointer);
+    if (!ret.isPresent()) {
+      System.out.println("WARNING： ParSeq cannot generate lambda function SourcePointer， "
+          + "source stacktrace will be printed:");
+      exception.printStackTrace();
+    }
+    return ret;
   }
 
   private static boolean notLambdaStuff(StackTraceElement element) {
