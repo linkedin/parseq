@@ -1,3 +1,7 @@
+v5.1.7
+------
+* Change ListenableFutureUtil implementation to prevent promise being resolved more than once.
+
 v5.1.6
 ------
 * To prevent ListenableFutureUtil throw PromiseAlreadyResolved exception, also added log to see why it happened
