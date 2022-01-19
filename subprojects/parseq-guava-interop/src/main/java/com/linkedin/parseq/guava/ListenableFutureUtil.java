@@ -1,6 +1,7 @@
 package com.linkedin.parseq.guava;
 
 import com.linkedin.parseq.promise.Promises;
+import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.annotations.VisibleForTesting;
@@ -29,7 +30,10 @@ public class ListenableFutureUtil {
 
   public static <T> Task<T> fromListenableFuture(ListenableFuture<T> future) {
 
-    // BaseTask's promise will be listening to this
+    /**
+     * BaseTask's promise will be listening to this
+     * also see {@link BaseTask#contextRun(Context, Task, Collection)}
+     */
     final SettablePromise<T> promise = Promises.settable();
 
     // Setup cancellation propagation from Task -> ListenableFuture.
