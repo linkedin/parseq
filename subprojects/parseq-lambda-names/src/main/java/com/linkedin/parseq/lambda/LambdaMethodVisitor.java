@@ -53,6 +53,9 @@ class LambdaMethodVisitor extends MethodVisitor {
 
   @Override
   public void visitEnd() {
+    if (_lambdaSourcePointer == null) {
+      return;
+    }
     if (_containsSyntheticLambda) {
       String classToVisit = _methodInsnOwner.replace('/', '.');
       SyntheticLambdaAnalyzer syntheticLambdaAnalyzer = new SyntheticLambdaAnalyzer(api, classToVisit, _methodInsnName);
