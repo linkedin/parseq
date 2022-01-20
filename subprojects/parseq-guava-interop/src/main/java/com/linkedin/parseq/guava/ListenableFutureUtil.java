@@ -1,5 +1,7 @@
 package com.linkedin.parseq.guava;
 
+import com.linkedin.parseq.promise.Promises;
+import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.annotations.VisibleForTesting;
@@ -27,9 +29,16 @@ public class ListenableFutureUtil {
   }
 
   public static <T> Task<T> fromListenableFuture(ListenableFuture<T> future) {
+
+    /**
+     * BaseTask's promise will be listening to this
+     * also see {@link BaseTask#contextRun(Context, Task, Collection)}
+     */
+    final SettablePromise<T> promise = Promises.settable();
+
     // Setup cancellation propagation from Task -> ListenableFuture.
-    final SettableTask<T> task =
-        new SettableTask<T>("fromListenableFuture: " + Task._taskDescriptor.getDescription(future.getClass().getName())) {
+    final Task<T> task =
+        new BaseTask<T>("fromListenableFuture: " + Task._taskDescriptor.getDescription(future.getClass().getName())) {
           @Override
           public boolean cancel(Exception rootReason) {
             if (future.isCancelled()) {
@@ -38,9 +47,13 @@ public class ListenableFutureUtil {
 
             return super.cancel(rootReason) && future.cancel(true);
           }
+
+          @Override
+          protected Promise<? extends T> run(Context context) throws Throwable {
+            return promise;
+          }
         };
 
-    final SettablePromise<T> promise = task.getSettableDelegate();
 
     // Setup forward event propagation ListenableFuture -> Task.
     Runnable callbackRunnable = () -> {
@@ -123,29 +136,6 @@ public class ListenableFutureUtil {
     @Override
     public boolean setException(Throwable throwable) {
       return super.setException(throwable);
-    }
-  }
-
-  /**
-   * A private helper class to assist fromListenableFuture(), by overriding some methods to make them public.
-   *
-   * @param <T> The Settable task's type.
-   */
-  @VisibleForTesting
-  static class SettableTask<T> extends BaseTask<T> {
-
-    public SettableTask(String name) {
-      super(name);
-    }
-
-    @Override
-    protected Promise<? extends T> run(Context context) throws Throwable {
-      return getDelegate();
-    }
-
-    @Override
-    public SettablePromise<T> getSettableDelegate() {
-      return super.getSettableDelegate();
     }
   }
 }
