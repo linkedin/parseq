@@ -1,6 +1,7 @@
 v5.1.6
 ------
 * To prevent ListenableFutureUtil throw PromiseAlreadyResolved exception, also added log to see why it happened
+* Mute some NPE thrown by parseq-lambda-names and print meaningful warning message
 
 v5.1.5
 ------
