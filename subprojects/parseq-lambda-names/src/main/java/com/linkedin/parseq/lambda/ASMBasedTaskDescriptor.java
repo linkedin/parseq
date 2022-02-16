@@ -159,6 +159,8 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
          */
         latch.await(1, TimeUnit.MINUTES);
       } catch (InterruptedException e) {
+        System.out.println("ERROR: ParSeq Latch timed out suggesting serious issue in ASMBasedTaskDescriptor. "
+            + "Current number of class being analyzed: " + String.valueOf(_count.get()));
         e.printStackTrace();
         Thread.currentThread().interrupt();
       }
@@ -216,6 +218,7 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
              * We need to catch  everything because other
              * threads may be blocked on CountDownLatch.
              */
+            System.out.println("WARNING: Parseq cannot doAnalyze");
             t.printStackTrace();
           }
           if (_count.decrementAndGet() == 0) {

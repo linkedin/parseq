@@ -49,6 +49,9 @@ class LambdaClassLocator extends ClassVisitor {
       return mv;
     }
 
+    if (_sourcePointer == null) {
+      return mv;
+    }
     //parse generated lambda code to get details about operation
     return new LambdaMethodVisitor(api, mv, _sourcePointer, this::setInferredOperation, _loader);
   }
