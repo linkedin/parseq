@@ -1,3 +1,7 @@
+v5.1.8
+------
+* Add more print information to instrument the occasional lambda name generation failure during boot time.
+
 v5.1.7
 ------
 * Change ListenableFutureUtil implementation to prevent promise being resolved more than once.
