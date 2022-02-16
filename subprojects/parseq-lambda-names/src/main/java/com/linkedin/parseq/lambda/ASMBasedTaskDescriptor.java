@@ -236,9 +236,6 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
       if (cv.isLambdaClass()) {
         LambdaClassDescription lambdaClassDescription = cv.getLambdaClassDescription();
         add(lambdaClassDescription.getClassName(), lambdaClassDescription.getDescription());
-        System.out.println("ParSeq::INFO:: Processed lambda name for " +
-            lambdaClassDescription.getClassName() + " as " + lambdaClassDescription
-            .getDescription());
       }
     }
   }
