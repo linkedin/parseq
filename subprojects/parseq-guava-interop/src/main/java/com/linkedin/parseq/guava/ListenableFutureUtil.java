@@ -44,7 +44,7 @@ public class ListenableFutureUtil {
             if (future.isCancelled()) {
               return super.cancel(rootReason);
             }
-
+            LOGGER.warn("gRPC ListenableFuture is cancelled due to " + rootReason.getMessage(), rootReason);
             return super.cancel(rootReason) && future.cancel(true);
           }
 
