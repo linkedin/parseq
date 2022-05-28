@@ -1,6 +1,7 @@
 v5.1.8
 ------
 * Add more print information to instrument the occasional lambda name generation failure during boot time.
+* Add logging in ListenableFutureUtil to log root cause when ListeneableFuture is cancelled.
 
 v5.1.7
 ------
