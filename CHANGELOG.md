@@ -1,3 +1,7 @@
+v5.1.10
+------
+* Add more logging in ListenableFutureUtil to log root cause when ListeneableFuture is cancelled.
+
 v5.1.9
 ------
 * Add logging in ListenableFutureUtil to log root cause when ListeneableFuture is cancelled.
