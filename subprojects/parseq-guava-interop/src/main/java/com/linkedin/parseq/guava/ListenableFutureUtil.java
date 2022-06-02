@@ -42,10 +42,18 @@ public class ListenableFutureUtil {
           @Override
           public boolean cancel(Exception rootReason) {
             if (future.isCancelled()) {
-              return super.cancel(rootReason);
+              boolean taskCancelResult = super.cancel(rootReason);
+              LOGGER.warn("Future is cancelled, therefore cancelling task, result: {}", taskCancelResult);
+              return taskCancelResult;
             }
-            LOGGER.warn("gRPC ListenableFuture is cancelled due to " + rootReason.getMessage(), rootReason);
-            return super.cancel(rootReason) && future.cancel(true);
+            boolean taskCancelResult = super.cancel(rootReason);
+            boolean futureCancelResult = future.cancel(true);
+            LOGGER.warn("gRPC ListenableFuture is cancelled due to {}, taskCancelResult: {}, futureCancelResult {}",
+              rootReason.getMessage(),
+              taskCancelResult,
+              futureCancelResult,
+              rootReason);
+            return taskCancelResult && futureCancelResult;
           }
 
           @Override
