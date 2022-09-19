@@ -1,3 +1,7 @@
+v5.1.11
+------
+* Upgrade bytebuddy version so it can support JDK 17
+
 v5.1.10
 ------
 * Add more logging in ListenableFutureUtil to log root cause when ListeneableFuture is cancelled.
