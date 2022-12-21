@@ -22,6 +22,9 @@ jobs:
           distribution: zulu
           java-version: ${{ matrix.java }}
           # Do NOT use caching, since we want to ensure published artifacts are fresh
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '2.7.18'
       - run: ./.github/scripts/publish.sh
         env:
           JFROG_USER: ${{ secrets.JFROG_USER }}
