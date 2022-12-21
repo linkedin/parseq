@@ -20,7 +20,7 @@ jobs:
           fetch-depth: 2
       - uses: actions/setup-python@v2
         with:
-          python-version: '2.7.5'
+          python-version: '3.9.12'
           cache: 'pip'
       - uses: actions/setup-java@v2
         with:
