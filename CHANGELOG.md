@@ -1,3 +1,7 @@
+v5.1.13
+------
+* Pin python version for the "publish" github action 
+
 v5.1.12
 ------
 * Fixed cancel() implementation in ListenableFutureUtil
