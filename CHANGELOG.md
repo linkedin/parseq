@@ -1,3 +1,8 @@
+v5.1.12
+------
+* Fixed cancel() implementation in ListenableFutureUtil
+
+
 v5.1.11
 ------
 * Upgrade bytebuddy version so it can support JDK 17
