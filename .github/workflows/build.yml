@@ -21,7 +21,6 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: '3.9.12'
-          cache: 'pip'
       - uses: actions/setup-java@v2
         with:
           distribution: zulu
