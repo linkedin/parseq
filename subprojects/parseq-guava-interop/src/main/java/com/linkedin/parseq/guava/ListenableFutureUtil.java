@@ -41,19 +41,16 @@ public class ListenableFutureUtil {
         new BaseTask<T>("fromListenableFuture: " + Task._taskDescriptor.getDescription(future.getClass().getName())) {
           @Override
           public boolean cancel(Exception rootReason) {
-            if (future.isCancelled()) {
-              boolean taskCancelResult = super.cancel(rootReason);
-              LOGGER.warn("Future is cancelled, therefore cancelling task, result: {}", taskCancelResult);
-              return taskCancelResult;
+            // <BaseTask>.cancel()'s result indicates whether cancel() successfully trigger state transition to "CANCELLED"
+            // And we should only cancel GRPC future when the transition was conducted.
+            boolean baseStateTransitedByCallingCancel = super.cancel(rootReason);
+            if (baseStateTransitedByCallingCancel && !future.isCancelled()) {
+              boolean futureCancelResult = future.cancel(true);
+              if (!futureCancelResult) {
+                LOGGER.error("Unexpected error: GRPC future was not cancelled but new attempt to cancel also failed.");
+              }
             }
-            boolean taskCancelResult = super.cancel(rootReason);
-            boolean futureCancelResult = future.cancel(true);
-            LOGGER.warn("gRPC ListenableFuture is cancelled due to {}, taskCancelResult: {}, futureCancelResult {}",
-              rootReason.getMessage(),
-              taskCancelResult,
-              futureCancelResult,
-              rootReason);
-            return taskCancelResult && futureCancelResult;
+            return baseStateTransitedByCallingCancel;
           }
 
           @Override
