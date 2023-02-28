@@ -1,3 +1,7 @@
+v5.1.14
+------
+* Upgrade bytebuddy and asm version for JDK 17 support
+
 v5.1.13
 ------
 * Pin python version for the "publish" github action 
