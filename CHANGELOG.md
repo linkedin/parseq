@@ -1,6 +1,6 @@
 v5.1.14
 ------
-* Upgrade bytebuddy and asm version for JDK 17 support
+* Upgrade bytebuddy and asm version for JDK 17 and JDK 21 support
 
 v5.1.13
 ------
