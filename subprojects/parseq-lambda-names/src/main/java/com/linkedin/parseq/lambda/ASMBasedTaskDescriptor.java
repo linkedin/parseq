@@ -156,7 +156,7 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
     // If we have already analyzed the class, we don't need to await
     // analysis on other lambdas.
     if (description != null) {
-      return Optional.of(description);
+      return Optional.of(description).filter(s -> !s.isEmpty());
     }
 
     CountDownLatch latch = _latchRef.get();
@@ -174,7 +174,7 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
     }
 
     // Try again
-    return Optional.ofNullable(_names.get(name));
+    return Optional.ofNullable(_names.get(name)).filter(s -> !s.isEmpty());
   }
 
   private static void add(String lambdaClassName, String description) {
