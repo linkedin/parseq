@@ -136,7 +136,7 @@ task buildTracevisJS(type: Copy, dependsOn: ['buildModuleJS', 'buildModuleMinJS'
   }
 
   from(".") {
-    include 'node_modules/d3/d3.min.js'
+    include 'js/d3.v3.min.js'
     include 'js/d3.slider.js'
     include 'node_modules/svg-injector/dist/svg-injector.min.js'
     include 'node_modules/svg-injector/dist/svg-injector.map.js'
