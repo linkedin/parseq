@@ -27,54 +27,78 @@
 <link rel="stylesheet" href="css/d3.slider.css">
 
 <style>
-.btnCenter {
-  margin: 0 50%;
+#brand {
+  margin: 0;
 }
+
+.page-content {
+  padding-top: 1rem;
+}
+
+.nav-header {
+  display: block;
+  margin-bottom: 0.5rem;
 
 textarea {
   width: 760px;
 }
 
-textarea.error {
-  color: red;
+textarea.error,
+textarea.is-invalid {
+  color: var(--red);
+  border-color: var(--red);
 }
 
 </style>
 
-<div class="container-fluid" id="app-container">
-  <div class="row-fluid">
-    <div class="page-header label label-info">
-      <h4 style="text-align: center;">ParSeq JSON Trace Viewer vX.X.X</h4>
-    </div>
-  </div>
+<div class="navbar navbar-dark bg-info">
+  <h4 id="brand" class="navbar-brand">ParSeq JSON Trace Viewer vX.X.X</h4>
+</div>
 
+<div class="container-fluid page-content" id="app-container">
   <div class="row-fluid">
     <form action="javascript:void(0);">
-      <fieldset>
-        <div class="span2">
-          <ul class="nav nav-list">
-            <li class="nav-header">Views</li>
-            <li id="viewWaterfall"><a onclick="setView('waterfall'); refreshView();">Waterfall</a></li>
-            <li id="viewGraphviz"><a onclick="setView('graphviz'); refreshView();">Graphviz</a></li>
-            <li id="viewTable"><a onclick="setView('table'); refreshView();">Table</a></li>
+      <fieldset class="row">
+        <div class="col-2">
+          <ul class="nav nav-pills flex-column">
+            <li class="nav-item"><strong class="nav-header">Views</strong></li>
+            <li class="nav-item">
+              <a class="nav-link active" href="#" id="viewWaterfall" data-view="waterfall" >Waterfall</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" id="viewGraphviz" data-view="graphviz">Graphviz</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" id="viewTable" data-view="table">Table</a>
+            </li>
           </ul>
         </div>
-        <div class="span10">
-          <textarea id="jsonText" rows=3 placeholder="Insert JSON trace here" spellcheck="false"></textarea>
-        </div>
-        <div class="span10">
-          <label class="checkbox inline">
-            <input id="checkboxExcludeUser" type="checkbox" onclick="refreshView();"><em>User</em> hidden tasks
-          </label>
-          <label class="checkbox inline">
-            <input id="checkboxExcludeSystem" type="checkbox" onclick="refreshView();"><em>System</em> hidden tasks
-          </label>
-          <label class="checkbox inline">
-            <input id="checkboxExcludeParent" type="checkbox" checked="checked" onclick="refreshView();">Parent tasks
-          </label>
-          <label class="checkbox inline">
-            <input id="checkboxExcludeNonCritical" type="checkbox" onclick="refreshView();">Critical path
-          </label>
+        <div class="col-10">
+          <div class="form-group form-row">
+            <label for="jsonText"><strong>JSON Trace Data</strong></label>
+            <textarea id="jsonText" rows="3" placeholder="Insert JSON trace here" spellcheck="false" class="form-control"></textarea>
+            <div id="jsonTextFeedback" class="invalid-feedback">
+              Invalid JSON trace data.
+            </div>
+          </div>
+          <div class="form-row" id="taskFilters">
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" id="checkboxExcludeUser" type="checkbox" />
+              <label class="form-check-label" for="checkboxExcludeUser"><em>User</em> hidden tasks</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" id="checkboxExcludeSystem" type="checkbox" />
+              <label class="form-check-label" for="checkboxExcludeSystem"><em>System</em> hidden tasks</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" id="checkboxExcludeParent" type="checkbox" checked="checked" />
+              <label class="form-check-label" for="checkboxExcludeParent">Parent tasks</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" id="checkboxExcludeNonCritical" type="checkbox" />
+              <label class="form-check-label" for="checkboxExcludeNonCritical">Critical path</label>
+            </div>
+          </div>
         </div>
       </fieldset>
     </form>
@@ -84,7 +108,7 @@ textarea.error {
 </div>
 
 
-<div id="resultView" class="row-fluid"/>
+<div id="resultView" class="row-fluid"></div>
 
 <script src="js/d3.v3.min.js"></script>
 <script src="build/parseq-tracevis.js"></script>
@@ -99,6 +123,8 @@ textarea.error {
     TABLE = parseqTracevis.renderTable;
 
 var inputJSON = d3.select("#jsonText");
+var inputJSONFeedback = document.getElementById('jsonTextFeedback');
+var taskFilters = document.getElementById('taskFilters').querySelectorAll('input[type="checkbox"]');
 
 var currentView;
 setView("waterfall");
@@ -139,22 +165,28 @@ function refreshView() {
   d3.selectAll("#resultView *").remove();
   var jsonText = inputJSON.property("value");
 
-  if (!jsonText.length) {
+  if (!jsonText.length || !jsonText.trim().length) {
+    inputJSON.classed("is-invalid", false);
+    inputJSON.attr("title", null);
     return;
   }
 
-  var json;
+  var json, g;
   try {
     json = JSON.parse(jsonText);
-    inputJSON.classed("error", false);
+    g = parseqTracevis.trace.parse(json);
+    // Suppress any error state related to the trace JSON.
+    inputJSON.classed("is-invalid", false);
     inputJSON.attr("title", null);
   } catch (err) {
-    inputJSON.classed("error", true);
-    inputJSON.attr("title", "Parsing trace failed: " + err);
+    // Display an error state related to the trace JSON.
+    inputJSON.classed("is-invalid", true);
+    const errorFeedback = "Parsing trace failed: " + err;
+    inputJSON.attr("title", errorFeedback);
+    inputJSONFeedback.textContent = errorFeedback;
     throw err;
   }
 
-  var g = parseqTracevis.trace.parse(json);
   if (!d3.select("#checkboxExcludeUser").property("checked")) {
     parseqTracevis.trace.excludeUserTasks(g);
   }
@@ -185,4 +217,28 @@ function renderTrace(trace, view) {
   if (arguments.length > 1) setView(view);
   refreshView();
 }
+
+// Set up view changing buttons.
+['viewWaterfall', 'viewGraphviz', 'viewTable'].forEach(id => {
+  const element = document.getElementById(id);
+
+  if (element) {
+    const view = element.dataset.view;
+
+    if (view) {
+      element.addEventListener('click', event => {
+        event.preventDefault();
+        event.stopPropagation()
+
+        setView(view);
+        refreshView();
+      });
+    }
+  }
+});
+
+// Set up view refreshing for task filters.
+taskFilters.forEach(element => {
+  element.addEventListener('click', () => refreshView());
+});
 </script>
