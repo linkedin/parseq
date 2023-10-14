@@ -2,7 +2,8 @@ ext {
   description = '''A trace visualizer for ParSeq traces.'''
   developers = [
     [id: 'cpettitt', name: 'Chris Pettitt', email: 'cpettitt@linkedin.com'],
-    [id: 'ckchan', name: 'Chi Kit Chan', email: 'ckchan@linkedin.com']
+    [id: 'ckchan', name: 'Chi Kit Chan', email: 'ckchan@linkedin.com'],
+    [id: 'zackthehuman', name: 'Zack Mulgrew', email: 'zmulgrew@linkedin.com']
   ]
 }
 
@@ -11,10 +12,10 @@ apply plugin: 'com.github.node-gradle.node'
 
 node {
   // Version of node to use.
-  version = '6.11.2'
+  version = '20.8.1'
 
   // Version of npm to use.
-  npmVersion = '3.10.10'
+  npmVersion = '10.2.0'
 
   // Base URL for fetching node distributions (change if you have a mirror).
   distBaseUrl = 'https://nodejs.org/dist'
@@ -45,7 +46,6 @@ ext {
   ISTANBUL = './node_modules/istanbul/lib/cli.js'
   JSHINT = './node_modules/jshint/bin/jshint'
   MOCHA = './node_modules/mocha/bin/_mocha'
-  PHANTOMJS = './node_modules/phantomjs/bin/phantomjs'
   UGLIFY = './node_modules/uglify-js/bin/uglifyjs'
 
   //Module
@@ -200,8 +200,7 @@ task testIntCov(type: NodeTask, dependsOn: 'buildInstrumentationModule'){
     mkdir 'build/coverage'
   }
 
-  script = file("${PHANTOMJS}")
-  args = ["${projectDir}/test/int/int-test.js"]
+  script = file("${projectDir}/test/int/int-test.mjs")
   execOverrides {
     it.workingDir = projectDir
   }
