@@ -27,10 +27,6 @@
 <link rel="stylesheet" href="css/d3.slider.css">
 
 <style>
-#brand {
-  margin: 0;
-}
-
 .page-content {
   padding-top: 1rem;
 }
@@ -102,7 +98,7 @@ textarea.is-invalid {
 </svg>
 
 <div class="navbar navbar-dark bg-info">
-  <h1 id="brand" class="navbar-brand">ParSeq JSON Trace Viewer</h1>
+  <h1 id="brand" class="navbar-brand mb-0">ParSeq JSON Trace Viewer</h1>
   <span class="navbar-text">vX.X.X</span>
 </div>
 
@@ -196,14 +192,6 @@ var taskFilters = document.getElementById('taskFilters').querySelectorAll('input
 
 var currentView;
 setView("waterfall");
-
-/* If the URL contains a trace, inject it into the input textarea */
-var traceRE = /(?:\?|&)trace=([^\&]+)/;
-var searchStr = window.location.search;
-var match = traceRE.exec(searchStr);
-if (match) {
-  renderTrace(decodeURIComponent(match[1]));
-}
 
 function setView(view) {
   var prevView = selectView(currentView);
@@ -309,4 +297,11 @@ function renderTrace(trace, view) {
 taskFilters.forEach(element => {
   element.addEventListener('click', () => refreshView());
 });
+
+// If the URL contains a trace, inject it into the input textarea
+var urlSearchParams = new URLSearchParams(window.location.search);
+
+if (urlSearchParams.has('trace')) {
+  renderTrace(urlSearchParams.get('trace'));
+}
 </script>
