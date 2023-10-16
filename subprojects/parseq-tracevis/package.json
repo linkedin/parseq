@@ -9,12 +9,12 @@
     "istanbul": "^0.4.5",
     "jshint": "^2.13.6",
     "mocha": "^10.2.0",
+    "puppeteer": "^21.3.8",
     "uglify-js": "2.6.0"
   },
   "dependencies": {
     "graphlib": "0.7.4",
     "graphlib-dot": "0.4.9",
-    "puppeteer": "^21.3.8",
     "sha1": "1.1.0",
     "svg-injector": "1.1.2",
     "svg-pan-zoom": "3.1.3"
