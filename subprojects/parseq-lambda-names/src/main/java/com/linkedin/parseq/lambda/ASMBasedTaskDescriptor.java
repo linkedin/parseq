@@ -183,6 +183,49 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
 
   public static class Analyzer implements ClassFileTransformer {
 
+    /**
+     * Defining this class as not anonymous to avoid analyzing the runnable that is created to
+     * perform analysis. Without this, it is easy for an infinite loop to occur when using a lambda,
+     * which would result in a {@link StackOverflowError}, because when performing an analysis of the lambda
+     * would then require a new analysis of a new lambda.
+     *
+     * TODO: Avoid analyzing anonymous classes unrelated to parseq
+     */
+    static class AnalyzerRunnable implements Runnable {
+      private final byte[] byteCode;
+      private final ClassLoader loader;
+      private final Exception e;
+
+      private AnalyzerRunnable(byte[] byteCode, ClassLoader loader, Exception e) {
+        this.byteCode = byteCode;
+        this.loader = loader;
+        this.e = e;
+      }
+
+      public static AnalyzerRunnable of(byte[] byteCode, ClassLoader loader, Exception e) {
+        return new AnalyzerRunnable(byteCode, loader, e);
+      }
+
+      @Override
+      public void run() {
+        try {
+          doAnalyze(byteCode, loader, e);
+        } catch (Throwable t) {
+          /*
+           * We need to catch  everything because other
+           * threads may be blocked on CountDownLatch.
+           */
+          System.out.println("WARNING: Parseq cannot doAnalyze");
+          t.printStackTrace();
+        }
+        if (_count.decrementAndGet() == 0) {
+          CountDownLatch latch = _latchRef.getAndSet(null);
+          latch.countDown();
+        }
+
+      }
+    }
+
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
         ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
@@ -205,22 +248,7 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
         }
       }
       final Exception e = new Exception();
-      ForkJoinPool.commonPool().execute(() -> {
-        try {
-          doAnalyze(byteCode, loader, e);
-        } catch (Throwable t) {
-          /*
-           * We need to catch  everything because other
-           * threads may be blocked on CountDownLatch.
-           */
-          System.out.println("WARNING: Parseq cannot doAnalyze");
-          t.printStackTrace();
-        }
-        if (_count.decrementAndGet() == 0) {
-          CountDownLatch latch = _latchRef.getAndSet(null);
-          latch.countDown();
-        }
-      });
+      ForkJoinPool.commonPool().execute(AnalyzerRunnable.of(byteCode, loader, e));
     }
 
     public static void doAnalyze(byte[] byteCode, ClassLoader loader, Exception exception) {
