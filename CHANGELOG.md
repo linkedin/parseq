@@ -1,3 +1,7 @@
+v5.1.14
+------
+* Update ASMBasedTaskDescriptor to avoid blocking when classes have already been analyzed
+
 v5.1.13
 ------
 * Pin python version for the "publish" github action 
