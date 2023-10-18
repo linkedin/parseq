@@ -13,7 +13,11 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -41,9 +45,12 @@ import net.bytebuddy.utility.JavaModule;
  */
 public class ASMBasedTaskDescriptor implements TaskDescriptor {
 
-  private static final ConcurrentMap<String, String> _names = new ConcurrentHashMap<>();
-  private static final AtomicReference<CountDownLatch> _latchRef = new AtomicReference<CountDownLatch>();
-  private static final AtomicInteger _count = new AtomicInteger();
+  private static final ConcurrentMap<String, String> NAMES = new ConcurrentHashMap<>();
+  private static final AtomicReference<CountDownLatch> LATCH_REF = new AtomicReference<>();
+  private static final AtomicInteger COUNT = new AtomicInteger();
+  // Dynamically allow downsizing of threads, never increase more than CPU due to analysis being CPU intensive
+  private static final ExecutorService EXECUTOR_SERVICE = new ThreadPoolExecutor(1, Runtime.getRuntime().availableProcessors(),
+      100L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
 
   public static class AnalyzerAdvice {
 
@@ -151,7 +158,7 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
       return Optional.empty();
     }
     String name = className.substring(0, slashIndex);
-    String description = _names.get(name);
+    String description = NAMES.get(name);
 
     // If we have already analyzed the class, we don't need to await
     // analysis on other lambdas.
@@ -159,7 +166,7 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
       return Optional.of(description).filter(s -> !s.isEmpty());
     }
 
-    CountDownLatch latch = _latchRef.get();
+    CountDownLatch latch = LATCH_REF.get();
     if (latch != null) {
       try {
         // We wait up to one minute - an arbitrary, sufficiently large amount of time.
@@ -167,18 +174,18 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
         latch.await(1, TimeUnit.MINUTES);
       } catch (InterruptedException e) {
         System.err.println("ERROR: ParSeq Latch timed out suggesting serious issue in ASMBasedTaskDescriptor. "
-            + "Current number of class being analyzed: " + _count.get());
+            + "Current number of class being analyzed: " + COUNT.get());
         e.printStackTrace();
         Thread.currentThread().interrupt();
       }
     }
 
     // Try again
-    return Optional.ofNullable(_names.get(name)).filter(s -> !s.isEmpty());
+    return Optional.ofNullable(NAMES.get(name)).filter(s -> !s.isEmpty());
   }
 
   private static void add(String lambdaClassName, String description) {
-    _names.put(lambdaClassName, description);
+    NAMES.put(lambdaClassName, description);
   }
 
   public static class Analyzer implements ClassFileTransformer {
@@ -218,11 +225,21 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
           System.out.println("WARNING: Parseq cannot doAnalyze");
           t.printStackTrace();
         }
-        if (_count.decrementAndGet() == 0) {
-          CountDownLatch latch = _latchRef.getAndSet(null);
+        if (COUNT.decrementAndGet() == 0) {
+          CountDownLatch latch = LATCH_REF.getAndSet(null);
           latch.countDown();
         }
 
+      }
+
+      public static void doAnalyze(byte[] byteCode, ClassLoader loader, Exception exception) {
+        ClassReader reader = new ClassReader(byteCode);
+        LambdaClassLocator cv = new LambdaClassLocator(Opcodes.ASM7, loader, exception);
+        reader.accept(cv, 0);
+        if (cv.isLambdaClass()) {
+          LambdaClassDescription lambdaClassDescription = cv.getLambdaClassDescription();
+          add(lambdaClassDescription.getClassName(), lambdaClassDescription.getDescription());
+        }
       }
     }
 
@@ -236,9 +253,9 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
     }
 
     public static void analyze(byte[] byteCode, ClassLoader loader) {
-      if (_count.getAndIncrement() == 0) {
+      if (COUNT.getAndIncrement() == 0) {
         CountDownLatch latch = new CountDownLatch(1);
-        while (!_latchRef.compareAndSet(null, latch)) {
+        while (!LATCH_REF.compareAndSet(null, latch)) {
           /*
            * Busy spin. If we got here it means that other thread just
            * decremented _count to 0 and is about to null out _latchRef.
@@ -248,17 +265,7 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
         }
       }
       final Exception e = new Exception();
-      ForkJoinPool.commonPool().execute(AnalyzerRunnable.of(byteCode, loader, e));
-    }
-
-    public static void doAnalyze(byte[] byteCode, ClassLoader loader, Exception exception) {
-      ClassReader reader = new ClassReader(byteCode);
-      LambdaClassLocator cv = new LambdaClassLocator(Opcodes.ASM7, loader, exception);
-      reader.accept(cv, 0);
-      if (cv.isLambdaClass()) {
-        LambdaClassDescription lambdaClassDescription = cv.getLambdaClassDescription();
-        add(lambdaClassDescription.getClassName(), lambdaClassDescription.getDescription());
-      }
+      EXECUTOR_SERVICE.submit(AnalyzerRunnable.of(byteCode, loader, e));
     }
   }
 }
