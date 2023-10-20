@@ -49,8 +49,11 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
   private static final AtomicReference<CountDownLatch> LATCH_REF = new AtomicReference<>();
   private static final AtomicInteger COUNT = new AtomicInteger();
   // Dynamically allow downsizing of threads, never increase more than CPU due to analysis being CPU intensive
-  private static final ExecutorService EXECUTOR_SERVICE = new ThreadPoolExecutor(1, Runtime.getRuntime().availableProcessors(),
-      100L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+  private static final ExecutorService EXECUTOR_SERVICE = new ThreadPoolExecutor(0,
+      Runtime.getRuntime().availableProcessors(),
+      5,
+      TimeUnit.SECONDS,
+      new LinkedBlockingQueue<>());
 
   public static class AnalyzerAdvice {
 
