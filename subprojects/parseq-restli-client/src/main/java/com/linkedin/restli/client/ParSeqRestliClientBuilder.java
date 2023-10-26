@@ -1,6 +1,5 @@
 package com.linkedin.restli.client;
 
-import com.google.common.util.concurrent.MoreExecutors;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -37,7 +36,7 @@ public class ParSeqRestliClientBuilder {
   private BatchingSupport _batchingSupport;
   private InboundRequestContextFinder _inboundRequestContextFinder;
   private Function<Request<?>, RequestContext> _requestContextProvider;
-  private Executor _executor = MoreExecutors.directExecutor();
+  private Executor _executor = DirectExecutor.getInstance();
 
   /**
    * This method may throw RuntimeException e.g. when there is a problem with configuration.

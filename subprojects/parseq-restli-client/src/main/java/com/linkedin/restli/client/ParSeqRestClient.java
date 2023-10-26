@@ -16,7 +16,6 @@
 
 package com.linkedin.restli.client;
 
-import com.google.common.util.concurrent.MoreExecutors;
 import com.linkedin.common.callback.Callback;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.batching.Batch;
@@ -37,9 +36,6 @@ import com.linkedin.restli.client.metrics.Metrics;
 import com.linkedin.restli.common.OperationNameGenerator;
 import java.util.Optional;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import org.slf4j.Logger;
@@ -98,7 +94,7 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
     _requestConfigProvider = requestConfigProvider;
     _requestContextProvider = requestContextProvider;
     _d2RequestTimeoutEnabled = d2RequestTimeoutEnabled;
-    _executor = MoreExecutors.directExecutor();
+    _executor = DirectExecutor.getInstance();
   }
 
   /**
@@ -113,7 +109,7 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
     _requestConfigProvider = RequestConfigProvider.build(new ParSeqRestliClientConfigBuilder().build(), () -> Optional.empty());
     _requestContextProvider = request -> new RequestContext();
     _d2RequestTimeoutEnabled = false;
-    _executor = MoreExecutors.directExecutor();
+    _executor = DirectExecutor.getInstance();
   }
 
   /**
@@ -128,7 +124,7 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
     _requestConfigProvider = RequestConfigProvider.build(new ParSeqRestliClientConfigBuilder().build(), () -> Optional.empty());
     _requestContextProvider = request -> new RequestContext();
     _d2RequestTimeoutEnabled = false;
-    _executor = MoreExecutors.directExecutor();
+    _executor = DirectExecutor.getInstance();
   }
 
   @Override
