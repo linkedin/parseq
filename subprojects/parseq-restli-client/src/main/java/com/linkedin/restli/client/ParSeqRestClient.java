@@ -87,14 +87,7 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
 
   ParSeqRestClient(final Client client, final RequestConfigProvider requestConfigProvider,
       Function<Request<?>, RequestContext> requestContextProvider, final boolean d2RequestTimeoutEnabled) {
-    ArgumentUtil.requireNotNull(client, "client");
-    ArgumentUtil.requireNotNull(requestConfigProvider, "requestConfigProvider");
-    ArgumentUtil.requireNotNull(requestContextProvider, "requestContextProvider");
-    _client = client;
-    _requestConfigProvider = requestConfigProvider;
-    _requestContextProvider = requestContextProvider;
-    _d2RequestTimeoutEnabled = d2RequestTimeoutEnabled;
-    _executor = DirectExecutor.getInstance();
+    this(client, requestConfigProvider, requestContextProvider, d2RequestTimeoutEnabled, DirectExecutor.getInstance());
   }
 
   /**
