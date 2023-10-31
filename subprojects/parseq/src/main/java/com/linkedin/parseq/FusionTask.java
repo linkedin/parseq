@@ -99,11 +99,11 @@ class FusionTask<S, T> extends BaseTask<T> {
   }
 
   private void addRelationships(final FusionTraceContext traceContext) {
-    final ShallowTraceBuilder effectoveShallowTraceBuilder = getEffectiveShallowTraceBuilder(traceContext);
+    final ShallowTraceBuilder effectiveShallowTraceBuilder = getEffectiveShallowTraceBuilder(traceContext);
     TraceBuilder builder = getTraceBuilder();
-    builder.addRelationship(Relationship.PARENT_OF, traceContext.getParent().getShallowTraceBuilder(), effectoveShallowTraceBuilder);
+    builder.addRelationship(Relationship.PARENT_OF, traceContext.getParent().getShallowTraceBuilder(), effectiveShallowTraceBuilder);
     if (_predecessorShallowTraceBuilder != null) {
-      builder.addRelationship(Relationship.SUCCESSOR_OF, effectoveShallowTraceBuilder, _predecessorShallowTraceBuilder);
+      builder.addRelationship(Relationship.SUCCESSOR_OF, effectiveShallowTraceBuilder, _predecessorShallowTraceBuilder);
     }
   }
 

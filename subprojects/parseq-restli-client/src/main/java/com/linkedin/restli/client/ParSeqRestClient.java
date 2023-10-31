@@ -35,6 +35,7 @@ import com.linkedin.restli.client.metrics.BatchingMetrics;
 import com.linkedin.restli.client.metrics.Metrics;
 import com.linkedin.restli.common.OperationNameGenerator;
 import java.util.Optional;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import org.slf4j.Logger;
@@ -69,9 +70,11 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
   private final RequestConfigProvider _requestConfigProvider;
   private final boolean _d2RequestTimeoutEnabled;
   private final Function<Request<?>, RequestContext> _requestContextProvider;
+  private final Executor _executor;
 
   ParSeqRestClient(final Client client, final RequestConfigProvider requestConfigProvider,
-      Function<Request<?>, RequestContext> requestContextProvider, final boolean d2RequestTimeoutEnabled) {
+      Function<Request<?>, RequestContext> requestContextProvider, final boolean d2RequestTimeoutEnabled,
+      Executor executor) {
     ArgumentUtil.requireNotNull(client, "client");
     ArgumentUtil.requireNotNull(requestConfigProvider, "requestConfigProvider");
     ArgumentUtil.requireNotNull(requestContextProvider, "requestContextProvider");
@@ -79,6 +82,12 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
     _requestConfigProvider = requestConfigProvider;
     _requestContextProvider = requestContextProvider;
     _d2RequestTimeoutEnabled = d2RequestTimeoutEnabled;
+    _executor = executor;
+  }
+
+  ParSeqRestClient(final Client client, final RequestConfigProvider requestConfigProvider,
+      Function<Request<?>, RequestContext> requestContextProvider, final boolean d2RequestTimeoutEnabled) {
+    this(client, requestConfigProvider, requestContextProvider, d2RequestTimeoutEnabled, DirectExecutor.getInstance());
   }
 
   /**
@@ -93,6 +102,7 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
     _requestConfigProvider = RequestConfigProvider.build(new ParSeqRestliClientConfigBuilder().build(), () -> Optional.empty());
     _requestContextProvider = request -> new RequestContext();
     _d2RequestTimeoutEnabled = false;
+    _executor = DirectExecutor.getInstance();
   }
 
   /**
@@ -107,6 +117,7 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
     _requestConfigProvider = RequestConfigProvider.build(new ParSeqRestliClientConfigBuilder().build(), () -> Optional.empty());
     _requestContextProvider = request -> new RequestContext();
     _d2RequestTimeoutEnabled = false;
+    _executor = DirectExecutor.getInstance();
   }
 
   @Override
@@ -119,11 +130,13 @@ public class ParSeqRestClient extends BatchingStrategy<RequestGroup, RestRequest
   @Deprecated
   public <T> Promise<Response<T>> sendRequest(final Request<T> request, final RequestContext requestContext) {
     final SettablePromise<Response<T>> promise = Promises.settable();
-    try {
-      _client.sendRequest(request, requestContext, new PromiseCallbackAdapter<T>(promise));
-    } catch (Throwable e) {
-      promise.fail(e);
-    }
+    _executor.execute(() -> {
+      try {
+        _client.sendRequest(request, requestContext, new PromiseCallbackAdapter<T>(promise));
+      } catch (Throwable e) {
+        promise.fail(e);
+      }
+    });
     return promise;
   }
 

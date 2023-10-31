@@ -15,3 +15,4 @@ target
 /.gradle
 .settings
 subprojects/parseq-lambda-names/bin/
+subprojects/parseq-tracevis/npm-debug.log
