@@ -1,3 +1,11 @@
+v5.1.16
+------
+* Add the support of offloading sendRequest call to an executor
+
+v5.1.15
+------
+* Fix stack overflow error in TaskDescriptor when lambda is used
+
 v5.1.14
 ------
 * Update ASMBasedTaskDescriptor to avoid blocking when classes have already been analyzed
