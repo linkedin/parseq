@@ -1,3 +1,7 @@
+v5.1.17
+------
+* Use dedicated executor service for lambda analysis
+ 
 v5.1.16
 ------
 * Add the support of offloading sendRequest call to an executor
