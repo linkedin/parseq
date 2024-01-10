@@ -270,7 +270,7 @@ function render(root, graph) {
 
       } else {
         var textarea = root.append('textarea').style('width', '100%').style(
-            'height', '600px');
+            'height', '600px').attr('class', 'text-monospace form-control');
         textarea.text(dot.write(graph));
         console.log('Contacting TracevisServer failed, status: ' + xhr.status + '\n'
             + xhr.responseText);
