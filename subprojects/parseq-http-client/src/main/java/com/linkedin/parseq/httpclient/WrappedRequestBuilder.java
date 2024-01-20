@@ -10,20 +10,21 @@ import java.util.Map;
 import com.linkedin.parseq.Task;
 import com.linkedin.parseq.promise.Promises;
 import com.linkedin.parseq.promise.SettablePromise;
-import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
-import com.ning.http.client.AsyncCompletionHandler;
-import com.ning.http.client.BodyGenerator;
-import com.ning.http.client.ConnectionPoolPartitioning;
-import com.ning.http.client.FluentCaseInsensitiveStringsMap;
-import com.ning.http.client.Param;
-import com.ning.http.client.ProxyServer;
-import com.ning.http.client.Realm;
-import com.ning.http.client.Request;
-import com.ning.http.client.Response;
-import com.ning.http.client.SignatureCalculator;
-import com.ning.http.client.cookie.Cookie;
-import com.ning.http.client.multipart.Part;
-import com.ning.http.client.uri.Uri;
+import org.asynchttpclient.BoundRequestBuilder;
+
+import org.asynchttpclient.AsyncCompletionHandler;
+import org.asynchttpclient.request.body.generator.BodyGenerator;
+import org.asynchttpclient.channel.ChannelPoolPartitioning;
+import io.netty.handler.codec.http.HttpHeaders;
+import org.asynchttpclient.Param;
+import org.asynchttpclient.proxy.ProxyServer;
+import org.asynchttpclient.Realm;
+import org.asynchttpclient.Request;
+import org.asynchttpclient.Response;
+import org.asynchttpclient.SignatureCalculator;
+import io.netty.handler.codec.http.cookie.Cookie;
+import org.asynchttpclient.request.body.multipart.Part;
+import org.asynchttpclient.uri.Uri;
 
 public class WrappedRequestBuilder {
 
@@ -58,12 +59,12 @@ public class WrappedRequestBuilder {
   }
 
   public WrappedRequestBuilder setInetAddress(InetAddress address) {
-    _delegate.setInetAddress(address);
+    _delegate.setAddress(address);
     return this;
   }
 
   public WrappedRequestBuilder setLocalInetAddress(InetAddress address) {
-    _delegate.setLocalInetAddress(address);
+    _delegate.setLocalAddress(address);
     return this;
   }
 
@@ -101,11 +102,6 @@ public class WrappedRequestBuilder {
     return this;
  }
 
-  public WrappedRequestBuilder setContentLength(int length) {
-    _delegate.setContentLength(length);
-    return this;
-  }
-
   public WrappedRequestBuilder setBody(String data) {
     _delegate.setBody(data);
     return this;
@@ -121,7 +117,7 @@ public class WrappedRequestBuilder {
     return this;
   }
 
-  public WrappedRequestBuilder setHeaders(FluentCaseInsensitiveStringsMap headers) {
+  public WrappedRequestBuilder setHeaders(HttpHeaders headers) {
     _delegate.setHeaders(headers);
     return this;
   }
@@ -222,7 +218,7 @@ public class WrappedRequestBuilder {
   }
 
   public WrappedRequestBuilder setFollowRedirects(boolean followRedirects) {
-    _delegate.setFollowRedirects(followRedirects);
+    _delegate.setFollowRedirect(followRedirects);
     return this;
   }
 
@@ -241,13 +237,8 @@ public class WrappedRequestBuilder {
     return this;
   }
 
-  public WrappedRequestBuilder setBodyEncoding(String charset) {
-    _delegate.setBodyEncoding(charset);
-    return this;
-  }
-
-  public WrappedRequestBuilder setConnectionPoolKeyStrategy(ConnectionPoolPartitioning connectionPoolKeyStrategy) {
-    _delegate.setConnectionPoolKeyStrategy(connectionPoolKeyStrategy);
+  public WrappedRequestBuilder setConnectionPoolKeyStrategy(ChannelPoolPartitioning connectionPoolKeyStrategy) {
+    _delegate.setChannelPoolPartitioning(connectionPoolKeyStrategy);
     return this;
   }
 
@@ -257,7 +248,7 @@ public class WrappedRequestBuilder {
       _delegate.execute(new AsyncCompletionHandler<Response>() {
 
         @Override
-        public Response onCompleted(final Response response) throws Exception {
+        public Response onCompleted(final Response response) {
           result.done(response);
           return response;
         }

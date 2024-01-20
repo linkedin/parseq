@@ -3,5 +3,5 @@ ext {
 }
 
 dependencies {
-    compile group: 'com.ning', name: 'async-http-client', version:'1.9.21'
+    implementation group: 'org.asynchttpclient', name: 'async-http-client', version:'2.12.3'
 }

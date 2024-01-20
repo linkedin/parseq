@@ -1,9 +1,13 @@
 package com.linkedin.parseq.httpclient;
 
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.AsyncHttpClientConfig;
+import org.asynchttpclient.AsyncHttpClient;
+import org.asynchttpclient.AsyncHttpClientConfig;
+import org.asynchttpclient.DefaultAsyncHttpClientConfig.Builder;
+import org.asynchttpclient.Dsl;
+
 
 public class HttpClient {
 
@@ -15,9 +19,9 @@ public class HttpClient {
    * then new client is created with default configuration.
    * @return raw http client
    */
-  public static synchronized AsyncHttpClient getNingClient() {
+  public static synchronized AsyncHttpClient getAsyncHttpClient() {
     if (_client.get() == null) {
-      initialize(new AsyncHttpClientConfig.Builder().build());
+      initialize(new Builder().build());
     }
     return _client.get();
   }
@@ -29,43 +33,43 @@ public class HttpClient {
    */
   @SuppressWarnings("resource")
   public static synchronized void initialize(AsyncHttpClientConfig cfg) {
-    if (!_client.compareAndSet(null, new AsyncHttpClient(cfg))) {
+    if (!_client.compareAndSet(null, Dsl.asyncHttpClient(cfg))) {
       throw new RuntimeException("async http client concurrently initialized");
     }
   }
 
-  public static void close() {
+  public static void close() throws IOException {
     if (_client.get() != null) {
       _client.get().close();
     }
   }
 
   public static WrappedRequestBuilder get(String url) {
-    return new WrappedRequestBuilder(getNingClient().prepareGet(url), "GET " + url);
+    return new WrappedRequestBuilder(getAsyncHttpClient().prepareGet(url), "GET " + url);
   }
 
   public static WrappedRequestBuilder connect(String url) {
-    return new WrappedRequestBuilder(getNingClient().prepareConnect(url), "CONNECT " + url);
+    return new WrappedRequestBuilder(getAsyncHttpClient().prepareConnect(url), "CONNECT " + url);
   }
 
   public static WrappedRequestBuilder options(String url) {
-    return new WrappedRequestBuilder(getNingClient().prepareOptions(url), "OPTIONS " + url);
+    return new WrappedRequestBuilder(getAsyncHttpClient().prepareOptions(url), "OPTIONS " + url);
   }
 
   public static WrappedRequestBuilder head(String url) {
-    return new WrappedRequestBuilder(getNingClient().prepareHead(url), "HEAD " + url);
+    return new WrappedRequestBuilder(getAsyncHttpClient().prepareHead(url), "HEAD " + url);
   }
 
   public static WrappedRequestBuilder post(String url) {
-    return new WrappedRequestBuilder(getNingClient().preparePost(url), "POST " + url);
+    return new WrappedRequestBuilder(getAsyncHttpClient().preparePost(url), "POST " + url);
   }
 
   public static WrappedRequestBuilder put(String url) {
-    return new WrappedRequestBuilder(getNingClient().preparePut(url), "PUT " + url);
+    return new WrappedRequestBuilder(getAsyncHttpClient().preparePut(url), "PUT " + url);
   }
 
   public static WrappedRequestBuilder delete(String url) {
-    return new WrappedRequestBuilder(getNingClient().prepareDelete(url), "DELETE " + url);
+    return new WrappedRequestBuilder(getAsyncHttpClient().prepareDelete(url), "DELETE " + url);
   }
 
 }
