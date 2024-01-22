@@ -5,7 +5,7 @@ import com.linkedin.parseq.Task;
 import com.linkedin.parseq.example.common.AbstractExample;
 import com.linkedin.parseq.example.common.ExampleUtil;
 import com.linkedin.parseq.httpclient.HttpClient;
-import com.ning.http.client.Response;
+import org.asynchttpclient.Response;
 
 
 /**

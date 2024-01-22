@@ -12,7 +12,6 @@ import com.linkedin.parseq.function.Failure;
 import com.linkedin.parseq.function.Success;
 import com.linkedin.parseq.function.Try;
 import com.linkedin.parseq.httpclient.HttpClient;
-import com.ning.http.client.Response;
 
 
 /**

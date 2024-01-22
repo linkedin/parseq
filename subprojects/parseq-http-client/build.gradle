@@ -3,5 +3,5 @@ ext {
 }
 
 dependencies {
-    implementation group: 'org.asynchttpclient', name: 'async-http-client', version:'2.12.3'
+    api group: 'org.asynchttpclient', name: 'async-http-client', version:'2.12.3'
 }
