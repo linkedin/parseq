@@ -18,6 +18,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.asynchttpclient.Response;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.eclipse.jetty.server.Request;
@@ -29,7 +30,7 @@ import com.linkedin.parseq.trace.Trace;
 import com.linkedin.parseq.trace.TraceBuilder;
 import com.linkedin.parseq.trace.TraceRelationship;
 import com.linkedin.parseq.trace.codec.json.JsonTraceCodec;
-import com.ning.http.client.Response;
+
 
 final class JhatHandler extends AbstractHandler {
 
