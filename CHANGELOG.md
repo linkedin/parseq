@@ -1,3 +1,7 @@
+v5.2.0
+------
+* Upgrade AsyncHttpClient - Backwards incompatible due to namespace of AsyncHttpClient changing along with class names and private vs public access.
+
 v5.1.17
 ------
 * Use dedicated executor service for lambda analysis
