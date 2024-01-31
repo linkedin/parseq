@@ -1,3 +1,7 @@
+v5.1.18
+------
+* Minor UI updates to trace visualizer to refresh JavaScript dependencies.
+
 v5.1.17
 ------
 * Use dedicated executor service for lambda analysis
