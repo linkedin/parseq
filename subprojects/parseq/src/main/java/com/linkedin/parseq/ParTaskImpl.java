@@ -73,7 +73,7 @@ import com.linkedin.parseq.trace.ResultType;
       final Task<T> coercedTask = (Task<T>) task;
       taskList.add(coercedTask);
     }
-    return (Task<? extends Task<? extends T>>[]) taskList.toArray();
+    return tasksFromCollection(taskList);
   }
 
   @SuppressWarnings("unchecked")

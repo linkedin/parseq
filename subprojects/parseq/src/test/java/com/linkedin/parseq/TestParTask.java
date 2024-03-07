@@ -8,7 +8,9 @@ import org.testng.annotations.Test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -25,6 +27,25 @@ import static org.testng.AssertJUnit.fail;
  * @author Chris Pettitt
  */
 public class TestParTask extends BaseEngineTest {
+  /**
+   * A helper to create an {@link Iterable} that does not also implement java.util.Collection.
+   *
+   * @param tasks an array of tasks to return from the iterable
+   * @return an iterable over provided array of tasks
+   * @param <T> the type of task
+   */
+  private static <T> Iterable<Task<? extends T>> asIterable(final Task<? extends T>[] tasks) {
+    return () -> new Iterator<Task<? extends T>>() {
+      int current = 0;
+      public boolean hasNext() { return current < tasks.length; }
+      public Task<? extends T> next() {
+        if (!hasNext()) { throw new NoSuchElementException(); }
+        return tasks[current++];
+      }
+      public void remove() { throw new IllegalStateException("Not implemented for tests."); }
+    };
+  }
+
   @Test
   public void testIterableParWithEmptyList() {
     try {
@@ -49,6 +70,31 @@ public class TestParTask extends BaseEngineTest {
   }
 
   @Test
+  public void testCollectionSeqWithMultipleElements() throws InterruptedException {
+    final int iters = 500;
+
+    final Task<?>[] tasks = new BaseTask<?>[iters];
+    final AtomicInteger counter = new AtomicInteger(0);
+    for (int i = 0; i < iters; i++) {
+      tasks[i] = Task.action("task-" + i, () -> {
+        // Note: We intentionally do not use CAS. We guarantee that
+        // the run method of Tasks are never executed in parallel.
+        final int currentCount = counter.get();
+        counter.set(currentCount + 1);
+      } );
+    }
+
+    final ParTask<?> par = par(Arrays.asList(tasks)); // The returned object implements Collection.
+
+    runAndWait("TestParTask.testIterableSeqWithMultipleElements", par);
+
+    assertEquals(500, par.getSuccessful().size());
+    assertEquals(500, par.getTasks().size());
+    assertEquals(500, par.get().size());
+    assertEquals(500, counter.get());
+  }
+
+  @Test
   public void testIterableSeqWithMultipleElements() throws InterruptedException {
     final int iters = 500;
 
@@ -63,7 +109,7 @@ public class TestParTask extends BaseEngineTest {
       } );
     }
 
-    final ParTask<?> par = par(Arrays.asList(tasks));
+    final ParTask<?> par = par(asIterable(tasks));
 
     runAndWait("TestParTask.testIterableSeqWithMultipleElements", par);
 
@@ -77,7 +123,7 @@ public class TestParTask extends BaseEngineTest {
   @Test
   public void testAsyncTasksInPar() throws InterruptedException {
     // Tasks cannot have their run methods invoked at the same time, however
-    // asynchronous tasks are allowed to execute concurrently outside of their
+    // asynchronous tasks are allowed to execute concurrently outside their
     // run methods. This test verifies that two asynchronous tasks are not
     // serialized such that one must complete before the other.
 
