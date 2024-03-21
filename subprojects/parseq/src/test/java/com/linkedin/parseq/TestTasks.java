@@ -156,7 +156,7 @@ public class TestTasks extends BaseEngineTest {
     String result = "CompletionStageResult";
     Task<String> task = Task.fromCompletionStage(() ->{
       CompletableFuture<String> completableFuture
-              = CompletableFuture.supplyAsync(() -> result);
+          = CompletableFuture.supplyAsync(() -> result);
       return completableFuture;
     });
     CompletionStage<String> future = task.toCompletionStage();
@@ -170,7 +170,7 @@ public class TestTasks extends BaseEngineTest {
     String result = "FromCompletionStageResult";
     Task<String> task = Task.fromCompletionStage(() ->{
       CompletableFuture<String> completableFuture
-              = CompletableFuture.supplyAsync(() -> result);
+          = CompletableFuture.supplyAsync(() -> result);
       return completableFuture;
     });
     runAndWait("testFromCompletionStage", task);
@@ -182,7 +182,7 @@ public class TestTasks extends BaseEngineTest {
     String result = "FromCompletionStageResult";
     Task<String> task = Task.fromCompletionStage(() ->{
       CompletableFuture<String> completableFuture
-              = CompletableFuture.supplyAsync(() -> {
+          = CompletableFuture.supplyAsync(() -> {
         try {
           Thread.sleep(100);
         } catch (InterruptedException e) {
@@ -200,7 +200,7 @@ public class TestTasks extends BaseEngineTest {
   public void testFromCompletionStageWithCompletionStageException() {
     Task<String> task = Task.fromCompletionStage(() ->{
       CompletableFuture<String> completableFuture
-              = CompletableFuture.supplyAsync(() -> {
+          = CompletableFuture.supplyAsync(() -> {
         throw new RuntimeException();
       });
       return completableFuture;
