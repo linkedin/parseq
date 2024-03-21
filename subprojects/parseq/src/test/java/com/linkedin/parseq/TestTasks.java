@@ -156,7 +156,7 @@ public class TestTasks extends BaseEngineTest {
     String result = "CompletionStageResult";
     Task<String> task = Task.fromCompletionStage(() ->{
       CompletableFuture<String> completableFuture
-          = CompletableFuture.supplyAsync(() -> result);
+              = CompletableFuture.supplyAsync(() -> result);
       return completableFuture;
     });
     CompletionStage<String> future = task.toCompletionStage();
@@ -170,7 +170,7 @@ public class TestTasks extends BaseEngineTest {
     String result = "FromCompletionStageResult";
     Task<String> task = Task.fromCompletionStage(() ->{
       CompletableFuture<String> completableFuture
-          = CompletableFuture.supplyAsync(() -> result);
+              = CompletableFuture.supplyAsync(() -> result);
       return completableFuture;
     });
     runAndWait("testFromCompletionStage", task);
@@ -182,7 +182,7 @@ public class TestTasks extends BaseEngineTest {
     String result = "FromCompletionStageResult";
     Task<String> task = Task.fromCompletionStage(() ->{
       CompletableFuture<String> completableFuture
-          = CompletableFuture.supplyAsync(() -> {
+              = CompletableFuture.supplyAsync(() -> {
         try {
           Thread.sleep(100);
         } catch (InterruptedException e) {
@@ -200,7 +200,7 @@ public class TestTasks extends BaseEngineTest {
   public void testFromCompletionStageWithCompletionStageException() {
     Task<String> task = Task.fromCompletionStage(() ->{
       CompletableFuture<String> completableFuture
-          = CompletableFuture.supplyAsync(() -> {
+              = CompletableFuture.supplyAsync(() -> {
         throw new RuntimeException();
       });
       return completableFuture;
@@ -214,6 +214,46 @@ public class TestTasks extends BaseEngineTest {
       throw new RuntimeException();
     });
     runAndWaitException("testFromCompletionStageWithCallableException", task, RuntimeException.class);
+  }
+
+  @Test
+  public void testToFuture() {
+    String result = "CompletableFutureResult";
+    Task<String> task = Task.fromFuture(CompletableFuture.supplyAsync(() -> result));
+    CompletableFuture<String> future = task.toFuture();
+    runAndWait("TestTasks.testToFuture", task);
+    future.whenComplete((r, ex) -> assertEquals(result, r));
+  }
+
+  @Test
+  public void testFromFuture() {
+    String result = "FromFutureResult";
+    Task<String> task = Task.fromFuture(CompletableFuture.supplyAsync(() -> result));
+    runAndWait("TestTasks.testFromFuture", task);
+    assertEquals(result, task.get());
+  }
+
+  @Test
+  public void testFromFutureWithTimeConsumingFuture() {
+    String result = "FromFutureResult";
+    Task<String> task = Task.fromFuture(CompletableFuture.supplyAsync(() -> {
+      try {
+        Thread.sleep(100);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+      return result;
+    }));
+    runAndWait("TestTasks.testFromFutureWithTimeConsumingFuture", task);
+    assertEquals(result, task.get());
+  }
+
+  @Test
+  public void testFromFutureWithException() {
+    Task<String> task = Task.fromFuture(CompletableFuture.supplyAsync(() -> {
+      throw new RuntimeException();
+    }));
+    runAndWaitException("TestTasks.testFromFutureWithException", task, CompletionException.class);
   }
 
   @Test
