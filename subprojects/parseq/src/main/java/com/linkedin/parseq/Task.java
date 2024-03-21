@@ -1065,7 +1065,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
   default Task<T> withTimeout(final String desc, final long time, final TimeUnit unit) {
     final Task<T> that = this;
     final String taskName = "withTimeout " + time + TimeUnitHelper.toString(unit) +
-            (desc != null ? " " + desc : "");
+        (desc != null ? " " + desc : "");
     final String timeoutExceptionMessage = "task: '" + getName() + "' " + taskName;
     Task<T> withTimeout = async(taskName, ctx -> {
       final AtomicBoolean committed = new AtomicBoolean();
@@ -1324,8 +1324,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @param callable the callable to execute when this task is run
    * @return the new task that will invoke the callable and complete with result of returned CompletionStage
    */
-  public static <T> Task<T> fromCompletionStage(final String desc, final Callable<CompletionStage<? extends T>> callable)
-  {
+    public static <T> Task<T> fromCompletionStage(final String desc, final Callable<CompletionStage<? extends T>> callable)
+    {
     return async(desc, () -> {
       final SettablePromise<T> promise = Promises.settable();
       CompletionStage<? extends T> future = callable.call();
@@ -1347,7 +1347,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   public static <T> Task<T> fromCompletionStage(final Callable<CompletionStage<? extends T>> callable) {
     return fromCompletionStage(
-            "fromCompletionStage: " + _taskDescriptor.getDescription(callable.getClass().getName()), callable);
+        "fromCompletionStage: " + _taskDescriptor.getDescription(callable.getClass().getName()), callable);
   }
 
   /**
@@ -1618,7 +1618,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @return task that will run given tasks in parallel
    */
   public static <T1, T2, T3> Tuple3Task<T1, T2, T3> par(final Task<T1> task1, final Task<T2> task2,
-                                                        final Task<T3> task3) {
+      final Task<T3> task3) {
     ArgumentUtil.requireNotNull(task1, "task1");
     ArgumentUtil.requireNotNull(task2, "task2");
     ArgumentUtil.requireNotNull(task3, "task3");
@@ -1646,7 +1646,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @return task that will run given tasks in parallel
    */
   public static <T1, T2, T3, T4> Tuple4Task<T1, T2, T3, T4> par(final Task<T1> task1, final Task<T2> task2,
-                                                                final Task<T3> task3, final Task<T4> task4) {
+      final Task<T3> task3, final Task<T4> task4) {
     ArgumentUtil.requireNotNull(task1, "task1");
     ArgumentUtil.requireNotNull(task2, "task2");
     ArgumentUtil.requireNotNull(task3, "task3");
@@ -1675,7 +1675,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @return task that will run given tasks in parallel
    */
   public static <T1, T2, T3, T4, T5> Tuple5Task<T1, T2, T3, T4, T5> par(final Task<T1> task1, final Task<T2> task2,
-                                                                        final Task<T3> task3, final Task<T4> task4, final Task<T5> task5) {
+      final Task<T3> task3, final Task<T4> task4, final Task<T5> task5) {
     ArgumentUtil.requireNotNull(task1, "task1");
     ArgumentUtil.requireNotNull(task2, "task2");
     ArgumentUtil.requireNotNull(task3, "task3");
@@ -1705,7 +1705,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @return task that will run given tasks in parallel
    */
   public static <T1, T2, T3, T4, T5, T6> Tuple6Task<T1, T2, T3, T4, T5, T6> par(final Task<T1> task1,
-                                                                                final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5, final Task<T6> task6) {
+      final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5, final Task<T6> task6) {
     ArgumentUtil.requireNotNull(task1, "task1");
     ArgumentUtil.requireNotNull(task2, "task2");
     ArgumentUtil.requireNotNull(task3, "task3");
@@ -1736,8 +1736,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @return task that will run given tasks in parallel
    */
   public static <T1, T2, T3, T4, T5, T6, T7> Tuple7Task<T1, T2, T3, T4, T5, T6, T7> par(final Task<T1> task1,
-                                                                                        final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5, final Task<T6> task6,
-                                                                                        final Task<T7> task7) {
+      final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5, final Task<T6> task6,
+      final Task<T7> task7) {
     ArgumentUtil.requireNotNull(task1, "task1");
     ArgumentUtil.requireNotNull(task2, "task2");
     ArgumentUtil.requireNotNull(task3, "task3");
@@ -1769,8 +1769,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @return task that will run given tasks in parallel
    */
   public static <T1, T2, T3, T4, T5, T6, T7, T8> Tuple8Task<T1, T2, T3, T4, T5, T6, T7, T8> par(final Task<T1> task1,
-                                                                                                final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5, final Task<T6> task6,
-                                                                                                final Task<T7> task7, final Task<T8> task8) {
+      final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5, final Task<T6> task6,
+      final Task<T7> task7, final Task<T8> task8) {
     ArgumentUtil.requireNotNull(task1, "task1");
     ArgumentUtil.requireNotNull(task2, "task2");
     ArgumentUtil.requireNotNull(task3, "task3");
@@ -1803,8 +1803,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @return task that will run given tasks in parallel
    */
   public static <T1, T2, T3, T4, T5, T6, T7, T8, T9> Tuple9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9> par(
-          final Task<T1> task1, final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5,
-          final Task<T6> task6, final Task<T7> task7, final Task<T8> task8, final Task<T9> task9) {
+      final Task<T1> task1, final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5,
+      final Task<T6> task6, final Task<T7> task7, final Task<T8> task8, final Task<T9> task9) {
     ArgumentUtil.requireNotNull(task1, "task1");
     ArgumentUtil.requireNotNull(task2, "task2");
     ArgumentUtil.requireNotNull(task3, "task3");
@@ -1815,7 +1815,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
     ArgumentUtil.requireNotNull(task8, "task8");
     ArgumentUtil.requireNotNull(task9, "task9");
     return new Par9Task<T1, T2, T3, T4, T5, T6, T7, T8, T9>("par9", task1, task2, task3, task4, task5, task6, task7,
-            task8, task9);
+        task8, task9);
   }
 
   /**
@@ -1839,8 +1839,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @return task that will run given tasks in parallel
    */
   public static <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> Tuple10Task<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> par(
-          final Task<T1> task1, final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5,
-          final Task<T6> task6, final Task<T7> task7, final Task<T8> task8, final Task<T9> task9, final Task<T10> task10) {
+      final Task<T1> task1, final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5,
+      final Task<T6> task6, final Task<T7> task7, final Task<T8> task8, final Task<T9> task9, final Task<T10> task10) {
     ArgumentUtil.requireNotNull(task1, "task1");
     ArgumentUtil.requireNotNull(task2, "task2");
     ArgumentUtil.requireNotNull(task3, "task3");
@@ -1852,7 +1852,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
     ArgumentUtil.requireNotNull(task9, "task9");
     ArgumentUtil.requireNotNull(task10, "task10");
     return new Par10Task<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>("par10", task1, task2, task3, task4, task5, task6,
-            task7, task8, task9, task10);
+        task7, task8, task9, task10);
   }
 
   /**
@@ -1876,9 +1876,9 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @return task that will run given tasks in parallel
    */
   public static <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> Tuple11Task<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> par(
-          final Task<T1> task1, final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5,
-          final Task<T6> task6, final Task<T7> task7, final Task<T8> task8, final Task<T9> task9, final Task<T10> task10,
-          final Task<T11> task11) {
+      final Task<T1> task1, final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5,
+      final Task<T6> task6, final Task<T7> task7, final Task<T8> task8, final Task<T9> task9, final Task<T10> task10,
+      final Task<T11> task11) {
     ArgumentUtil.requireNotNull(task1, "task1");
     ArgumentUtil.requireNotNull(task2, "task2");
     ArgumentUtil.requireNotNull(task3, "task3");
@@ -1891,7 +1891,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
     ArgumentUtil.requireNotNull(task10, "task10");
     ArgumentUtil.requireNotNull(task11, "task11");
     return new Par11Task<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>("par11", task1, task2, task3, task4, task5,
-            task6, task7, task8, task9, task10, task11);
+        task6, task7, task8, task9, task10, task11);
   }
 
   /**
@@ -1915,9 +1915,9 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @return task that will run given tasks in parallel
    */
   public static <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> Tuple12Task<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> par(
-          final Task<T1> task1, final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5,
-          final Task<T6> task6, final Task<T7> task7, final Task<T8> task8, final Task<T9> task9, final Task<T10> task10,
-          final Task<T11> task11, final Task<T12> task12) {
+      final Task<T1> task1, final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5,
+      final Task<T6> task6, final Task<T7> task7, final Task<T8> task8, final Task<T9> task9, final Task<T10> task10,
+      final Task<T11> task11, final Task<T12> task12) {
     ArgumentUtil.requireNotNull(task1, "task1");
     ArgumentUtil.requireNotNull(task2, "task2");
     ArgumentUtil.requireNotNull(task3, "task3");
@@ -1931,7 +1931,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
     ArgumentUtil.requireNotNull(task11, "task11");
     ArgumentUtil.requireNotNull(task12, "task12");
     return new Par12Task<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>("par12", task1, task2, task3, task4,
-            task5, task6, task7, task8, task9, task10, task11, task12);
+        task5, task6, task7, task8, task9, task10, task11, task12);
   }
 
   /**
@@ -1955,10 +1955,10 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @return task that will run given tasks in parallel
    */
   public static <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> Tuple13Task<T1, T2, T3, T4, T5, T6, T7, T8,
-          T9, T10, T11, T12, T13> par(
-          final Task<T1> task1, final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5,
-          final Task<T6> task6, final Task<T7> task7, final Task<T8> task8, final Task<T9> task9, final Task<T10> task10,
-          final Task<T11> task11, final Task<T12> task12, final Task<T13> task13) {
+      T9, T10, T11, T12, T13> par(
+      final Task<T1> task1, final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5,
+      final Task<T6> task6, final Task<T7> task7, final Task<T8> task8, final Task<T9> task9, final Task<T10> task10,
+      final Task<T11> task11, final Task<T12> task12, final Task<T13> task13) {
     ArgumentUtil.requireNotNull(task1, "task1");
     ArgumentUtil.requireNotNull(task2, "task2");
     ArgumentUtil.requireNotNull(task3, "task3");
@@ -1973,7 +1973,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
     ArgumentUtil.requireNotNull(task12, "task12");
     ArgumentUtil.requireNotNull(task13, "task13");
     return new Par13Task<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>("par13", task1, task2, task3, task4,
-            task5, task6, task7, task8, task9, task10, task11, task12, task13);
+        task5, task6, task7, task8, task9, task10, task11, task12, task13);
   }
 
   /**
@@ -1997,10 +1997,10 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @return task that will run given tasks in parallel
    */
   public static <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> Tuple14Task<T1, T2, T3, T4, T5, T6, T7,
-          T8, T9, T10, T11, T12, T13, T14> par(
-          final Task<T1> task1, final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5,
-          final Task<T6> task6, final Task<T7> task7, final Task<T8> task8, final Task<T9> task9, final Task<T10> task10,
-          final Task<T11> task11, final Task<T12> task12, final Task<T13> task13, final Task<T14> task14) {
+      T8, T9, T10, T11, T12, T13, T14> par(
+      final Task<T1> task1, final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5,
+      final Task<T6> task6, final Task<T7> task7, final Task<T8> task8, final Task<T9> task9, final Task<T10> task10,
+      final Task<T11> task11, final Task<T12> task12, final Task<T13> task13, final Task<T14> task14) {
     ArgumentUtil.requireNotNull(task1, "task1");
     ArgumentUtil.requireNotNull(task2, "task2");
     ArgumentUtil.requireNotNull(task3, "task3");
@@ -2016,7 +2016,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
     ArgumentUtil.requireNotNull(task13, "task13");
     ArgumentUtil.requireNotNull(task14, "task14");
     return new Par14Task<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>("par14", task1, task2, task3,
-            task4, task5, task6, task7, task8, task9, task10, task11, task12, task13, task14);
+        task4, task5, task6, task7, task8, task9, task10, task11, task12, task13, task14);
   }
 
   /**
@@ -2040,11 +2040,11 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @return task that will run given tasks in parallel
    */
   public static <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> Tuple15Task<T1, T2, T3, T4, T5, T6,
-          T7, T8, T9, T10, T11, T12, T13, T14, T15> par(
-          final Task<T1> task1, final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5,
-          final Task<T6> task6, final Task<T7> task7, final Task<T8> task8, final Task<T9> task9, final Task<T10> task10,
-          final Task<T11> task11, final Task<T12> task12, final Task<T13> task13, final Task<T14> task14, final Task<T15>
-                  task15) {
+      T7, T8, T9, T10, T11, T12, T13, T14, T15> par(
+      final Task<T1> task1, final Task<T2> task2, final Task<T3> task3, final Task<T4> task4, final Task<T5> task5,
+      final Task<T6> task6, final Task<T7> task7, final Task<T8> task8, final Task<T9> task9, final Task<T10> task10,
+      final Task<T11> task11, final Task<T12> task12, final Task<T13> task13, final Task<T14> task14, final Task<T15>
+      task15) {
     ArgumentUtil.requireNotNull(task1, "task1");
     ArgumentUtil.requireNotNull(task2, "task2");
     ArgumentUtil.requireNotNull(task3, "task3");
@@ -2061,7 +2061,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
     ArgumentUtil.requireNotNull(task14, "task14");
     ArgumentUtil.requireNotNull(task15, "task15");
     return new Par15Task<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>("par15", task1, task2,
-            task3, task4, task5, task6, task7, task8, task9, task10, task11, task12, task13, task14, task15);
+        task3, task4, task5, task6, task7, task8, task9, task10, task11, task12, task13, task14, task15);
   }
 
   /**
@@ -2087,8 +2087,8 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   public static <T> ParTask<T> par(final Iterable<? extends Task<? extends T>> tasks) {
     return tasks.iterator().hasNext()
-            ? new ParTaskImpl<T>("par", tasks)
-            : new ParTaskImpl<T>("par");
+        ? new ParTaskImpl<T>("par", tasks)
+        : new ParTaskImpl<T>("par");
   }
 
   /**
