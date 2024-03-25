@@ -22,7 +22,7 @@ class SourcePointer {
         .findFirst()
         .map(SourcePointer::sourcePointer);
     if (!ret.isPresent()) {
-      System.out.println("WARNING： ParSeq cannot generate lambda function SourcePointer， "
+      System.out.println("WARNING: ParSeq cannot generate lambda function SourcePointer."
           + "source stacktrace will be printed:");
       exception.printStackTrace();
     }
