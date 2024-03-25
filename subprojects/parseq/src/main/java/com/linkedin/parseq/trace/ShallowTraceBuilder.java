@@ -38,7 +38,7 @@ public class ShallowTraceBuilder {
   private volatile String _name;
   private volatile boolean _hidden;
   private volatile String _value;
-  private volatile ResultType _resultType = ResultType.UNFINISHED
+  private volatile ResultType _resultType = ResultType.UNFINISHED;
   private volatile long _startNanos = -1;
   private volatile long _pendingNanos = -1;
   private volatile long _endNanos = -1;
