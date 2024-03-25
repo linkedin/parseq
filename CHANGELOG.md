@@ -1,3 +1,7 @@
+v5.1.19
+------
+* Explicitly set default value for TraceBuilder's ResultType to UNFINISHED to prevent null argument when building the trace in TraceBuilder.
+
 v5.1.18
 ------
 * Minor UI updates to trace visualizer to refresh JavaScript dependencies.
