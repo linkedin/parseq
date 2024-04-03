@@ -102,47 +102,45 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
       } catch (ClassNotFoundException e) {
       }
 
-			if (isJdkUnsafe) {
-			  // Code path that supports OpenJDK Java 11 and up
+      if (isJdkUnsafe) {
+        // Code path that supports OpenJDK Java 11 and up
 
-	      /*
-	       * Inject AnalyzerAdvice to boot ClassLoader.
-	       * It has to be reachable from jdk.internal.misc.Unsafe.
-	       */
-	      ClassInjector.UsingUnsafe.ofBootLoader()
-	          .inject(Collections.singletonMap(
-	                  new TypeDescription.ForLoadedType(AnalyzerAdvice.class),
-	                  ClassFileLocator.ForClassLoader.read(AnalyzerAdvice.class)
-	              )
-	          );
+        /*
+         * Inject AnalyzerAdvice to boot ClassLoader.
+         * It has to be reachable from jdk.internal.misc.Unsafe.
+         */
+        ClassInjector.UsingUnsafe.ofBootLoader()
+            .inject(Collections.singletonMap(new TypeDescription.ForLoadedType(AnalyzerAdvice.class),
+                ClassFileLocator.ForClassLoader.read(AnalyzerAdvice.class)));
 
-	      /*
-	       * Inject the analyze(byte[] byteCode, ClassLoader loader) method from this ClassLoader
-	       * to the AnalyzerAdvice class from boot ClassLoader.
-	       */
-	      Class<?> injectedInt = ClassLoader.getSystemClassLoader().getParent().loadClass(AnalyzerAdvice.class.getName());
-	      injectedInt.getField("_method").set(null, Analyzer.class.getDeclaredMethod("analyze", byte[].class, ClassLoader.class));
+        /*
+         * Inject the analyze(byte[] byteCode, ClassLoader loader) method from this ClassLoader
+         * to the AnalyzerAdvice class from boot ClassLoader.
+         */
+        Class<?> injectedInt = ClassLoader.getSystemClassLoader().getParent().loadClass(AnalyzerAdvice.class.getName());
+        injectedInt.getField("_method")
+            .set(null, Analyzer.class.getDeclaredMethod("analyze", byte[].class, ClassLoader.class));
 
-	      JavaModule module = JavaModule.ofType(injectedInt);
+        JavaModule module = JavaModule.ofType(injectedInt);
 
-	      new AgentBuilder.Default()
-	        .disableClassFormatChanges()
-	        .ignore(noneOf(unsafe))
-	        .with(AgentBuilder.InitializationStrategy.NoOp.INSTANCE)
-	        .with(AgentBuilder.RedefinitionStrategy.REDEFINITION)
-	        .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
-	        .with(AgentBuilder.InjectionStrategy.UsingUnsafe.INSTANCE)
-	        .assureReadEdgeTo(inst, module)
-	        .type(is(unsafe))
-	        .transform(new AgentBuilder.Transformer() {
-	          @Override
-	          public Builder<?> transform(Builder<?> builder, TypeDescription typeDescription,
-	              ClassLoader classLoader, JavaModule module, ProtectionDomain protectionDomain) {
-	            return builder.visit(Advice.to(AnalyzerAdvice.class).on(ElementMatchers.named("defineAnonymousClass")));
-	          }
-	        }).installOnByteBuddyAgent();
-			} else {
-			  // Code path that supports Oracle Java 8 and 9
+        new AgentBuilder.Default().disableClassFormatChanges()
+            .ignore(noneOf(unsafe))
+            .with(AgentBuilder.InitializationStrategy.NoOp.INSTANCE)
+            .with(AgentBuilder.RedefinitionStrategy.REDEFINITION)
+            .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
+            .with(AgentBuilder.InjectionStrategy.UsingUnsafe.INSTANCE)
+            .assureReadEdgeTo(inst, module)
+            .type(is(unsafe))
+            .transform(new AgentBuilder.Transformer() {
+              @Override
+              public Builder<?> transform(Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader,
+                  JavaModule module, ProtectionDomain protectionDomain) {
+                return builder.visit(Advice.to(AnalyzerAdvice.class).on(ElementMatchers.named("defineAnonymousClass")));
+              }
+            })
+            .installOnByteBuddyAgent();
+      } else {
+        // Code path that supports Oracle Java 8 and 9
         inst.addTransformer(new Analyzer());
       }
     } catch (Exception e) {
