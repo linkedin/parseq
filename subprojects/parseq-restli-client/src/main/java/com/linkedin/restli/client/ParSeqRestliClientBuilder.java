@@ -3,6 +3,7 @@ package com.linkedin.restli.client;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Executor;
 import java.util.function.Function;
 
 import org.slf4j.Logger;
@@ -35,6 +36,7 @@ public class ParSeqRestliClientBuilder {
   private BatchingSupport _batchingSupport;
   private InboundRequestContextFinder _inboundRequestContextFinder;
   private Function<Request<?>, RequestContext> _requestContextProvider;
+  private Executor _executor = DirectExecutor.getInstance();
 
   /**
    * This method may throw RuntimeException e.g. when there is a problem with configuration.
@@ -65,7 +67,7 @@ public class ParSeqRestliClientBuilder {
         request -> new RequestContext() :
         _requestContextProvider;
 
-    ParSeqRestClient parseqClient = new ParSeqRestClient(_client, configProvider, requestContextProvider, _d2RequestTimeoutEnabled);
+    ParSeqRestClient parseqClient = new ParSeqRestClient(_client, configProvider, requestContextProvider, _d2RequestTimeoutEnabled, _executor);
     if (_batchingSupport != null) {
       LOGGER.debug("Found batching support");
       _batchingSupport.registerStrategy(parseqClient);
@@ -158,6 +160,11 @@ public class ParSeqRestliClientBuilder {
    */
   public ParSeqRestliClientBuilder setD2RequestTimeoutEnabled(boolean enabled) {
     _d2RequestTimeoutEnabled = enabled;
+    return this;
+  }
+
+  public ParSeqRestliClientBuilder setExecutor(Executor executor) {
+    _executor = executor;
     return this;
   }
 }

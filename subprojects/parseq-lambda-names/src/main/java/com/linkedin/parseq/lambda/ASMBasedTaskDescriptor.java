@@ -13,7 +13,11 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -33,6 +37,7 @@ import net.bytebuddy.dynamic.loading.ClassInjector;
 import net.bytebuddy.matcher.ElementMatchers;
 import net.bytebuddy.utility.JavaModule;
 
+
 /**
  * An ASM based implementation of {@link TaskDescriptor} to provide description for generated Lambda class.
  * Description of Lambda expression includes source code location of lambda, function call or method reference
@@ -40,9 +45,15 @@ import net.bytebuddy.utility.JavaModule;
  */
 public class ASMBasedTaskDescriptor implements TaskDescriptor {
 
-  private static final ConcurrentMap<String, String> _names = new ConcurrentHashMap<>();
-  private static final AtomicReference<CountDownLatch> _latchRef = new AtomicReference<CountDownLatch>();
-  private static final AtomicInteger _count = new AtomicInteger();
+  private static final ConcurrentMap<String, String> NAMES = new ConcurrentHashMap<>();
+  private static final AtomicReference<CountDownLatch> LATCH_REF = new AtomicReference<>();
+  private static final AtomicInteger COUNT = new AtomicInteger();
+  // Dynamically allow downsizing of threads, never increase more than CPU due to analysis being CPU intensive
+  private static final ExecutorService EXECUTOR_SERVICE = new ThreadPoolExecutor(0,
+      Runtime.getRuntime().availableProcessors(),
+      5,
+      TimeUnit.SECONDS,
+      new LinkedBlockingQueue<>());
 
   public static class AnalyzerAdvice {
 
@@ -71,19 +82,19 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
 
   static {
 
-	  try {
-			Instrumentation inst = ByteBuddyAgent.install();
+    try {
+      Instrumentation inst = ByteBuddyAgent.install();
 
-			/*
-			 * If we can get the instance of jdk.internal.misc.Unsafe then we will
-			 * attempt to instrument Unsafe.defineAnonymousClass(...) to capture classes
-			 * generated for lambdas.
-			 * This approach does not work for Oracle Java 8 because
-			 * sun.misc.Unsafe.defineAnonymousClass(...) is a native method and we can
-			 * at most replace it but there is no reasonably easy way to replace it and
-			 * still invoke the original method.
-			 */
-			boolean isJdkUnsafe = false;
+      /*
+       * If we can get the instance of jdk.internal.misc.Unsafe then we will
+       * attempt to instrument Unsafe.defineAnonymousClass(...) to capture classes
+       * generated for lambdas.
+       * This approach does not work for Oracle Java 8 because
+       * sun.misc.Unsafe.defineAnonymousClass(...) is a native method and we can
+       * at most replace it but there is no reasonably easy way to replace it and
+       * still invoke the original method.
+       */
+      boolean isJdkUnsafe = false;
       Class<?> unsafe = null;
       try {
         unsafe = Class.forName("jdk.internal.misc.Unsafe");
@@ -133,62 +144,113 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
 			} else {
 			  // Code path that supports Oracle Java 8 and 9
         inst.addTransformer(new Analyzer());
-			}
-	  } catch(Exception e) {
-		  e.printStackTrace();
-	  }
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   @Override
   public String getDescription(String className) {
     Optional<String> lambdaClassDescription = getLambdaClassDescription(className);
-    if (lambdaClassDescription.isPresent()) {
-      return lambdaClassDescription.get();
-    } else {
-      return className;
-    }
+    return lambdaClassDescription.orElse(className);
   }
 
   Optional<String> getLambdaClassDescription(String className) {
-    CountDownLatch latch = _latchRef.get();
+    int slashIndex = className.lastIndexOf('/');
+    // If we can't find the slash, we can't find the name of the lambda.
+    if (slashIndex <= 0) {
+      return Optional.empty();
+    }
+    String name = className.substring(0, slashIndex);
+    String description = NAMES.get(name);
+
+    // If we have already analyzed the class, we don't need to await
+    // analysis on other lambdas.
+    if (description != null) {
+      return Optional.of(description).filter(s -> !s.isEmpty());
+    }
+
+    CountDownLatch latch = LATCH_REF.get();
     if (latch != null) {
       try {
-        /*
-         * We wait up to one minute - an arbitrary, sufficiently large amount of time.
-         * The wait period must be bounded to avoid locking out JVM.
-         */
+        // We wait up to one minute - an arbitrary, sufficiently large amount of time.
+        // The wait period must be bounded to avoid locking out JVM.
         latch.await(1, TimeUnit.MINUTES);
       } catch (InterruptedException e) {
-        System.out.println("ERROR: ParSeq Latch timed out suggesting serious issue in ASMBasedTaskDescriptor. "
-            + "Current number of class being analyzed: " + String.valueOf(_count.get()));
+        System.err.println("ERROR: ParSeq Latch timed out suggesting serious issue in ASMBasedTaskDescriptor. "
+            + "Current number of class being analyzed: " + COUNT.get());
         e.printStackTrace();
         Thread.currentThread().interrupt();
       }
     }
-    int slashIndex = className.lastIndexOf('/');
-    if (slashIndex > 0) {
-      String name = className.substring(0, slashIndex);
-      String desc = _names.get(name);
-      if (desc == null || desc.isEmpty()) {
-        return Optional.empty();
-      } else {
-        return Optional.of(desc);
-      }
-    }
 
-    return Optional.empty();
+    // Try again
+    return Optional.ofNullable(NAMES.get(name)).filter(s -> !s.isEmpty());
   }
 
   private static void add(String lambdaClassName, String description) {
-    _names.put(lambdaClassName, description);
+    NAMES.put(lambdaClassName, description);
   }
 
   public static class Analyzer implements ClassFileTransformer {
 
+    /**
+     * Defining this class as not anonymous to avoid analyzing the runnable that is created to
+     * perform analysis. Without this, it is easy for an infinite loop to occur when using a lambda,
+     * which would result in a {@link StackOverflowError}, because when performing an analysis of the lambda
+     * would then require a new analysis of a new lambda.
+     *
+     * TODO: Avoid analyzing anonymous classes unrelated to parseq
+     */
+    static class AnalyzerRunnable implements Runnable {
+      private final byte[] byteCode;
+      private final ClassLoader loader;
+      private final Exception e;
+
+      private AnalyzerRunnable(byte[] byteCode, ClassLoader loader, Exception e) {
+        this.byteCode = byteCode;
+        this.loader = loader;
+        this.e = e;
+      }
+
+      public static AnalyzerRunnable of(byte[] byteCode, ClassLoader loader, Exception e) {
+        return new AnalyzerRunnable(byteCode, loader, e);
+      }
+
+      @Override
+      public void run() {
+        try {
+          doAnalyze(byteCode, loader, e);
+        } catch (Throwable t) {
+          /*
+           * We need to catch  everything because other
+           * threads may be blocked on CountDownLatch.
+           */
+          System.out.println("WARNING: Parseq cannot doAnalyze");
+          t.printStackTrace();
+        }
+        if (COUNT.decrementAndGet() == 0) {
+          CountDownLatch latch = LATCH_REF.getAndSet(null);
+          latch.countDown();
+        }
+
+      }
+
+      public static void doAnalyze(byte[] byteCode, ClassLoader loader, Exception exception) {
+        ClassReader reader = new ClassReader(byteCode);
+        LambdaClassLocator cv = new LambdaClassLocator(Opcodes.ASM7, loader, exception);
+        reader.accept(cv, 0);
+        if (cv.isLambdaClass()) {
+          LambdaClassDescription lambdaClassDescription = cv.getLambdaClassDescription();
+          add(lambdaClassDescription.getClassName(), lambdaClassDescription.getDescription());
+        }
+      }
+    }
+
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
-        ProtectionDomain protectionDomain, byte[] classfileBuffer)
-        throws IllegalClassFormatException {
+        ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
       if (className == null && loader != null) {
         analyze(classfileBuffer, loader);
       }
@@ -196,9 +258,9 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
     }
 
     public static void analyze(byte[] byteCode, ClassLoader loader) {
-      if (_count.getAndIncrement() == 0) {
+      if (COUNT.getAndIncrement() == 0) {
         CountDownLatch latch = new CountDownLatch(1);
-        while (!_latchRef.compareAndSet(null, latch)) {
+        while (!LATCH_REF.compareAndSet(null, latch)) {
           /*
            * Busy spin. If we got here it means that other thread just
            * decremented _count to 0 and is about to null out _latchRef.
@@ -208,35 +270,7 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
         }
       }
       final Exception e = new Exception();
-      ForkJoinPool.commonPool().execute(new Runnable() {
-        @Override
-        public void run() {
-          try {
-            doAnalyze(byteCode, loader, e);
-          } catch (Throwable t) {
-            /*
-             * We need to catch  everything because other
-             * threads may be blocked on CountDownLatch.
-             */
-            System.out.println("WARNING: Parseq cannot doAnalyze");
-            t.printStackTrace();
-          }
-          if (_count.decrementAndGet() == 0) {
-            CountDownLatch latch = _latchRef.getAndSet(null);
-            latch.countDown();
-          }
-        }
-      });
-    }
-
-    public static void doAnalyze(byte[] byteCode, ClassLoader loader, Exception exception) {
-      ClassReader reader = new ClassReader(byteCode);
-      LambdaClassLocator cv = new LambdaClassLocator(Opcodes.ASM7, loader, exception);
-      reader.accept(cv, 0);
-      if (cv.isLambdaClass()) {
-        LambdaClassDescription lambdaClassDescription = cv.getLambdaClassDescription();
-        add(lambdaClassDescription.getClassName(), lambdaClassDescription.getDescription());
-      }
+      EXECUTOR_SERVICE.submit(AnalyzerRunnable.of(byteCode, loader, e));
     }
   }
 }

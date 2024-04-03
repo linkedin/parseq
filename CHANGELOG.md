@@ -1,6 +1,30 @@
-v5.1.14
+v5.1.20
 ------
 * Upgrade bytebuddy and asm version for JDK 17 and JDK 21 support
+
+v5.1.19
+------
+* Explicitly set default value for TraceBuilder's ResultType to UNFINISHED to prevent null argument when building the trace in TraceBuilder.
+
+v5.1.18
+------
+* Minor UI updates to trace visualizer to refresh JavaScript dependencies.
+
+v5.1.17
+------
+* Use dedicated executor service for lambda analysis
+ 
+v5.1.16
+------
+* Add the support of offloading sendRequest call to an executor
+
+v5.1.15
+------
+* Fix stack overflow error in TaskDescriptor when lambda is used
+
+v5.1.14
+------
+* Update ASMBasedTaskDescriptor to avoid blocking when classes have already been analyzed
 
 v5.1.13
 ------

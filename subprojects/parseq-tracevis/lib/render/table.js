@@ -115,7 +115,7 @@ function redraw(table, data) {
   }).text(function(d) {
     return d.resultType;
   });
-  rowsEnter.append('td').classed('value', true).append('textarea').attr('rows',
+  rowsEnter.append('td').classed('value', true).append('textarea').attr('class', 'text-monospace form-control').attr('rows',
       2).text(function(d) {
     return d.value;
   });
