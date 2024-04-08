@@ -134,7 +134,7 @@ public class ASMBasedTaskDescriptor implements TaskDescriptor {
             .transform(new AgentBuilder.Transformer() {
               @Override
               public Builder<?> transform(Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader,
-                  JavaModule module) {
+                  JavaModule module, ProtectionDomain protectionDomain) {
                 return builder.visit(Advice.to(AnalyzerAdvice.class).on(ElementMatchers.named("defineAnonymousClass")));
               }
             })

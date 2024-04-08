@@ -1,3 +1,7 @@
+v5.1.20
+------
+* Upgrade bytebuddy and asm version for JDK 17 and JDK 21 support
+
 v5.1.19
 ------
 * Explicitly set default value for TraceBuilder's ResultType to UNFINISHED to prevent null argument when building the trace in TraceBuilder.
