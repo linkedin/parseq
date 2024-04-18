@@ -6,7 +6,7 @@ package com.linkedin.parseq;
  */
 public enum TaskType {
   FUSION ("fusion"),
-  BLOCKING ("blocking"),
+  CALLABLE_IN_EXECUTOR("callbleInExecutor"),
   SHAREABLE ("shareable"),
   FLATTEN ("flatten"),
   WITH_SIDE_EFFECT ("withSideEffect"),
