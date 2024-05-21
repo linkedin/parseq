@@ -136,15 +136,20 @@ public interface Promise<P> {
    * @return CompletionStage
    */
   default CompletionStage<P> toCompletionStage() {
-    final CompletableFuture<P> future = new CompletableFuture<>();
-    addListener(p -> {
-      if (!p.isFailed()) {
-        future.complete(p.get());
+      final CompletableFuture<P> future = new CompletableFuture<>();
+      if (isDone()) {
+          future.complete(get());
+      } else if (isFailed()) {
+          future.completeExceptionally(getError());
+      } else {
+          addListener(p -> {
+              if (!p.isFailed()) {
+                  future.complete(p.get());
+              } else {
+                  future.completeExceptionally(p.getError());
+              }
+          });
       }
-      else {
-        future.completeExceptionally(p.getError());
-      }
-    });
-    return future;
+      return future;
   }
 }
