@@ -2,8 +2,17 @@ package com.linkedin.parseq;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.NoSuchElementException;
+import java.util.Stack;
 import java.util.concurrent.TimeoutException;
 
 
@@ -72,4 +81,85 @@ public class Exceptions {
     }
   }
 
+  /**
+   * Returns whether the given exception is a {@link MultiException}.
+   */
+  public static boolean isMultiple(final Throwable e) {
+    return e instanceof MultiException;
+  }
+
+  /**
+   * Returns all causes of the given exception.
+   * If the exception is a {@link MultiException}, it will return a list of all causes.
+   * If the exception is not a {@link MultiException} and not null, it will return a list with the exception; otherwise, it will return an empty list.
+   *
+   * @param e the exception to search, nullable
+   * @return a list of all causes, or an empty list if none found, never null
+   */
+  public static List<Throwable> allMultiCauses(final Throwable e) {
+    if (e == null) {
+      return Collections.emptyList();
+    }
+    if (!isMultiple(e)) {
+      return Collections.singletonList(e);
+    }
+
+    Deque<MultiException> meStack = new ArrayDeque<>();
+    meStack.push((MultiException) e);
+    List<Throwable> causes = new ArrayList<>();
+
+    while (!meStack.isEmpty()) {
+      MultiException me = meStack.pop();
+      if (me.getCauses() == null) {
+        continue;
+      }
+
+      for (Throwable cause : me.getCauses()) {
+        if (cause == null) {
+          continue;
+        }
+        if (isMultiple(cause)) {
+          meStack.push((MultiException) cause);
+        } else {
+          causes.add(cause);
+        }
+      }
+    }
+    return causes;
+  }
+
+  /**
+   * Finds the first non-MultiException cause of the given exception.
+   *
+   * @param e the exception to search, nullable
+   * @return the first non-MultiException cause, or null if none found, nullable
+   */
+  public static Throwable anyMultiCause(final Throwable e) {
+    if (!isMultiple(e)) {
+      return e;
+    }
+
+    Deque<MultiException> meStack = new ArrayDeque<>();
+    meStack.push((MultiException) e);
+
+    while (!meStack.isEmpty()) {
+      MultiException curMe = meStack.pop();
+      Collection<? extends Throwable> causes = curMe.getCauses();
+      if (causes == null) {
+        continue;
+      }
+
+      for (Throwable subCause : causes) {
+        if (subCause == null) {
+          continue;
+        }
+        if (isMultiple(subCause)) {
+          meStack.push((MultiException) subCause);
+        } else {
+          return subCause;
+        }
+      }
+    }
+    return null;
+  }
 }

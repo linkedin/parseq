@@ -1,3 +1,7 @@
+v5.1.21
+------
+* Add methods `allMultiCauses` and `anyMultiCause` to retrieve all causes and the first non-MultiException cause, respectively.
+
 v5.1.20
 ------
 * Upgrade bytebuddy and asm version for JDK 17 and JDK 21 support
