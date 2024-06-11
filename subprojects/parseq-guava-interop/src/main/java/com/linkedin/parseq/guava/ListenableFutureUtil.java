@@ -1,9 +1,5 @@
 package com.linkedin.parseq.guava;
 
-import com.linkedin.parseq.promise.Promises;
-import java.util.Collection;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.AbstractFuture;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -15,6 +11,8 @@ import com.linkedin.parseq.promise.Promise;
 import com.linkedin.parseq.promise.SettablePromise;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -29,38 +27,11 @@ public class ListenableFutureUtil {
   }
 
   public static <T> Task<T> fromListenableFuture(ListenableFuture<T> future) {
-
-    /**
-     * BaseTask's promise will be listening to this
-     * also see {@link BaseTask#contextRun(Context, Task, Collection)}
-     */
-    final SettablePromise<T> promise = Promises.settable();
-
     // Setup cancellation propagation from Task -> ListenableFuture.
-    final Task<T> task =
-        new BaseTask<T>("fromListenableFuture: " + Task._taskDescriptor.getDescription(future.getClass().getName())) {
-          @Override
-          public boolean cancel(Exception rootReason) {
-            // <BaseTask>.cancel()'s result indicates whether cancel() successfully trigger state transition to "CANCELLED"
-            // And we should only cancel GRPC future when the transition was conducted.
-            boolean shouldCancelTask = super.cancel(rootReason);
-            if (shouldCancelTask && !future.isCancelled()) {
-              boolean futureCancelResult = future.cancel(true);
-              if (!futureCancelResult) {
-                LOGGER.warn("Unexpected: GRPC future was not cancelled but new attempt to cancel also failed.");
-              }
-            }
-            return shouldCancelTask;
-          }
-
-          @Override
-          protected Promise<? extends T> run(Context context) throws Throwable {
-            return promise;
-          }
-        };
-
+    final ListenableFutureBridgedTask<T> task = new ListenableFutureBridgedTask<T>(future);
 
     // Setup forward event propagation ListenableFuture -> Task.
+    SettablePromise<T> promise = task.getSettableDelegate();
     Runnable callbackRunnable = () -> {
       if (promise.isDone()) {
         boolean isPromiseFailed = promise.isFailed();
@@ -141,6 +112,46 @@ public class ListenableFutureUtil {
     @Override
     public boolean setException(Throwable throwable) {
       return super.setException(throwable);
+    }
+  }
+
+  @VisibleForTesting
+  static class ListenableFutureBridgedTask<T> extends BaseTask<T> {
+
+    private final ListenableFuture<T> _future;
+
+    ListenableFutureBridgedTask(ListenableFuture<T> future) {
+      super("fromListenableFuture: " + Task._taskDescriptor.getDescription(future.getClass().getName()));
+      _future = future;
+    }
+
+    @Override
+    public boolean cancel(Exception rootReason) {
+      // <BaseTask>.cancel()'s result indicates whether cancel() successfully trigger state transition to "CANCELLED"
+      // And we should only cancel GRPC future when the transition was conducted.
+      boolean shouldCancelTask = super.cancel(rootReason);
+      if (shouldCancelTask && !_future.isCancelled()) {
+        boolean futureCancelResult = _future.cancel(true);
+        if (!futureCancelResult) {
+          LOGGER.warn("Unexpected: GRPC future was not cancelled but new attempt to cancel also failed.");
+        }
+      }
+      return shouldCancelTask;
+    }
+
+    @Override
+    protected Promise<? extends T> run(Context context) throws Throwable {
+      return getDelegate();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Exposed as public for access from {@link ListenableFutureUtil#fromListenableFuture(ListenableFuture)}</p>
+     */
+    @Override
+    public SettablePromise<T> getSettableDelegate() {
+      return super.getSettableDelegate();
     }
   }
 }
