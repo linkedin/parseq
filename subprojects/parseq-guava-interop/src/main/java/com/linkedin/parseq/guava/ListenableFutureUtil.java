@@ -47,7 +47,7 @@ public class ListenableFutureUtil {
             if (shouldCancelTask && !future.isCancelled()) {
               boolean futureCancelResult = future.cancel(true);
               if (!futureCancelResult) {
-                LOGGER.warn("Unexpected: Task {} future was not cancelled but new attempt to cancel also failed.", future.getClass.getName());
+                LOGGER.warn("Unexpected: ListenableFuture was not cancelled but new attempt to cancel also failed.");
               }
             }
             return shouldCancelTask;
