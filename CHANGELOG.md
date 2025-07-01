@@ -1,3 +1,7 @@
+v5.1.21
+------
+* Add a new base class for tests called BaseEngineParSeqTest.java to allow test suite execution in parallel (with no race conditions).
+
 v5.1.20
 ------
 * Upgrade bytebuddy and asm version for JDK 17 and JDK 21 support
