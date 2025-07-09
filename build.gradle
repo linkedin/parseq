@@ -4,7 +4,7 @@ buildscript {
   }
   dependencies {
     classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.32.0'
-    classpath 'gradle.plugin.com.github.johnrengelman:shadow:2.0.4'
+    classpath 'gradle.plugin.com.github.johnrengelman:shadow:7.1.2'
   }
 }
 
