@@ -3,7 +3,7 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.21.0'
+    classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.32.0'
     classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
   }
 }
