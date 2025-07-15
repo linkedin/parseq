@@ -62,6 +62,13 @@ public class ListenableFutureUtilTest extends BaseEngineTest {
     Assert.assertTrue(task.isDone());
     Assert.assertTrue(task.isFailed());
     Assert.assertEquals(task.getError().getCause().getClass(), CancellationException.class);
+
+    listenableFuture = new ListenableFutureUtil.SettableFuture<>();
+    task = ListenableFutureUtil.fromListenableFuture(listenableFuture);
+
+    // Test get.
+    listenableFuture.set("Haha");
+    Assert.assertEquals(task.get(), "Haha");
   }
 
   @Test
