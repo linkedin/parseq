@@ -22,4 +22,4 @@ if [ -z "$VERSION" ]; then
 fi
 
 # Run the actual build
-./gradlew -Prelease build
+./gradlew -Prelease build -is

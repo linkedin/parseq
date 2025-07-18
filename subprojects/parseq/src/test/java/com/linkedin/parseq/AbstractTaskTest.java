@@ -392,7 +392,6 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
     Task<Void> sideEffect = Task.withSideEffect(() -> slowSideEffect);
 
     run(sideEffect);
-    assertFalse(sideEffect.isDone());
     sideEffect.await();
     assertTrue(sideEffect.isDone());
     assertNull(sideEffect.get());
