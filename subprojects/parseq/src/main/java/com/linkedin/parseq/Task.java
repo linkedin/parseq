@@ -20,7 +20,6 @@ import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -1191,7 +1190,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * Creates a new task that have a value of type {@code Void}. Because the
    * returned task returns no value, it is typically used to produce side effects.
    * It is not appropriate for long running or blocking actions. If action is
-   * long running or blocking use {@link #blocking(String, Callable, Executor) blocking} method.
+   * long running or blocking use {@link #callableInExecutor(String, Callable, Executor)} method.
    *
    * <blockquote><pre>
    * // this task will print "Hello" on standard output
@@ -1279,7 +1278,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * from the supplied callable. This task is useful when doing basic
    * computation that does not require asynchrony. It is not appropriate for
    * long running or blocking callables. If callable is long running or blocking
-   * use {@link #blocking(String, Callable, Executor) blocking} method.
+   * use {@link #callableInExecutor(String, Callable, Executor)} method.
    *
    * <blockquote><pre>
    * // this task will complete with {@code String} representing current time
@@ -1425,7 +1424,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
    *
    * This method is not appropriate for long running or blocking callables.
    * If callable is long running or blocking use
-   * {@link #blocking(String, Callable, Executor) blocking} method.
+   * {@link #callableInExecutor(String, Callable, Executor)} method.
    * <p>
    *
    * @param <T> the type of the return value for this task
@@ -1515,10 +1514,10 @@ public interface Task<T> extends Promise<T>, Cancellable {
    * @return a new task that will submit the callable to given executor and complete
    * with result returned by that callable
    */
-  public static <T> Task<T> blocking(final String name, final Callable<? extends T> callable, final Executor executor) {
+  public static <T> Task<T> callableInExecutor(final String name, final Callable<? extends T> callable, final Executor executor) {
     ArgumentUtil.requireNotNull(callable, "callable");
     ArgumentUtil.requireNotNull(callable, "executor");
-    Task<T> blockingTask = async(name, () -> {
+    Task<T> asyncCallableTask = async(name, () -> {
       final SettablePromise<T> promise = Promises.settable();
       executor.execute(() -> {
         try {
@@ -1529,17 +1528,35 @@ public interface Task<T> extends Promise<T>, Cancellable {
       } );
       return promise;
     });
-    blockingTask.getShallowTraceBuilder().setTaskType(TaskType.BLOCKING.getName());
-    return blockingTask;
+     asyncCallableTask.getShallowTraceBuilder().setTaskType(TaskType.CALLABLE_IN_EXECUTOR.getName());
+    return  asyncCallableTask;
   }
 
   /**
-   * Equivalent to {@code blocking("blocking", callable, executor)}.
-   * @see #blocking(String, Callable, Executor)
+   * Equivalent to {@code callableInExecutor("callableInExecutor", callable, executor)}.
+   * @see #callableInExecutor(String, Callable, Executor)
    */
-  public static <T> Task<T> blocking(final Callable<? extends T> callable, final Executor executor) {
-    return blocking("blocking: " + _taskDescriptor.getDescription(callable.getClass().getName()), callable, executor);
+  public static <T> Task<T> callableInExecutor(final Callable<? extends T> callable, final Executor executor) {
+    return callableInExecutor("callableInExecutor: " + _taskDescriptor.getDescription(callable.getClass().getName()), callable, executor);
   }
+
+  /**
+   * @deprecated please use {@link Task#callableInExecutor(Callable, Executor)}
+   */
+  @Deprecated
+  public static <T> Task<T> blocking(final Callable<? extends T> callable, final Executor executor) {
+    return callableInExecutor("callableInExecutor: " + _taskDescriptor.getDescription(callable.getClass().getName()), callable, executor);
+  }
+
+
+  /**
+   * @deprecated please use {@link Task#callableInExecutor(String, Callable, Executor)}
+   */
+  @Deprecated
+  public static <T> Task<T> blocking(final String name, final Callable<? extends T> callable, final Executor executor) {
+    return callableInExecutor(name, callable, executor);
+  }
+
 
   /**
    * Creates a new task that will run given tasks in parallel. Returned task
