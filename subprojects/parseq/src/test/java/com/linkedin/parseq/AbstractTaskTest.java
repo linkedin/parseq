@@ -359,31 +359,49 @@ public abstract class AbstractTaskTest extends BaseEngineTest {
 
   @Test
   public void testWithSafeSideEffectFailureInTaskProviderFunction() {
-    Task<String> successMain = getSuccessTask();
-    Function1<? super String, Task<?>> func = s -> {
-      throw new RuntimeException();
-    };
-    Task<String> successMap = getSuccessTask();
+    final com.linkedin.parseq.internal.TestLogAppender logAppender = new com.linkedin.parseq.internal.TestLogAppender();
+    org.apache.log4j.Logger.getLogger(Task.class).addAppender(logAppender);
+    try {
+      Task<String> successMain = getSuccessTask();
+      Function1<? super String, Task<?>> func = s -> {
+        throw new RuntimeException("test error");
+      };
+      Task<String> successMap = getSuccessTask();
 
-    runAndWait(successMain
-        .withSafeSideEffect(func)
-        .flatMap(s -> successMap)
-    );
-    assertTrue(successMap.isDone());
-    assertFalse(successMain.isFailed());
-    assertFalse(successMap.isFailed());
+      runAndWait(successMain
+          .withSafeSideEffect("mySafeSideEffect", func)
+          .flatMap(s -> successMap)
+      );
+      assertTrue(successMap.isDone());
+      assertFalse(successMain.isFailed());
+      assertFalse(successMap.isFailed());
+      assertEquals(logAppender.getNumberOfLogEvents(), 1);
+      assertTrue(logAppender.logEventAtIndexMatchesCriteria(0, Task.class.getName(), org.apache.log4j.Level.WARN,
+          "An exception was thrown while creating safe side effect task: mySafeSideEffect", RuntimeException.class));
+    } finally {
+      org.apache.log4j.Logger.getLogger(Task.class).removeAppender(logAppender);
+    }
   }
 
   @Test
   public void testStaticWithSafeSideEffectFailureInTaskProviderFunction() {
-    Callable<Task<String>> func = () -> {
-      throw new RuntimeException();
-    };
-    Task<String> successMap = getSuccessTask();
+    final com.linkedin.parseq.internal.TestLogAppender logAppender = new com.linkedin.parseq.internal.TestLogAppender();
+    org.apache.log4j.Logger.getLogger(Task.class).addAppender(logAppender);
+    try {
+      Callable<Task<String>> func = () -> {
+        throw new RuntimeException("test static error");
+      };
+      Task<String> successMap = getSuccessTask();
 
-    runAndWait(Task.withSafeSideEffect(func).flatMap(s -> successMap));
-    assertTrue(successMap.isDone());
-    assertFalse(successMap.isFailed());
+      runAndWait(Task.withSafeSideEffect("myStaticSafeSideEffect", func).flatMap(s -> successMap));
+      assertTrue(successMap.isDone());
+      assertFalse(successMap.isFailed());
+      assertEquals(logAppender.getNumberOfLogEvents(), 1);
+      assertTrue(logAppender.logEventAtIndexMatchesCriteria(0, Task.class.getName(), org.apache.log4j.Level.WARN,
+          "An exception was thrown while creating safe side effect task: myStaticSafeSideEffect", RuntimeException.class));
+    } finally {
+      org.apache.log4j.Logger.getLogger(Task.class).removeAppender(logAppender);
+    }
   }
 
   @Test
