@@ -404,6 +404,7 @@ public interface Task<T> extends Promise<T>, Cancellable {
         }
         return task;
       } catch (Throwable t) {
+        LOGGER.warn("An exception was thrown while creating safe side effect task: " + desc, t);
         return Task.failure(desc, t);
       }
     });
@@ -434,10 +435,11 @@ public interface Task<T> extends Promise<T>, Cancellable {
       try {
         Task<?> task = func.call();
         if (task == null) {
-          throw new RuntimeException(desc + "returned null");
+          throw new RuntimeException(desc + " returned null");
         }
         return task;
       } catch (Throwable t) {
+        LOGGER.warn("An exception was thrown while creating safe side effect task: " + desc, t);
         return Task.failure(desc, t);
       }
     });
