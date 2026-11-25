@@ -17,7 +17,13 @@
 package com.linkedin.parseq;
 
 import com.linkedin.parseq.internal.PlanBasedRateLimiter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.OptionalLong;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Semaphore;
@@ -64,6 +70,13 @@ public class Engine {
   private static final boolean DEFAULT_DRAIN_SERIAL_EXECUTOR_QUEUE = true;
 
   public static final String DEFAULT_TASK_QUEUE = "_DefaultTaskQueue_";
+
+  /**
+   * When {@code true}, the engine records every active plan so {@link #getActivePlans()} can report them.
+   * Off by default; {@link #getActivePlanCount()} works regardless of this setting.
+   */
+  public static final String TRACK_ACTIVE_PLANS = "_TrackActivePlans_";
+  private static final boolean DEFAULT_TRACK_ACTIVE_PLANS = false;
 
   private static final State INIT = new State(StateName.RUN, 0);
   private static final State TERMINATED = new State(StateName.TERMINATED, 0);
@@ -122,6 +135,9 @@ public class Engine {
 
   private final ExecutionMonitor _executionMonitor;
 
+  // Null unless TRACK_ACTIVE_PLANS is enabled.
+  private final ConcurrentHashMap<Long, ActivePlanInfo> _activePlans;
+
   private final PlanDeactivationListener _planDeactivationListener;
   private final PlanCompletionListener _planCompletionListener;
 
@@ -168,7 +184,15 @@ public class Engine {
       _drainSerialExecutorQueue = DEFAULT_DRAIN_SERIAL_EXECUTOR_QUEUE;
     }
 
+    final boolean trackActivePlans = _properties.containsKey(TRACK_ACTIVE_PLANS)
+        ? (Boolean) getProperty(TRACK_ACTIVE_PLANS) : DEFAULT_TRACK_ACTIVE_PLANS;
+    _activePlans = trackActivePlans ? new ConcurrentHashMap<>() : null;
+
     _taskDoneListener = resolvedPromise -> {
+      if (_activePlans != null) {
+        _activePlans.remove(resolvedPromise.getId());
+      }
+
       assert _stateRef.get()._pendingCount > 0;
       assert _stateRef.get()._stateName != StateName.TERMINATED;
 
@@ -463,7 +487,54 @@ public class Engine {
     PlanContext planContext = new PlanContext(this, _taskExecutor, _timerExecutor, _loggerFactory, _allLogger,
         _rootLogger, planClass, task, _maxRelationshipsPerTrace, _planDeactivationListener, _planCompletionListener,
         _taskQueueFactory.newTaskQueue(), _drainSerialExecutorQueue, _executionMonitor);
+    if (_activePlans != null) {
+      // Registered before the task runs so the completion listener always finds the entry to remove.
+      final long now = System.nanoTime();
+      _activePlans.put(planContext.getId(), new ActivePlanInfo(planContext.getId(), planClass, task.getName(), now, now));
+    }
     new ContextImpl(planContext, task).runTask();
+  }
+
+  /**
+   * Returns the number of plans that have been started and have not completed yet. Always available and
+   * cheap: it reads the counter the engine already maintains for shutdown.
+   */
+  public long getActivePlanCount() {
+    return _stateRef.get()._pendingCount;
+  }
+
+  /**
+   * Returns the best-effort age of the oldest active plan, or zero when no plans are active.
+   * Returns empty when {@value #TRACK_ACTIVE_PLANS} is disabled. Scans the registry without copying plans.
+   */
+  public OptionalLong getOldestActivePlanAge(TimeUnit unit) {
+    Objects.requireNonNull(unit, "unit");
+    if (_activePlans == null) {
+      return OptionalLong.empty();
+    }
+    final long now = System.nanoTime();
+    long oldestAgeNanos = 0;
+    for (ActivePlanInfo plan : _activePlans.values()) {
+      oldestAgeNanos = Math.max(oldestAgeNanos, plan.ageNanosAt(now));
+    }
+    return OptionalLong.of(unit.convert(oldestAgeNanos, TimeUnit.NANOSECONDS));
+  }
+
+  /**
+   * Returns a snapshot of the plans that have been started and have not completed yet, or an empty list when
+   * {@value #TRACK_ACTIVE_PLANS} is not enabled. The list is not ordered and may be slightly out of date
+   * relative to {@link #getActivePlanCount()}.
+   */
+  public List<ActivePlanInfo> getActivePlans() {
+    if (_activePlans == null) {
+      return Collections.emptyList();
+    }
+    final long now = System.nanoTime();
+    final List<ActivePlanInfo> snapshot = new ArrayList<>(_activePlans.size());
+    for (ActivePlanInfo plan : _activePlans.values()) {
+      snapshot.add(plan.at(now));
+    }
+    return snapshot;
   }
 
   // acquire a permit to run the given task plan. always acquire a permit first from engine level

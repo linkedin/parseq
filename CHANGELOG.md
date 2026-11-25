@@ -1,3 +1,7 @@
+v5.1.21
+------
+* Add `Engine.getActivePlanCount()` and opt-in `Engine.getActivePlans()` and `Engine.getOldestActivePlanAge()` for active-plan observability (`_TrackActivePlans_`, off by default).
+
 v5.1.20
 ------
 * Upgrade bytebuddy and asm version for JDK 17 and JDK 21 support
