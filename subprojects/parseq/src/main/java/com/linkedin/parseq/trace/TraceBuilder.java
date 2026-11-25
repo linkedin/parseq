@@ -56,6 +56,10 @@ public class TraceBuilder {
     _planId = planId;
   }
 
+  public boolean isEnabled() {
+    return _maxTraceBuildersPerTrace != 0;
+  }
+
   public synchronized void addShallowTrace(final ShallowTraceBuilder shallowTrace) {
     if (_traceBuilders.size() < _maxTraceBuildersPerTrace) {
       _traceBuilders.add(shallowTrace);

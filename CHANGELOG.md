@@ -1,3 +1,7 @@
+v5.1.22
+------
+* Skip serializing task failure stack traces and trace values when `Engine.MAX_RELATIONSHIPS_PER_TRACE` is set to `0`.
+
 v5.1.21
 ------
 * Add `Engine.getActivePlanCount()` and opt-in `Engine.getActivePlans()` and `Engine.getOldestActivePlanAge()` for active-plan observability (`_TrackActivePlans_`, off by default).

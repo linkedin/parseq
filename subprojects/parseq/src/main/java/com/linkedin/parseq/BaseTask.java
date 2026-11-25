@@ -266,7 +266,9 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
       _shallowTraceBuilder.setResultType(ResultType.EARLY_FINISH);
     } else {
       _shallowTraceBuilder.setResultType(ResultType.ERROR);
-      _shallowTraceBuilder.setValue(Exceptions.failureToString(reason));
+      if (isTracingEnabled()) {
+        _shallowTraceBuilder.setValue(Exceptions.failureToString(reason));
+      }
     }
   }
 
@@ -304,10 +306,15 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
    */
   protected abstract Promise<? extends T> run(final Context context) throws Throwable;
 
-  private void traceDone(final T value) {
+  final boolean isTracingEnabled() {
+    final TraceBuilder traceBuilder = _traceBuilder;
+    return traceBuilder == null || traceBuilder.isEnabled();
+  }
+
+  void traceDone(final T value) {
     _shallowTraceBuilder.setResultType(ResultType.SUCCESS);
     final Function<T, String> traceValueProvider = _traceValueProvider;
-    if (traceValueProvider != null) {
+    if (traceValueProvider != null && isTracingEnabled()) {
       try {
         _shallowTraceBuilder.setValue(traceValueProvider.apply(value));
       } catch (Exception e) {

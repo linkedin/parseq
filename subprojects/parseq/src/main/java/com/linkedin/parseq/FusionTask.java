@@ -183,7 +183,7 @@ class FusionTask<S, T> extends BaseTask<T> {
               shallowTraceBuilder.setNativeEndNanos(endNanos);
               final Function<T, String> traceValueProvider = _traceValueProvider;
               shallowTraceBuilder.setResultType(ResultType.SUCCESS);
-              if (traceValueProvider != null) {
+              if (traceValueProvider != null && traceContext.getParent().getTraceBuilder().isEnabled()) {
                 try {
                   shallowTraceBuilder.setValue(traceValueProvider.apply(value));
                 } catch (Exception e) {
@@ -206,7 +206,9 @@ class FusionTask<S, T> extends BaseTask<T> {
                 shallowTraceBuilder.setResultType(ResultType.EARLY_FINISH);
               } else {
                 shallowTraceBuilder.setResultType(ResultType.ERROR);
-                shallowTraceBuilder.setValue(Exceptions.failureToString(error));
+                if (traceContext.getParent().getTraceBuilder().isEnabled()) {
+                  shallowTraceBuilder.setValue(Exceptions.failureToString(error));
+                }
               }
             }
             dest.fail(error);
@@ -222,15 +224,7 @@ class FusionTask<S, T> extends BaseTask<T> {
           public void done(final T value) throws PromiseResolvedException {
             try {
               transitionDone(traceContext);
-              final Function<T, String> traceValueProvider = _traceValueProvider;
-              _shallowTraceBuilder.setResultType(ResultType.SUCCESS);
-              if (traceValueProvider != null) {
-                try {
-                  _shallowTraceBuilder.setValue(traceValueProvider.apply(value));
-                } catch (Exception e) {
-                  _shallowTraceBuilder.setValue(Exceptions.failureToString(e));
-                }
-              }
+              traceDone(value);
               settable.done(value);
               traceContext.getParent().getTaskLogger().logTaskEnd(FusionTask.this, _traceValueProvider);
               CONTINUATIONS.submit(() -> dest.done(value));
