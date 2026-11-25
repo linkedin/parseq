@@ -17,7 +17,12 @@
 package com.linkedin.parseq;
 
 import com.linkedin.parseq.internal.PlanBasedRateLimiter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.OptionalLong;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Semaphore;
@@ -64,6 +69,13 @@ public class Engine {
   private static final boolean DEFAULT_DRAIN_SERIAL_EXECUTOR_QUEUE = true;
 
   public static final String DEFAULT_TASK_QUEUE = "_DefaultTaskQueue_";
+
+  /**
+   * Enables {@link #getActivePlans()} and {@link #getOldestActivePlanAge(TimeUnit)}.
+   * Off by default; {@link #getActivePlanCount()} works regardless of this setting.
+   */
+  public static final String TRACK_ACTIVE_PLANS = "_TrackActivePlans_";
+  private static final boolean DEFAULT_TRACK_ACTIVE_PLANS = false;
 
   private static final State INIT = new State(StateName.RUN, 0);
   private static final State TERMINATED = new State(StateName.TERMINATED, 0);
@@ -122,6 +134,9 @@ public class Engine {
 
   private final ExecutionMonitor _executionMonitor;
 
+  // Null unless TRACK_ACTIVE_PLANS is enabled.
+  private final ConcurrentHashMap<Long, ActivePlanInfo> _activePlans;
+
   private final PlanDeactivationListener _planDeactivationListener;
   private final PlanCompletionListener _planCompletionListener;
 
@@ -168,25 +183,15 @@ public class Engine {
       _drainSerialExecutorQueue = DEFAULT_DRAIN_SERIAL_EXECUTOR_QUEUE;
     }
 
-    _taskDoneListener = resolvedPromise -> {
-      assert _stateRef.get()._pendingCount > 0;
-      assert _stateRef.get()._stateName != StateName.TERMINATED;
+    final boolean trackActivePlans = _properties.containsKey(TRACK_ACTIVE_PLANS)
+        ? (Boolean) getProperty(TRACK_ACTIVE_PLANS) : DEFAULT_TRACK_ACTIVE_PLANS;
+    _activePlans = trackActivePlans ? new ConcurrentHashMap<>() : null;
 
-      State currState;
-      State newState;
-      do {
-        currState = _stateRef.get();
-        newState = new State(currState._stateName, currState._pendingCount - 1);
-      } while (!_stateRef.compareAndSet(currState, newState));
-
-      _concurrentPlans.release();
-      if (planClassRateLimiter != null) {
-        _planBasedRateLimiter.release(resolvedPromise.getPlanClass());
+    _taskDoneListener = planContext -> {
+      if (_activePlans != null) {
+        _activePlans.remove(planContext.getId());
       }
-
-      if (newState._stateName == StateName.SHUTDOWN && newState._pendingCount == 0) {
-        tryTransitionTerminate();
-      }
+      releasePlan(planContext.getPlanClass());
     };
 
     _planCompletionListener = planContext -> {
@@ -460,10 +465,125 @@ public class Engine {
       newState = new State(StateName.RUN, currState._pendingCount + 1);
     } while (!_stateRef.compareAndSet(currState, newState));
 
-    PlanContext planContext = new PlanContext(this, _taskExecutor, _timerExecutor, _loggerFactory, _allLogger,
-        _rootLogger, planClass, task, _maxRelationshipsPerTrace, _planDeactivationListener, _planCompletionListener,
-        _taskQueueFactory.newTaskQueue(), _drainSerialExecutorQueue, _executionMonitor);
+    final TrackedPlanCompletion trackedCompletion = _activePlans == null ? null : new TrackedPlanCompletion();
+    final long startNanos = trackedCompletion == null ? 0 : System.nanoTime();
+    final String taskName;
+    final PlanContext planContext;
+    try {
+      taskName = trackedCompletion == null ? null : activePlanTaskName(task);
+      planContext = new PlanContext(this, _taskExecutor, _timerExecutor, _loggerFactory, _allLogger,
+          _rootLogger, planClass, task, _maxRelationshipsPerTrace, _planDeactivationListener,
+          trackedCompletion == null ? _planCompletionListener : trackedCompletion,
+          _taskQueueFactory.newTaskQueue(), _drainSerialExecutorQueue, _executionMonitor);
+    } catch (RuntimeException | Error e) {
+      if (trackedCompletion != null && trackedCompletion.claimCompletion()) {
+        releasePlan(planClass);
+      }
+      throw e;
+    }
+    if (trackedCompletion != null) {
+      trackedCompletion.register(planContext, taskName, startNanos);
+    }
     new ContextImpl(planContext, task).runTask();
+  }
+
+  private final class TrackedPlanCompletion implements PlanCompletionListener {
+    private boolean _completionClaimed;
+
+    // Completion may be claimed during PlanContext construction, before its ID is available to Engine.
+    private synchronized void register(PlanContext planContext, String taskName, long startNanos) {
+      if (!_completionClaimed) {
+        Long planId = planContext.getId();
+        _activePlans.put(planId, new ActivePlanInfo(planId, planContext.getPlanClass(), taskName, startNanos,
+            startNanos));
+      }
+    }
+
+    private synchronized boolean claimCompletion() {
+      if (_completionClaimed) {
+        return false;
+      }
+      _completionClaimed = true;
+      return true;
+    }
+
+    @Override
+    public void onPlanCompleted(PlanContext planContext) {
+      if (claimCompletion()) {
+        _planCompletionListener.onPlanCompleted(planContext);
+      }
+    }
+  }
+
+  private static String activePlanTaskName(Task<?> task) {
+    try {
+      return task.getName();
+    } catch (RuntimeException e) {
+      LOG.debug("Unable to read active plan root task name", e);
+      return task.getClass().getName();
+    }
+  }
+
+  private void releasePlan(String planClass) {
+    assert _stateRef.get()._pendingCount > 0;
+    assert _stateRef.get()._stateName != StateName.TERMINATED;
+
+    State currState;
+    State newState;
+    do {
+      currState = _stateRef.get();
+      newState = new State(currState._stateName, currState._pendingCount - 1);
+    } while (!_stateRef.compareAndSet(currState, newState));
+
+    _concurrentPlans.release();
+    if (_planBasedRateLimiter != null) {
+      _planBasedRateLimiter.release(planClass);
+    }
+    if (newState._stateName == StateName.SHUTDOWN && newState._pendingCount == 0) {
+      tryTransitionTerminate();
+    }
+  }
+
+  /**
+   * Returns the number of plans that have been started and have not completed yet. Always available and
+   * cheap: it reads the counter the engine already maintains for shutdown.
+   */
+  public long getActivePlanCount() {
+    return _stateRef.get()._pendingCount;
+  }
+
+  /**
+   * Returns the best-effort age of the oldest active plan, or zero when no plans are active.
+   * Returns empty when {@value #TRACK_ACTIVE_PLANS} is disabled. Scans the registry without copying plans.
+   */
+  public OptionalLong getOldestActivePlanAge(TimeUnit unit) {
+    ArgumentUtil.requireNotNull(unit, "unit");
+    if (_activePlans == null) {
+      return OptionalLong.empty();
+    }
+    final long now = System.nanoTime();
+    long oldestAgeNanos = 0;
+    for (ActivePlanInfo plan : _activePlans.values()) {
+      oldestAgeNanos = Math.max(oldestAgeNanos, plan.ageNanosAt(now));
+    }
+    return OptionalLong.of(unit.convert(oldestAgeNanos, TimeUnit.NANOSECONDS));
+  }
+
+  /**
+   * Returns an unmodifiable snapshot of the plans that have not completed yet, or an empty list when
+   * {@value #TRACK_ACTIVE_PLANS} is not enabled. The list is not ordered and may be slightly out of date
+   * relative to {@link #getActivePlanCount()}.
+   */
+  public List<ActivePlanInfo> getActivePlans() {
+    if (_activePlans == null) {
+      return Collections.emptyList();
+    }
+    final long now = System.nanoTime();
+    final List<ActivePlanInfo> snapshot = new ArrayList<>(_activePlans.size());
+    for (ActivePlanInfo plan : _activePlans.values()) {
+      snapshot.add(plan.at(now));
+    }
+    return Collections.unmodifiableList(snapshot);
   }
 
   // acquire a permit to run the given task plan. always acquire a permit first from engine level

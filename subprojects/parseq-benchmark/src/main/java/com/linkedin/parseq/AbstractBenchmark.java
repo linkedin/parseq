@@ -69,6 +69,10 @@ public abstract class AbstractBenchmark {
     final EngineBuilder builder = new EngineBuilder().setTaskExecutor(scheduler).setTimerScheduler(scheduler);
     builder.setPlanDeactivationListener(_batchingSupport);
     builder.setEngineProperty(Engine.MAX_CONCURRENT_PLANS, config.CONCURRENCY_LEVEL);
+    // Enable with -Dparseq.benchmark.trackActivePlans=true to measure the overhead of active plan tracking.
+    if (Boolean.getBoolean("parseq.benchmark.trackActivePlans")) {
+      builder.setEngineProperty(Engine.TRACK_ACTIVE_PLANS, true);
+    }
     final Engine engine = builder.build();
     try {
       doRunBenchmark(engine, config);
