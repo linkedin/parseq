@@ -102,6 +102,13 @@ For more in-depth description of ParSeq please visit [User's Guide](https://gith
 
 For many more examples, please see the [parseq-examples](https://github.com/linkedin/parseq/tree/master/subprojects/parseq-examples) contrib project in the source code.
 
+## Disabling execution tracing
+
+Set `EngineBuilder.setEngineProperty(Engine.MAX_RELATIONSHIPS_PER_TRACE, 0)`
+to disable execution tracing; task execution and construction-time metadata are preserved.
+`Task.getTrace()` returns a shared immutable empty trace with plan class `"none"`
+and ID `0`; use `Context.getPlanId()` and `Context.getPlanClass()` for execution identity.
+
 ## Build
 
 Build and test whole parseq code `./gradlew clean build`

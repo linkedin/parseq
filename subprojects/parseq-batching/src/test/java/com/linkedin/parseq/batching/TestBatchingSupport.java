@@ -1,13 +1,16 @@
 package com.linkedin.parseq.batching;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import org.testng.annotations.Test;
 
 import com.linkedin.parseq.BaseEngineTest;
+import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.EngineBuilder;
 import com.linkedin.parseq.Task;
 
@@ -18,6 +21,34 @@ public class TestBatchingSupport extends BaseEngineTest {
   @Override
   protected void customizeEngine(EngineBuilder engineBuilder) {
     engineBuilder.setPlanDeactivationListener(_batchingSupport);
+  }
+
+  @Test
+  public void testBatchingWithoutTracingKeepsNoTraceLists() throws InterruptedException {
+    BatchingStrategy<Integer, Integer, String> strategy = new RecordingStrategy<Integer, Integer, String>(
+        (key, promise) -> promise.done(String.valueOf(key)), key -> 0) {
+      @Override
+      public void executeBatch(Integer group, Batch<Integer, String> batch) {
+        batch.values().forEach(entry -> assertSame(entry.getShallowTraceBuilders(), Collections.emptyList()));
+        super.executeBatch(group, batch);
+      }
+    };
+    _batchingSupport.registerStrategy(strategy);
+    EngineBuilder builder = new EngineBuilder().setTaskExecutor(Runnable::run).setTimerScheduler(getScheduler())
+        .setEngineProperty(Engine.MAX_RELATIONSHIPS_PER_TRACE, 0);
+    builder.setPlanDeactivationListener(_batchingSupport);
+    Engine untraced = builder.build();
+    Task<String> result = Task.par(strategy.batchable(1), strategy.batchable(1), strategy.batchable(2))
+        .map("concat", (a, b, c) -> a + b + c);
+    try {
+      untraced.run(result);
+      assertTrue(result.await(5, TimeUnit.SECONDS));
+      assertEquals(result.get(), "112");
+      assertTrue(result.getTrace().getTraceMap().isEmpty());
+      assertTrue(result.getTrace().getRelationships().isEmpty());
+    } finally {
+      untraced.shutdown();
+    }
   }
 
   @Test

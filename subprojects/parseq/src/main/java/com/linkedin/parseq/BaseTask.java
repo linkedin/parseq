@@ -196,7 +196,7 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
 
         taskLogger.logTaskStart(this);
         try {
-          final Context wrapperContext = new WrappedContext(context);
+          final Context wrapperContext = traceBuilder.isEnabled() ? new WrappedContext(context) : context;
           promise = doContextRun(wrapperContext);
         } finally {
           transitionPending();
@@ -262,6 +262,9 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
   }
 
   protected void traceFailure(final Throwable reason) {
+    if (!isTracingEnabled()) {
+      return;
+    }
     if (Exceptions.isEarlyFinish(reason)) {
       _shallowTraceBuilder.setResultType(ResultType.EARLY_FINISH);
     } else {
@@ -304,7 +307,10 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
    */
   protected abstract Promise<? extends T> run(final Context context) throws Throwable;
 
-  private void traceDone(final T value) {
+  void traceDone(final T value) {
+    if (!isTracingEnabled()) {
+      return;
+    }
     _shallowTraceBuilder.setResultType(ResultType.SUCCESS);
     final Function<T, String> traceValueProvider = _traceValueProvider;
     if (traceValueProvider != null) {
@@ -407,6 +413,12 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
     do {
       state = _stateRef.get();
       if (state.getType() != StateType.INIT) {
+        // DONE is terminal, so no enabled builder can be published after this point;
+        // concurrent writers here only ever carry disabled builders.
+        if (state.getType() == StateType.DONE && !traceBuilder.isEnabled() && _traceBuilder == null) {
+          _traceBuilder = traceBuilder;
+          traceBuilder.addShallowTrace(_shallowTraceBuilder);
+        }
         return false;
       }
       newState = state.transitionRun();
@@ -417,7 +429,9 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
   }
 
   protected void markTaskStarted() {
-    _shallowTraceBuilder.setNativeStartNanos(System.nanoTime());
+    if (isTracingEnabled()) {
+      _shallowTraceBuilder.setNativeStartNanos(System.nanoTime());
+    }
   }
 
   protected void transitionPending() {
@@ -434,7 +448,14 @@ public abstract class BaseTask<T> extends DelegatingPromise<T>implements Task<T>
   }
 
   protected void markTaskPending() {
-    _shallowTraceBuilder.setNativePendingNanos(System.nanoTime());
+    if (isTracingEnabled()) {
+      _shallowTraceBuilder.setNativePendingNanos(System.nanoTime());
+    }
+  }
+
+  final boolean isTracingEnabled() {
+    final TraceBuilder traceBuilder = _traceBuilder;
+    return traceBuilder == null || traceBuilder.isEnabled();
   }
 
   protected boolean transitionCancel(final Exception reason) {

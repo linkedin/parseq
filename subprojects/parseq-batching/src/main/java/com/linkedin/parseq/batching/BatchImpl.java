@@ -2,6 +2,7 @@ package com.linkedin.parseq.batching;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -128,12 +129,12 @@ public class BatchImpl<K, T> implements Batch<K, T> {
   public static class BatchEntry<T> {
 
     private final BatchPromise<T> _promise;
-    private final List<ShallowTraceBuilder> _shallowTraceBuilders = new ArrayList<>();
+    private List<ShallowTraceBuilder> _shallowTraceBuilders = Collections.emptyList();
     private final long _creationTimeNano = System.nanoTime();
 
     public BatchEntry(ShallowTraceBuilder shallowTraceBuilder, BatchPromise<T> promise) {
       _promise = promise;
-      _shallowTraceBuilders.add(shallowTraceBuilder);
+      addShallowTraceBuilder(shallowTraceBuilder);
     }
 
     public BatchPromise<T> getPromise() {
@@ -145,10 +146,22 @@ public class BatchImpl<K, T> implements Batch<K, T> {
     }
 
     void addShallowTraceBuilder(final ShallowTraceBuilder shallowTraceBuilder) {
+      if (shallowTraceBuilder == null) {
+        return;
+      }
+      if (_shallowTraceBuilders.isEmpty()) {
+        _shallowTraceBuilders = new ArrayList<>();
+      }
       _shallowTraceBuilders.add(shallowTraceBuilder);
     }
 
     void addShallowTraceBuilders(final List<ShallowTraceBuilder> shallowTraceBuilders) {
+      if (shallowTraceBuilders.isEmpty()) {
+        return;
+      }
+      if (_shallowTraceBuilders.isEmpty()) {
+        _shallowTraceBuilders = new ArrayList<>();
+      }
       _shallowTraceBuilders.addAll(shallowTraceBuilders);
     }
   }

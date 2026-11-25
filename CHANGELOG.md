@@ -1,3 +1,7 @@
+v5.1.22
+------
+* Disable execution tracing for zero limits; disabled plans share an empty "none"/0 trace.
+
 v5.1.21
 ------
 * Add `Engine.getActivePlanCount()` and opt-in `Engine.getActivePlans()` and `Engine.getOldestActivePlanAge()` for active-plan observability (`_TrackActivePlans_`, off by default).

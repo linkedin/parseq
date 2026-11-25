@@ -1,5 +1,6 @@
 package com.linkedin.parseq.internal;
 
+import java.util.Collections;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
@@ -8,14 +9,49 @@ import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.linkedin.parseq.After;
 import com.linkedin.parseq.Cancellable;
+import com.linkedin.parseq.Context;
 import com.linkedin.parseq.DelayedExecutor;
 import com.linkedin.parseq.Engine;
 import com.linkedin.parseq.Task;
+import com.linkedin.parseq.promise.Promise;
+import com.linkedin.parseq.trace.ShallowTraceBuilder;
 import com.linkedin.parseq.trace.TraceBuilder;
 
 
 public class PlanContext {
+
+  /**
+   * Shared builder and empty trace for plans with tracing disabled.
+   */
+  public static final TraceBuilder DISABLED_TRACE_BUILDER = new TraceBuilder(0, "none", 0L);
+
+  private static final Context DISABLED_CANCEL_CONTEXT = new Context() {
+    @Override public Cancellable createTimer(long time, TimeUnit unit, Task<?> task) { throw new UnsupportedOperationException(); }
+    @Override public void run(Task<?>... tasks) { throw new UnsupportedOperationException(); }
+    @Override public void runSideEffect(Task<?>... tasks) { throw new UnsupportedOperationException(); }
+    @Override public After after(Promise<?>... promises) { throw new UnsupportedOperationException(); }
+    @Override public Object getEngineProperty(String key) { return null; }
+    @Override public ShallowTraceBuilder getShallowTraceBuilder() { return null; }
+    @Override public TraceBuilder getTraceBuilder() { return DISABLED_TRACE_BUILDER; }
+    @Override public Long getPlanId() { return 0L; }
+    @Override public String getPlanClass() { return "none"; }
+    @Override public Long getTaskId() { return null; }
+    @Override public TaskLogger getTaskLogger() { return null; }
+  };
+
+  /**
+   * Cancels a task belonging to a plan with tracing disabled, binding it to
+   * {@link #DISABLED_TRACE_BUILDER} and freezing its metadata builder once done.
+   */
+  public static boolean cancelDisabled(final Task<?> task, final Exception reason) {
+    final boolean cancelled = task.cancel(reason);
+    if (task.isDone()) {
+      task.contextRun(DISABLED_CANCEL_CONTEXT, null, Collections.emptyList());
+    }
+    return cancelled;
+  }
 
   private static final Logger LOG = LoggerFactory.getLogger(PlanContext.class.getName());
 
@@ -59,9 +95,10 @@ public class PlanContext {
       final boolean drainSerialExecutorQueue, ExecutionMonitor executionMonitor) {
     _id = IdGenerator.getNextId();
     _root = root;
-    _relationshipsBuilder = new TraceBuilder(maxRelationshipsPerTrace, planClass, _id);
+    _relationshipsBuilder = maxRelationshipsPerTrace == 0 ? DISABLED_TRACE_BUILDER
+        : new TraceBuilder(maxRelationshipsPerTrace, planClass, _id);
     _engine = engine;
-    _taskExecutor = new SerialExecutor(taskExecutor, new CancellingPlanExceptionHandler(root), () -> {
+    _taskExecutor = new SerialExecutor(taskExecutor, new CancellingPlanExceptionHandler(root, _relationshipsBuilder), () -> {
       try {
         planDeactivationListener.onPlanDeactivated(PlanContext.this);
       } catch (Throwable t) {
@@ -161,16 +198,20 @@ public class PlanContext {
 
   private static class CancellingPlanExceptionHandler implements UncaughtExceptionHandler {
     private final Task<?> _task;
+    private final TraceBuilder _traceBuilder;
 
-    private CancellingPlanExceptionHandler(Task<?> task) {
+    private CancellingPlanExceptionHandler(Task<?> task, TraceBuilder traceBuilder) {
       _task = task;
+      _traceBuilder = traceBuilder;
     }
 
     @Override
     public void uncaughtException(Throwable error) {
       final String msg = "Serial executor loop failed for plan: " + _task.getName();
       final SerialExecutionException ex = new SerialExecutionException(msg, error);
-      final boolean wasCancelled = _task.cancel(ex);
+      final boolean wasCancelled = _traceBuilder.isEnabled()
+          ? _task.cancel(ex)
+          : cancelDisabled(_task, ex);
       LOG.error(msg + ". The plan was " + (wasCancelled ? "" : "not ") + "cancelled.", ex);
     }
 
