@@ -16,6 +16,7 @@
 
 package com.linkedin.parseq;
 
+import com.linkedin.parseq.internal.ArgumentUtil;
 import java.util.concurrent.TimeUnit;
 
 
@@ -59,6 +60,7 @@ public final class ActivePlanInfo {
 
   /** Returns how long the plan had been running when the snapshot was taken. */
   public long getAge(TimeUnit unit) {
+    ArgumentUtil.requireNotNull(unit, "unit");
     return unit.convert(ageNanosAt(_snapshotNanos), TimeUnit.NANOSECONDS);
   }
 
