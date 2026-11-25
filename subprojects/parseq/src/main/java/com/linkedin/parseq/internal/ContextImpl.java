@@ -68,7 +68,7 @@ public class ContextImpl implements Context, Cancellable {
       final List<Task<?>> predecessorTasks) {
     _planContext = planContext;
     _task = InternalUtil.unwildcardTask(task);
-    _parent = planContext.getRelationshipsBuilder().isEnabled() ? parent : NO_PARENT;
+    _parent = parent;
     _predecessorTasks = predecessorTasks;
   }
 
@@ -133,18 +133,13 @@ public class ContextImpl implements Context, Cancellable {
   public After after(final Promise<?>... promises) {
     checkInTask();
 
-    final List<Task<?>> predecessorTasks;
-    if (getTraceBuilder().isEnabled()) {
-      final List<Task<?>> tmpPredecessorTasks = new ArrayList<Task<?>>();
-      for (Promise<?> promise : promises) {
-        if (promise instanceof Task) {
-          tmpPredecessorTasks.add((Task<?>) promise);
-        }
+    final List<Task<?>> tmpPredecessorTasks = new ArrayList<Task<?>>();
+    for (Promise<?> promise : promises) {
+      if (promise instanceof Task) {
+        tmpPredecessorTasks.add((Task<?>) promise);
       }
-      predecessorTasks = Collections.unmodifiableList(tmpPredecessorTasks);
-    } else {
-      predecessorTasks = NO_PREDECESSORS;
     }
+    final List<Task<?>> predecessorTasks = Collections.unmodifiableList(tmpPredecessorTasks);
 
     return new After() {
 
@@ -197,12 +192,7 @@ public class ContextImpl implements Context, Cancellable {
     if (subPlan != null) {
       new ContextImpl(subPlan, taskWrapper, _task, predecessors).runTask();
     } else {
-      final IllegalStateException reason = new IllegalStateException("Plan is already completed");
-      if (getTraceBuilder().isEnabled()) {
-        taskWrapper.cancel(reason);
-      } else {
-        PlanContext.cancelDisabled(taskWrapper, reason);
-      }
+      taskWrapper.cancel(new IllegalStateException("Plan is already completed"));
     }
   }
 

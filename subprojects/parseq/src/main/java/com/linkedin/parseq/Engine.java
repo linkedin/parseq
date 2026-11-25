@@ -59,9 +59,6 @@ public class Engine {
 
   // TODO: this constant should be renamed.
   // Need to fix in the next major version release.
-  /**
-   * A zero limit disables recording and shares an empty trace with plan class {@code "none"} and ID zero.
-   */
   public static final String MAX_RELATIONSHIPS_PER_TRACE = "_MaxRelationshipsPerTrace_";
   private static final int DEFUALT_MAX_RELATIONSHIPS_PER_TRACE = 65536;
 
@@ -462,12 +459,7 @@ public class Engine {
     do {
       currState = _stateRef.get();
       if (currState._stateName != StateName.RUN) {
-        final EngineShutdownException reason = new EngineShutdownException("Task submitted after engine shutdown");
-        if (_maxRelationshipsPerTrace == 0) {
-          PlanContext.cancelDisabled(task, reason);
-        } else {
-          task.cancel(reason);
-        }
+        task.cancel(new EngineShutdownException("Task submitted after engine shutdown"));
         return;
       }
       newState = new State(StateName.RUN, currState._pendingCount + 1);

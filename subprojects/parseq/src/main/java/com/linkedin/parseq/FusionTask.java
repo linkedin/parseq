@@ -128,10 +128,7 @@ class FusionTask<S, T> extends BaseTask<T> {
        * At this point we know that transformation chain's length > 1.
        * This code is executed during task execution, not when task is constructed.
        */
-      final boolean tracingEnabled = traceContext.getParent().getTraceBuilder().isEnabled();
-      if (tracingEnabled) {
-        traceContext.createSurrogate();
-      }
+      traceContext.createSurrogate();
 
       predecessor.accept(traceContext, src, new Settable<R>() {
 
@@ -139,9 +136,7 @@ class FusionTask<S, T> extends BaseTask<T> {
         public void done(R value) throws PromiseResolvedException {
           try {
             /* Track start time of the transformation. End time is tracked by closure created by completing() */
-            if (tracingEnabled) {
-              getEffectiveShallowTraceBuilder(traceContext).setNativeStartNanos(System.nanoTime());
-            }
+            getEffectiveShallowTraceBuilder(traceContext).setNativeStartNanos(System.nanoTime());
             propagator.accept(traceContext, Promises.value(value), dst);
           } catch (Exception e) {
             /* This can only happen if there is an internal problem. Propagators should not throw any exceptions. */
@@ -153,9 +148,7 @@ class FusionTask<S, T> extends BaseTask<T> {
         public void fail(Throwable error) throws PromiseResolvedException {
           try {
             /* Track start time of the transformation. End time is tracked by closure created by completing() */
-            if (tracingEnabled) {
-              getEffectiveShallowTraceBuilder(traceContext).setNativeStartNanos(System.nanoTime());
-            }
+            getEffectiveShallowTraceBuilder(traceContext).setNativeStartNanos(System.nanoTime());
             propagator.accept(traceContext, Promises.error(error), dst);
           } catch (Exception e) {
             /* This can only happen if there is an internal problem. Propagators should not throw any exceptions. */
@@ -176,10 +169,6 @@ class FusionTask<S, T> extends BaseTask<T> {
       final SettablePromise<T> settable = FusionTask.this.getSettableDelegate();
 
       if (isPropagationInitiator(traceContext)) {
-        if (!traceContext.getParent().getTraceBuilder().isEnabled()) {
-          propagator.accept(traceContext, src, dest);
-          return;
-        }
         /* BaseTask's code handles completing the parent task
          * we need to handle tracing of a surrogate task here
          */
@@ -194,7 +183,7 @@ class FusionTask<S, T> extends BaseTask<T> {
               shallowTraceBuilder.setNativeEndNanos(endNanos);
               final Function<T, String> traceValueProvider = _traceValueProvider;
               shallowTraceBuilder.setResultType(ResultType.SUCCESS);
-              if (traceValueProvider != null) {
+              if (traceValueProvider != null && traceContext.getParent().getTraceBuilder().isEnabled()) {
                 try {
                   shallowTraceBuilder.setValue(traceValueProvider.apply(value));
                 } catch (Exception e) {
@@ -217,7 +206,9 @@ class FusionTask<S, T> extends BaseTask<T> {
                 shallowTraceBuilder.setResultType(ResultType.EARLY_FINISH);
               } else {
                 shallowTraceBuilder.setResultType(ResultType.ERROR);
-                shallowTraceBuilder.setValue(Exceptions.failureToString(error));
+                if (traceContext.getParent().getTraceBuilder().isEnabled()) {
+                  shallowTraceBuilder.setValue(Exceptions.failureToString(error));
+                }
               }
             }
             dest.fail(error);

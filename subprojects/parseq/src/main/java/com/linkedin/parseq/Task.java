@@ -146,12 +146,6 @@ public interface Task<T> extends Promise<T>, Cancellable {
    */
   Long getId();
 
-  /**
-   * Returns the metadata builder, permanently frozen for {@link BaseTask} tasks
-   * bound to a plan with tracing disabled.
-   *
-   * @return the task metadata builder
-   */
   ShallowTraceBuilder getShallowTraceBuilder();
 
   TraceBuilder getTraceBuilder();

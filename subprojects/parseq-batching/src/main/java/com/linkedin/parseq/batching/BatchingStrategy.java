@@ -116,8 +116,7 @@ public abstract class BatchingStrategy<G, K, T> {
       final Long planId = ctx.getPlanId();
       final GroupBatchBuilder builder = _batches.computeIfAbsent(planId, k -> new GroupBatchBuilder());
       final G group = classify(key);
-      Batch<K, T> fullBatch = builder.add(group, key,
-          ctx.getTraceBuilder().isEnabled() ? ctx.getShallowTraceBuilder() : null, result);
+      Batch<K, T> fullBatch = builder.add(group, key, ctx.getShallowTraceBuilder(), result);
       if (fullBatch != null) {
         try {
           ctx.run(taskForBatch(group, fullBatch, true));

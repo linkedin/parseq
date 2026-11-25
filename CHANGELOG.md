@@ -1,6 +1,6 @@
 v5.1.22
 ------
-* Disable execution tracing for zero limits; disabled plans share an empty "none"/0 trace.
+* Skip serializing task failure stack traces and trace values when `Engine.MAX_RELATIONSHIPS_PER_TRACE` is set to `0`.
 
 v5.1.21
 ------

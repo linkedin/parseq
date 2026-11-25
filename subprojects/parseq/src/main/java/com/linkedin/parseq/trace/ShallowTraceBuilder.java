@@ -35,7 +35,6 @@ import com.linkedin.parseq.internal.ArgumentUtil;
 public class ShallowTraceBuilder {
 
   private final long _id;
-  private volatile boolean _disabled;
   private volatile String _name;
   private volatile boolean _hidden;
   private volatile String _value;
@@ -58,18 +57,6 @@ public class ShallowTraceBuilder {
 
   public ShallowTraceBuilder(long id) {
     _id = id;
-  }
-
-  /**
-   * Permanently freezes metadata, retaining existing values and ignoring later updates.
-   */
-  void disable() {
-    if (_disabled) {
-      return;
-    }
-    synchronized (this) {
-      _disabled = true;
-    }
   }
 
   public ShallowTraceBuilder(final ShallowTrace shallowTrace) {
@@ -95,9 +82,6 @@ public class ShallowTraceBuilder {
   }
 
   public ShallowTraceBuilder setHidden(boolean hidden) {
-    if (_disabled) {
-      return this;
-    }
     _hidden = hidden;
     return this;
   }
@@ -107,35 +91,23 @@ public class ShallowTraceBuilder {
   }
 
   public ShallowTraceBuilder setSystemHidden(boolean systemHidden) {
-    if (_disabled) {
-      return this;
-    }
     _systemHidden = systemHidden;
     return this;
   }
 
   public ShallowTraceBuilder setName(final String name) {
     ArgumentUtil.requireNotNull(name, "name");
-    if (_disabled) {
-      return this;
-    }
     _name = name;
     return this;
   }
 
   public ShallowTraceBuilder setValue(final String value) {
-    if (_disabled) {
-      return this;
-    }
     _value = value;
     return this;
   }
 
   public ShallowTraceBuilder setResultType(final ResultType resultType) {
     ArgumentUtil.requireNotNull(resultType, "resultType");
-    if (_disabled) {
-      return this;
-    }
     if (resultType != ResultType.UNFINISHED) {
       long nanoTime = System.nanoTime();
       if (_startNanos == -1) {
@@ -157,7 +129,7 @@ public class ShallowTraceBuilder {
    */
   @Deprecated
   public ShallowTraceBuilder setStartNanos(Long startNanos) {
-    if (_disabled || startNanos == null) {
+    if (startNanos == null) {
       return this;
     }
     _startNanos = startNanos;
@@ -169,7 +141,7 @@ public class ShallowTraceBuilder {
    */
   @Deprecated
   public ShallowTraceBuilder setPendingNanos(Long pendingNanos) {
-    if (_disabled || pendingNanos == null) {
+    if (pendingNanos == null) {
       return this;
     }
     _pendingNanos = pendingNanos;
@@ -181,7 +153,7 @@ public class ShallowTraceBuilder {
    */
   @Deprecated
   public ShallowTraceBuilder setEndNanos(Long endNanos) {
-    if (_disabled || endNanos == null) {
+    if (endNanos == null) {
       return this;
     }
     _endNanos = endNanos;
@@ -189,33 +161,21 @@ public class ShallowTraceBuilder {
   }
 
   public ShallowTraceBuilder setNativeStartNanos(long startNanos) {
-    if (_disabled) {
-      return this;
-    }
     _startNanos = startNanos;
     return this;
   }
 
   public ShallowTraceBuilder setNativePendingNanos(long pendingNanos) {
-    if (_disabled) {
-      return this;
-    }
     _pendingNanos = pendingNanos;
     return this;
   }
 
   public ShallowTraceBuilder setNativeEndNanos(long endNanos) {
-    if (_disabled) {
-      return this;
-    }
     _endNanos = endNanos;
     return this;
   }
 
   public ShallowTraceBuilder setTaskType(String taskType) {
-    if (_disabled) {
-      return this;
-    }
     _taskType = taskType;
     return this;
   }
@@ -307,9 +267,6 @@ public class ShallowTraceBuilder {
   public synchronized ShallowTraceBuilder addAttribute(String key, String value) {
     ArgumentUtil.requireNotNull(key, "key");
     ArgumentUtil.requireNotNull(value, "value");
-    if (_disabled) {
-      return this;
-    }
     if (_attributes == null) {
       _attributes = new HashMap<>();
     }
@@ -319,9 +276,6 @@ public class ShallowTraceBuilder {
 
   public synchronized ShallowTraceBuilder removeAttribute(String key) {
     ArgumentUtil.requireNotNull(key, "key");
-    if (_disabled) {
-      return this;
-    }
     if (_attributes != null) {
       _attributes.remove(key);
       if (_attributes.isEmpty()) {

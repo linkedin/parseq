@@ -17,9 +17,6 @@
 package com.linkedin.parseq.trace;
 
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertSame;
-import static org.testng.Assert.expectThrows;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.ArrayList;
@@ -34,22 +31,6 @@ import com.linkedin.parseq.internal.IdGenerator;
  * @author Jaroslaw Odzga (jodzga@linkedin.com)
  */
 public class TestTraceBuilder {
-
-  @Test
-  public void testZeroLimitUsesSharedImmutableTraceCollections() {
-    TraceBuilder builder = new TraceBuilder(0, "disabled", 42L);
-    builder.addShallowTrace(null);
-    builder.addRelationship(Relationship.PARENT_OF, null, null);
-    Trace trace = builder.build();
-    assertFalse(builder.isEnabled());
-    assertSame(builder.build(), trace);
-    assertTrue(trace.getTraceMap().isEmpty());
-    assertTrue(trace.getRelationships().isEmpty());
-    expectThrows(UnsupportedOperationException.class, () -> trace.getTraceMap().put(1L, null));
-    expectThrows(UnsupportedOperationException.class, () -> trace.getRelationships().add(null));
-    assertEquals("disabled", trace.getPlanClass());
-    assertEquals(Long.valueOf(42L), trace.getPlanId());
-  }
 
   @Test
   public void testAddRelationship() {
